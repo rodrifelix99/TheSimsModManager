@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui' show Size;
 
 import 'package:flutter/widgets.dart' show Text;
@@ -10,6 +9,7 @@ import 'package:sims_mod_manager/src/core/game.dart';
 import 'package:sims_mod_manager/src/core/game_adapter.dart';
 import 'package:sims_mod_manager/src/core/game_registry.dart';
 import 'package:sims_mod_manager/src/core/mod.dart';
+import 'package:sims_mod_manager/src/core/package_insight.dart';
 import 'package:sims_mod_manager/src/services/settings_store.dart';
 import 'package:sims_mod_manager/src/ui/app.dart';
 import 'package:sims_mod_manager/src/ui/widgets.dart';
@@ -25,11 +25,15 @@ class _FakeAdapter extends FolderBasedGameAdapter {
   @override
   Future<Directory?> findGameFolder() async => gameFolder;
 
-  /// The real implementation reads the file in an [Isolate]: a thread the
-  /// widget test's fake-async zone can't wait on, whose open handle makes
+  /// The real implementation reads files in [Isolate]s: threads the
+  /// widget test's fake-async zone can't wait on, whose open handles make
   /// Windows fail the toggle rename and the temp-dir teardown delete.
   @override
-  Future<Uint8List?> loadThumbnail(Mod mod) async => null;
+  Future<Map<String, PackageInsight>> inspectMods(
+    List<Mod> mods, {
+    void Function(int done, int total)? onProgress,
+  }) async =>
+      const {};
 
   @override
   Game get game =>

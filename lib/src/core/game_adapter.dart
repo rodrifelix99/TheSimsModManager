@@ -1,12 +1,11 @@
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:typed_data';
 
 import 'package:path/path.dart' as p;
 
 import 'game.dart';
 import 'mod.dart';
-import 'package_thumbnail.dart';
+import 'package_insight.dart';
 
 /// Suffix appended to a mod file to hide it from the game without deleting it.
 const disabledSuffix = '.disabled';
@@ -70,10 +69,15 @@ abstract class GameAdapter {
   /// Enables or disables [mod] and returns its new state.
   Future<Mod> setEnabled(Mod mod, {required bool enabled});
 
-  /// Artwork found inside the mod file (PNG/JPEG/BMP bytes) for the UI
-  /// to show as the mod's thumbnail, or `null` when the file carries
-  /// none. Best-effort: must never throw.
-  Future<Uint8List?> loadThumbnail(Mod mod);
+  /// Looks inside every mod file for embedded artwork and a content
+  /// summary, keyed by `mod.path`. Meant to run once per library load,
+  /// off the UI thread; [onProgress] reports how many files have been
+  /// inspected so far. Files that yield nothing are simply absent from
+  /// the result. Best-effort: must never throw.
+  Future<Map<String, PackageInsight>> inspectMods(
+    List<Mod> mods, {
+    void Function(int done, int total)? onProgress,
+  });
 }
 
 /// Default implementation for games whose mods are plain files in a folder —
@@ -162,20 +166,73 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
   /// the file itself is its own thumbnail.
   static const _imageExtensions = {'.bmp', '.png', '.jpg', '.jpeg'};
 
+  /// Files scanned per isolate task — small enough for steady progress
+  /// updates, large enough that isolate spawns stay negligible.
+  static const _inspectBatchSize = 8;
+
+  /// Concurrent scanner isolates.
+  static const _inspectWorkers = 4;
+
   @override
-  Future<Uint8List?> loadThumbnail(Mod mod) async {
-    final path = mod.path;
-    final isImage =
-        _imageExtensions.contains(p.extension(mod.name).toLowerCase());
+  Future<Map<String, PackageInsight>> inspectMods(
+    List<Mod> mods, {
+    void Function(int done, int total)? onProgress,
+  }) async {
+    final results = <String, PackageInsight>{};
+    if (mods.isEmpty) return results;
+    final work = [
+      for (final mod in mods)
+        (
+          mod.path,
+          _imageExtensions.contains(p.extension(mod.name).toLowerCase()),
+        ),
+    ];
+    final batches = [
+      for (var i = 0; i < work.length; i += _inspectBatchSize)
+        work.sublist(
+            i,
+            i + _inspectBatchSize > work.length
+                ? work.length
+                : i + _inspectBatchSize),
+    ];
+    var done = 0;
+    var next = 0;
+    Future<void> worker() async {
+      while (next < batches.length) {
+        final batch = batches[next++];
+        Map<String, PackageInsight?> scanned;
+        try {
+          scanned = await Isolate.run(() => {
+                for (final (path, isImage) in batch)
+                  path: _inspectFile(path, isImage),
+              });
+        } catch (_) {
+          scanned = const {};
+        }
+        for (final entry in scanned.entries) {
+          final insight = entry.value;
+          if (insight != null) results[entry.key] = insight;
+        }
+        done += batch.length;
+        onProgress?.call(done, mods.length);
+      }
+    }
+
+    await Future.wait([
+      for (var i = 0; i < _inspectWorkers && i < batches.length; i++) worker(),
+    ]);
+    return results;
+  }
+
+  static PackageInsight? _inspectFile(String path, bool isImage) {
     try {
-      // Parsing happens in an isolate: packages can be large, and the
-      // library scrolls past dozens of them at once.
-      return await Isolate.run(() {
-        if (isImage) return File(path).readAsBytesSync();
-        // Non-DBPF files (.iff, .far, .ts4script…) fail the magic check
-        // inside and come back null almost for free.
-        return extractPackageThumbnail(File(path));
-      });
+      if (isImage) {
+        final bytes = File(path).readAsBytesSync();
+        return bytes.isEmpty ? null : PackageInsight(thumbnail: bytes);
+      }
+      // Non-DBPF files (.iff, .far, .ts4script…) fail the magic check
+      // inside scanPackage and come back null almost for free.
+      return scanPackage(File(path));
     } catch (_) {
       return null;
     }

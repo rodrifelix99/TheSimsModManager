@@ -1,30 +1,53 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-/// Best-effort extraction of embedded artwork from a DBPF `.package` file.
+/// What a best-effort look inside a mod file turned up: embedded artwork
+/// and a coarse summary of what the package contains. Plain data — safe
+/// to send across isolates.
+class PackageInsight {
+  const PackageInsight({
+    this.thumbnail,
+    this.resourceCount = 0,
+    this.contents = const {},
+  });
+
+  /// PNG/JPEG/BMP bytes for the UI to show, or `null` when the file
+  /// carries no readable artwork.
+  final Uint8List? thumbnail;
+
+  /// Total resources in the package index (0 for non-package files).
+  final int resourceCount;
+
+  /// Human label → count for recognized resource kinds ("CAS parts",
+  /// "Textures", …), largest first. Unrecognized types are not listed.
+  final Map<String, int> contents;
+}
+
+/// Best-effort scan of a DBPF `.package` file.
 ///
 /// Every Sims 2/3/4 mod is a DBPF archive: a header, a run of resource
 /// blobs, and an index describing each blob (type/group/instance, offset,
 /// size, compression). Custom content very often carries its own artwork
 /// in there — Sims 4 CAS/Build-Buy thumbnails written by creator tools,
-/// Sims 3 store-style PNG icons, Sims 2 Body Shop images — so the manager
-/// can show the real thing instead of placeholder art.
+/// Sims 3 store-style PNG icons, Sims 2 Body Shop images — usually in
+/// several sizes, so the scan measures every candidate's pixel dimensions
+/// and keeps the sharpest one instead of the first hit.
 ///
-/// The approach is deliberately forgiving: parse the index, walk resources
-/// (known thumbnail types first, then everything else smallest-first),
-/// undo the archive's compression, and return the first blob that starts
-/// with a PNG or JPEG signature. Anything unreadable — not a DBPF file,
+/// The approach is deliberately forgiving: parse the index, probe
+/// resources (known thumbnail types first, then everything else
+/// smallest-first within a byte budget), undo the archive's compression,
+/// and sniff PNG/JPEG signatures. Anything unreadable — not a DBPF file,
 /// truncated, exotic compression — yields `null` and the UI falls back to
 /// generated art. Never throws.
 ///
 /// Synchronous on purpose: callers run it off the UI thread (the adapter
-/// uses an isolate), and widget tests need file IO that can't leave a
-/// handle dangling in their fake-async zone.
-Uint8List? extractPackageThumbnail(File file) {
+/// batches files through isolates), and widget tests need file IO that
+/// can't leave a handle dangling in their fake-async zone.
+PackageInsight? scanPackage(File file) {
   RandomAccessFile? raf;
   try {
     raf = file.openSync();
-    return _extract(raf);
+    return _scan(raf);
   } catch (_) {
     return null;
   } finally {
@@ -36,7 +59,7 @@ Uint8List? extractPackageThumbnail(File file) {
 
 /// DBPF resource types that hold thumbnails/icons in some Sims game.
 /// Probed first; a wrong or missing type is harmless because every blob
-/// is verified by its image signature before being returned.
+/// is verified by its image signature before being considered.
 const _thumbnailTypes = <int>{
   // The Sims 4 thumbnail resources (JPEG with alpha, per s4pi).
   0x3C1AF1F2, 0x5B282D45, 0xCD9DE247, 0xE254AE6E,
@@ -47,6 +70,29 @@ const _thumbnailTypes = <int>{
   0x856DDBAC,
 };
 
+/// Resource type → content label for the "what's inside" summary.
+/// Best-effort and intentionally coarse; unknown types simply aren't
+/// counted. IDs cover Sims 2 (ASCII-style ids), Sims 3, and Sims 4.
+const _typeLabels = <int, String>{
+  0x034AEECB: 'CAS parts', // CASP (Sims 3/4)
+  0xC0DB5AE7: 'objects', // Sims 4 object definition
+  0x319E4F1D: 'objects', // Sims 3 OBJD / Sims 4 catalog object
+  0x4F424A44: 'objects', // Sims 2 OBJD
+  0x0333406C: 'tunings', // XML tuning (Sims 3/4)
+  0x545AC67A: 'tunings', // Sims 4 SimData
+  0x42484156: 'behaviors', // Sims 2 BHAV
+  0x220557DA: 'text tables', // Sims 4 STBL
+  0x53545223: 'text tables', // Sims 2 STR#
+  0x43545353: 'text tables', // Sims 2 CTSS catalog description
+  0x1C4A276C: 'textures', // Sims 2 TXTR
+  0x00B2D882: 'textures', // Sims 3 DDS image
+  0x3453CF95: 'textures', // Sims 4 RLE2
+  0xAC4F8687: 'meshes', // Sims 2 GMDC
+  0x015A1849: 'meshes', // Sims 4 GEOM
+  0x01661233: 'meshes', // MODL
+  0x01D10F34: 'meshes', // MLOD
+};
+
 /// The Sims 2 DIR resource listing compressed entries — never an image.
 const _dirResourceType = 0xE86B1EEF;
 
@@ -54,8 +100,15 @@ const _dirResourceType = 0xE86B1EEF;
 /// anything larger is a texture or mesh not worth reading into memory.
 const _maxResourceBytes = 8 << 20;
 
-/// How many non-thumbnail-typed resources to probe before giving up.
+/// How many resources to probe for artwork before giving up.
 const _maxProbes = 512;
+
+/// Total compressed bytes the artwork probe may read per package.
+const _probeByteBudget = 24 << 20;
+
+/// Once a found image reaches this many pixels (512×512), stop probing
+/// the generic pool — it's sharp enough for any thumbnail slot.
+const _goodEnoughArea = 512 * 512;
 
 class _Entry {
   _Entry(this.type, this.offset, this.fileSize, this.memSize, this.compression);
@@ -72,7 +125,7 @@ class _Entry {
   int get probeSize => memSize > 0 ? memSize : fileSize;
 }
 
-Uint8List? _extract(RandomAccessFile raf) {
+PackageInsight? _scan(RandomAccessFile raf) {
   final header = _readAt(raf, 0, 96);
   if (header.length < 96) return null;
   if (header[0] != 0x44 || header[1] != 0x42 || // 'DBPF'
@@ -95,9 +148,30 @@ Uint8List? _extract(RandomAccessFile raf) {
   final entries = major >= 2
       ? _parseIndexV2(index, entryCount)
       : _parseIndexV1(index, entryCount);
+  if (entries.isEmpty) return null;
 
-  // Known thumbnail types first (in file order), then the rest smallest
-  // first — small blobs are far more likely to be icons than textures.
+  final counts = <String, int>{};
+  for (final e in entries) {
+    final label = _typeLabels[e.type] ??
+        (_thumbnailTypes.contains(e.type) ? 'thumbnails' : null);
+    if (label != null) counts[label] = (counts[label] ?? 0) + 1;
+  }
+  final ordered = counts.entries.toList()
+    ..sort((a, b) => b.value.compareTo(a.value));
+
+  return PackageInsight(
+    thumbnail: _bestThumbnail(raf, entries),
+    resourceCount: entries.length,
+    contents: {for (final e in ordered) e.key: e.value},
+  );
+}
+
+/// Probes resources for embedded artwork and returns the sharpest image
+/// found (by pixel area), or `null`. Known thumbnail types are all
+/// probed; the generic pool is walked smallest-first within [_maxProbes]
+/// and [_probeByteBudget], stopping early once something crosses
+/// [_goodEnoughArea].
+Uint8List? _bestThumbnail(RandomAccessFile raf, List<_Entry> entries) {
   final preferred = <_Entry>[];
   final rest = <_Entry>[];
   for (final e in entries) {
@@ -108,16 +182,35 @@ Uint8List? _extract(RandomAccessFile raf) {
   }
   rest.sort((a, b) => a.probeSize.compareTo(b.probeSize));
 
+  Uint8List? best;
+  var bestArea = -1;
   var probes = 0;
-  for (final e in [...preferred, ...rest]) {
-    if (probes++ >= _maxProbes) break;
+  var bytesRead = 0;
+
+  void probe(_Entry e) {
+    probes++;
+    bytesRead += e.fileSize;
     final raw = _readAt(raf, e.offset, e.fileSize);
-    if (raw.length < e.fileSize) continue;
+    if (raw.length < e.fileSize) return;
     final data = _decompress(raw, e.compression);
-    if (data == null) continue;
-    if (_isPng(data) || _isJpeg(data)) return data;
+    if (data == null || !(_isPng(data) || _isJpeg(data))) return;
+    final area = _imageArea(data);
+    if (area > bestArea) {
+      best = data;
+      bestArea = area;
+    }
   }
-  return null;
+
+  for (final e in preferred) {
+    if (probes >= _maxProbes || bytesRead >= _probeByteBudget) break;
+    probe(e);
+  }
+  for (final e in rest) {
+    if (probes >= _maxProbes || bytesRead >= _probeByteBudget) break;
+    if (bestArea >= _goodEnoughArea) break;
+    probe(e);
+  }
+  return best;
 }
 
 /// DBPF v2 index (Sims 3/4): a flags word marks TGI fields that are
@@ -301,6 +394,40 @@ bool _isPng(Uint8List b) =>
 
 bool _isJpeg(Uint8List b) =>
     b.length >= 3 && b[0] == 0xFF && b[1] == 0xD8 && b[2] == 0xFF;
+
+/// Pixel area (width × height) of a PNG or JPEG, read from its headers
+/// without decoding. 0 when the dimensions can't be determined — such an
+/// image still counts, it just loses to anything measurable.
+int _imageArea(Uint8List b) {
+  if (_isPng(b)) {
+    // IHDR is always the first chunk: width/height big-endian at 16/20.
+    if (b.length < 24) return 0;
+    if (b[12] != 0x49 || b[13] != 0x48 || b[14] != 0x44 || b[15] != 0x52) {
+      return 0;
+    }
+    final d = ByteData.sublistView(b);
+    return d.getUint32(16) * d.getUint32(20);
+  }
+  if (_isJpeg(b)) {
+    // Walk segments to a start-of-frame marker (0xC0–0xCF minus the
+    // huffman/arithmetic ones), which holds height/width big-endian.
+    var pos = 2;
+    while (pos + 9 < b.length) {
+      if (b[pos] != 0xFF) return 0;
+      final marker = b[pos + 1];
+      if (marker >= 0xC0 &&
+          marker <= 0xCF &&
+          marker != 0xC4 &&
+          marker != 0xC8 &&
+          marker != 0xCC) {
+        final d = ByteData.sublistView(b);
+        return d.getUint16(pos + 5) * d.getUint16(pos + 7);
+      }
+      pos += 2 + ((b[pos + 2] << 8) | b[pos + 3]);
+    }
+  }
+  return 0;
+}
 
 Uint8List _readAt(RandomAccessFile raf, int offset, int length) {
   raf.setPositionSync(offset);

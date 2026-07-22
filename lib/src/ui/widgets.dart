@@ -99,42 +99,37 @@ class PillSwitch extends StatelessWidget {
   }
 }
 
-/// A mod's thumbnail: artwork dug out of the mod file itself when it has
-/// any, [StripeThumb] placeholder art while loading or when it doesn't.
+/// A mod's thumbnail: artwork dug out of the mod file by the library's
+/// bulk scan, [StripeThumb] placeholder art when there is none.
 /// Undecodable bytes also fall back to the stripes, so a wrong guess from
-/// the extractor can never break a card.
+/// the scanner can never break a card.
 class ModThumb extends StatelessWidget {
   const ModThumb({
     super.key,
     required this.seed,
-    required this.thumbnail,
+    this.bytes,
     this.borderRadius,
   });
 
   final String seed;
-  final Future<Uint8List?> thumbnail;
+  final Uint8List? bytes;
   final BorderRadius? borderRadius;
 
   @override
   Widget build(BuildContext context) {
     final fallback = StripeThumb(seed: seed, borderRadius: borderRadius);
-    return FutureBuilder<Uint8List?>(
-      future: thumbnail,
-      builder: (context, snapshot) {
-        final bytes = snapshot.data;
-        if (bytes == null || bytes.isEmpty) return fallback;
-        return ClipRRect(
-          borderRadius: borderRadius ?? BorderRadius.zero,
-          child: Image.memory(
-            bytes,
-            fit: BoxFit.cover,
-            width: double.infinity,
-            height: double.infinity,
-            gaplessPlayback: true,
-            errorBuilder: (_, __, ___) => fallback,
-          ),
-        );
-      },
+    final data = bytes;
+    if (data == null || data.isEmpty) return fallback;
+    return ClipRRect(
+      borderRadius: borderRadius ?? BorderRadius.zero,
+      child: Image.memory(
+        data,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
+        gaplessPlayback: true,
+        errorBuilder: (_, __, ___) => fallback,
+      ),
     );
   }
 }

@@ -8,6 +8,7 @@ import '../core/game_adapter.dart';
 import '../core/game_registry.dart';
 import '../core/mod.dart';
 import '../core/mod_name.dart';
+import '../core/package_insight.dart';
 import '../services/disk_space.dart';
 import '../services/settings_store.dart';
 import '../services/sfx.dart';
@@ -206,16 +207,56 @@ class AppController extends ChangeNotifier {
     if (conflictPaths.isEmpty) conflictsOnly = false;
   }
 
-  /// Embedded-artwork futures keyed by file path + mtime, so a replaced
-  /// file is re-read but scrolling never re-parses the same package.
-  final Map<String, Future<Uint8List?>> _thumbnails = {};
+  /// Per-file scan results (embedded artwork + content summary). Keyed by
+  /// enabled-name path + size + mtime so a replaced file is re-scanned,
+  /// while a plain enable/disable rename keeps its cached entry.
+  final Map<String, PackageInsight> _insights = {};
 
-  /// Artwork found inside the mod file, or null — views fall back to
-  /// generated stripe art while this is pending or when it stays empty.
-  Future<Uint8List?> thumbnailFor(Mod mod) {
-    final key =
-        '${mod.path}|${mod.modifiedAt?.millisecondsSinceEpoch ?? 0}';
-    return _thumbnails.putIfAbsent(key, () => _adapter.loadThumbnail(mod));
+  /// Bulk-scan progress for the loading screen: (inspected, total).
+  /// Null when no scan is running.
+  (int, int)? scanProgress;
+
+  String _insightKey(Mod mod) {
+    var path = mod.path;
+    if (path.toLowerCase().endsWith(disabledSuffix)) {
+      path = path.substring(0, path.length - disabledSuffix.length);
+    }
+    return '$path|${mod.sizeBytes ?? 0}'
+        '|${mod.modifiedAt?.millisecondsSinceEpoch ?? 0}';
+  }
+
+  /// What the bulk scan found inside [mod], or null when the file has
+  /// been scanned and yielded nothing (or isn't scanned yet).
+  PackageInsight? insightFor(Mod mod) => _insights[_insightKey(mod)];
+
+  /// Embedded artwork for [mod]'s thumbnail slots; views fall back to
+  /// generated stripe art on null.
+  Uint8List? thumbnailOf(Mod mod) => insightFor(mod)?.thumbnail;
+
+  /// Scans any mods that aren't in the insight cache yet, updating
+  /// [scanProgress] as batches finish. Runs during [refresh] while the
+  /// loading screen is up, so scrolling never triggers per-card IO.
+  Future<void> _scanNewMods() async {
+    final missing = [
+      for (final mod in mods)
+        if (!_insights.containsKey(_insightKey(mod))) mod,
+    ];
+    if (missing.isEmpty) return;
+    scanProgress = (0, missing.length);
+    notifyListeners();
+    try {
+      final found = await _adapter.inspectMods(missing,
+          onProgress: (done, total) {
+        scanProgress = (done, total);
+        notifyListeners();
+      });
+      for (final mod in missing) {
+        final insight = found[mod.path];
+        if (insight != null) _insights[_insightKey(mod)] = insight;
+      }
+    } finally {
+      scanProgress = null;
+    }
   }
 
   /// Plays [sound] unless UI sounds are switched off in Settings.
@@ -263,6 +304,9 @@ class AppController extends ChangeNotifier {
       // The filtered folder may have been renamed/emptied on disk.
       if (folder != 'All' && !folders.contains(folder)) folder = 'All';
       _rescanConflicts();
+      // Artwork/content scan happens here, under the loading screen,
+      // so the library renders instantly from cache afterwards.
+      await _scanNewMods();
       candidateDirs = await _adapter.findModsDirectoryCandidates();
       defaultPath = await _adapter.defaultModsPath();
       gameFolder = await _adapter.findGameFolder();

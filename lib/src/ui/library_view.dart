@@ -23,7 +23,32 @@ class LibraryView extends StatelessWidget {
     final t = theme;
     final c = controller;
     if (c.loading) {
-      return Center(child: CircularProgressIndicator(color: t.accent));
+      final progress = c.scanProgress;
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(
+              color: t.accent,
+              value: progress != null && progress.$2 > 0
+                  ? progress.$1 / progress.$2
+                  : null,
+            ),
+            if (progress != null) ...[
+              const SizedBox(height: 14),
+              Text(
+                'Looking inside mods for artwork… '
+                '${progress.$1} of ${progress.$2}',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: t.muted,
+                ),
+              ),
+            ],
+          ],
+        ),
+      );
     }
     if (c.modsDir == null) {
       return _FolderSetupView(theme: t, controller: c);
@@ -830,7 +855,7 @@ class _GridCard extends StatelessWidget {
                   children: [
                     ModThumb(
                       seed: mod.name,
-                      thumbnail: c.thumbnailFor(mod),
+                      bytes: c.thumbnailOf(mod),
                       borderRadius:
                           const BorderRadius.vertical(top: Radius.circular(14)),
                     ),
@@ -977,7 +1002,7 @@ class _ListRow extends StatelessWidget {
                 height: 52,
                 child: ModThumb(
                   seed: mod.name,
-                  thumbnail: c.thumbnailFor(mod),
+                  bytes: c.thumbnailOf(mod),
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),

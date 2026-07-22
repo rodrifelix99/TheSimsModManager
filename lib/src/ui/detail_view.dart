@@ -101,7 +101,7 @@ class DetailView extends StatelessWidget {
             children: [
               ModThumb(
                 seed: mod.name,
-                thumbnail: c.thumbnailFor(mod),
+                bytes: c.thumbnailOf(mod),
                 borderRadius: BorderRadius.circular(16),
               ),
               Positioned(
@@ -409,6 +409,7 @@ class DetailView extends StatelessWidget {
             _fact(t, 'Modified', modDate(mod)),
           ],
         ),
+        ..._contentsSection(t, c, mod),
         const SizedBox(height: 22),
         Text(
           'Status',
@@ -474,6 +475,42 @@ class DetailView extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  /// "Inside the package": counts of recognized resource kinds found by
+  /// the library scan. Empty for files that aren't readable packages.
+  List<Widget> _contentsSection(GameTheme t, AppController c, Mod mod) {
+    final insight = c.insightFor(mod);
+    if (insight == null || insight.resourceCount == 0) return const [];
+    return [
+      const SizedBox(height: 22),
+      Text(
+        'Inside the package',
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w800,
+          color: t.text,
+        ),
+      ),
+      const SizedBox(height: 8),
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (final entry in insight.contents.entries)
+            TagChip(
+              label: '${entry.value} ${entry.key}',
+              color: t.accent,
+              background: t.tint,
+            ),
+          TagChip(
+            label: '${insight.resourceCount} resources total',
+            color: t.muted,
+            background: t.surfaceAlt,
+          ),
+        ],
+      ),
+    ];
   }
 
   Widget _fact(GameTheme t, String label, String value) {
