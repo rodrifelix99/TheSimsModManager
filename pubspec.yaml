@@ -1,7 +1,7 @@
 name: sims_mod_manager
 description: Cross-platform desktop mod manager for The Sims series (and future moddable games).
 publish_to: "none"
-version: 1.0.1
+version: 1.0.2
 environment:
   sdk: ^3.5.0
 
