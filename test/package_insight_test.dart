@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -282,6 +283,29 @@ void main() {
     // The .iff yields nothing and is simply absent.
     expect(results.containsKey(iffFile.path), isFalse);
     expect(progress.last, (2, 2));
+  });
+
+  test('inspectMods still works when onProgress captures unsendable state',
+      () async {
+    // Regression test: the scan isolate's closure must not drag the
+    // caller's context along. In the app, onProgress closes over the
+    // AppController (and through its listeners, the widget tree) — if
+    // that context leaks into the isolate message, every batch fails
+    // and no artwork ever loads.
+    const adapter = Sims1Adapter();
+    final bmp = [0x42, 0x4D, 1, 2, 3, 4];
+    final bmpFile = write('skin.bmp', bmp);
+    final mods = [
+      Mod(name: 'skin.bmp', path: bmpFile.path, status: ModStatus.enabled),
+    ];
+
+    final port = ReceivePort(); // unsendable across isolates
+    addTearDown(port.close);
+    final results = await adapter.inspectMods(mods, onProgress: (done, total) {
+      // Reference the port so the callback's context holds it.
+      expect(port.hashCode, isNotNull);
+    });
+    expect(results[bmpFile.path]?.thumbnail, bmp);
   });
 
   test('inspectMods survives unreadable files and empty input', () async {

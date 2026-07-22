@@ -202,10 +202,7 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
         final batch = batches[next++];
         Map<String, PackageInsight?> scanned;
         try {
-          scanned = await Isolate.run(() => {
-                for (final (path, isImage) in batch)
-                  path: _inspectFile(path, isImage),
-              });
+          scanned = await _inspectBatch(batch);
         } catch (_) {
           scanned = const {};
         }
@@ -223,6 +220,20 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
     ]);
     return results;
   }
+
+  /// Spawns the scan isolate from a static scope whose only local is
+  /// [batch]. The closure must NOT be created inside [inspectMods]: a
+  /// closure captures its enclosing contexts, and there that chain
+  /// reaches the caller's `onProgress` — in the app a listener over the
+  /// whole controller/widget tree, which is expensive to copy into the
+  /// isolate message and fails outright on unsendable objects, silently
+  /// killing every batch.
+  static Future<Map<String, PackageInsight?>> _inspectBatch(
+          List<(String, bool)> batch) =>
+      Isolate.run(() => {
+            for (final (path, isImage) in batch)
+              path: _inspectFile(path, isImage),
+          });
 
   static PackageInsight? _inspectFile(String path, bool isImage) {
     try {
