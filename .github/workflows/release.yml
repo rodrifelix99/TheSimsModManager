@@ -1,0 +1,115 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter build windows --release
+      - name: Bundle VC++ runtime DLLs
+        shell: pwsh
+        run: |
+          $dest = "build/windows/x64/runner/Release"
+          foreach ($dll in "msvcp140.dll", "vcruntime140.dll", "vcruntime140_1.dll") {
+            Copy-Item "C:\Windows\System32\$dll" $dest
+          }
+      - name: Package portable zip
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          $version = "${{ github.ref_name }}".TrimStart("v")
+          Compress-Archive -Path "build/windows/x64/runner/Release/*" `
+            -DestinationPath "dist/TheSimsModManager-$version-windows-portable.zip"
+      - name: Build installer (Inno Setup)
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart("v")
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" `
+            "/DAppVersion=$version" installer\windows\setup.iss
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: dist/*
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter build macos --release
+      - name: Package .app zip
+        run: |
+          mkdir -p dist
+          VERSION="${GITHUB_REF_NAME#v}"
+          ditto -c -k --sequesterRsrc --keepParent \
+            "build/macos/Build/Products/Release/sims_mod_manager.app" \
+            "dist/TheSimsModManager-$VERSION-macos.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: dist/*
+
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libgtk-3-dev
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter build linux --release
+      - name: Package tar.gz
+        run: |
+          mkdir -p dist
+          VERSION="${GITHUB_REF_NAME#v}"
+          tar -czf "dist/TheSimsModManager-$VERSION-linux-x64.tar.gz" \
+            -C build/linux/x64/release/bundle .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux
+          path: dist/*
+
+  release:
+    needs: [windows, macos, linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
+          body: |
+            ### Downloads
+            | Platform | File |
+            |---|---|
+            | Windows installer | `*-windows-setup.exe` |
+            | Windows portable | `*-windows-portable.zip` — extract and run `sims_mod_manager.exe` |
+            | macOS | `*-macos.zip` |
+            | Linux | `*-linux-x64.tar.gz` — extract and run `sims_mod_manager` |
+
+            > **Windows:** the app is not code-signed yet, so SmartScreen may warn on first run — choose *More info → Run anyway*.
+            > **macOS:** the app is not notarized yet. If macOS blocks it, right-click the app and choose *Open*, or run `xattr -cr "/path/to/sims_mod_manager.app"`.
