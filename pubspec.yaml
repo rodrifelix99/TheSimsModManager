@@ -1,7 +1,7 @@
 name: sims_mod_manager
 description: Cross-platform desktop mod manager for The Sims series (and future moddable games).
 publish_to: "none"
-version: 0.1.0
+version: 1.0.0
 
 environment:
   sdk: ^3.5.0
@@ -9,7 +9,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  audioplayers: ^6.1.0
   path: ^1.9.0
+  file_selector: ^1.0.3
+  shared_preferences: ^2.3.0
 
 dev_dependencies:
   flutter_test:
@@ -18,3 +21,20 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/games/icons/
+    - assets/games/logos/
+    - assets/sounds/s1/ui/
+  fonts:
+    - family: Nunito
+      fonts:
+        - asset: assets/fonts/Nunito-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Nunito-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Nunito-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Nunito-ExtraBold.ttf
+          weight: 800
+        - asset: assets/fonts/Nunito-Black.ttf
+          weight: 900

@@ -1,27 +1,37 @@
 import 'package:flutter/material.dart';
 
 import '../core/game_registry.dart';
-import 'home_screen.dart';
+import '../services/settings_store.dart';
+import 'app_controller.dart';
+import 'shell.dart';
 
-class ModManagerApp extends StatelessWidget {
-  const ModManagerApp({super.key, required this.registry});
+class ModManagerApp extends StatefulWidget {
+  const ModManagerApp(
+      {super.key, required this.registry, required this.settings});
 
   final GameRegistry registry;
+  final SettingsStore settings;
+
+  @override
+  State<ModManagerApp> createState() => _ModManagerAppState();
+}
+
+class _ModManagerAppState extends State<ModManagerApp> {
+  late final AppController _controller =
+      AppController(registry: widget.registry, settings: widget.settings);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Sims Mod Manager',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorSchemeSeed: Colors.green,
         useMaterial3: true,
+        fontFamily: 'Nunito',
+        colorSchemeSeed: const Color(0xFF1FBF8F),
+        splashFactory: NoSplash.splashFactory,
       ),
-      darkTheme: ThemeData(
-        colorSchemeSeed: Colors.green,
-        brightness: Brightness.dark,
-        useMaterial3: true,
-      ),
-      home: HomeScreen(registry: registry),
+      home: AppShell(controller: _controller),
     );
   }
 }

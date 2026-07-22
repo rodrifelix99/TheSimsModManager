@@ -8,6 +8,7 @@ class Game {
     required this.id,
     required this.name,
     required this.series,
+    this.year,
   });
 
   /// Stable machine identifier, e.g. `sims4`. Used for settings keys.
@@ -18,6 +19,9 @@ class Game {
 
   /// Franchise grouping for the UI, e.g. `The Sims` or `SimCity`.
   final String series;
+
+  /// Original release year, e.g. 2014. Display-only.
+  final int? year;
 
   @override
   bool operator ==(Object other) => other is Game && other.id == id;

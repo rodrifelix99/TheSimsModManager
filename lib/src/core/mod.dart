@@ -11,6 +11,8 @@ class Mod {
     required this.path,
     required this.status,
     this.sizeBytes,
+    this.category = 'Package',
+    this.modifiedAt,
   });
 
   /// Display name (file name without the `.disabled` marker).
@@ -22,6 +24,12 @@ class Mod {
   final ModStatus status;
 
   final int? sizeBytes;
+
+  /// Coarse content type derived from the file extension by the adapter,
+  /// e.g. `Script`, `Package`, `Object`.
+  final String category;
+
+  final DateTime? modifiedAt;
 
   bool get isEnabled => status == ModStatus.enabled;
 }

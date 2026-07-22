@@ -21,10 +21,35 @@ abstract class GameAdapter {
   /// e.g. `{'.package', '.ts4script'}`.
   Set<String> get modFileExtensions;
 
+  /// Human-readable guidance shown when the mods folder can't be found:
+  /// where the folder normally lives and what the game needs before it
+  /// loads mods (in-game options, framework files, …).
+  String get setupHelp;
+
   /// Best-guess mods directory on this machine, or `null` if the game
   /// (or its mods folder) can't be located. The user can override this
-  /// per game in settings later.
+  /// per game in settings.
   Future<Directory?> resolveModsDirectory();
+
+  /// The path where this game's mods folder is *expected* to live, even
+  /// when it doesn't exist yet — so the app can offer to create it.
+  /// `null` when there is no way to guess (game not installed and no
+  /// conventional location).
+  Future<String?> defaultModsPath();
+
+  /// Every plausible mods folder on this machine. Users can have several
+  /// copies of a game (or localized folder names such as "Los Sims 3"),
+  /// each with its own mods folder; [resolveModsDirectory] picks the
+  /// first, this lists them all so the user can choose.
+  Future<List<Directory>> findModsDirectoryCandidates();
+
+  /// Creates the mods folder at [path], including any scaffolding the game
+  /// needs before it loads mods from it (e.g. `Resource.cfg` for Sims 3).
+  Future<Directory> createModsDirectory(String path);
+
+  /// Coarse content-type label for a mod file extension (lowercase, with
+  /// dot), e.g. `.ts4script` → `Script`.
+  String categoryForExtension(String extension);
 
   Future<List<Mod>> listMods(Directory modsDir);
 
@@ -41,10 +66,44 @@ abstract class GameAdapter {
 /// which is every Sims game. Disabling works by appending [disabledSuffix]
 /// to the file name so the game's loader skips it.
 ///
-/// Subclasses only supply [game], [modFileExtensions], and
-/// [resolveModsDirectory].
+/// Subclasses supply [game], [modFileExtensions], [setupHelp], and
+/// [defaultModsPath]; everything else has a sensible default. Override
+/// [findModsDirectoryCandidates] when the game can live in several places,
+/// and [scaffoldModsDirectory] when the game needs extra files (like a
+/// `Resource.cfg`) before it reads the folder.
 abstract class FolderBasedGameAdapter implements GameAdapter {
   const FolderBasedGameAdapter();
+
+  /// Extension → category label used by [categoryForExtension].
+  Map<String, String> get categoryByExtension => const {};
+
+  @override
+  String categoryForExtension(String extension) =>
+      categoryByExtension[extension.toLowerCase()] ?? 'Package';
+
+  @override
+  Future<Directory?> resolveModsDirectory() async {
+    final candidates = await findModsDirectoryCandidates();
+    return candidates.isEmpty ? null : candidates.first;
+  }
+
+  @override
+  Future<List<Directory>> findModsDirectoryCandidates() async {
+    final path = await defaultModsPath();
+    if (path == null) return const [];
+    final dir = Directory(path);
+    return await dir.exists() ? [dir] : const [];
+  }
+
+  @override
+  Future<Directory> createModsDirectory(String path) async {
+    final dir = await Directory(path).create(recursive: true);
+    await scaffoldModsDirectory(dir);
+    return dir;
+  }
+
+  /// Hook for game-specific setup files the loader needs. Default: none.
+  Future<void> scaffoldModsDirectory(Directory modsDir) async {}
 
   @override
   Future<List<Mod>> listMods(Directory modsDir) async {
@@ -61,6 +120,7 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
 
   @override
   Future<Mod> installMod(Directory modsDir, File source) async {
+    await modsDir.create(recursive: true);
     final target = p.join(modsDir.path, p.basename(source.path));
     final copied = await source.copy(target);
     return _toMod(copied)!;
@@ -87,14 +147,19 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
       name = name.substring(0, name.length - disabledSuffix.length);
       status = ModStatus.disabled;
     }
-    if (!modFileExtensions.contains(p.extension(name).toLowerCase())) {
+    final extension = p.extension(name).toLowerCase();
+    if (!modFileExtensions.contains(extension)) {
       return null;
     }
+    final stat = file.statSync();
     return Mod(
       name: name,
       path: file.path,
       status: status,
-      sizeBytes: file.existsSync() ? file.lengthSync() : null,
+      sizeBytes: stat.type == FileSystemEntityType.notFound ? null : stat.size,
+      category: categoryForExtension(extension),
+      modifiedAt:
+          stat.type == FileSystemEntityType.notFound ? null : stat.modified,
     );
   }
 }
