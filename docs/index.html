@@ -157,7 +157,8 @@
     transition: background .45s ease, border-color .45s ease;
   }
   .dl-card.recommended { border-color: var(--accent); box-shadow: 0 6px 24px -8px color-mix(in srgb, var(--accent) 35%, transparent); }
-  .dl-card .os { font-size: 26px; }
+  .dl-card .os { height: 30px; margin-bottom: 4px; }
+  .dl-card .os img { height: 100%; width: auto; object-fit: contain; }
   .dl-card h3 { font-size: 16.5px; font-weight: 800; }
   .dl-card h3 small { font-weight: 700; color: var(--muted); font-size: 12.5px; margin-left: 4px; }
   .dl-card p { font-size: 13px; color: var(--muted); font-weight: 600; flex: 1; }
@@ -287,25 +288,25 @@
     </div>
     <div class="dl-grid">
       <div class="dl-card" data-platform="windows-setup">
-        <div class="os">🪟</div>
+        <div class="os"><img src="images/systems/windows.webp" alt="Windows"></div>
         <h3>Windows <small>installer</small></h3>
         <p>Recommended for most people. Windows SmartScreen may warn because the app isn't code-signed yet — choose <b>More info → Run anyway</b>.</p>
         <a class="get" href="https://github.com/rodrifelix99/TheSimsModManager/releases/latest">Download .exe</a>
       </div>
       <div class="dl-card" data-platform="windows-portable">
-        <div class="os">🪟</div>
+        <div class="os"><img src="images/systems/windows.webp" alt="Windows"></div>
         <h3>Windows <small>portable</small></h3>
         <p>No install needed. Extract the zip anywhere and run <b>sims_mod_manager.exe</b>.</p>
         <a class="get" href="https://github.com/rodrifelix99/TheSimsModManager/releases/latest">Download .zip</a>
       </div>
       <div class="dl-card" data-platform="macos">
-        <div class="os">🍎</div>
+        <div class="os"><img src="images/systems/apple.png" alt="macOS"></div>
         <h3>macOS</h3>
         <p>Not notarized yet — the first time, <b>right-click the app → Open</b> instead of double-clicking.</p>
         <a class="get" href="https://github.com/rodrifelix99/TheSimsModManager/releases/latest">Download .zip</a>
       </div>
       <div class="dl-card" data-platform="linux">
-        <div class="os">🐧</div>
+        <div class="os"><img src="images/systems/linux.png" alt="Linux"></div>
         <h3>Linux</h3>
         <p>Extract the archive and run <b>sims_mod_manager</b>. Works with Wine/CrossOver game installs too.</p>
         <a class="get" href="https://github.com/rodrifelix99/TheSimsModManager/releases/latest">Download .tar.gz</a>
