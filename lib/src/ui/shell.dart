@@ -13,9 +13,17 @@ import 'widgets.dart';
 
 /// Window chrome: title bar, sidebar, and the active screen.
 class AppShell extends StatefulWidget {
-  const AppShell({super.key, required this.controller});
+  const AppShell({
+    super.key,
+    required this.controller,
+    this.translucentSidebar = false,
+  });
 
   final AppController controller;
+
+  /// When true the window has an OS blur backdrop (acrylic/vibrancy), so the
+  /// sidebar paints semi-transparent and the content area stays opaque.
+  final bool translucentSidebar;
 
   @override
   State<AppShell> createState() => _AppShellState();
@@ -38,49 +46,57 @@ class _AppShellState extends State<AppShell> {
         // macOS keeps its native traffic lights overlaid; Windows/Linux lose
         // their caption buttons with the hidden title bar, so we draw our own.
         final ownButtons = Platform.isWindows || Platform.isLinux;
+        final glass = widget.translucentSidebar;
         return Scaffold(
-          backgroundColor: t.bg,
+          // Transparent so the OS blur backdrop shows through the sidebar;
+          // the content column below paints itself opaque.
+          backgroundColor: glass ? Colors.transparent : t.bg,
           body: Stack(
             children: [
               Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _Sidebar(theme: t, controller: c),
+                  _Sidebar(theme: t, controller: c, glass: glass),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // Breathing room under the caption-button overlay.
-                        const SizedBox(height: kWindowCaptionHeight),
-                        Expanded(
-                          child: AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 320),
-                            switchInCurve: Curves.easeOut,
-                            transitionBuilder: (child, animation) =>
-                                FadeTransition(
-                              opacity: animation,
-                              child: SlideTransition(
-                                position: Tween(
-                                  begin: const Offset(0, .015),
-                                  end: Offset.zero,
-                                ).animate(animation),
-                                child: child,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 450),
+                      color: t.bg,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Breathing room under the caption-button overlay.
+                          const SizedBox(height: kWindowCaptionHeight),
+                          Expanded(
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 320),
+                              switchInCurve: Curves.easeOut,
+                              transitionBuilder: (child, animation) =>
+                                  FadeTransition(
+                                opacity: animation,
+                                child: SlideTransition(
+                                  position: Tween(
+                                    begin: const Offset(0, .015),
+                                    end: Offset.zero,
+                                  ).animate(animation),
+                                  child: child,
+                                ),
+                              ),
+                              child: KeyedSubtree(
+                                key: ValueKey(
+                                    '${c.adapter.game.id}.${c.screen}'),
+                                child: switch (c.screen) {
+                                  AppScreen.library =>
+                                    LibraryView(theme: t, controller: c),
+                                  AppScreen.detail =>
+                                    DetailView(theme: t, controller: c),
+                                  AppScreen.settings =>
+                                    SettingsView(theme: t, controller: c),
+                                },
                               ),
                             ),
-                            child: KeyedSubtree(
-                              key: ValueKey('${c.adapter.game.id}.${c.screen}'),
-                              child: switch (c.screen) {
-                                AppScreen.library =>
-                                  LibraryView(theme: t, controller: c),
-                                AppScreen.detail =>
-                                  DetailView(theme: t, controller: c),
-                                AppScreen.settings =>
-                                  SettingsView(theme: t, controller: c),
-                              },
-                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -178,10 +194,17 @@ class _WindowButtonsState extends State<_WindowButtons> with WindowListener {
 }
 
 class _Sidebar extends StatefulWidget {
-  const _Sidebar({required this.theme, required this.controller});
+  const _Sidebar({
+    required this.theme,
+    required this.controller,
+    required this.glass,
+  });
 
   final GameTheme theme;
   final AppController controller;
+
+  /// Paint semi-transparent so the OS blur behind the window shows through.
+  final bool glass;
 
   @override
   State<_Sidebar> createState() => _SidebarState();
@@ -209,7 +232,7 @@ class _SidebarState extends State<_Sidebar>
       width: 250,
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 20),
       decoration: BoxDecoration(
-        color: t.surface,
+        color: widget.glass ? t.surface.withValues(alpha: .55) : t.surface,
         border: Border(right: BorderSide(color: t.border)),
       ),
       child: Column(
@@ -370,10 +393,26 @@ class _SidebarState extends State<_Sidebar>
                         ? Image.asset(iconAsset, fit: BoxFit.contain)
                         : ColorFiltered(
                             colorFilter: const ColorFilter.matrix(<double>[
-                              0.2126, 0.7152, 0.0722, 0, 0,
-                              0.2126, 0.7152, 0.0722, 0, 0,
-                              0.2126, 0.7152, 0.0722, 0, 0,
-                              0, 0, 0, 1, 0,
+                              0.2126,
+                              0.7152,
+                              0.0722,
+                              0,
+                              0,
+                              0.2126,
+                              0.7152,
+                              0.0722,
+                              0,
+                              0,
+                              0.2126,
+                              0.7152,
+                              0.0722,
+                              0,
+                              0,
+                              0,
+                              0,
+                              0,
+                              1,
+                              0,
                             ]),
                             child: Image.asset(iconAsset, fit: BoxFit.contain),
                           ),
@@ -499,7 +538,7 @@ class _SidebarState extends State<_Sidebar>
       duration: const Duration(milliseconds: 450),
       padding: const EdgeInsets.fromLTRB(14, 13, 14, 13),
       decoration: BoxDecoration(
-        color: t.surfaceAlt,
+        color: widget.glass ? t.surfaceAlt.withValues(alpha: .5) : t.surfaceAlt,
         border: Border.all(color: t.border),
         borderRadius: BorderRadius.circular(13),
       ),
@@ -545,8 +584,7 @@ class _SidebarState extends State<_Sidebar>
                       alignment: Alignment.centerLeft,
                       widthFactor: pct,
                       child: Container(
-                        decoration:
-                            BoxDecoration(gradient: t.accentGradient),
+                        decoration: BoxDecoration(gradient: t.accentGradient),
                       ),
                     ),
                   ],

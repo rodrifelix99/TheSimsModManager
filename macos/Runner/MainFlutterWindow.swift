@@ -1,14 +1,19 @@
 import Cocoa
 import FlutterMacOS
+import flutter_acrylic
 
 class MainFlutterWindow: NSWindow {
   override func awakeFromNib() {
-    let flutterViewController = FlutterViewController()
     let windowFrame = self.frame
-    self.contentViewController = flutterViewController
+    // flutter_acrylic: host Flutter inside its blurry container so the
+    // NSVisualEffectView backdrop shows through transparent Flutter pixels.
+    let blurryContainerViewController = BlurryContainerViewController()
+    self.contentViewController = blurryContainerViewController
     self.setFrame(windowFrame, display: true)
 
-    RegisterGeneratedPlugins(registry: flutterViewController)
+    MainFlutterWindowManipulator.start(mainFlutterWindow: self)
+
+    RegisterGeneratedPlugins(registry: blurryContainerViewController.flutterViewController)
 
     super.awakeFromNib()
   }

@@ -12,6 +12,7 @@ dependencies:
   audioplayers: ^6.1.0
   path: ^1.9.0
   file_selector: ^1.0.3
+  flutter_acrylic: ^1.1.4
   shared_preferences: ^2.3.0
   window_manager: ^0.5.2
 

@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_acrylic/flutter_acrylic.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'src/core/game_registry.dart';
@@ -13,8 +15,22 @@ Future<void> main() async {
   // Hide the native title bar so the app's themed chrome extends all the way
   // to the top edge; AppShell overlays its own drag strip + caption buttons.
   await windowManager.ensureInitialized();
+  // OS-level blur behind the window (Windows acrylic / macOS vibrancy); the
+  // shell keeps the content area opaque so only the sidebar reads as glass.
+  final translucentSidebar = Platform.isWindows || Platform.isMacOS;
+  if (translucentSidebar) {
+    await Window.initialize();
+  }
   const windowOptions = WindowOptions(titleBarStyle: TitleBarStyle.hidden);
   unawaited(windowManager.waitUntilReadyToShow(windowOptions, () async {
+    if (translucentSidebar) {
+      await Window.setEffect(
+        effect: Platform.isMacOS ? WindowEffect.sidebar : WindowEffect.acrylic,
+        // Milky base tint so the blurred backdrop stays light-theme friendly.
+        color: const Color(0x66FFFFFF),
+        dark: false,
+      );
+    }
     await windowManager.show();
     await windowManager.focus();
   }));
@@ -26,5 +42,9 @@ Future<void> main() async {
     Sims3Adapter(),
     Sims4Adapter(),
   ]);
-  runApp(ModManagerApp(registry: registry, settings: settings));
+  runApp(ModManagerApp(
+    registry: registry,
+    settings: settings,
+    translucentSidebar: translucentSidebar,
+  ));
 }
