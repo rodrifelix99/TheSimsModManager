@@ -105,7 +105,7 @@ void main() {
     SharedPreferences.setMockInitialValues({'soundEffects': false});
     final tempDir = Directory.systemTemp.createTempSync('mod_manager_ui');
     addTearDown(() => tempDir.deleteSync(recursive: true));
-    // The same file name in two subfolders — the duplicate-name heuristic
+    // The same file name in two subfolders; the duplicate-name heuristic
     // flags both. A third mod is clean.
     for (final sub in ['A', 'B']) {
       Directory(p.join(tempDir.path, sub)).createSync();
@@ -145,7 +145,7 @@ void main() {
         findsOneWidget);
     // One panel row pointing at the *other* copy, as a path relative to
     // the mods folder ("A\lamp.package" or "B\lamp.package" depending on
-    // which card opened — mods sharing a name have no guaranteed order).
+    // which card opened; mods sharing a name have no guaranteed order).
     final row = find.byWidgetPredicate((w) =>
         w is Text &&
         (w.data == p.join('A', 'lamp.package') ||
@@ -230,7 +230,7 @@ void main() {
 
     // A hidden folder lives in the popup menu and still filters. Folder
     // "11" sorts near the top lexicographically, so its row is inside
-    // the menu's scroll viewport. (Fixed pumps, not pumpAndSettle —
+    // the menu's scroll viewport. (Fixed pumps, not pumpAndSettle,
     // matching the rest of this file.)
     await tester.tap(find.text('…'));
     await tester.pump();
@@ -417,7 +417,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
 
-    expect(find.text('Fake Game found — no mods folder yet'), findsOneWidget);
+    expect(find.text('Fake Game found, but no mods folder yet'), findsOneWidget);
     expect(find.text('Fake Game mods folder not found'), findsNothing);
     // The detected game folder is shown so the user can trust the guess.
     expect(find.text(tempDir.path), findsOneWidget);

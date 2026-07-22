@@ -22,7 +22,7 @@ builds on GitHub runners:
 
 Notes:
 
-- **Local machines never cross-compile** — CI is the only path that produces
+- **Local machines never cross-compile**: CI is the only path that produces
   all three platforms.
 - **Never change the `AppId`** in `setup.iss`; it's how Windows matches
   upgrades.

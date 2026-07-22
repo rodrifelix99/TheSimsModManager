@@ -348,7 +348,7 @@ class _SidebarState extends State<_Sidebar>
                       ),
                     ),
                     Text(
-                      'v${update.version} — click to download',
+                      'v${update.version}: click to download',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -641,7 +641,7 @@ class _SidebarState extends State<_Sidebar>
               ),
             ],
           ),
-          // Drive fullness — only once the OS has answered.
+          // Drive fullness, only once the OS has answered.
           if (disk != null) ...[
             const SizedBox(height: 9),
             ClipRRect(

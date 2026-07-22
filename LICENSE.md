@@ -4,7 +4,7 @@ Copyright (c) 2026 Felix ([@rodrifelix99](https://github.com/rodrifelix99)). All
 
 This is **not** an open-source license. The source code of **The Sims Mod
 Manager** ("the Software") is made available for transparency and to enable
-community contributions — nothing more.
+community contributions, and nothing more.
 
 ## 1. What you may do
 

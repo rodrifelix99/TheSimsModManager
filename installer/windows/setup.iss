@@ -12,7 +12,7 @@
 #define BuildDir "..\..\build\windows\x64\runner\Release"
 
 [Setup]
-; Never change this AppId — it is how Windows recognises upgrades of the same app.
+; Never change this AppId; it is how Windows recognises upgrades of the same app.
 AppId={{E7B34D2A-6C1F-4B4A-9D6E-2F8A51C90B37}
 AppName={#AppName}
 AppVersion={#AppVersion}

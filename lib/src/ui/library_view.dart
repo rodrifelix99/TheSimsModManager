@@ -319,7 +319,7 @@ class LibraryView extends StatelessWidget {
       ),
       child: Tooltip(
         message: active
-            ? 'Showing conflicting mods only — click to show all mods again.'
+            ? 'Showing conflicting mods only. Click to show all mods again.'
             : 'Enabled mods sharing a file name with another enabled mod. '
                 'The game loads duplicates in an unpredictable order.'
                 '${tappable ? ' Click to show only these mods.' : ''}',
@@ -385,7 +385,7 @@ typedef _FilterEntry = ({String label, bool isFolder});
 
 /// The single-line filter row: category chips, then folder chips.
 /// Chips that don't fit move into a "…" popup menu at the end
-/// ([OverflowRow]). Folder chips — and only folder chips — can be
+/// ([OverflowRow]). Folder chips, and only folder chips, can be
 /// drag-and-dropped onto each other to rearrange them, both on the line
 /// and inside the menu, including from the menu onto the line.
 class _FilterChips extends StatefulWidget {
@@ -399,7 +399,7 @@ class _FilterChips extends StatefulWidget {
 }
 
 class _FilterChipsState extends State<_FilterChips> {
-  /// How many leading chips fit on the line — recorded by [OverflowRow]
+  /// How many leading chips fit on the line, recorded by [OverflowRow]
   /// during layout and read when the "…" menu opens (no rebuild needed).
   int _visibleCount = 0;
 
@@ -437,7 +437,7 @@ class _FilterChipsState extends State<_FilterChips> {
       onVisibleCountChanged: (n) {
         if (n == _visibleCount) return;
         _visibleCount = n;
-        // The open menu lists the chips that no longer fit — refresh it
+        // The open menu lists the chips that no longer fit; refresh it
         // once this layout pass is over.
         if (_menuEntry != null) {
           WidgetsBinding.instance
@@ -570,7 +570,7 @@ class _FilterChipsState extends State<_FilterChips> {
         final hidden = entries.sublist(_visibleCount.clamp(0, entries.length));
         if (hidden.isEmpty) {
           // Everything fits again (e.g. the last hidden folder was
-          // dragged onto the line) — nothing left to show.
+          // dragged onto the line), so nothing is left to show.
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (_menuEntry != null) _closeMenu();
           });
@@ -791,7 +791,7 @@ class _FilterChipsState extends State<_FilterChips> {
 /// "UI Cheats Extension v1.36").
 String modTitle(Mod mod) => humanizeModName(mod.name);
 
-/// The "by author" slot of the design — real files don't carry an author,
+/// The "by author" slot of the design: real files don't carry an author,
 /// so show where the file lives instead.
 String modSubtitle(AppController c, Mod mod) {
   final root = c.modsDir?.path;
@@ -1157,7 +1157,7 @@ class _EmptyLibrary extends StatelessWidget {
 
 /// Shown when no mods folder could be located: explains the game's setup,
 /// offers manual selection, found candidates, and one-click creation of
-/// the default folder — the "game not installed / no Mods folder yet /
+/// the default folder: the "game not installed / no Mods folder yet /
 /// multiple installs" caveats.
 class _FolderSetupView extends StatelessWidget {
   const _FolderSetupView({required this.theme, required this.controller});
@@ -1170,7 +1170,7 @@ class _FolderSetupView extends StatelessWidget {
     final t = theme;
     final c = controller;
     // The game folder being present changes the story entirely: the game
-    // is there, only its mods folder is missing — don't suggest the game
+    // is there, only its mods folder is missing; don't suggest the game
     // may not be installed.
     final gameFolder = c.gameFolder;
     return Center(
@@ -1183,7 +1183,7 @@ class _FolderSetupView extends StatelessWidget {
             children: [
               Text(
                 gameFolder != null
-                    ? '${c.adapter.game.name} found — no mods folder yet'
+                    ? '${c.adapter.game.name} found, but no mods folder yet'
                     : '${c.adapter.game.name} mods folder not found',
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -1195,7 +1195,7 @@ class _FolderSetupView extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 gameFolder != null
-                    ? 'The game\'s folder is on this computer — it just '
+                    ? 'The game\'s folder is on this computer; it just '
                         'doesn\'t contain a mods folder yet. Create it below, '
                         'or point at one manually.'
                     : 'The game may not be installed, may live somewhere '

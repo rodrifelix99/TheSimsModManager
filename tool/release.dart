@@ -30,7 +30,7 @@ void main(List<String> args) {
     final status = _git(['status', '--porcelain']);
     if (status.trim().isNotEmpty) {
       stderr.writeln(
-          'Working tree is not clean — commit or stash first:\n$status');
+          'Working tree is not clean. Commit or stash first:\n$status');
       exit(1);
     }
   }
@@ -73,7 +73,7 @@ void main(List<String> args) {
 
   stdout.writeln('Version: $current -> $next  (tag $tag)');
   if (dryRun) {
-    stdout.writeln('Dry run — nothing written, committed, or pushed.');
+    stdout.writeln('Dry run: nothing written, committed, or pushed.');
     return;
   }
 
@@ -90,7 +90,7 @@ void main(List<String> args) {
     _git(['add', 'pubspec.yaml', 'lib/src/app_version.dart']);
     _git(['commit', '-m', 'Release $tag']);
   } else {
-    stdout.writeln('Version unchanged — tagging the current commit.');
+    stdout.writeln('Version unchanged; tagging the current commit.');
   }
   _git(['tag', tag]);
   _git(['push', 'origin', 'HEAD']);

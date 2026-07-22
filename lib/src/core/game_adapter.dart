@@ -34,7 +34,7 @@ abstract class GameAdapter {
   Future<Directory?> resolveModsDirectory();
 
   /// The path where this game's mods folder is *expected* to live, even
-  /// when it doesn't exist yet — so the app can offer to create it.
+  /// when it doesn't exist yet, so the app can offer to create it.
   /// `null` when there is no way to guess (game not installed and no
   /// conventional location).
   Future<String?> defaultModsPath();
@@ -46,7 +46,7 @@ abstract class GameAdapter {
   Future<List<Directory>> findModsDirectoryCandidates();
 
   /// The game's own folder (user data or install directory) when it can
-  /// be located, even if the mods folder inside it doesn't exist yet —
+  /// be located, even if the mods folder inside it doesn't exist yet; this
   /// lets the UI tell "game not found" apart from "game found, mods
   /// folder missing". `null` when the game itself can't be found.
   Future<Directory?> findGameFolder();
@@ -69,6 +69,17 @@ abstract class GameAdapter {
   /// Enables or disables [mod] and returns its new state.
   Future<Mod> setEnabled(Mod mod, {required bool enabled});
 
+  /// Cache files the game keeps that go stale when custom content is
+  /// added or removed (e.g. Sims 3's `CASPartCache.package`); the game
+  /// rebuilds them on its next launch, but until they're deleted new CC
+  /// may not show up. Only files that currently exist are returned;
+  /// games without such caches return an empty list.
+  Future<List<File>> findCacheFiles();
+
+  /// Deletes every file from [findCacheFiles] and returns what was
+  /// deleted. Safe: the game regenerates these caches on launch.
+  Future<List<File>> clearCaches();
+
   /// Looks inside every mod file for embedded artwork and a content
   /// summary, keyed by `mod.path`. Meant to run once per library load,
   /// off the UI thread; [onProgress] reports how many files have been
@@ -83,7 +94,7 @@ abstract class GameAdapter {
   });
 }
 
-/// Default implementation for games whose mods are plain files in a folder —
+/// Default implementation for games whose mods are plain files in a folder,
 /// which is every Sims game. Disabling works by appending [disabledSuffix]
 /// to the file name so the game's loader skips it.
 ///
@@ -131,6 +142,20 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
   /// Hook for game-specific setup files the loader needs. Default: none.
   Future<void> scaffoldModsDirectory(Directory modsDir) async {}
 
+  /// Most games have no stale-cache problem; the ones that do (Sims 3,
+  /// The Sims Medieval) override this with the well-known cache files.
+  @override
+  Future<List<File>> findCacheFiles() async => const [];
+
+  @override
+  Future<List<File>> clearCaches() async {
+    final caches = await findCacheFiles();
+    for (final file in caches) {
+      await file.delete();
+    }
+    return caches;
+  }
+
   @override
   Future<List<Mod>> listMods(Directory modsDir) async {
     if (!await modsDir.exists()) return const [];
@@ -169,7 +194,7 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
   /// the file itself is its own thumbnail.
   static const _imageExtensions = {'.bmp', '.png', '.jpg', '.jpeg'};
 
-  /// Files scanned per isolate task — small enough for steady progress
+  /// Files scanned per isolate task: small enough for steady progress
   /// updates, large enough that isolate spawns stay negligible.
   static const _inspectBatchSize = 8;
 
@@ -228,7 +253,7 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
   /// Spawns the scan isolate from a static scope whose only local is
   /// [batch]. The closure must NOT be created inside [inspectMods]: a
   /// closure captures its enclosing contexts, and there that chain
-  /// reaches the caller's `onProgress` — in the app a listener over the
+  /// reaches the caller's `onProgress`, in the app a listener over the
   /// whole controller/widget tree, which is expensive to copy into the
   /// isolate message and fails outright on unsendable objects, silently
   /// killing every batch.

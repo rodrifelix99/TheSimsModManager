@@ -4,7 +4,7 @@ import 'dart:io';
 import '../app_version.dart';
 
 /// GitHub integration: release update checks and feedback links. Pure
-/// Dart, no game or UI knowledge. Everything is best-effort — network
+/// Dart, no game or UI knowledge. Everything is best-effort: network
 /// failures surface as `null`, never as exceptions.
 
 /// The project's GitHub repository, `owner/name`.

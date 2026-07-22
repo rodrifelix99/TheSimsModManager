@@ -15,7 +15,7 @@ class DiskSpace {
 /// Queries the OS for the space on the volume containing [path].
 ///
 /// Best-effort: returns null for UNC paths, missing tools, or parse
-/// failures — callers should render without disk numbers in that case.
+/// failures; callers should render without disk numbers in that case.
 /// Dart has no filesystem-stats API, so this shells out (PowerShell's
 /// DriveInfo on Windows, POSIX `df` elsewhere).
 Future<DiskSpace?> diskSpaceFor(String path) async {
