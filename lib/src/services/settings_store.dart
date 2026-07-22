@@ -58,6 +58,12 @@ class SettingsStore {
   bool get listView => _prefs.getBool('listView') ?? false;
   Future<void> setListView(bool value) => _prefs.setBool('listView', value);
 
+  /// Look inside mod files for embedded artwork and content summaries
+  /// while the library loads (the slow part of the loading screen).
+  bool get scanArtwork => _prefs.getBool('scanArtwork') ?? true;
+  Future<void> setScanArtwork(bool value) =>
+      _prefs.setBool('scanArtwork', value);
+
   /// Play the classic Sims UI sounds on clicks, toggles and alerts.
   bool get soundEffects => _prefs.getBool('soundEffects') ?? true;
   Future<void> setSoundEffects(bool value) =>

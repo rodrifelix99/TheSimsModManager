@@ -80,6 +80,17 @@ class SettingsView extends StatelessWidget {
                 _divider(t),
                 _prefRow(
                   t,
+                  title: 'Mod artwork',
+                  desc: 'Look inside mod files for embedded artwork and '
+                      'content details while the library loads',
+                  value: s.scanArtwork,
+                  // Own action, not setPref: flipping it also rescans the
+                  // library (on) or clears the cached artwork (off).
+                  onToggle: () => c.setScanArtwork(!s.scanArtwork),
+                ),
+                _divider(t),
+                _prefRow(
+                  t,
                   title: 'UI sound effects',
                   desc: 'Play the classic Sims interface sounds on clicks, '
                       'toggles and alerts',

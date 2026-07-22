@@ -45,6 +45,16 @@ class LibraryView extends StatelessWidget {
                   color: t.muted,
                 ),
               ),
+              const SizedBox(height: 6),
+              TextButton(
+                onPressed: c.skipArtworkScan,
+                style: TextButton.styleFrom(
+                  foregroundColor: t.muted,
+                  textStyle: const TextStyle(
+                      fontWeight: FontWeight.w800, fontSize: 13),
+                ),
+                child: const Text('Skip'),
+              ),
             ],
           ],
         ),

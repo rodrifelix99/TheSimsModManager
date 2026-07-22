@@ -73,10 +73,13 @@ abstract class GameAdapter {
   /// summary, keyed by `mod.path`. Meant to run once per library load,
   /// off the UI thread; [onProgress] reports how many files have been
   /// inspected so far. Files that yield nothing are simply absent from
-  /// the result. Best-effort: must never throw.
+  /// the result. When [isCancelled] starts returning true the scan stops
+  /// early (between batches) and returns whatever it has so far.
+  /// Best-effort: must never throw.
   Future<Map<String, PackageInsight>> inspectMods(
     List<Mod> mods, {
     void Function(int done, int total)? onProgress,
+    bool Function()? isCancelled,
   });
 }
 
@@ -177,6 +180,7 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
   Future<Map<String, PackageInsight>> inspectMods(
     List<Mod> mods, {
     void Function(int done, int total)? onProgress,
+    bool Function()? isCancelled,
   }) async {
     final results = <String, PackageInsight>{};
     if (mods.isEmpty) return results;
@@ -198,7 +202,7 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
     var done = 0;
     var next = 0;
     Future<void> worker() async {
-      while (next < batches.length) {
+      while (next < batches.length && !(isCancelled?.call() ?? false)) {
         final batch = batches[next++];
         Map<String, PackageInsight?> scanned;
         try {

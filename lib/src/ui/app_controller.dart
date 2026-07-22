@@ -226,6 +226,34 @@ class AppController extends ChangeNotifier {
   /// Null when no scan is running.
   (int, int)? scanProgress;
 
+  /// Set when the user hits "Skip" on the loading screen; the running
+  /// scan stops between batches and the library opens without waiting.
+  bool _skipScan = false;
+
+  /// Abandons the in-flight artwork scan. Whatever was already inspected
+  /// stays cached; the rest falls back to stripe art and is picked up
+  /// again on the next library load. No-op when no scan is running.
+  void skipArtworkScan() {
+    if (scanProgress == null) return;
+    playSound(UiSound.click);
+    _skipScan = true;
+  }
+
+  /// Turns the artwork/content scan on or off from Settings. Switching
+  /// it off clears the cache so every card falls back to stripe art;
+  /// switching it on rescans the current library.
+  Future<void> setScanArtwork(bool value) async {
+    if (value == settings.scanArtwork) return;
+    await settings.setScanArtwork(value);
+    playSound(value ? UiSound.toggleOn : UiSound.toggleOff);
+    if (value) {
+      await refresh();
+    } else {
+      _insights.clear();
+      notifyListeners();
+    }
+  }
+
   String _insightKey(Mod mod) {
     var path = mod.path;
     if (path.toLowerCase().endsWith(disabledSuffix)) {
@@ -246,12 +274,16 @@ class AppController extends ChangeNotifier {
   /// Scans any mods that aren't in the insight cache yet, updating
   /// [scanProgress] as batches finish. Runs during [refresh] while the
   /// loading screen is up, so scrolling never triggers per-card IO.
+  /// Skipped entirely when the pref is off; skippable mid-run via
+  /// [skipArtworkScan].
   Future<void> _scanNewMods() async {
+    if (!settings.scanArtwork) return;
     final missing = [
       for (final mod in mods)
         if (!_insights.containsKey(_insightKey(mod))) mod,
     ];
     if (missing.isEmpty) return;
+    _skipScan = false;
     scanProgress = (0, missing.length);
     notifyListeners();
     try {
@@ -259,7 +291,7 @@ class AppController extends ChangeNotifier {
           onProgress: (done, total) {
         scanProgress = (done, total);
         notifyListeners();
-      });
+      }, isCancelled: () => _skipScan);
       for (final mod in missing) {
         final insight = found[mod.path];
         if (insight != null) _insights[_insightKey(mod)] = insight;

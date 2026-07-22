@@ -285,6 +285,29 @@ void main() {
     expect(progress.last, (2, 2));
   });
 
+  test('inspectMods stops early when isCancelled flips true', () async {
+    const adapter = Sims1Adapter();
+    // More files than one batch (8) so there is work left to cancel.
+    final mods = [
+      for (var i = 0; i < 40; i++)
+        () {
+          final file = write('skin$i.bmp', [0x42, 0x4D, i]);
+          return Mod(
+              name: 'skin$i.bmp', path: file.path, status: ModStatus.enabled);
+        }(),
+    ];
+
+    var cancelled = false;
+    final results = await adapter.inspectMods(mods,
+        onProgress: (done, total) => cancelled = true,
+        isCancelled: () => cancelled);
+
+    // The first wave of batches lands, then the workers stop scheduling:
+    // some files must remain unscanned.
+    expect(results, isNotEmpty);
+    expect(results.length, lessThan(mods.length));
+  });
+
   test('inspectMods still works when onProgress captures unsendable state',
       () async {
     // Regression test: the scan isolate's closure must not drag the
