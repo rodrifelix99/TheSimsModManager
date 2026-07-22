@@ -244,6 +244,26 @@ class SettingsView extends StatelessWidget {
               color: t.muted,
             ),
           ),
+          // Only games with a stale-cache problem (Sims 3, Medieval)
+          // report cache files; for everyone else the card is absent.
+          if (c.cacheFiles.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            _sectionLabel(t, 'GAME CACHES · ${c.adapter.game.name}'),
+            Container(
+              decoration: _cardDecoration(t),
+              child: _linkRow(
+                t,
+                title: 'Clear cache files',
+                desc: 'Delete ${c.cacheFiles.length} cache '
+                    'file${c.cacheFiles.length == 1 ? '' : 's'} '
+                    '(${formatBytes(c.cacheSizeBytes)}) so newly added or '
+                    'removed content shows up; the game rebuilds them on '
+                    'its next launch',
+                buttonLabel: 'Clear caches',
+                onTap: c.clearCaches,
+              ),
+            ),
+          ],
           const SizedBox(height: 24),
           _sectionLabel(t, 'FEEDBACK'),
           Container(

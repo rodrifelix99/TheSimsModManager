@@ -2,7 +2,7 @@
 
 # The Sims Mod Manager
 
-**A free, cross-platform desktop mod manager for The Sims 1, 2, 3 & 4.**
+**A free, cross-platform desktop mod manager for The Sims 1, 2, 3 & 4 and The Sims Medieval.**
 
 [![Latest release](https://img.shields.io/github/v/release/rodrifelix99/TheSimsModManager?label=download&color=2ea44f)](https://github.com/rodrifelix99/TheSimsModManager/releases/latest)
 [![Build](https://github.com/rodrifelix99/TheSimsModManager/actions/workflows/release.yml/badge.svg)](https://github.com/rodrifelix99/TheSimsModManager/actions/workflows/release.yml)
@@ -14,8 +14,8 @@
 **[✨ Visit the website →](https://rodrifelix99.github.io/TheSimsModManager/)**
 
 Browse, install, enable/disable, and clean up your mods and custom content
-for every mainline Sims game, in one app, with a UI that re-themes itself to
-match the game you're managing.
+for every mainline Sims game (and The Sims Medieval), in one app, with a UI
+that re-themes itself to match the game you're managing.
 
 <img src="docs/images/library-grid.png" alt="Library view (The Sims 4)" width="800">
 
@@ -28,7 +28,8 @@ match the game you're managing.
 ## ✨ Features
 
 - 🎨 **Per-game themed UI**: the whole app re-tints as you switch between
-  The Sims 1, 2, 3 and 4, complete with the classic Sims 1 UI sounds.
+  The Sims 1, 2, 3, 4 and Medieval, complete with the classic Sims 1 UI
+  sounds.
 - 🖼️ **Real thumbnails & insights**: `.package` files are parsed (DBPF) to
   pull out embedded artwork and a content breakdown (CAS parts, textures,
   tuning…), so your library looks like a library, not a file list.
@@ -67,6 +68,7 @@ Grab the latest version from the
 | The Sims | `<install>\The Sims\Downloads` | Lives in the install folder, not Documents |
 | The Sims 2 | `Documents\EA Games\The Sims 2\Downloads` | Ultimate Collection uses its own folder name |
 | The Sims 3 | `Documents\Electronic Arts\The Sims 3\Mods\Packages` | Needs the `Resource.cfg` framework; the app creates it for you |
+| The Sims Medieval | `<install>\The Sims Medieval\Mods\Packages` | Lives in the install folder (Documents only holds saves); needs a `Resource.cfg` in the install root — the app creates it for you |
 | The Sims 4 | `Documents\Electronic Arts\The Sims 4\Mods` | Created by the game on first launch; enable CC/script mods in game options |
 
 All of these are best-effort defaults: every game's folder can be overridden

@@ -19,6 +19,9 @@ void main() {
       Directory(p.joinAll([docs.path, ...segments]))
         ..createSync(recursive: true);
 
+  File makeFile(List<String> segments) => File(p.joinAll([docs.path, ...segments]))
+    ..createSync(recursive: true);
+
   group('Sims 3 folder resolution', () {
     test('finds localized game folders (e.g. Los Sims 3)', () async {
       make(['Electronic Arts', 'Los Sims 3', 'Mods', 'Packages']);
@@ -72,6 +75,34 @@ void main() {
       expect(cfg.readAsStringSync(),
           contains('PackedFile Packages/*.package'));
     });
+
+    test('finds and clears the stale CC caches, leaving mods alone',
+        () async {
+      for (final name in [
+        'CASPartCache.package',
+        'compositorCache.package',
+        'scriptCache.package',
+        'simCompositorCache.package',
+      ]) {
+        makeFile(['Electronic Arts', 'The Sims 3', name]);
+      }
+      final mod = makeFile(
+          ['Electronic Arts', 'The Sims 3', 'Mods', 'Packages',
+              'mod.package']);
+      final adapter = Sims3Adapter(documentsOverride: docs);
+
+      final found = await adapter.findCacheFiles();
+      expect(found, hasLength(4));
+
+      final cleared = await adapter.clearCaches();
+
+      expect(cleared, hasLength(4));
+      for (final file in found) {
+        expect(file.existsSync(), isFalse);
+      }
+      expect(mod.existsSync(), isTrue);
+      expect(await adapter.findCacheFiles(), isEmpty);
+    });
   });
 
   group('Sims 4', () {
@@ -90,6 +121,13 @@ void main() {
       const adapter = Sims4Adapter();
       expect(adapter.categoryForExtension('.ts4script'), 'Script');
       expect(adapter.categoryForExtension('.package'), 'Package');
+    });
+
+    test('has no stale caches to clear', () async {
+      make(['Electronic Arts', 'The Sims 4', 'Mods']);
+      final adapter = Sims4Adapter(documentsOverride: docs);
+      expect(await adapter.findCacheFiles(), isEmpty);
+      expect(await adapter.clearCaches(), isEmpty);
     });
   });
 
@@ -131,6 +169,117 @@ void main() {
       // The "create it" offer points inside the found game folder.
       expect(await adapter.defaultModsPath(),
           p.join(gameFolder.path, 'Downloads'));
+    });
+  });
+
+  group('Sims Medieval', () {
+    test('finds Origin and Steam installs', () async {
+      // Reuse the temp dir as a fake Program Files root.
+      make(['Origin Games', 'The Sims Medieval', 'Mods', 'Packages']);
+      make(['Steam', 'steamapps', 'common', 'The Sims Medieval', 'Mods',
+          'Packages']);
+      final adapter = SimsMedievalAdapter(
+          programFilesOverride: [docs.path], homeOverride: docs.path);
+
+      final candidates = await adapter.findModsDirectoryCandidates();
+
+      expect(candidates, hasLength(2));
+      expect(candidates.first.path,
+          contains(p.join('Origin Games', 'The Sims Medieval')));
+    });
+
+    test('finds localized disc installs by the TSM.exe signature', () async {
+      makeFile(
+          ['Electronic Arts', 'Die Sims Mittelalter', 'Game', 'Bin', 'TSM.exe']);
+      // A Sims 3 disc install lives under the same vendor folder but has
+      // no TSM.exe, so it must not be picked up.
+      make(['Electronic Arts', 'The Sims 3', 'Game', 'Bin']);
+      final adapter = SimsMedievalAdapter(
+          programFilesOverride: [docs.path], homeOverride: docs.path);
+
+      final install = await adapter.findGameFolder();
+
+      expect(install, isNotNull);
+      expect(p.basename(install!.path), 'Die Sims Mittelalter');
+      expect(await adapter.defaultModsPath(),
+          p.join(install.path, 'Mods', 'Packages'));
+    });
+
+    test('finds Linux native Steam library installs', () async {
+      // Reuse the temp dir as a fake home; Proton games install outside
+      // the wine prefix, in the regular Steam library.
+      make(['.local', 'share', 'Steam', 'steamapps', 'common',
+          'The Sims Medieval']);
+      final adapter = SimsMedievalAdapter(
+          programFilesOverride: const [], homeOverride: docs.path);
+
+      final install = await adapter.findGameFolder();
+
+      expect(install, isNotNull);
+      expect(await adapter.defaultModsPath(),
+          p.join(install!.path, 'Mods', 'Packages'));
+    });
+
+    test('proposes no path when the game is not installed', () async {
+      final adapter = SimsMedievalAdapter(
+          programFilesOverride: const [], homeOverride: docs.path);
+
+      expect(await adapter.defaultModsPath(), isNull);
+      expect(await adapter.findGameFolder(), isNull);
+    });
+
+    test('createModsDirectory writes Resource.cfg into the install root',
+        () async {
+      final install = make(['Origin Games', 'The Sims Medieval']);
+      final adapter = SimsMedievalAdapter(
+          programFilesOverride: [docs.path], homeOverride: docs.path);
+      final path = (await adapter.defaultModsPath())!;
+
+      final dir = await adapter.createModsDirectory(path);
+
+      expect(dir.existsSync(), isTrue);
+      expect(dir.path, p.join(install.path, 'Mods', 'Packages'));
+      // The cfg is a sibling of Mods, not inside it.
+      final cfg = File(p.join(install.path, 'Resource.cfg'));
+      expect(cfg.existsSync(), isTrue);
+      expect(cfg.readAsStringSync(),
+          contains('PackedFile Mods/Packages/*.package'));
+      expect(cfg.readAsStringSync(),
+          contains('PackedFile Mods/Packages/*/*/*/*/*.package'));
+    });
+
+    test('finds CC caches in the localized Documents folder, skipping '
+        'the numbered games', () async {
+      // Caches live in Documents (not the install); the folder name is
+      // localized, so they're found by the cache files themselves. A
+      // Sims 3 folder under the same vendor holds the same cache names
+      // but belongs to its own adapter and must be left alone.
+      for (final name in [
+        'CASPartCache.package',
+        'compositorCache.package',
+        'simCompositorCache.package',
+      ]) {
+        makeFile(['Electronic Arts', 'Die Sims Mittelalter', name]);
+      }
+      final save = makeFile(
+          ['Electronic Arts', 'Die Sims Mittelalter', 'Saves', 'save.sav']);
+      final sims3Cache =
+          makeFile(['Electronic Arts', 'Los Sims 3', 'CASPartCache.package']);
+      final adapter = SimsMedievalAdapter(
+          programFilesOverride: const [],
+          homeOverride: docs.path,
+          documentsOverride: docs);
+
+      final found = await adapter.findCacheFiles();
+
+      expect(found, hasLength(3));
+      expect(found.map((f) => f.path).join(), isNot(contains('Sims 3')));
+
+      await adapter.clearCaches();
+
+      expect(await adapter.findCacheFiles(), isEmpty);
+      expect(save.existsSync(), isTrue);
+      expect(sims3Cache.existsSync(), isTrue);
     });
   });
 

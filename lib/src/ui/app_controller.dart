@@ -80,6 +80,15 @@ class AppController extends ChangeNotifier {
   /// Combined mod file size per game id, for the all-games storage total.
   final Map<String, int> modSizes = {};
 
+  /// Stale cache files the current game wants deleted after CC changes
+  /// (the game rebuilds them on next launch). Empty for games without
+  /// cache files; Settings shows a "Clear caches" card when non-empty.
+  List<File> cacheFiles = const [];
+
+  /// Combined size of [cacheFiles], computed once per refresh so
+  /// rendering never stats files.
+  int cacheSizeBytes = 0;
+
   /// Space on the volume holding [modsDir], or null while unknown /
   /// undetectable. Filled in asynchronously after [refresh].
   DiskSpace? diskSpace;
@@ -419,6 +428,7 @@ class AppController extends ChangeNotifier {
       candidateDirs = await _adapter.findModsDirectoryCandidates();
       defaultPath = await _adapter.defaultModsPath();
       gameFolder = await _adapter.findGameFolder();
+      await _refreshCacheFiles();
       modCounts[_adapter.game.id] = dir == null ? null : mods.length;
       modSizes[_adapter.game.id] = totalSizeBytes;
       // Not awaited: shells out to the OS, and the library shouldn't
@@ -568,6 +578,35 @@ class AppController extends ChangeNotifier {
     playSound(UiSound.click);
     await settings.setModsPathOverride(_adapter.game.id, null);
     await refresh();
+  }
+
+  Future<void> _refreshCacheFiles() async {
+    cacheFiles = await _adapter.findCacheFiles();
+    var total = 0;
+    for (final file in cacheFiles) {
+      try {
+        total += await file.length();
+      } catch (_) {} // Racing the game/user; the size is cosmetic.
+    }
+    cacheSizeBytes = total;
+  }
+
+  /// Deletes the game's stale cache files so freshly added/removed CC
+  /// shows up; the game rebuilds them on next launch. No-op when the
+  /// adapter reports none.
+  Future<void> clearCaches() async {
+    if (cacheFiles.isEmpty) return;
+    try {
+      await _adapter.clearCaches();
+      playSound(UiSound.uninstall);
+    } catch (e) {
+      lastError = e.toString();
+      playSound(UiSound.error);
+    }
+    try {
+      await _refreshCacheFiles();
+    } catch (_) {}
+    notifyListeners();
   }
 
   /// Creates the game's default mods folder (with any scaffolding the

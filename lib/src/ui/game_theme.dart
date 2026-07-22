@@ -90,6 +90,19 @@ class GameTheme {
       tint: Color(0xFFDCF5EC),
       era: 'Modern · 2014',
     ),
+    // Parchment + antique gold + plumbob green, after the game's crest.
+    'simsmedieval': GameTheme(
+      accent: Color(0xFF9C7B1E),
+      accent2: Color(0xFF5E9732),
+      bg: Color(0xFFF1EBDC),
+      surface: Color(0xFFFFFDF4),
+      surfaceAlt: Color(0xFFF5EFDF),
+      text: Color(0xFF33290F),
+      muted: Color(0xFF857A5C),
+      border: Color(0xFFE3DAC0),
+      tint: Color(0xFFF0E7CB),
+      era: 'Medieval · 2011',
+    ),
   };
 
   /// Theme for [game]; future games without a bespoke palette get a
@@ -129,13 +142,15 @@ class GameTheme {
     'sims2': 'assets/games/icons/the_sims_2_icon.png',
     'sims3': 'assets/games/icons/the_sims_3_icon.png',
     'sims4': 'assets/games/icons/the_sims_4_icon.png',
+    'simsmedieval': 'assets/games/icons/the_sims_medieval_icon.webp',
   };
 
   static const _logoByGameId = <String, String>{
     'sims1': 'assets/games/logos/the_sims_1_logo.png',
     'sims2': 'assets/games/logos/the_sims_2_logo.png',
     'sims3': 'assets/games/logos/the_sims_3_logo.png',
-    // All four themes are light, so use the dark-on-light variant.
+    // All themes are light, so use the dark-on-light variant.
     'sims4': 'assets/games/logos/the_sims_4_logo_dark.png',
+    'simsmedieval': 'assets/games/logos/the_sims_medieval_logo.webp',
   };
 }

@@ -27,10 +27,14 @@ lib/src/
 
 ## `games/`: concrete adapters
 
-`lib/src/games/the_sims/sims_adapters.dart` holds the four Sims adapters.
-`DocumentsSimsAdapter` covers Sims 2/3/4: it scans vendor folders under
-Documents for localized game-folder names ("Los Sims 3", "Die Sims 2") and
-ranks candidates. Adapters are registered in `main.dart`.
+`lib/src/games/the_sims/sims_adapters.dart` holds the five Sims adapters
+(Sims 1–4 plus The Sims Medieval). `DocumentsSimsAdapter` covers Sims 2/3/4:
+it scans vendor folders under Documents for localized game-folder names
+("Los Sims 3", "Die Sims 2") and ranks candidates. Sims 1 and The Sims
+Medieval are install-folder games instead: they scan Program Files / Steam
+locations (Medieval verifies disc installs by their `Game/Bin/TSM.exe`
+signature, since disc folder names are localized). Adapters are registered
+in `main.dart`.
 
 Mods-folder resolution is a best-effort guess and returns `null` when the
 game isn't found; the UI handles `null` with a setup screen (manual folder

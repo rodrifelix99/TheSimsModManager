@@ -45,6 +45,7 @@ Future<void> main() async {
     Sims1Adapter(),
     Sims2Adapter(),
     Sims3Adapter(),
+    SimsMedievalAdapter(),
     Sims4Adapter(),
   ]);
   runApp(ModManagerApp(

@@ -8,7 +8,7 @@ void main() {
   Game game(String id) => Game(id: id, name: id, series: 'The Sims');
 
   test('every registered icon/logo asset exists on disk', () {
-    for (final id in ['sims1', 'sims2', 'sims3', 'sims4']) {
+    for (final id in ['sims1', 'sims2', 'sims3', 'sims4', 'simsmedieval']) {
       final icon = GameTheme.iconAsset(game(id));
       final logo = GameTheme.logoAsset(game(id));
       expect(icon, isNotNull, reason: '$id has no icon');

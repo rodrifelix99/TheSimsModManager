@@ -69,6 +69,17 @@ abstract class GameAdapter {
   /// Enables or disables [mod] and returns its new state.
   Future<Mod> setEnabled(Mod mod, {required bool enabled});
 
+  /// Cache files the game keeps that go stale when custom content is
+  /// added or removed (e.g. Sims 3's `CASPartCache.package`); the game
+  /// rebuilds them on its next launch, but until they're deleted new CC
+  /// may not show up. Only files that currently exist are returned;
+  /// games without such caches return an empty list.
+  Future<List<File>> findCacheFiles();
+
+  /// Deletes every file from [findCacheFiles] and returns what was
+  /// deleted. Safe: the game regenerates these caches on launch.
+  Future<List<File>> clearCaches();
+
   /// Looks inside every mod file for embedded artwork and a content
   /// summary, keyed by `mod.path`. Meant to run once per library load,
   /// off the UI thread; [onProgress] reports how many files have been
@@ -130,6 +141,20 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
 
   /// Hook for game-specific setup files the loader needs. Default: none.
   Future<void> scaffoldModsDirectory(Directory modsDir) async {}
+
+  /// Most games have no stale-cache problem; the ones that do (Sims 3,
+  /// The Sims Medieval) override this with the well-known cache files.
+  @override
+  Future<List<File>> findCacheFiles() async => const [];
+
+  @override
+  Future<List<File>> clearCaches() async {
+    final caches = await findCacheFiles();
+    for (final file in caches) {
+      await file.delete();
+    }
+    return caches;
+  }
 
   @override
   Future<List<Mod>> listMods(Directory modsDir) async {
