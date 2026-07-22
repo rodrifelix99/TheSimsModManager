@@ -27,6 +27,7 @@ class _FakeAdapter extends FolderBasedGameAdapter {
   Future<Map<String, PackageInsight>> inspectMods(
     List<Mod> mods, {
     void Function(int done, int total)? onProgress,
+    bool Function()? isCancelled,
   }) async =>
       const {};
 
