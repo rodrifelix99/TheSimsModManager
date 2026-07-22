@@ -230,7 +230,10 @@ class _SidebarState extends State<_Sidebar>
     return AnimatedContainer(
       duration: const Duration(milliseconds: 450),
       width: 250,
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 20),
+      // macOS overlays its native traffic lights in this corner, so start
+      // the sidebar content below them; other platforms keep the tight top.
+      padding: EdgeInsets.fromLTRB(
+          16, Platform.isMacOS ? kWindowCaptionHeight + 6 : 20, 16, 20),
       decoration: BoxDecoration(
         color: widget.glass ? t.surface.withValues(alpha: .55) : t.surface,
         border: Border(right: BorderSide(color: t.border)),
