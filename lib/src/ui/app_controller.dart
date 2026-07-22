@@ -10,6 +10,7 @@ import '../core/mod.dart';
 import '../core/mod_name.dart';
 import '../core/package_insight.dart';
 import '../services/disk_space.dart';
+import '../services/github.dart';
 import '../services/settings_store.dart';
 import '../services/sfx.dart';
 
@@ -19,13 +20,22 @@ enum AppScreen { library, detail, settings }
 /// its methods. Talks only to [GameRegistry]/[GameAdapter]/[Mod] plus the
 /// settings store — never to a concrete game.
 class AppController extends ChangeNotifier {
-  AppController({required this.registry, required this.settings, Sfx? sfx})
-      : _sfx = sfx ?? Sfx(),
+  AppController({
+    required this.registry,
+    required this.settings,
+    Sfx? sfx,
+    Future<UpdateInfo?> Function()? checkUpdates,
+  })  : _sfx = sfx ?? Sfx(),
+        _checkUpdates = checkUpdates ?? fetchAvailableUpdate,
         _adapter = registry.byGameId('sims4') ?? registry.adapters.first;
 
   final GameRegistry registry;
   final SettingsStore settings;
   final Sfx _sfx;
+
+  /// Asks GitHub for a newer release; injectable so tests never touch
+  /// the network.
+  final Future<UpdateInfo?> Function() _checkUpdates;
 
   GameAdapter _adapter;
   GameAdapter get adapter => _adapter;
@@ -266,8 +276,75 @@ class AppController extends ChangeNotifier {
     _sfx.play(sound);
   }
 
+  /// A newer GitHub release, or null when up to date / not checked /
+  /// the check failed (best-effort, like disk space).
+  UpdateInfo? availableUpdate;
+
+  /// True while an update check is in flight (Settings shows a spinner
+  /// label on the button).
+  bool checkingForUpdates = false;
+
+  /// True once at least one check has finished, so Settings can say
+  /// "no update found" instead of staying silent.
+  bool updateCheckDone = false;
+
+  /// Whether the update-found alert sound has played already — a manual
+  /// re-check shouldn't re-announce the same release.
+  bool _updateAnnounced = false;
+
+  /// Asks GitHub whether a newer release exists. Safe to call any time;
+  /// overlapping calls collapse into one.
+  Future<void> checkForUpdates() async {
+    if (checkingForUpdates) return;
+    checkingForUpdates = true;
+    notifyListeners();
+    availableUpdate = await _checkUpdates();
+    checkingForUpdates = false;
+    updateCheckDone = true;
+    if (availableUpdate != null && !_updateAnnounced) {
+      _updateAnnounced = true;
+      playSound(UiSound.alert);
+    }
+    notifyListeners();
+  }
+
+  /// Opens [url] in the system browser. Best-effort, like
+  /// [revealInFileManager]: failures are non-fatal.
+  Future<void> openUrl(Uri url) async {
+    playSound(UiSound.click);
+    try {
+      if (Platform.isWindows) {
+        await Process.start(
+            'rundll32', ['url.dll,FileProtocolHandler', url.toString()]);
+      } else if (Platform.isMacOS) {
+        await Process.start('open', [url.toString()]);
+      } else {
+        await Process.start('xdg-open', [url.toString()]);
+      }
+    } catch (_) {}
+  }
+
+  /// Opens the newer release's download page. No-op when up to date.
+  void openReleasePage() {
+    final update = availableUpdate;
+    if (update != null) openUrl(Uri.parse(update.url));
+  }
+
+  /// Opens a new bug report with version/OS/current game prefilled.
+  void reportBug() => openUrl(bugReportUrl(gameName: _adapter.game.name));
+
+  /// Opens a new feature request with the current game prefilled.
+  void suggestFeature() =>
+      openUrl(featureRequestUrl(gameName: _adapter.game.name));
+
+  /// Opens the project wiki (user guide & FAQ).
+  void openWiki() => openUrl(wikiUrl);
+
   Future<void> init() async {
     await refresh();
+    // Not awaited: a network round-trip the library shouldn't wait on —
+    // the Settings card and sidebar fill in when the answer arrives.
+    checkForUpdates();
     await _refreshCounts();
   }
 

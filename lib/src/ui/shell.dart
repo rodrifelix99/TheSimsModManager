@@ -289,8 +289,77 @@ class _SidebarState extends State<_Sidebar>
             onTap: c.openSettings,
           ),
           const Spacer(),
+          if (c.availableUpdate != null) ...[
+            _updateCard(t, c),
+            const SizedBox(height: 10),
+          ],
           _storageCard(t, c),
         ],
+      ),
+    );
+  }
+
+  /// Accent-tinted banner shown once a newer GitHub release is known;
+  /// clicking opens its download page.
+  Widget _updateCard(GameTheme t, AppController c) {
+    final update = c.availableUpdate!;
+    return HoverBuilder(
+      cursor: SystemMouseCursors.click,
+      builder: (context, hovered) => GestureDetector(
+        onTap: c.openReleasePage,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+          decoration: BoxDecoration(
+            color: hovered ? t.tint : t.surfaceAlt,
+            border: Border.all(color: t.accent, width: 1.5),
+            borderRadius: BorderRadius.circular(13),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: t.accent,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: t.accent.withValues(alpha: .5),
+                      blurRadius: 6,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Update available',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                        color: t.accent,
+                      ),
+                    ),
+                    Text(
+                      'v${update.version} — click to download',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: t.muted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
