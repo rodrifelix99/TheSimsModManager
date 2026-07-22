@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 📚 User guide & FAQ (Wiki)
+    url: https://github.com/rodrifelix99/TheSimsModManager/wiki
+    about: How to install mods, fix folder detection, and more.
+  - name: 🔒 Report a security vulnerability
+    url: https://github.com/rodrifelix99/TheSimsModManager/security/advisories/new
+    about: Please report security issues privately, not as public issues.

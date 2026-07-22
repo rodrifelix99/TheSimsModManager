@@ -81,7 +81,13 @@ void main(List<String> args) {
   if (changed) {
     pubspec.writeAsStringSync(
         content.replaceFirst(versionLine, 'version: $next'));
-    _git(['add', 'pubspec.yaml']);
+    // Keep the in-app version constant (Settings about card, update
+    // check, bug-report prefill) in lockstep with pubspec.yaml.
+    final versionDart = File('lib/src/app_version.dart');
+    versionDart.writeAsStringSync(versionDart.readAsStringSync().replaceFirst(
+        RegExp(r"const String appVersion = '[^']*';"),
+        "const String appVersion = '$next';"));
+    _git(['add', 'pubspec.yaml', 'lib/src/app_version.dart']);
     _git(['commit', '-m', 'Release $tag']);
   } else {
     stdout.writeln('Version unchanged — tagging the current commit.');

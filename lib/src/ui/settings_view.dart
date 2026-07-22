@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 
+import '../app_version.dart';
 import '../services/sfx.dart';
 import 'app_controller.dart';
 import 'game_theme.dart';
@@ -233,6 +234,41 @@ class SettingsView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
+          _sectionLabel(t, 'FEEDBACK'),
+          Container(
+            decoration: _cardDecoration(t),
+            child: Column(
+              children: [
+                _linkRow(
+                  t,
+                  title: 'Report a bug',
+                  desc: 'Open a bug report on GitHub — your app version, '
+                      'OS and current game come prefilled',
+                  buttonLabel: 'Report…',
+                  onTap: c.reportBug,
+                ),
+                _divider(t),
+                _linkRow(
+                  t,
+                  title: 'Suggest a feature',
+                  desc: 'Missing something? Tell us what would make the '
+                      'mod manager better',
+                  buttonLabel: 'Suggest…',
+                  onTap: c.suggestFeature,
+                ),
+                _divider(t),
+                _linkRow(
+                  t,
+                  title: 'User guide & FAQ',
+                  desc: 'How to install mods, fix folder detection, '
+                      'and more — on the project wiki',
+                  buttonLabel: 'Open wiki',
+                  onTap: c.openWiki,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
           _sectionLabel(t, 'ABOUT'),
           Container(
             padding: const EdgeInsets.all(18),
@@ -271,7 +307,7 @@ class SettingsView extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        'Version 1.0 · The Sims 1–4 supported · '
+                        'Version $appVersion · The Sims 1–4 supported · '
                         'SimCity coming soon',
                         style: TextStyle(
                           fontSize: 12.5,
@@ -279,11 +315,91 @@ class SettingsView extends StatelessWidget {
                           color: t.muted,
                         ),
                       ),
+                      if (c.availableUpdate != null || c.updateCheckDone) ...[
+                        const SizedBox(height: 3),
+                        Text(
+                          c.availableUpdate != null
+                              ? 'Version ${c.availableUpdate!.version} is '
+                                  'available'
+                              : 'No update found',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w800,
+                            color: c.availableUpdate != null
+                                ? t.accent
+                                : t.muted,
+                          ),
+                        ),
+                      ],
                     ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                if (c.availableUpdate != null)
+                  OutlinedButton(
+                    onPressed: c.openReleasePage,
+                    style: _accentButtonStyle(t),
+                    child: Text('Get v${c.availableUpdate!.version}'),
+                  )
+                else
+                  OutlinedButton(
+                    onPressed:
+                        c.checkingForUpdates ? null : c.checkForUpdates,
+                    style: _accentButtonStyle(t),
+                    child: Text(c.checkingForUpdates
+                        ? 'Checking…'
+                        : 'Check for updates'),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// A card row with a title/description and a trailing action button
+  /// that opens something outside the app.
+  Widget _linkRow(
+    GameTheme t, {
+    required String title,
+    required String desc,
+    required String buttonLabel,
+    required VoidCallback onTap,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: t.text,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  desc,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: t.muted,
                   ),
                 ),
               ],
             ),
+          ),
+          const SizedBox(width: 16),
+          OutlinedButton(
+            onPressed: onTap,
+            style: _accentButtonStyle(t),
+            child: Text(buttonLabel),
           ),
         ],
       ),

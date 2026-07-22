@@ -1,0 +1,33 @@
+name: 💡 Feature request
+description: Suggest an idea or improvement
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: Describe the situation where you miss this feature.
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: What would you like to happen?
+    validations:
+      required: true
+  - type: dropdown
+    id: game
+    attributes:
+      label: Which game(s) does this apply to?
+      multiple: true
+      options:
+        - The Sims
+        - The Sims 2
+        - The Sims 3
+        - The Sims 4
+        - All / not game-specific
+        - A game not yet supported (say which below!)
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else?
