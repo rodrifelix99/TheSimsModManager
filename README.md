@@ -57,7 +57,7 @@ Grab the latest version from the
 | --- | --- | --- |
 | **Windows** (installer) | `TheSimsModManager-x.y.z-windows-setup.exe` | Recommended. SmartScreen may warn (app isn't code-signed yet) — *More info → Run anyway* |
 | **Windows** (portable) | `TheSimsModManager-x.y.z-windows-portable.zip` | Extract anywhere, run `sims_mod_manager.exe` |
-| **macOS** | `TheSimsModManager-x.y.z-macos.zip` | Not notarized yet — right-click the app → *Open* the first time |
+| **macOS** | `TheSimsModManager-x.y.z-macos.zip` | Signed & notarized by Apple — unzip and drag to Applications |
 | **Linux** | `TheSimsModManager-x.y.z-linux-x64.tar.gz` | Extract, run `sims_mod_manager` |
 
 ## 🕹️ Supported games
