@@ -11,6 +11,8 @@
 [![License](https://img.shields.io/badge/license-source--available-lightgrey)](LICENSE.md)
 [![Donate](https://img.shields.io/badge/donate-PayPal-00457C?logo=paypal&logoColor=white)](https://www.paypal.com/donate/?hosted_button_id=UFSLDMGKB9R6A)
 
+**[✨ Visit the website →](https://rodrifelix99.github.io/TheSimsModManager/)**
+
 Browse, install, enable/disable, and clean up your mods and custom content —
 for every mainline Sims game, in one app, with a UI that re-themes itself to
 match the game you're managing.
