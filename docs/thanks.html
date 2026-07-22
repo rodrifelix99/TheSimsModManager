@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thank you! — The Sims Mod Manager</title>
+<meta name="description" content="Your support keeps The Sims Mod Manager free for everyone. Thank you!">
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/svg+xml" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M50 4 L88 50 L50 96 L12 50 Z" fill="%231FBF8F"/><path d="M50 4 L88 50 L50 50 Z" fill="%2312B0D6" opacity="0.65"/></svg>'>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --accent:  #1FBF8F;
+    --accent2: #12B0D6;
+    --bg:      #EAF6F2;
+    --surface: #FFFFFF;
+    --text:    #0F2E28;
+    --muted:   #5F827A;
+    --border:  #D9ECE5;
+    --tint:    #DCF5EC;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+  }
+  a { color: inherit; }
+  img { max-width: 100%; display: block; }
+
+  header {
+    background: color-mix(in srgb, var(--surface) 82%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav { max-width: 1080px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; height: 60px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 900; font-size: 17px; text-decoration: none; }
+  .brand svg { width: 28px; height: 28px; }
+
+  main {
+    flex: 1; display: flex; align-items: flex-end; justify-content: center;
+    padding: 48px 24px 64px;
+  }
+  .stage { width: 100%; max-width: 640px; text-align: center; }
+
+  /* The artwork is cropped at the bottom — sit it flush on the card so the
+     Sims look like they're popping out from behind it. */
+  .stage .sims {
+    width: min(480px, 88%);
+    margin: 0 auto -1px; /* overlap the card border by a hair */
+    position: relative; z-index: 1;
+    filter: drop-shadow(0 12px 24px color-mix(in srgb, var(--text) 18%, transparent));
+    animation: pop .6s cubic-bezier(.2, 1.4, .4, 1) both;
+  }
+  @keyframes pop {
+    from { transform: translateY(26px) scale(.96); opacity: 0; }
+    to   { transform: none; opacity: 1; }
+  }
+
+  .card {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    padding: 44px 36px 40px;
+    box-shadow: 0 24px 70px -18px color-mix(in srgb, var(--text) 25%, transparent);
+  }
+  .card h1 {
+    font-size: clamp(30px, 6vw, 42px); font-weight: 900; line-height: 1.15; letter-spacing: -0.5px;
+  }
+  .card h1 .grad {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .card p {
+    margin-top: 14px; color: var(--muted); font-weight: 600;
+    font-size: clamp(15px, 2.2vw, 17px); max-width: 460px; margin-left: auto; margin-right: auto;
+  }
+  .actions { margin-top: 28px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    text-decoration: none; font-weight: 800; font-size: 15px;
+    padding: 12px 26px; border-radius: 14px;
+    transition: transform .15s ease, filter .15s, background .2s, color .2s;
+  }
+  .btn:hover { transform: translateY(-2px); }
+  .btn.primary {
+    color: #fff; background: linear-gradient(135deg, var(--accent), var(--accent2));
+    box-shadow: 0 6px 20px color-mix(in srgb, var(--accent) 40%, transparent);
+  }
+  .btn.primary:hover { filter: brightness(1.05); }
+  .btn.ghost { color: var(--accent); border: 2px solid var(--accent); }
+  .btn.ghost:hover { background: var(--accent); color: #fff; }
+
+  footer { padding: 20px 24px 28px; }
+  .disclaimer {
+    max-width: 680px; margin: 0 auto; text-align: center;
+    font-size: 11.5px; color: var(--muted); font-weight: 600; line-height: 1.7;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <a class="brand" href="./">
+      <svg viewBox="0 0 100 100" aria-hidden="true"><path d="M50 4 L88 50 L50 96 L12 50 Z" fill="var(--accent)"/><path d="M50 4 L88 50 L50 50 Z" fill="var(--accent2)" opacity="0.65"/></svg>
+      The Sims Mod Manager
+    </a>
+  </div>
+</header>
+
+<main>
+  <div class="stage">
+    <img class="sims" src="images/sims_happy.png" alt="A group of joyful Sims cheering" width="600" height="337">
+    <div class="card">
+      <h1>Sul sul — <span class="grad">thank you!</span></h1>
+      <p>
+        Your support means the world. The Sims Mod Manager is free for everyone,
+        and it's sponsors like you who keep it that way — every donation goes
+        toward making the app better.
+      </p>
+      <div class="actions">
+        <a class="btn primary" href="./">Back to the website</a>
+        <a class="btn ghost" href="https://github.com/rodrifelix99/TheSimsModManager">Star on GitHub ★</a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <p class="disclaimer">
+    The Sims Mod Manager is an unofficial fan project, not affiliated with, endorsed by, or sponsored by
+    Electronic Arts Inc. or Maxis. <i>The Sims</i> and related artwork are trademarks or copyrighted
+    material of Electronic Arts Inc., used for identification only.
+  </p>
+</footer>
+
+</body>
+</html>
