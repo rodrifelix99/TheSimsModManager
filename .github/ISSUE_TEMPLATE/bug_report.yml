@@ -1,0 +1,58 @@
+name: 🐛 Bug report
+description: Something isn't working
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for taking the time to report a bug!
+  - type: input
+    id: version
+    attributes:
+      label: App version
+      placeholder: e.g. 1.0.2 (shown in Settings)
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Windows
+        - macOS
+        - Linux
+    validations:
+      required: true
+  - type: dropdown
+    id: game
+    attributes:
+      label: Game affected
+      options:
+        - The Sims
+        - The Sims 2
+        - The Sims 3
+        - The Sims 4
+        - Not game-specific
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: mods-folder
+    attributes:
+      label: Mods folder details
+      description: >
+        For detection/library issues: the full path to your mods folder and a
+        few example file names in it. This is usually essential to reproduce.
+      placeholder: |
+        C:\Users\me\Documents\Electronic Arts\The Sims 4\Mods
+        MCCC.package, wickedwhims.ts4script, ...
+  - type: textarea
+    id: logs
+    attributes:
+      label: Anything else?
+      description: Screenshots, localized game folder names, OneDrive setups, etc.
