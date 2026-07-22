@@ -1,9 +1,12 @@
 import 'dart:io';
+import 'dart:isolate';
+import 'dart:typed_data';
 
 import 'package:path/path.dart' as p;
 
 import 'game.dart';
 import 'mod.dart';
+import 'package_thumbnail.dart';
 
 /// Suffix appended to a mod file to hide it from the game without deleting it.
 const disabledSuffix = '.disabled';
@@ -43,6 +46,12 @@ abstract class GameAdapter {
   /// first, this lists them all so the user can choose.
   Future<List<Directory>> findModsDirectoryCandidates();
 
+  /// The game's own folder (user data or install directory) when it can
+  /// be located, even if the mods folder inside it doesn't exist yet —
+  /// lets the UI tell "game not found" apart from "game found, mods
+  /// folder missing". `null` when the game itself can't be found.
+  Future<Directory?> findGameFolder();
+
   /// Creates the mods folder at [path], including any scaffolding the game
   /// needs before it loads mods from it (e.g. `Resource.cfg` for Sims 3).
   Future<Directory> createModsDirectory(String path);
@@ -60,6 +69,11 @@ abstract class GameAdapter {
 
   /// Enables or disables [mod] and returns its new state.
   Future<Mod> setEnabled(Mod mod, {required bool enabled});
+
+  /// Artwork found inside the mod file (PNG/JPEG/BMP bytes) for the UI
+  /// to show as the mod's thumbnail, or `null` when the file carries
+  /// none. Best-effort: must never throw.
+  Future<Uint8List?> loadThumbnail(Mod mod);
 }
 
 /// Default implementation for games whose mods are plain files in a folder —
@@ -94,6 +108,11 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
     final dir = Directory(path);
     return await dir.exists() ? [dir] : const [];
   }
+
+  /// Subclasses that can locate the game itself should override this so
+  /// the UI can report "mods folder missing" instead of "game not found".
+  @override
+  Future<Directory?> findGameFolder() async => null;
 
   @override
   Future<Directory> createModsDirectory(String path) async {
@@ -137,6 +156,29 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
         : '${mod.path}$disabledSuffix';
     final renamed = await File(mod.path).rename(newPath);
     return _toMod(renamed)!;
+  }
+
+  /// Mod file extensions that *are* plain images (Sims 1 `.bmp` skins):
+  /// the file itself is its own thumbnail.
+  static const _imageExtensions = {'.bmp', '.png', '.jpg', '.jpeg'};
+
+  @override
+  Future<Uint8List?> loadThumbnail(Mod mod) async {
+    final path = mod.path;
+    final isImage =
+        _imageExtensions.contains(p.extension(mod.name).toLowerCase());
+    try {
+      // Parsing happens in an isolate: packages can be large, and the
+      // library scrolls past dozens of them at once.
+      return await Isolate.run(() {
+        if (isImage) return File(path).readAsBytesSync();
+        // Non-DBPF files (.iff, .far, .ts4script…) fail the magic check
+        // inside and come back null almost for free.
+        return extractPackageThumbnail(File(path));
+      });
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Maps a file to a [Mod], or `null` if it isn't a mod file for this game.

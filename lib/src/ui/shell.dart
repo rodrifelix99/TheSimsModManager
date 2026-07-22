@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:window_manager/window_manager.dart';
 
 import '../core/game_adapter.dart';
 import 'app_controller.dart';
@@ -32,47 +35,71 @@ class _AppShellState extends State<AppShell> {
       listenable: c,
       builder: (context, _) {
         final t = GameTheme.forGame(c.adapter.game);
+        // macOS keeps its native traffic lights overlaid; Windows/Linux lose
+        // their caption buttons with the hidden title bar, so we draw our own.
+        final ownButtons = Platform.isWindows || Platform.isLinux;
         return Scaffold(
           backgroundColor: t.bg,
-          body: Column(
+          body: Stack(
             children: [
-              _TitleBar(theme: t, controller: c),
-              Expanded(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _Sidebar(theme: t, controller: c),
-                    Expanded(
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 320),
-                        switchInCurve: Curves.easeOut,
-                        transitionBuilder: (child, animation) =>
-                            FadeTransition(
-                          opacity: animation,
-                          child: SlideTransition(
-                            position: Tween(
-                              begin: const Offset(0, .015),
-                              end: Offset.zero,
-                            ).animate(animation),
-                            child: child,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _Sidebar(theme: t, controller: c),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Breathing room under the caption-button overlay.
+                        const SizedBox(height: kWindowCaptionHeight),
+                        Expanded(
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 320),
+                            switchInCurve: Curves.easeOut,
+                            transitionBuilder: (child, animation) =>
+                                FadeTransition(
+                              opacity: animation,
+                              child: SlideTransition(
+                                position: Tween(
+                                  begin: const Offset(0, .015),
+                                  end: Offset.zero,
+                                ).animate(animation),
+                                child: child,
+                              ),
+                            ),
+                            child: KeyedSubtree(
+                              key: ValueKey('${c.adapter.game.id}.${c.screen}'),
+                              child: switch (c.screen) {
+                                AppScreen.library =>
+                                  LibraryView(theme: t, controller: c),
+                                AppScreen.detail =>
+                                  DetailView(theme: t, controller: c),
+                                AppScreen.settings =>
+                                  SettingsView(theme: t, controller: c),
+                              },
+                            ),
                           ),
                         ),
-                        child: KeyedSubtree(
-                          key: ValueKey('${c.adapter.game.id}.${c.screen}'),
-                          child: switch (c.screen) {
-                            AppScreen.library =>
-                              LibraryView(theme: t, controller: c),
-                            AppScreen.detail =>
-                              DetailView(theme: t, controller: c),
-                            AppScreen.settings =>
-                              SettingsView(theme: t, controller: c),
-                          },
-                        ),
-                      ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
+              // Invisible title-bar strip: drag to move, double-click to
+              // maximize/restore, stopping short of the caption buttons.
+              Positioned(
+                left: 0,
+                top: 0,
+                right: ownButtons ? _WindowButtons.width : 0,
+                height: kWindowCaptionHeight,
+                child: const DragToMoveArea(child: SizedBox.expand()),
+              ),
+              if (ownButtons)
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: _WindowButtons(theme: t),
+                ),
             ],
           ),
         );
@@ -81,39 +108,69 @@ class _AppShellState extends State<AppShell> {
   }
 }
 
-class _TitleBar extends StatelessWidget {
-  const _TitleBar({required this.theme, required this.controller});
+/// Minimize / maximize / close buttons for platforms whose native caption
+/// buttons disappear along with the hidden title bar.
+class _WindowButtons extends StatefulWidget {
+  const _WindowButtons({required this.theme});
+
+  /// Three caption buttons at the platform-standard 46 px each.
+  static const double width = 46 * 3;
 
   final GameTheme theme;
-  final AppController controller;
+
+  @override
+  State<_WindowButtons> createState() => _WindowButtonsState();
+}
+
+class _WindowButtonsState extends State<_WindowButtons> with WindowListener {
+  // The window starts unmaximized; afterwards we track it via events only,
+  // so building this widget never touches the plugin (widget tests).
+  bool _maximized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    windowManager.addListener(this);
+  }
+
+  @override
+  void dispose() {
+    windowManager.removeListener(this);
+    super.dispose();
+  }
+
+  @override
+  void onWindowMaximize() => setState(() => _maximized = true);
+
+  @override
+  void onWindowUnmaximize() => setState(() => _maximized = false);
 
   @override
   Widget build(BuildContext context) {
-    final t = theme;
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 450),
-      height: 46,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: t.surfaceAlt,
-        border: Border(bottom: BorderSide(color: t.border)),
-      ),
+    final brightness = ThemeData.estimateBrightnessForColor(widget.theme.bg);
+    return SizedBox(
+      height: kWindowCaptionHeight,
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          const SizedBox(width: 60),
-          Expanded(
-            child: Text(
-              'Sims Mod Manager — ${controller.adapter.game.name}'
-              '  ·  ${t.era}',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w800,
-                color: t.muted,
-              ),
-            ),
+          WindowCaptionButton.minimize(
+            brightness: brightness,
+            onPressed: windowManager.minimize,
           ),
-          const SizedBox(width: 60),
+          if (_maximized)
+            WindowCaptionButton.unmaximize(
+              brightness: brightness,
+              onPressed: windowManager.unmaximize,
+            )
+          else
+            WindowCaptionButton.maximize(
+              brightness: brightness,
+              onPressed: windowManager.maximize,
+            ),
+          WindowCaptionButton.close(
+            brightness: brightness,
+            onPressed: windowManager.close,
+          ),
         ],
       ),
     );
@@ -282,11 +339,14 @@ class _SidebarState extends State<_Sidebar>
   Widget _gameRow(GameTheme t, AppController c, GameAdapter adapter) {
     final game = adapter.game;
     final active = game.id == c.adapter.game.id;
-    final badgeColor = GameTheme.badgeColor(game);
-    final iconAsset = GameTheme.iconAsset(game);
     final count = c.modCounts[game.id];
+    final installed = count != null;
+    final badgeColor =
+        installed ? GameTheme.badgeColor(game) : t.muted.withValues(alpha: .5);
+    final iconAsset = GameTheme.iconAsset(game);
     final trailing = game.name.replaceAll(RegExp(r'[^0-9]'), '');
     final badge = trailing.isEmpty ? game.name.substring(0, 1) : trailing;
+    final opacity = installed ? 1.0 : 0.45;
     return HoverBuilder(
       cursor: SystemMouseCursors.click,
       builder: (context, hovered) => GestureDetector(
@@ -298,78 +358,93 @@ class _SidebarState extends State<_Sidebar>
             color: active || hovered ? t.tint : Colors.transparent,
             borderRadius: BorderRadius.circular(11),
           ),
-          child: Row(
-            children: [
-              if (iconAsset != null)
-                SizedBox(
-                  width: 27,
-                  height: 27,
-                  child: Image.asset(iconAsset, fit: BoxFit.contain),
-                )
-              else
-                Container(
-                  width: 27,
-                  height: 27,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: badgeColor,
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: badgeColor.withValues(alpha: .45),
-                        blurRadius: 8,
-                        offset: const Offset(0, 3),
+          child: Opacity(
+            opacity: opacity,
+            child: Row(
+              children: [
+                if (iconAsset != null)
+                  SizedBox(
+                    width: 27,
+                    height: 27,
+                    child: installed
+                        ? Image.asset(iconAsset, fit: BoxFit.contain)
+                        : ColorFiltered(
+                            colorFilter: const ColorFilter.matrix(<double>[
+                              0.2126, 0.7152, 0.0722, 0, 0,
+                              0.2126, 0.7152, 0.0722, 0, 0,
+                              0.2126, 0.7152, 0.0722, 0, 0,
+                              0, 0, 0, 1, 0,
+                            ]),
+                            child: Image.asset(iconAsset, fit: BoxFit.contain),
+                          ),
+                  )
+                else
+                  Container(
+                    width: 27,
+                    height: 27,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: badgeColor,
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: installed
+                          ? [
+                              BoxShadow(
+                                color: badgeColor.withValues(alpha: .45),
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
+                              ),
+                            ]
+                          : null,
+                    ),
+                    child: Text(
+                      badge,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                const SizedBox(width: 11),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        game.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w800,
+                          height: 1.1,
+                          color: t.text,
+                        ),
+                      ),
+                      Text(
+                        count == null
+                            ? 'not installed · ${game.year ?? game.series}'
+                            : '$count mods · ${game.year ?? game.series}',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: t.muted,
+                        ),
                       ),
                     ],
                   ),
-                  child: Text(
-                    badge,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 13,
+                ),
+                if (active)
+                  Container(
+                    width: 7,
+                    height: 7,
+                    decoration: BoxDecoration(
+                      color: t.accent,
+                      shape: BoxShape.circle,
                     ),
                   ),
-                ),
-              const SizedBox(width: 11),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      game.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w800,
-                        height: 1.1,
-                        color: t.text,
-                      ),
-                    ),
-                    Text(
-                      count == null
-                          ? 'not found · ${game.year ?? game.series}'
-                          : '$count mods · ${game.year ?? game.series}',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: t.muted,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (active)
-                Container(
-                  width: 7,
-                  height: 7,
-                  decoration: BoxDecoration(
-                    color: t.accent,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

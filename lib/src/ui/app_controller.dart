@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:path/path.dart' as p;
 
 import '../core/conflicts.dart';
 import '../core/game_adapter.dart';
@@ -32,6 +33,7 @@ class AppController extends ChangeNotifier {
   bool loading = true;
   String query = '';
   String category = 'All';
+  String folder = 'All';
   String? _selectedModPath;
 
   /// Resolved mods folder for the current game (override wins), or null
@@ -44,6 +46,10 @@ class AppController extends ChangeNotifier {
   List<Mod> mods = const [];
   Set<String> conflictPaths = const {};
 
+  /// When set, [filteredMods] narrows to the mods flagged by the conflict
+  /// scan. Toggled by tapping the Conflicts stat in the library header.
+  bool conflictsOnly = false;
+
   /// Alternate mods folders found on this machine (multiple installs,
   /// localized names) — shown when the default guess fails or as choices.
   List<Directory> candidateDirs = const [];
@@ -51,6 +57,11 @@ class AppController extends ChangeNotifier {
   /// Where the mods folder is *supposed* to live, for the "create it"
   /// offer when nothing exists yet.
   String? defaultPath;
+
+  /// The game's own folder when detected — even without a mods folder
+  /// inside — so the setup screen can say "mods folder missing" instead
+  /// of "game not found".
+  Directory? gameFolder;
 
   /// Sidebar mod counts per game id (null = folder not found).
   final Map<String, int?> modCounts = {};
@@ -76,12 +87,14 @@ class AppController extends ChangeNotifier {
     return null;
   }
 
-  /// Mods after search/category/visibility filters.
+  /// Mods after search/category/folder/visibility filters.
   List<Mod> get filteredMods {
     final q = query.trim().toLowerCase();
     return [
       for (final mod in mods)
         if ((category == 'All' || mod.category == category) &&
+            (folder == 'All' || folderOf(mod) == folder) &&
+            (!conflictsOnly || conflictPaths.contains(mod.path)) &&
             (settings.showDisabled || mod.isEnabled) &&
             (q.isEmpty ||
                 mod.name.toLowerCase().contains(q) ||
@@ -101,6 +114,54 @@ class AppController extends ChangeNotifier {
       ? mods.length
       : mods.where((m) => m.category == cat).length;
 
+  /// Top-level subfolder of the mods directory holding [mod], or `null`
+  /// when the file sits directly in the mods folder.
+  String? folderOf(Mod mod) {
+    final root = modsDir?.path;
+    if (root == null) return null;
+    final parts = p.split(p.relative(mod.path, from: root));
+    return parts.length > 1 ? parts.first : null;
+  }
+
+  /// Top-level subfolder names present in the current library, for the
+  /// folder filter chips. Empty when every mod sits directly in the root.
+  /// Follows the user's drag-and-drop arrangement when one is saved;
+  /// folders it doesn't mention (new on disk) append alphabetically.
+  List<String> get folders {
+    final seen = <String>{};
+    for (final mod in mods) {
+      final f = folderOf(mod);
+      if (f != null) seen.add(f);
+    }
+    final sorted = seen.toList()
+      ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+    final saved = settings.folderOrder(_adapter.game.id);
+    if (saved == null) return sorted;
+    final ordered = <String>[
+      for (final f in saved)
+        if (seen.contains(f)) f,
+    ];
+    final placed = ordered.toSet();
+    return [...ordered, ...sorted.where((f) => !placed.contains(f))];
+  }
+
+  int folderCount(String f) => mods.where((m) => folderOf(m) == f).length;
+
+  /// Drops folder chip [moved] onto [target]: [moved] takes [target]'s
+  /// position. Only the folder chips rearrange — category chips and every
+  /// other filter keep their order. Remembered per game.
+  Future<void> reorderFolder(String moved, String target) async {
+    final order = folders.toList();
+    final from = order.indexOf(moved);
+    final to = order.indexOf(target);
+    if (from < 0 || to < 0 || from == to) return;
+    playSound(UiSound.click);
+    order.removeAt(from);
+    order.insert(to, moved);
+    await settings.setFolderOrder(_adapter.game.id, order);
+    notifyListeners();
+  }
+
   int get enabledCount => mods.where((m) => m.isEnabled).length;
   int get conflictCount =>
       mods.where((m) => conflictPaths.contains(m.path)).length;
@@ -112,6 +173,50 @@ class AppController extends ChangeNotifier {
       modSizes.values.fold(0, (sum, size) => sum + size);
 
   bool isConflicted(Mod mod) => conflictPaths.contains(mod.path);
+
+  /// Why [mod] is flagged: the other enabled mods sharing its file name
+  /// (case-insensitive), matching [findConflicts]'s heuristic. Empty when
+  /// the mod isn't conflicted.
+  List<Mod> conflictingWith(Mod mod) {
+    if (!conflictPaths.contains(mod.path)) return const [];
+    final name = p.basename(mod.name).toLowerCase();
+    return [
+      for (final other in mods)
+        if (other.path != mod.path &&
+            other.isEnabled &&
+            p.basename(other.name).toLowerCase() == name)
+          other,
+    ];
+  }
+
+  /// Narrows the library to conflicting mods, or back to all of them.
+  /// No-op when there's nothing to narrow to.
+  void toggleConflictsOnly() {
+    if (!conflictsOnly && conflictCount == 0) return;
+    playSound(UiSound.cycle);
+    conflictsOnly = !conflictsOnly;
+    notifyListeners();
+  }
+
+  /// Re-runs the conflict scan; releases the conflicts-only filter when
+  /// nothing is flagged anymore, so the library never sticks on an
+  /// inexplicably empty list.
+  void _rescanConflicts() {
+    conflictPaths = settings.warnConflicts ? findConflicts(mods) : const {};
+    if (conflictPaths.isEmpty) conflictsOnly = false;
+  }
+
+  /// Embedded-artwork futures keyed by file path + mtime, so a replaced
+  /// file is re-read but scrolling never re-parses the same package.
+  final Map<String, Future<Uint8List?>> _thumbnails = {};
+
+  /// Artwork found inside the mod file, or null — views fall back to
+  /// generated stripe art while this is pending or when it stays empty.
+  Future<Uint8List?> thumbnailFor(Mod mod) {
+    final key =
+        '${mod.path}|${mod.modifiedAt?.millisecondsSinceEpoch ?? 0}';
+    return _thumbnails.putIfAbsent(key, () => _adapter.loadThumbnail(mod));
+  }
 
   /// Plays [sound] unless UI sounds are switched off in Settings.
   /// Fire-and-forget: playback never blocks or fails an action.
@@ -128,11 +233,13 @@ class AppController extends ChangeNotifier {
   Future<void> selectGame(String gameId) async {
     final next = registry.byGameId(gameId);
     if (next == null) return;
-    playSound(UiSound.select);
+    playSound(UiSound.click);
     _adapter = next;
     screen = AppScreen.library;
     query = '';
     category = 'All';
+    folder = 'All';
+    conflictsOnly = false;
     _selectedModPath = null;
     await refresh();
   }
@@ -153,10 +260,12 @@ class AppController extends ChangeNotifier {
       }
       modsDir = dir;
       mods = dir == null ? const [] : await _adapter.listMods(dir);
-      conflictPaths =
-          settings.warnConflicts ? findConflicts(mods) : const {};
+      // The filtered folder may have been renamed/emptied on disk.
+      if (folder != 'All' && !folders.contains(folder)) folder = 'All';
+      _rescanConflicts();
       candidateDirs = await _adapter.findModsDirectoryCandidates();
       defaultPath = await _adapter.defaultModsPath();
+      gameFolder = await _adapter.findGameFolder();
       modCounts[_adapter.game.id] = dir == null ? null : mods.length;
       modSizes[_adapter.game.id] = totalSizeBytes;
       // Not awaited: shells out to the OS, and the library shouldn't
@@ -236,6 +345,12 @@ class AppController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setFolder(String value) {
+    if (value != folder) playSound(UiSound.cycle);
+    folder = value;
+    notifyListeners();
+  }
+
   Future<void> setListView(bool value) async {
     if (value != settings.listView) playSound(UiSound.cycle);
     await settings.setListView(value);
@@ -248,7 +363,7 @@ class AppController extends ChangeNotifier {
       playSound(updated.isEnabled ? UiSound.toggleOn : UiSound.toggleOff);
       mods = [for (final m in mods) m.path == mod.path ? updated : m];
       if (_selectedModPath == mod.path) _selectedModPath = updated.path;
-      conflictPaths = settings.warnConflicts ? findConflicts(mods) : const {};
+      _rescanConflicts();
       modCounts[_adapter.game.id] = mods.length;
       notifyListeners();
     } catch (e) {
@@ -323,7 +438,7 @@ class AppController extends ChangeNotifier {
     // switching sounds on confirms audibly, switching off is silent.
     if (sound != null) playSound(sound);
     // Conflict scanning and visibility react immediately.
-    conflictPaths = settings.warnConflicts ? findConflicts(mods) : const {};
+    _rescanConflicts();
     notifyListeners();
   }
 

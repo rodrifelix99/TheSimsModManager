@@ -99,8 +99,9 @@ class DetailView extends StatelessWidget {
           ),
           child: Stack(
             children: [
-              StripeThumb(
+              ModThumb(
                 seed: mod.name,
+                thumbnail: c.thumbnailFor(mod),
                 borderRadius: BorderRadius.circular(16),
               ),
               Positioned(
@@ -274,54 +275,106 @@ class DetailView extends StatelessWidget {
     if (confirmed) await c.removeMod(mod);
   }
 
+  /// The conflict warning: what we noticed, why it matters, and the
+  /// actual mods this one clashes with — each row jumps to that mod.
+  Widget _conflictPanel(GameTheme t, AppController c, Mod mod) {
+    final others = c.conflictingWith(mod);
+    final root = c.modsDir?.path;
+    String relPath(Mod other) =>
+        root == null ? other.path : p.relative(other.path, from: root);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: conflictOrange.withValues(alpha: .1),
+        border: Border.all(color: conflictOrange.withValues(alpha: .3)),
+        borderRadius: BorderRadius.circular(11),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 18,
+                height: 18,
+                alignment: Alignment.center,
+                decoration: const BoxDecoration(
+                  color: conflictOrange,
+                  shape: BoxShape.circle,
+                ),
+                child: const Text(
+                  '!',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 12,
+                    height: 1,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  others.length == 1
+                      ? 'Another enabled mod has the same file name:'
+                      : '${others.length} other enabled mods have the same '
+                          'file name:',
+                  style: const TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w800,
+                    color: conflictOrangeDark,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          for (final other in others)
+            Padding(
+              padding: const EdgeInsets.only(left: 26, top: 2),
+              child: HoverBuilder(
+                cursor: SystemMouseCursors.click,
+                builder: (context, hovered) => GestureDetector(
+                  onTap: () => c.openMod(other),
+                  child: Text(
+                    relPath(other),
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: conflictOrangeDark,
+                      decoration: hovered
+                          ? TextDecoration.underline
+                          : TextDecoration.none,
+                      decorationColor: conflictOrangeDark,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          const SizedBox(height: 8),
+          const Text(
+            'Identical names usually mean the same mod is installed twice, '
+            'or two creators\' packages clash. The game loads their '
+            'overlapping resources in an unpredictable order — keep one '
+            'and disable or remove the rest.',
+            style: TextStyle(
+              fontSize: 12,
+              height: 1.5,
+              fontWeight: FontWeight.w600,
+              color: conflictOrangeDark,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _rightColumn(GameTheme t, AppController c, Mod mod) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (c.isConflicted(mod)) ...[
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: conflictOrange.withValues(alpha: .1),
-              border:
-                  Border.all(color: conflictOrange.withValues(alpha: .3)),
-              borderRadius: BorderRadius.circular(11),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 18,
-                  height: 18,
-                  alignment: Alignment.center,
-                  decoration: const BoxDecoration(
-                    color: conflictOrange,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Text(
-                    '!',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 12,
-                      height: 1,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                const Expanded(
-                  child: Text(
-                    'Another enabled mod has the same file name. The game '
-                    'may load them in an unpredictable order — keep one.',
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w700,
-                      color: conflictOrangeDark,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          _conflictPanel(t, c, mod),
           const SizedBox(height: 16),
         ],
         TagChip(label: mod.category, color: t.accent, background: t.tint),

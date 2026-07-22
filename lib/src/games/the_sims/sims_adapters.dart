@@ -102,6 +102,12 @@ abstract class DocumentsSimsAdapter extends FolderBasedGameAdapter {
   }
 
   @override
+  Future<Directory?> findGameFolder() async {
+    final dirs = await gameDataFolders();
+    return dirs.isEmpty ? null : dirs.first;
+  }
+
+  @override
   Future<String?> defaultModsPath() async {
     final gameDirs = await gameDataFolders();
     if (gameDirs.isNotEmpty) {
@@ -338,5 +344,14 @@ class Sims1Adapter extends FolderBasedGameAdapter {
       }
     }
     return null; // Game not installed: nowhere sensible to create it.
+  }
+
+  @override
+  Future<Directory?> findGameFolder() async {
+    for (final install in _installCandidates) {
+      final dir = Directory(install);
+      if (await dir.exists()) return dir;
+    }
+    return null;
   }
 }

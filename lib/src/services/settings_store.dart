@@ -24,6 +24,21 @@ class SettingsStore {
     }
   }
 
+  static String _folderOrderKey(String gameId) => 'folderOrder.$gameId';
+
+  /// User-arranged order of the folder filter chips for [gameId], or
+  /// `null` when the user never rearranged them (alphabetical).
+  List<String>? folderOrder(String gameId) =>
+      _prefs.getStringList(_folderOrderKey(gameId));
+
+  Future<void> setFolderOrder(String gameId, List<String>? order) async {
+    if (order == null) {
+      await _prefs.remove(_folderOrderKey(gameId));
+    } else {
+      await _prefs.setStringList(_folderOrderKey(gameId), order);
+    }
+  }
+
   /// Scan enabled mods for duplicate-name conflicts and badge them.
   bool get warnConflicts => _prefs.getBool('warnConflicts') ?? true;
   Future<void> setWarnConflicts(bool value) =>

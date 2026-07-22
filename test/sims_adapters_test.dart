@@ -119,6 +119,19 @@ void main() {
       expect(bare.matchesGameFolder('The Sims 2 Legacy'), isTrue);
       expect(bare.matchesGameFolder('The Sims 3 Legacy'), isFalse);
     });
+
+    test('reports the game folder even when Downloads is missing', () async {
+      make(['EA Games', 'The Sims 2 Legacy']); // no Downloads inside
+      final adapter = Sims2Adapter(documentsOverride: docs);
+
+      expect(await adapter.resolveModsDirectory(), isNull);
+      final gameFolder = await adapter.findGameFolder();
+      expect(gameFolder, isNotNull);
+      expect(p.basename(gameFolder!.path), 'The Sims 2 Legacy');
+      // The "create it" offer points inside the found game folder.
+      expect(await adapter.defaultModsPath(),
+          p.join(gameFolder.path, 'Downloads'));
+    });
   });
 
   group('Sims 1', () {
