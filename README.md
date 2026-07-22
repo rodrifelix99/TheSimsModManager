@@ -38,9 +38,9 @@ match the game you're managing.
   `.disabled` suffix so the game's loader skips it; nothing is ever deleted.
 - ⚠️ **Conflict warnings**: enabled mods sharing a file name are badged
   (duplicate installs are the most common real-world conflict).
-- 🧭 **Robust folder detection**: finds localized user folders
-  ("Los Sims 3", "Die Sims 2", the Ultimate Collection), lists every install
-  when a game exists more than once, and lets you point at any folder
+- 🧭 **Finds your folders for you**: localized user folders
+  ("Los Sims 3", "Die Sims 2", the Ultimate Collection), every install
+  when a game exists more than once, and you can point at any folder
   manually.
 - 🏗️ **Mods-folder scaffolding**: if a game has no mods folder yet, the app
   creates it *with the files the game needs* (e.g. the Sims 3
