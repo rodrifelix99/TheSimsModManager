@@ -32,6 +32,11 @@ set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_RELEASE}")
 # Use Unicode for all projects.
 add_definitions(-DUNICODE -D_UNICODE)
 
+# Newer MSVC (VS 2026 / 14.5x, used on GitHub's windows-latest runners) hard-errors
+# on <experimental/coroutine>, which audioplayers_windows still includes via C++/WinRT.
+# This directory-scoped definition propagates to the plugin subdirectories below.
+add_definitions(-D_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS)
+
 # Compilation settings that should be applied to most targets.
 #
 # Be cautious about adding new options here, as plugins use this function by
