@@ -116,12 +116,12 @@ class GameTheme {
   static Color badgeColor(Game game) =>
       _byGameId[game.id]?.accent ?? _byGameId['sims4']!.accent;
 
-  /// Sidebar icon for [game], or null when we don't ship one — the row
+  /// Sidebar icon for [game], or null when we don't ship one; the row
   /// then falls back to the lettered badge, so new games need no UI work.
   static String? iconAsset(Game game) => _iconByGameId[game.id];
 
   /// Wordmark logo for [game] (variant readable on the light themes), or
-  /// null when we don't ship one — the library header falls back to text.
+  /// null when we don't ship one; the library header falls back to text.
   static String? logoAsset(Game game) => _logoByGameId[game.id];
 
   static const _iconByGameId = <String, String>{

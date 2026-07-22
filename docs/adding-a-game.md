@@ -1,6 +1,6 @@
 # Adding support for a new game
 
-The app was designed so a new game (or an entire series — SimCity is the
+The app was designed so a new game (or an entire series; SimCity is the
 obvious candidate) can be added **without touching the UI or core**.
 
 ## 1. Write the adapter
@@ -13,7 +13,7 @@ mods are plain files in a folder (this covers most games):
 class MyGameAdapter extends FolderBasedGameAdapter {
   @override
   Game get game => const Game(
-        id: 'my_game',          // opaque, stable — used for settings keys
+        id: 'my_game',          // opaque, stable, used for settings keys
         name: 'My Game',
         series: 'My Series',
         year: 2003,
@@ -33,10 +33,10 @@ class MyGameAdapter extends FolderBasedGameAdapter {
 
 Optional overrides:
 
-- `findModsDirectoryCandidates()` — return *every* plausible location when
+- `findModsDirectoryCandidates()`: return *every* plausible location when
   the game can be installed in several places or uses localized folder
   names. The UI shows them as one-click choices.
-- `scaffoldModsDirectory(dir)` — write framework files the game needs when
+- `scaffoldModsDirectory(dir)`: write framework files the game needs when
   the app creates the mods folder (see the Sims 3 `Resource.cfg` for an
   example).
 
@@ -52,7 +52,7 @@ That's the only existing file that must change.
 ## 3. Optional polish
 
 - Add a palette for the game id in
-  [lib/src/ui/game_theme.dart](../lib/src/ui/game_theme.dart) — without one
+  [lib/src/ui/game_theme.dart](../lib/src/ui/game_theme.dart). Without one
   the game gets a neutral theme, which is fine.
 - Icons/logos under `assets/games/` (mind copyright!).
 
@@ -66,7 +66,7 @@ detection, listing, install, enable/disable behavior. See
 Rules of the road:
 
 - Nothing outside `lib/src/games/` may reference your concrete game.
-- `resolveModsDirectory` may return `null` — never invent a path that
+- `resolveModsDirectory` may return `null`; never invent a path that
   doesn't exist.
 - Detection is best-effort; the user can always override the folder in
   Settings, and your adapter must respect that.

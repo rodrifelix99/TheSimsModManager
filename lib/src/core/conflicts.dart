@@ -8,8 +8,8 @@ import 'mod.dart';
 /// Duplicate file names are the most common real-world mod conflict: the
 /// same mod installed twice in different subfolders, or two creators'
 /// packages sharing a name. The game then loads overlapping resources in
-/// an unpredictable order. This is a cheap heuristic — it doesn't parse
-/// package resource tables — so it's a warning, not a verdict.
+/// an unpredictable order. This is a cheap heuristic (it doesn't parse
+/// package resource tables), so it's a warning, not a verdict.
 Set<String> findConflicts(List<Mod> mods) {
   final byName = <String, List<Mod>>{};
   for (final mod in mods.where((m) => m.isEnabled)) {

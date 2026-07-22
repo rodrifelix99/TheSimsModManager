@@ -9,7 +9,7 @@ import 'package:sims_mod_manager/src/core/package_insight.dart';
 import 'package:sims_mod_manager/src/games/the_sims/sims_adapters.dart';
 
 /// A PNG header with a valid IHDR declaring [w]×[h], followed by junk.
-/// Only the signature and dimensions matter — nothing decodes the pixels.
+/// Only the signature and dimensions matter; nothing decodes the pixels.
 Uint8List fakePng(int w, int h) => Uint8List.fromList([
       0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG magic
       0, 0, 0, 13, 0x49, 0x48, 0x44, 0x52, // IHDR chunk header
@@ -125,7 +125,7 @@ Uint8List buildV1Package(List<Res> resources) {
   return b.toBytes();
 }
 
-/// RefPack-compresses [data] using literal runs only — enough to exercise
+/// RefPack-compresses [data] using literal runs only, enough to exercise
 /// the decoder's header parsing, literal codes, and stop code.
 Uint8List refpackLiterals(List<int> data, {bool sizePrefix = false}) {
   final out = BytesBuilder();
@@ -312,7 +312,7 @@ void main() {
       () async {
     // Regression test: the scan isolate's closure must not drag the
     // caller's context along. In the app, onProgress closes over the
-    // AppController (and through its listeners, the widget tree) — if
+    // AppController (and through its listeners, the widget tree); if
     // that context leaks into the isolate message, every batch fails
     // and no artwork ever loads.
     const adapter = Sims1Adapter();

@@ -31,8 +31,8 @@ Future<Directory?> documentsDir({Directory? override}) async {
 /// Shared behavior for the Sims games that keep user data under
 /// `Documents/<vendor>/<game>` (Sims 2, 3 and 4).
 ///
-/// The game folder name is localized per game language — "The Sims 3",
-/// "Los Sims 3" and "Die Sims 3" are all real — so instead of expecting an
+/// The game folder name is localized per game language ("The Sims 3",
+/// "Los Sims 3" and "Die Sims 3" are all real), so instead of expecting an
 /// exact name we scan the vendor folder for anything that looks like this
 /// game and rank exact-looking names first.
 abstract class DocumentsSimsAdapter extends FolderBasedGameAdapter {
@@ -197,19 +197,19 @@ class Sims3Adapter extends DocumentsSimsAdapter {
 
   @override
   String get setupHelp =>
-      'The Sims 3 does not create a mods folder on its own — it needs the '
+      'The Sims 3 does not create a mods folder on its own: it needs the '
       'community "framework": a Mods > Packages folder inside '
       'Documents > Electronic Arts > The Sims 3, plus a '
       'Resource.cfg file that tells the game to read it. This app can '
       'create both for you. On disc/Wine installs the folder can live '
-      'inside the app bundle instead — use "Choose folder" to point at it.';
+      'inside the app bundle instead; use "Choose folder" to point at it.';
 
   /// The standard Sims 3 framework (per NRaas/TSR): Resource.cfg lives in
   /// the Mods folder and points the game at Packages/, up to five levels
   /// of subfolders deep.
   @override
   Future<void> scaffoldModsDirectory(Directory modsDir) async {
-    // modsDir is <game>/Mods/Packages — the cfg belongs in Mods.
+    // modsDir is <game>/Mods/Packages; the cfg belongs in Mods.
     final cfg = File(p.join(modsDir.parent.path, 'Resource.cfg'));
     if (await cfg.exists()) return;
     await cfg.writeAsString('Priority 500\n'
@@ -300,7 +300,7 @@ class Sims1Adapter extends FolderBasedGameAdapter {
       'Collection works the same way from its own install folder '
       '(EA Games\\The Sims Legacy, or Steam\\steamapps\\common\\'
       'The Sims Legacy Collection). If the game is installed somewhere '
-      'else — a different drive, a custom Steam library — pick its '
+      'else (a different drive, a custom Steam library), pick its '
       'Downloads folder manually.';
 
   /// The Sims 1 lives in the install directory, so scan the usual ones:

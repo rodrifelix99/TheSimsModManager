@@ -21,7 +21,7 @@ class DetailView extends StatelessWidget {
     final c = controller;
     final mod = c.selectedMod;
     if (mod == null) {
-      // Mod vanished (deleted externally) — bounce back gracefully.
+      // Mod vanished (deleted externally); bounce back gracefully.
       WidgetsBinding.instance.addPostFrameCallback((_) => c.backToLibrary());
       return const SizedBox.shrink();
     }
@@ -128,7 +128,7 @@ class DetailView extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        // Enable/disable — colored slab with an embedded switch.
+        // Enable/disable: colored slab with an embedded switch.
         HoverBuilder(
           cursor: SystemMouseCursors.click,
           builder: (context, hovered) => GestureDetector(
@@ -276,7 +276,7 @@ class DetailView extends StatelessWidget {
   }
 
   /// The conflict warning: what we noticed, why it matters, and the
-  /// actual mods this one clashes with — each row jumps to that mod.
+  /// actual mods this one clashes with; each row jumps to that mod.
   Widget _conflictPanel(GameTheme t, AppController c, Mod mod) {
     final others = c.conflictingWith(mod);
     final root = c.modsDir?.path;
@@ -355,7 +355,7 @@ class DetailView extends StatelessWidget {
           const Text(
             'Identical names usually mean the same mod is installed twice, '
             'or two creators\' packages clash. The game loads their '
-            'overlapping resources in an unpredictable order — keep one '
+            'overlapping resources in an unpredictable order: keep one '
             'and disable or remove the rest.',
             style: TextStyle(
               fontSize: 12,
@@ -425,7 +425,7 @@ class DetailView extends StatelessWidget {
               ? 'This mod is active: the game will load it on next launch.'
               : 'This mod is disabled: the file is kept on disk with a '
                   '"$disabledMarker" marker so the game skips it. Enable it '
-                  'any time — nothing is deleted.',
+                  'any time; nothing is deleted.',
           style: TextStyle(
             fontSize: 14,
             height: 1.6,

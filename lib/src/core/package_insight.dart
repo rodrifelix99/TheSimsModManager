@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 /// What a best-effort look inside a mod file turned up: embedded artwork
-/// and a coarse summary of what the package contains. Plain data — safe
+/// and a coarse summary of what the package contains. Plain data, safe
 /// to send across isolates.
 class PackageInsight {
   const PackageInsight({
@@ -28,16 +28,16 @@ class PackageInsight {
 /// Every Sims 2/3/4 mod is a DBPF archive: a header, a run of resource
 /// blobs, and an index describing each blob (type/group/instance, offset,
 /// size, compression). Custom content very often carries its own artwork
-/// in there — Sims 4 CAS/Build-Buy thumbnails written by creator tools,
-/// Sims 3 store-style PNG icons, Sims 2 Body Shop images — usually in
+/// in there (Sims 4 CAS/Build-Buy thumbnails written by creator tools,
+/// Sims 3 store-style PNG icons, Sims 2 Body Shop images), usually in
 /// several sizes, so the scan measures every candidate's pixel dimensions
 /// and keeps the sharpest one instead of the first hit.
 ///
 /// The approach is deliberately forgiving: parse the index, probe
 /// resources (known thumbnail types first, then everything else
 /// smallest-first within a byte budget), undo the archive's compression,
-/// and sniff PNG/JPEG signatures. Anything unreadable — not a DBPF file,
-/// truncated, exotic compression — yields `null` and the UI falls back to
+/// and sniff PNG/JPEG signatures. Anything unreadable (not a DBPF file,
+/// truncated, exotic compression) yields `null` and the UI falls back to
 /// generated art. Never throws.
 ///
 /// Synchronous on purpose: callers run it off the UI thread (the adapter
@@ -93,10 +93,10 @@ const _typeLabels = <int, String>{
   0x01D10F34: 'meshes', // MLOD
 };
 
-/// The Sims 2 DIR resource listing compressed entries — never an image.
+/// The Sims 2 DIR resource listing compressed entries, never an image.
 const _dirResourceType = 0xE86B1EEF;
 
-/// Ignore blobs bigger than this even decompressed — thumbnails are small,
+/// Ignore blobs bigger than this even decompressed: thumbnails are small,
 /// anything larger is a texture or mesh not worth reading into memory.
 const _maxResourceBytes = 8 << 20;
 
@@ -107,7 +107,7 @@ const _maxProbes = 512;
 const _probeByteBudget = 24 << 20;
 
 /// Once a found image reaches this many pixels (512×512), stop probing
-/// the generic pool — it's sharp enough for any thumbnail slot.
+/// the generic pool; it's sharp enough for any thumbnail slot.
 const _goodEnoughArea = 512 * 512;
 
 class _Entry {
@@ -260,7 +260,7 @@ List<_Entry> _parseIndexV2(Uint8List index, int count) {
   return entries;
 }
 
-/// DBPF v1 index (Sims 2): fixed-size records — 20 bytes, or 24 when the
+/// DBPF v1 index (Sims 2): fixed-size records of 20 bytes, or 24 when the
 /// index version adds a resource id. Compression isn't in the index (it
 /// lives in the DIR resource), so entries sniff it per blob instead.
 List<_Entry> _parseIndexV1(Uint8List index, int count) {
@@ -396,7 +396,7 @@ bool _isJpeg(Uint8List b) =>
     b.length >= 3 && b[0] == 0xFF && b[1] == 0xD8 && b[2] == 0xFF;
 
 /// Pixel area (width × height) of a PNG or JPEG, read from its headers
-/// without decoding. 0 when the dimensions can't be determined — such an
+/// without decoding. 0 when the dimensions can't be determined; such an
 /// image still counts, it just loses to anything measurable.
 int _imageArea(Uint8List b) {
   if (_isPng(b)) {

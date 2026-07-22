@@ -3,7 +3,7 @@ enum ModStatus { enabled, disabled }
 
 /// A single installed mod as seen on disk.
 ///
-/// Immutable snapshot — operations that change a mod (enable/disable,
+/// Immutable snapshot: operations that change a mod (enable/disable,
 /// remove) go through the game's adapter, which returns fresh instances.
 class Mod {
   const Mod({

@@ -18,7 +18,7 @@ enum AppScreen { library, detail, settings }
 
 /// All UI state and actions. Views are dumb: they render this and call
 /// its methods. Talks only to [GameRegistry]/[GameAdapter]/[Mod] plus the
-/// settings store — never to a concrete game.
+/// settings store, never to a concrete game.
 class AppController extends ChangeNotifier {
   AppController({
     required this.registry,
@@ -62,15 +62,15 @@ class AppController extends ChangeNotifier {
   bool conflictsOnly = false;
 
   /// Alternate mods folders found on this machine (multiple installs,
-  /// localized names) — shown when the default guess fails or as choices.
+  /// localized names), shown when the default guess fails or as choices.
   List<Directory> candidateDirs = const [];
 
   /// Where the mods folder is *supposed* to live, for the "create it"
   /// offer when nothing exists yet.
   String? defaultPath;
 
-  /// The game's own folder when detected — even without a mods folder
-  /// inside — so the setup screen can say "mods folder missing" instead
+  /// The game's own folder when detected (even without a mods folder
+  /// inside), so the setup screen can say "mods folder missing" instead
   /// of "game not found".
   Directory? gameFolder;
 
@@ -159,7 +159,7 @@ class AppController extends ChangeNotifier {
   int folderCount(String f) => mods.where((m) => folderOf(m) == f).length;
 
   /// Drops folder chip [moved] onto [target]: [moved] takes [target]'s
-  /// position. Only the folder chips rearrange — category chips and every
+  /// position. Only the folder chips rearrange; category chips and every
   /// other filter keep their order. Remembered per game.
   Future<void> reorderFolder(String moved, String target) async {
     final order = folders.toList();
@@ -320,7 +320,7 @@ class AppController extends ChangeNotifier {
   /// "no update found" instead of staying silent.
   bool updateCheckDone = false;
 
-  /// Whether the update-found alert sound has played already — a manual
+  /// Whether the update-found alert sound has played already; a manual
   /// re-check shouldn't re-announce the same release.
   bool _updateAnnounced = false;
 
@@ -374,7 +374,7 @@ class AppController extends ChangeNotifier {
 
   Future<void> init() async {
     await refresh();
-    // Not awaited: a network round-trip the library shouldn't wait on —
+    // Not awaited: a network round-trip the library shouldn't wait on;
     // the Settings card and sidebar fill in when the answer arrives.
     checkForUpdates();
     await _refreshCounts();
@@ -422,7 +422,7 @@ class AppController extends ChangeNotifier {
       modCounts[_adapter.game.id] = dir == null ? null : mods.length;
       modSizes[_adapter.game.id] = totalSizeBytes;
       // Not awaited: shells out to the OS, and the library shouldn't
-      // wait on it — the card fills in when the answer arrives.
+      // wait on it; the card fills in when the answer arrives.
       _updateDiskSpace();
     } catch (e) {
       lastError = e.toString();

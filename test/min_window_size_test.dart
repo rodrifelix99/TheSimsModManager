@@ -52,7 +52,7 @@ void main() {
 
   setUp(() {
     SharedPreferences.setMockInitialValues({'soundEffects': false});
-    // Sync IO only outside runAsync — see widget_test.dart.
+    // Sync IO only outside runAsync; see widget_test.dart.
     tempDir = Directory.systemTemp.createTempSync('mod_manager_minsize');
     File(p.join(tempDir.path, 'cozy_sofa.package')).writeAsStringSync('x');
     final sub = Directory(p.join(tempDir.path, 'CAS'))..createSync();

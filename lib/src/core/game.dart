@@ -2,7 +2,7 @@
 ///
 /// A [Game] is pure data; all game-specific behavior lives in its
 /// [GameAdapter]. New games (SimCity, or anything else) are added by
-/// creating a new adapter and registering it — this class never changes.
+/// creating a new adapter and registering it; this class never changes.
 class Game {
   const Game({
     required this.id,

@@ -1,7 +1,7 @@
 import 'package:audioplayers/audioplayers.dart';
 
 /// Semantic UI sound events, mapped onto the Sims 1 UI sound bank
-/// (assets/sounds/s1/ui). Callers name the *intent* — which wav that
+/// (assets/sounds/s1/ui). Callers name the *intent*; which wav that
 /// means is decided here, so reskinning the app's audio is one file.
 enum UiSound {
   /// Generic button/row press.

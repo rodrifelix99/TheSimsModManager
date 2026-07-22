@@ -48,7 +48,7 @@ void main() {
   test('lists only mod files, sorted by name', () async {
     addFile('b_mod.package');
     addFile('a_mod.package');
-    addFile('readme.txt'); // not a mod — must be ignored
+    addFile('readme.txt'); // not a mod; must be ignored
 
     final mods = await adapter.listMods(tempDir);
 

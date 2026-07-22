@@ -154,8 +154,8 @@ jobs:
             | Platform | File |
             |---|---|
             | Windows installer | `*-windows-setup.exe` |
-            | Windows portable | `*-windows-portable.zip` — extract and run `sims_mod_manager.exe` |
+            | Windows portable | `*-windows-portable.zip`: extract and run `sims_mod_manager.exe` |
             | macOS | `*-macos.zip` |
-            | Linux | `*-linux-x64.tar.gz` — extract and run `sims_mod_manager` |
+            | Linux | `*-linux-x64.tar.gz`: extract and run `sims_mod_manager` |
 
-            > **Windows:** the app is not code-signed yet, so SmartScreen may warn on first run — choose *More info → Run anyway*.
+            > **Windows:** the app is not code-signed yet, so SmartScreen may warn on first run; choose *More info → Run anyway*.

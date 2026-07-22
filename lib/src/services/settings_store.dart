@@ -1,7 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Persisted user preferences: per-game mods-folder overrides and the
-/// mod-management toggles from Settings. Pure key-value storage — no
+/// mod-management toggles from Settings. Pure key-value storage with no
 /// game knowledge beyond the opaque game id.
 class SettingsStore {
   SettingsStore(this._prefs);

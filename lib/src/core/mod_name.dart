@@ -1,7 +1,7 @@
 import 'package:path/path.dart' as p;
 
 /// Turns a mod file name into a human-friendly title using the naming
-/// conventions Sims creators actually use — underscores/hyphens as word
+/// conventions Sims creators actually use: underscores/hyphens as word
 /// separators, CamelCase run-together words, url-encoded spaces:
 ///
 /// - `cozy_living-overhaul.package` → `cozy living overhaul`

@@ -278,11 +278,11 @@ class ConflictBadge extends StatelessWidget {
 
 /// Single-line row that never wraps: children lay out left to right and
 /// the ones that don't fit are hidden. The *last* child is the overflow
-/// button (e.g. a "…" chip) — it appears right after the last fitting
+/// button (e.g. a "…" chip): it appears right after the last fitting
 /// child whenever something is hidden, and disappears when everything
 /// fits. [onVisibleCountChanged] reports how many leading children fit
 /// (overflow button excluded) so the caller can list the hidden ones in
-/// a menu; it fires during layout, so it must only record the value —
+/// a menu; it fires during layout, so it must only record the value and
 /// never call setState synchronously.
 class OverflowRow extends MultiChildRenderObjectWidget {
   const OverflowRow({
@@ -447,7 +447,7 @@ class _RenderOverflowRow extends RenderBox
 
 /// Formats a byte count the way the design does: "480 MB", "2.2 GB".
 String formatBytes(int? bytes) {
-  if (bytes == null) return '—';
+  if (bytes == null) return '-';
   const mb = 1024 * 1024;
   const gb = 1000 * mb;
   if (bytes >= 1000 * gb) {
