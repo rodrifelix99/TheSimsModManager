@@ -56,6 +56,49 @@ jobs:
       - run: flutter config --no-enable-swift-package-manager
       - run: flutter pub get
       - run: flutter build macos --release
+      - name: Import signing certificate
+        env:
+          MACOS_CERT_P12: ${{ secrets.MACOS_CERT_P12 }}
+          MACOS_CERT_PASSWORD: ${{ secrets.MACOS_CERT_PASSWORD }}
+        run: |
+          KEYCHAIN_PASSWORD="$(uuidgen)"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security set-keychain-settings -t 3600 build.keychain
+          echo "$MACOS_CERT_P12" | base64 --decode > cert.p12
+          security import cert.p12 -k build.keychain \
+            -P "$MACOS_CERT_PASSWORD" -T /usr/bin/codesign
+          rm cert.p12
+          security set-key-partition-list -S apple-tool:,apple: \
+            -s -k "$KEYCHAIN_PASSWORD" build.keychain
+      - name: Codesign (Developer ID + hardened runtime)
+        run: |
+          APP="build/macos/Build/Products/Release/sims_mod_manager.app"
+          # Sign nested frameworks/plugins first, then the app bundle itself.
+          find "$APP/Contents/Frameworks" -maxdepth 1 \
+            \( -name "*.framework" -o -name "*.dylib" \) | while read -r ITEM; do
+            codesign --force --timestamp --options runtime \
+              --sign "Developer ID Application" "$ITEM"
+          done
+          codesign --force --timestamp --options runtime \
+            --entitlements macos/Runner/Release.entitlements \
+            --sign "Developer ID Application" "$APP"
+          codesign --verify --deep --strict "$APP"
+      - name: Notarize and staple
+        env:
+          APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+          APPSTORE_PRIVATE_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+        run: |
+          APP="build/macos/Build/Products/Release/sims_mod_manager.app"
+          echo "$APPSTORE_PRIVATE_KEY" > AuthKey.p8
+          ditto -c -k --keepParent "$APP" notarize.zip
+          xcrun notarytool submit notarize.zip \
+            --key AuthKey.p8 --key-id "$APPSTORE_KEY_ID" \
+            --issuer "$APPSTORE_ISSUER_ID" --wait
+          rm AuthKey.p8 notarize.zip
+          xcrun stapler staple "$APP"
       - name: Package .app zip
         run: |
           mkdir -p dist
@@ -116,4 +159,3 @@ jobs:
             | Linux | `*-linux-x64.tar.gz` — extract and run `sims_mod_manager` |
 
             > **Windows:** the app is not code-signed yet, so SmartScreen may warn on first run — choose *More info → Run anyway*.
-            > **macOS:** the app is not notarized yet. If macOS blocks it, right-click the app and choose *Open*, or run `xattr -cr "/path/to/sims_mod_manager.app"`.
