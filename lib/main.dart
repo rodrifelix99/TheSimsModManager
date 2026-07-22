@@ -21,7 +21,12 @@ Future<void> main() async {
   if (translucentSidebar) {
     await Window.initialize();
   }
-  const windowOptions = WindowOptions(titleBarStyle: TitleBarStyle.hidden);
+  // Minimum size is in logical pixels; window_manager rescales it for the
+  // monitor's DPI, so the floor holds on any display scale.
+  const windowOptions = WindowOptions(
+    titleBarStyle: TitleBarStyle.hidden,
+    minimumSize: kMinWindowSize,
+  );
   unawaited(windowManager.waitUntilReadyToShow(windowOptions, () async {
     if (translucentSidebar) {
       await Window.setEffect(
