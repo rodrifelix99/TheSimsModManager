@@ -13,13 +13,13 @@
 
 **[✨ Visit the website →](https://rodrifelix99.github.io/TheSimsModManager/)**
 
-Browse, install, enable/disable, and clean up your mods and custom content —
+Browse, install, enable/disable, and clean up your mods and custom content
 for every mainline Sims game, in one app, with a UI that re-themes itself to
 match the game you're managing.
 
 <img src="docs/images/library-grid.png" alt="Library view (The Sims 4)" width="800">
 
-<sub>The UI re-themes per game — here's the same library managing The Sims 1:</sub>
+<sub>The UI re-themes per game. Here's the same library managing The Sims 1:</sub>
 
 <img src="docs/images/library-sims1.png" alt="Library view (The Sims 1, classic theme)" width="800">
 
