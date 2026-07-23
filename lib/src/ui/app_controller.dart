@@ -7,6 +7,7 @@ import '../core/conflicts.dart';
 import '../core/game_adapter.dart';
 import '../core/game_registry.dart';
 import '../core/mod.dart';
+import '../core/mod_archive.dart';
 import '../core/mod_name.dart';
 import '../core/package_insight.dart';
 import '../services/disk_space.dart';
@@ -295,11 +296,19 @@ class AppController extends ChangeNotifier {
     _skipScan = false;
     scanProgress = (0, missing.length);
     notifyListeners();
+    final byPath = {for (final mod in missing) mod.path: mod};
     try {
       final found = await _adapter.inspectMods(missing,
           onProgress: (done, total) {
         scanProgress = (done, total);
         notifyListeners();
+      }, onFound: (found) {
+        // Cache mid-scan so the loading screen's floating backdrop can
+        // show artwork as it's discovered.
+        for (final entry in found.entries) {
+          final mod = byPath[entry.key];
+          if (mod != null) _insights[_insightKey(mod)] = entry.value;
+        }
       }, isCancelled: () => _skipScan);
       for (final mod in missing) {
         final insight = found[mod.path];
@@ -309,6 +318,13 @@ class AppController extends ChangeNotifier {
       scanProgress = null;
     }
   }
+
+  /// Feed for the loading screen's floating backdrop: every mod's
+  /// cleaned-up title plus whatever artwork the scan has cached so far
+  /// (more appears as batches finish).
+  List<(String, Uint8List?)> get scanShowcase => [
+        for (final mod in mods) (humanizeModName(mod.name), thumbnailOf(mod)),
+      ];
 
   /// Plays [sound] unless UI sounds are switched off in Settings.
   /// Fire-and-forget: playback never blocks or fails an action.
@@ -556,7 +572,11 @@ class AppController extends ChangeNotifier {
     if (dir == null) return;
     try {
       for (final source in sources) {
-        await _adapter.installMod(dir, source);
+        if (isArchivePath(source.path)) {
+          await _adapter.installArchive(dir, source);
+        } else {
+          await _adapter.installMod(dir, source);
+        }
       }
       playSound(UiSound.install);
     } catch (e) {

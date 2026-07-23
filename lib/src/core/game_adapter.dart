@@ -5,6 +5,7 @@ import 'package:path/path.dart' as p;
 
 import 'game.dart';
 import 'mod.dart';
+import 'mod_archive.dart';
 import 'package_insight.dart';
 
 /// Suffix appended to a mod file to hide it from the game without deleting it.
@@ -64,6 +65,13 @@ abstract class GameAdapter {
   /// Copies [source] into [modsDir].
   Future<Mod> installMod(Directory modsDir, File source);
 
+  /// Unpacks [archive] (any format in [archiveFileExtensions]) into
+  /// [modsDir] and returns the mod files it contained; everything else
+  /// in the archive (readmes, screenshots) is skipped. Throws with a
+  /// user-readable message when the archive can't be read or holds no
+  /// mod files.
+  Future<List<Mod>> installArchive(Directory modsDir, File archive);
+
   Future<void> removeMod(Mod mod);
 
   /// Enables or disables [mod] and returns its new state.
@@ -83,13 +91,16 @@ abstract class GameAdapter {
   /// Looks inside every mod file for embedded artwork and a content
   /// summary, keyed by `mod.path`. Meant to run once per library load,
   /// off the UI thread; [onProgress] reports how many files have been
-  /// inspected so far. Files that yield nothing are simply absent from
-  /// the result. When [isCancelled] starts returning true the scan stops
-  /// early (between batches) and returns whatever it has so far.
+  /// inspected so far, and [onFound] delivers each batch's discoveries
+  /// as they land (so the loading screen can show artwork mid-scan).
+  /// Files that yield nothing are simply absent from the result. When
+  /// [isCancelled] starts returning true the scan stops early (between
+  /// batches) and returns whatever it has so far.
   /// Best-effort: must never throw.
   Future<Map<String, PackageInsight>> inspectMods(
     List<Mod> mods, {
     void Function(int done, int total)? onProgress,
+    void Function(Map<String, PackageInsight> found)? onFound,
     bool Function()? isCancelled,
   });
 }
@@ -178,6 +189,13 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
   }
 
   @override
+  Future<List<Mod>> installArchive(Directory modsDir, File archive) async {
+    await modsDir.create(recursive: true);
+    final files = await extractModFiles(archive, modsDir, modFileExtensions);
+    return [for (final file in files) _toMod(file)!];
+  }
+
+  @override
   Future<void> removeMod(Mod mod) => File(mod.path).delete();
 
   @override
@@ -205,6 +223,7 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
   Future<Map<String, PackageInsight>> inspectMods(
     List<Mod> mods, {
     void Function(int done, int total)? onProgress,
+    void Function(Map<String, PackageInsight> found)? onFound,
     bool Function()? isCancelled,
   }) async {
     final results = <String, PackageInsight>{};
@@ -235,10 +254,15 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
         } catch (_) {
           scanned = const {};
         }
+        final landed = <String, PackageInsight>{};
         for (final entry in scanned.entries) {
           final insight = entry.value;
-          if (insight != null) results[entry.key] = insight;
+          if (insight != null) {
+            results[entry.key] = insight;
+            landed[entry.key] = insight;
+          }
         }
+        if (landed.isNotEmpty) onFound?.call(landed);
         done += batch.length;
         onProgress?.call(done, mods.length);
       }

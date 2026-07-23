@@ -5,10 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 
 import '../core/mod.dart';
+import '../core/mod_archive.dart';
 import '../core/mod_name.dart';
 import '../services/sfx.dart';
 import 'app_controller.dart';
 import 'game_theme.dart';
+import 'scan_backdrop.dart';
 import 'widgets.dart';
 
 /// The main screen: search, filters, stats, and the mod grid/list.
@@ -24,40 +26,47 @@ class LibraryView extends StatelessWidget {
     final c = controller;
     if (c.loading) {
       final progress = c.scanProgress;
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircularProgressIndicator(
-              color: t.accent,
-              value: progress != null && progress.$2 > 0
-                  ? progress.$1 / progress.$2
-                  : null,
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          if (progress != null)
+            ScanFloatBackdrop(theme: t, itemsSource: () => c.scanShowcase),
+          Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(
+                  color: t.accent,
+                  value: progress != null && progress.$2 > 0
+                      ? progress.$1 / progress.$2
+                      : null,
+                ),
+                if (progress != null) ...[
+                  const SizedBox(height: 14),
+                  Text(
+                    'Looking inside mods for artwork… '
+                    '${progress.$1} of ${progress.$2}',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: t.muted,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  TextButton(
+                    onPressed: c.skipArtworkScan,
+                    style: TextButton.styleFrom(
+                      foregroundColor: t.muted,
+                      textStyle: const TextStyle(
+                          fontWeight: FontWeight.w800, fontSize: 13),
+                    ),
+                    child: const Text('Skip'),
+                  ),
+                ],
+              ],
             ),
-            if (progress != null) ...[
-              const SizedBox(height: 14),
-              Text(
-                'Looking inside mods for artwork… '
-                '${progress.$1} of ${progress.$2}',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: t.muted,
-                ),
-              ),
-              const SizedBox(height: 6),
-              TextButton(
-                onPressed: c.skipArtworkScan,
-                style: TextButton.styleFrom(
-                  foregroundColor: t.muted,
-                  textStyle: const TextStyle(
-                      fontWeight: FontWeight.w800, fontSize: 13),
-                ),
-                child: const Text('Skip'),
-              ),
-            ],
-          ],
-        ),
+          ),
+        ],
       );
     }
     if (c.modsDir == null) {
@@ -260,8 +269,11 @@ class LibraryView extends StatelessWidget {
 
   static Future<void> _pickAndInstall(AppController c) async {
     c.playSound(UiSound.click);
+    // Archives are accepted alongside plain mod files: the adapter
+    // unpacks them and installs the mod files they contain.
     final extensions = [
       for (final e in c.adapter.modFileExtensions) e.replaceFirst('.', ''),
+      for (final e in archiveFileExtensions) e.replaceFirst('.', ''),
     ];
     final files = await openFiles(acceptedTypeGroups: [
       XTypeGroup(label: '${c.adapter.game.name} mods', extensions: extensions),

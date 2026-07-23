@@ -285,6 +285,23 @@ void main() {
     expect(progress.last, (2, 2));
   });
 
+  test('inspectMods streams discoveries through onFound as batches land',
+      () async {
+    const adapter = Sims1Adapter();
+    final bmp = [0x42, 0x4D, 1, 2, 3, 4];
+    final bmpFile = write('skin.bmp', bmp);
+    final mods = [
+      Mod(name: 'skin.bmp', path: bmpFile.path, status: ModStatus.enabled),
+    ];
+
+    final streamed = <String, PackageInsight>{};
+    final results = await adapter.inspectMods(mods,
+        onFound: (found) => streamed.addAll(found));
+
+    expect(streamed[bmpFile.path]?.thumbnail, bmp);
+    expect(streamed, results);
+  });
+
   test('inspectMods stops early when isCancelled flips true', () async {
     const adapter = Sims1Adapter();
     // More files than one batch (8) so there is work left to cancel.
