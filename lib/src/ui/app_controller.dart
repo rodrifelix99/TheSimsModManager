@@ -136,10 +136,13 @@ class AppController extends ChangeNotifier {
       : mods.where((m) => m.category == cat).length;
 
   /// Top-level subfolder of the mods directory holding [mod], or `null`
-  /// when the file sits directly in the mods folder.
+  /// when the file sits directly in the mods folder. Mods living outside
+  /// the mods directory (Sims 1 routes skins/walls/floors into sibling
+  /// game folders) group under their own folder's name instead.
   String? folderOf(Mod mod) {
     final root = modsDir?.path;
     if (root == null) return null;
+    if (!p.isWithin(root, mod.path)) return p.basename(p.dirname(mod.path));
     final parts = p.split(p.relative(mod.path, from: root));
     return parts.length > 1 ? parts.first : null;
   }
