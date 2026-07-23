@@ -22,8 +22,8 @@ void main() {
       Directory(p.joinAll([docs.path, ...segments]))
         ..createSync(recursive: true);
 
-  File makeFile(List<String> segments) => File(p.joinAll([docs.path, ...segments]))
-    ..createSync(recursive: true);
+  File makeFile(List<String> segments) =>
+      File(p.joinAll([docs.path, ...segments]))..createSync(recursive: true);
 
   group('Sims 3 folder resolution', () {
     test('finds localized game folders (e.g. Los Sims 3)', () async {
@@ -37,8 +37,12 @@ void main() {
     });
 
     test('ignores side tools like Create a World', () async {
-      make(['Electronic Arts', 'The Sims 3 Create a World Tool', 'Mods',
-          'Packages']);
+      make([
+        'Electronic Arts',
+        'The Sims 3 Create a World Tool',
+        'Mods',
+        'Packages'
+      ]);
       final adapter = Sims3Adapter(documentsOverride: docs);
 
       expect(await adapter.resolveModsDirectory(), isNull);
@@ -64,23 +68,20 @@ void main() {
       );
     });
 
-    test('createModsDirectory scaffolds the Resource.cfg framework',
-        () async {
+    test('createModsDirectory scaffolds the Resource.cfg framework', () async {
       final adapter = Sims3Adapter(documentsOverride: docs);
       final path = (await adapter.defaultModsPath())!;
 
       final dir = await adapter.createModsDirectory(path);
 
       expect(dir.existsSync(), isTrue);
-      final cfg = File(p.join(docs.path, 'Electronic Arts', 'The Sims 3',
-          'Mods', 'Resource.cfg'));
+      final cfg = File(p.join(
+          docs.path, 'Electronic Arts', 'The Sims 3', 'Mods', 'Resource.cfg'));
       expect(cfg.existsSync(), isTrue);
-      expect(cfg.readAsStringSync(),
-          contains('PackedFile Packages/*.package'));
+      expect(cfg.readAsStringSync(), contains('PackedFile Packages/*.package'));
     });
 
-    test('finds and clears the stale CC caches, leaving mods alone',
-        () async {
+    test('finds and clears the stale CC caches, leaving mods alone', () async {
       for (final name in [
         'CASPartCache.package',
         'compositorCache.package',
@@ -90,8 +91,7 @@ void main() {
         makeFile(['Electronic Arts', 'The Sims 3', name]);
       }
       final mod = makeFile(
-          ['Electronic Arts', 'The Sims 3', 'Mods', 'Packages',
-              'mod.package']);
+          ['Electronic Arts', 'The Sims 3', 'Mods', 'Packages', 'mod.package']);
       final adapter = Sims3Adapter(documentsOverride: docs);
 
       final found = await adapter.findCacheFiles();
@@ -179,8 +179,14 @@ void main() {
     test('finds Origin and Steam installs', () async {
       // Reuse the temp dir as a fake Program Files root.
       make(['Origin Games', 'The Sims Medieval', 'Mods', 'Packages']);
-      make(['Steam', 'steamapps', 'common', 'The Sims Medieval', 'Mods',
-          'Packages']);
+      make([
+        'Steam',
+        'steamapps',
+        'common',
+        'The Sims Medieval',
+        'Mods',
+        'Packages'
+      ]);
       final adapter = SimsMedievalAdapter(
           programFilesOverride: [docs.path], homeOverride: docs.path);
 
@@ -192,8 +198,13 @@ void main() {
     });
 
     test('finds localized disc installs by the TSM.exe signature', () async {
-      makeFile(
-          ['Electronic Arts', 'Die Sims Mittelalter', 'Game', 'Bin', 'TSM.exe']);
+      makeFile([
+        'Electronic Arts',
+        'Die Sims Mittelalter',
+        'Game',
+        'Bin',
+        'TSM.exe'
+      ]);
       // A Sims 3 disc install lives under the same vendor folder but has
       // no TSM.exe, so it must not be picked up.
       make(['Electronic Arts', 'The Sims 3', 'Game', 'Bin']);
@@ -211,8 +222,14 @@ void main() {
     test('finds Linux native Steam library installs', () async {
       // Reuse the temp dir as a fake home; Proton games install outside
       // the wine prefix, in the regular Steam library.
-      make(['.local', 'share', 'Steam', 'steamapps', 'common',
-          'The Sims Medieval']);
+      make([
+        '.local',
+        'share',
+        'Steam',
+        'steamapps',
+        'common',
+        'The Sims Medieval'
+      ]);
       final adapter = SimsMedievalAdapter(
           programFilesOverride: const [], homeOverride: docs.path);
 
@@ -251,7 +268,8 @@ void main() {
           contains('PackedFile Mods/Packages/*/*/*/*/*.package'));
     });
 
-    test('finds CC caches in the localized Documents folder, skipping '
+    test(
+        'finds CC caches in the localized Documents folder, skipping '
         'the numbered games', () async {
       // Caches live in Documents (not the install); the folder name is
       // localized, so they're found by the cache files themselves. A
@@ -290,8 +308,13 @@ void main() {
     test('finds the Legacy Collection install folders', () async {
       // Reuse the temp dir as a fake Program Files root.
       make(['EA Games', 'The Sims Legacy', 'Downloads']);
-      make(['Steam', 'steamapps', 'common', 'The Sims Legacy Collection',
-          'Downloads']);
+      make([
+        'Steam',
+        'steamapps',
+        'common',
+        'The Sims Legacy Collection',
+        'Downloads'
+      ]);
       final adapter = Sims1Adapter(programFilesOverride: [docs.path]);
 
       final candidates = await adapter.findModsDirectoryCandidates();
@@ -320,8 +343,7 @@ void main() {
       return file;
     }
 
-    test('routes single-file installs by type into the game folders',
-        () async {
+    test('routes single-file installs by type into the game folders', () async {
       final downloads = makeInstall();
       final install = downloads.parent;
       final adapter = Sims1Adapter(programFilesOverride: [docs.path]);
@@ -401,6 +423,33 @@ void main() {
           isTrue);
       expect(File(p.join(skins, 'B200FAFit_BWar.cmx')).existsSync(), isTrue);
       expect(File(p.join(skins, 'readme.txt')).existsSync(), isFalse);
+    });
+
+    test('routes dropped-folder contents, keeping the folder in Downloads',
+        () async {
+      final downloads = makeInstall();
+      final install = downloads.parent;
+      final adapter = Sims1Adapter(programFilesOverride: [docs.path]);
+      makeFile(['drop', 'MyCC', 'furniture', 'chair.iff']);
+      makeFile(['drop', 'MyCC', 'skins', 'B200FAFit_BWar.cmx']);
+      makeFile(['drop', 'MyCC', 'readme.txt']);
+      final source = Directory(p.join(docs.path, 'drop', 'MyCC'));
+
+      final mods = await adapter.installFolder(downloads, source);
+
+      expect(mods, hasLength(2));
+      // Objects keep the dropped folder (and its structure) in Downloads.
+      expect(
+          File(p.join(downloads.path, 'MyCC', 'furniture', 'chair.iff'))
+              .existsSync(),
+          isTrue);
+      // Skins are flattened into GameData/Skins like archive installs.
+      expect(
+          File(p.join(install.path, 'GameData', 'Skins', 'B200FAFit_BWar.cmx'))
+              .existsSync(),
+          isTrue);
+      expect(File(p.join(downloads.path, 'MyCC', 'readme.txt')).existsSync(),
+          isFalse);
     });
 
     test('lists routed content alongside Downloads and can toggle it',

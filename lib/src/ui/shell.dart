@@ -1,9 +1,11 @@
 import 'dart:io';
 
+import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../core/game_adapter.dart';
+import '../core/mod_archive.dart';
 import 'app_controller.dart';
 import 'detail_view.dart';
 import 'game_theme.dart';
@@ -30,10 +32,18 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
+  bool _dragging = false;
+
   @override
   void initState() {
     super.initState();
     widget.controller.init();
+  }
+
+  void _handleDrop(AppController c, DropDoneDetails details) {
+    setState(() => _dragging = false);
+    if (c.modsDir == null) return;
+    c.installDroppedPaths([for (final f in details.files) f.path]);
   }
 
   @override
@@ -51,75 +61,143 @@ class _AppShellState extends State<AppShell> {
           // Transparent so the OS blur backdrop shows through the sidebar;
           // the content column below paints itself opaque.
           backgroundColor: glass ? Colors.transparent : t.bg,
-          body: Stack(
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _Sidebar(theme: t, controller: c, glass: glass),
-                  Expanded(
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 450),
-                      color: t.bg,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          // Breathing room under the caption-button overlay.
-                          const SizedBox(height: kWindowCaptionHeight),
-                          Expanded(
-                            child: AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 320),
-                              switchInCurve: Curves.easeOut,
-                              transitionBuilder: (child, animation) =>
-                                  FadeTransition(
-                                opacity: animation,
-                                child: SlideTransition(
-                                  position: Tween(
-                                    begin: const Offset(0, .015),
-                                    end: Offset.zero,
-                                  ).animate(animation),
-                                  child: child,
+          // Files dragged from anywhere (browser download bar, Explorer)
+          // install on drop; only meaningful once a mods folder resolved.
+          body: DropTarget(
+            onDragEntered: (_) {
+              if (c.modsDir != null) setState(() => _dragging = true);
+            },
+            onDragExited: (_) => setState(() => _dragging = false),
+            onDragDone: (details) => _handleDrop(c, details),
+            child: Stack(
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _Sidebar(theme: t, controller: c, glass: glass),
+                    Expanded(
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 450),
+                        color: t.bg,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            // Breathing room under the caption-button overlay.
+                            const SizedBox(height: kWindowCaptionHeight),
+                            Expanded(
+                              child: AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 320),
+                                switchInCurve: Curves.easeOut,
+                                transitionBuilder: (child, animation) =>
+                                    FadeTransition(
+                                  opacity: animation,
+                                  child: SlideTransition(
+                                    position: Tween(
+                                      begin: const Offset(0, .015),
+                                      end: Offset.zero,
+                                    ).animate(animation),
+                                    child: child,
+                                  ),
+                                ),
+                                child: KeyedSubtree(
+                                  key: ValueKey(
+                                      '${c.adapter.game.id}.${c.screen}'),
+                                  child: switch (c.screen) {
+                                    AppScreen.library =>
+                                      LibraryView(theme: t, controller: c),
+                                    AppScreen.detail =>
+                                      DetailView(theme: t, controller: c),
+                                    AppScreen.settings =>
+                                      SettingsView(theme: t, controller: c),
+                                  },
                                 ),
                               ),
-                              child: KeyedSubtree(
-                                key: ValueKey(
-                                    '${c.adapter.game.id}.${c.screen}'),
-                                child: switch (c.screen) {
-                                  AppScreen.library =>
-                                    LibraryView(theme: t, controller: c),
-                                  AppScreen.detail =>
-                                    DetailView(theme: t, controller: c),
-                                  AppScreen.settings =>
-                                    SettingsView(theme: t, controller: c),
-                                },
-                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-              // Invisible title-bar strip: drag to move, double-click to
-              // maximize/restore, stopping short of the caption buttons.
-              Positioned(
-                left: 0,
-                top: 0,
-                right: ownButtons ? _WindowButtons.width : 0,
-                height: kWindowCaptionHeight,
-                child: const DragToMoveArea(child: SizedBox.expand()),
-              ),
-              if (ownButtons)
-                Positioned(
-                  top: 0,
-                  right: 0,
-                  child: _WindowButtons(theme: t),
+                  ],
                 ),
-            ],
+                // Invisible title-bar strip: drag to move, double-click to
+                // maximize/restore, stopping short of the caption buttons.
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  right: ownButtons ? _WindowButtons.width : 0,
+                  height: kWindowCaptionHeight,
+                  child: const DragToMoveArea(child: SizedBox.expand()),
+                ),
+                if (ownButtons)
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: _WindowButtons(theme: t),
+                  ),
+                if (_dragging)
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: _DropOverlay(theme: t, controller: c),
+                    ),
+                  ),
+              ],
+            ),
           ),
         );
       },
+    );
+  }
+}
+
+/// Full-window highlight shown while files are dragged over the app.
+class _DropOverlay extends StatelessWidget {
+  const _DropOverlay({required this.theme, required this.controller});
+
+  final GameTheme theme;
+  final AppController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = theme;
+    final accepted = [
+      ...controller.adapter.modFileExtensions,
+      ...archiveFileExtensions,
+    ]..sort();
+    return Container(
+      color: t.bg.withValues(alpha: .8),
+      alignment: Alignment.center,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 28),
+        decoration: BoxDecoration(
+          color: t.surface,
+          border: Border.all(color: t.accent, width: 2),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.file_download_outlined, size: 42, color: t.accent),
+            const SizedBox(height: 10),
+            Text(
+              'Drop to install into ${controller.adapter.game.name}',
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w800,
+                color: t.text,
+              ),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              [...accepted, 'folders'].join('  ·  '),
+              style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+                color: t.muted,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

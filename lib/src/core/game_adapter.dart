@@ -72,6 +72,14 @@ abstract class GameAdapter {
   /// mod files.
   Future<List<Mod>> installArchive(Directory modsDir, File archive);
 
+  /// Installs every mod file found anywhere under [source] (a folder the
+  /// user dropped or picked) into [modsDir]. The folder itself becomes a
+  /// subfolder of [modsDir] with its internal structure preserved — so in
+  /// the library it shows up as a filter chip named after the folder.
+  /// Everything that isn't a mod file is skipped. Throws with a
+  /// user-readable message when the folder holds no mod files.
+  Future<List<Mod>> installFolder(Directory modsDir, Directory source);
+
   Future<void> removeMod(Mod mod);
 
   /// Enables or disables [mod] and returns its new state.
@@ -193,6 +201,43 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
     await modsDir.create(recursive: true);
     final files = await extractModFiles(archive, modsDir, modFileExtensions);
     return [for (final file in files) toMod(file)!];
+  }
+
+  @override
+  Future<List<Mod>> installFolder(Directory modsDir, Directory source) async {
+    final files = await modFilesIn(source);
+    if (files.isEmpty) {
+      final wanted = modFileExtensions.join(', ');
+      throw FormatException(
+          'No mod files ($wanted) found inside ${p.basename(source.path)}.');
+    }
+    final mods = <Mod>[];
+    for (final file in files) {
+      final target =
+          p.join(modsDir.path, p.relative(file.path, from: source.parent.path));
+      await File(target).parent.create(recursive: true);
+      final copied = await file.copy(target);
+      mods.add(toMod(copied)!);
+    }
+    return mods;
+  }
+
+  /// Every mod file anywhere under [source], best-effort: unreadable
+  /// entries are skipped, symlinks are not followed. Protected: exposed
+  /// so subclasses that route files into game-specific folders (Sims 1)
+  /// can collect what a dropped folder holds.
+  Future<List<File>> modFilesIn(Directory source) async {
+    final files = <File>[];
+    await for (final entity
+        in source.list(recursive: true, followLinks: false).handleError(
+              (Object _) {},
+            )) {
+      if (entity is File &&
+          modFileExtensions.contains(p.extension(entity.path).toLowerCase())) {
+        files.add(entity);
+      }
+    }
+    return files;
   }
 
   @override

@@ -15,6 +15,7 @@ dependencies:
   shared_preferences: ^2.3.0
   window_manager: ^0.5.2
   archive: ^4.0.9
+  desktop_drop: ^0.7.1
 
 dev_dependencies:
   flutter_test:

@@ -11,7 +11,7 @@
 [![License](https://img.shields.io/badge/license-source--available-lightgrey)](LICENSE.md)
 [![Donate](https://img.shields.io/badge/donate-PayPal-00457C?logo=paypal&logoColor=white)](https://www.paypal.com/donate/?hosted_button_id=UFSLDMGKB9R6A)
 
-**[✨ Visit the website →](https://rodrifelix99.github.io/TheSimsModManager/)**
+**[✨ Visit the website →](https://rodrifelix99.github.io/TheSimsModManager/)** · **[📓 Follow on Tumblr](https://www.tumblr.com/thesimsmodmanager)**
 
 Browse, install, enable/disable, and clean up your mods and custom content
 for every mainline Sims game (and The Sims Medieval), in one app, with a UI
@@ -98,6 +98,7 @@ Bug reports, feature ideas, and pull requests are very welcome; see
 [CONTRIBUTING.md](.github/CONTRIBUTING.md). Good first stops:
 
 - 📚 The **[Wiki](https://github.com/rodrifelix99/TheSimsModManager/wiki)**: user guide & FAQ
+- 📓 The **[Tumblr blog](https://www.tumblr.com/thesimsmodmanager)**: news & release announcements
 - 🏛️ [docs/architecture.md](docs/architecture.md): how the app is put together
 - 🎮 [docs/adding-a-game.md](docs/adding-a-game.md): add support for a new game
 
