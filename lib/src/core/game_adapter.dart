@@ -173,7 +173,7 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
     final mods = <Mod>[];
     await for (final entity in modsDir.list(recursive: true)) {
       if (entity is! File) continue;
-      final mod = _toMod(entity);
+      final mod = toMod(entity);
       if (mod != null) mods.add(mod);
     }
     mods.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
@@ -185,14 +185,14 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
     await modsDir.create(recursive: true);
     final target = p.join(modsDir.path, p.basename(source.path));
     final copied = await source.copy(target);
-    return _toMod(copied)!;
+    return toMod(copied)!;
   }
 
   @override
   Future<List<Mod>> installArchive(Directory modsDir, File archive) async {
     await modsDir.create(recursive: true);
     final files = await extractModFiles(archive, modsDir, modFileExtensions);
-    return [for (final file in files) _toMod(file)!];
+    return [for (final file in files) toMod(file)!];
   }
 
   @override
@@ -205,7 +205,7 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
         ? mod.path.substring(0, mod.path.length - disabledSuffix.length)
         : '${mod.path}$disabledSuffix';
     final renamed = await File(mod.path).rename(newPath);
-    return _toMod(renamed)!;
+    return toMod(renamed)!;
   }
 
   /// Mod file extensions that *are* plain images (Sims 1 `.bmp` skins):
@@ -303,7 +303,9 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
   }
 
   /// Maps a file to a [Mod], or `null` if it isn't a mod file for this game.
-  Mod? _toMod(File file) {
+  /// Protected: exposed so subclasses that route files into game-specific
+  /// folders (Sims 1) can build [Mod]s for what they install.
+  Mod? toMod(File file) {
     var name = p.basename(file.path);
     var status = ModStatus.enabled;
     if (name.toLowerCase().endsWith(disabledSuffix)) {

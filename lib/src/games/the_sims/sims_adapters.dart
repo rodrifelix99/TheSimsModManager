@@ -4,6 +4,8 @@ import 'package:path/path.dart' as p;
 
 import '../../core/game.dart';
 import '../../core/game_adapter.dart';
+import '../../core/mod.dart';
+import '../../core/mod_archive.dart';
 
 /// Adapters for the four mainline Sims games and The Sims Medieval.
 /// They differ only in where the mods folder lives and which file types
@@ -471,6 +473,22 @@ class SimsMedievalAdapter extends FolderBasedGameAdapter {
   }
 }
 
+/// The original The Sims routes custom content by file type (per the
+/// classic community guides — parsimonious.org "Adding Downloads", SiMania
+/// "What Goes Where"), all relative to the install folder:
+///
+/// - objects (.iff/.far) → `Downloads` (subfolders fine)
+/// - skins (.skn/.cmx/.bmp) → `GameData\Skins`, **flat** (the game does
+///   not read subfolders there); buyable clothing (mesh names starting
+///   L/S/W/H/F instead of B/C) → `ExpansionShared\SkinsBuy`, also flat
+/// - walls (.wll) → `GameData\Walls`, floors (.flr) → `GameData\Floors`
+///
+/// The "mods folder" the app resolves/overrides is still `Downloads`; the
+/// sibling folders are derived from it, and only when its parent really
+/// looks like a Sims install (has a `GameData` folder) — a custom override
+/// pointing anywhere else falls back to plain single-folder behavior.
+/// The stock game keeps its own assets inside .far archives, so loose
+/// files in these folders are custom content and safe to list as mods.
 class Sims1Adapter extends FolderBasedGameAdapter {
   const Sims1Adapter({this.installOverride, this.programFilesOverride});
 
@@ -485,24 +503,30 @@ class Sims1Adapter extends FolderBasedGameAdapter {
       const Game(id: 'sims1', name: 'The Sims', series: _series, year: 2000);
 
   @override
-  Set<String> get modFileExtensions => const {'.iff', '.far', '.skn', '.bmp'};
+  Set<String> get modFileExtensions =>
+      const {'.iff', '.far', '.skn', '.cmx', '.bmp', '.wll', '.flr'};
 
   @override
   Map<String, String> get categoryByExtension => const {
         '.iff': 'Object',
         '.far': 'Archive',
         '.skn': 'Skin',
+        '.cmx': 'Skin',
         '.bmp': 'Texture',
+        '.wll': 'Wall',
+        '.flr': 'Floor',
       };
 
   @override
   String get setupHelp =>
       'The original The Sims keeps custom content inside its install '
-      'folder, not Documents: a Downloads folder next to the game '
-      'executable (e.g. C:\\Program Files (x86)\\Maxis\\The Sims\\Downloads). '
-      'Skins (.skn/.bmp) go in GameData\\Skins instead. The 2025 Legacy '
-      'Collection works the same way from its own install folder '
-      '(EA Games\\The Sims Legacy, or Steam\\steamapps\\common\\'
+      'folder, not Documents: objects go in a Downloads folder next to '
+      'the game executable (e.g. C:\\Program Files (x86)\\Maxis\\The Sims\\'
+      'Downloads), and this app sorts the other types automatically — '
+      'skins (.skn/.cmx/.bmp) into GameData\\Skins, walls and floors into '
+      'GameData\\Walls and GameData\\Floors. The 2025 Legacy Collection '
+      'works the same way from its own install folder (EA Games\\'
+      'The Sims Legacy, or Steam\\steamapps\\common\\'
       'The Sims Legacy Collection). If the game is installed somewhere '
       'else (a different drive, a custom Steam library), pick its '
       'Downloads folder manually.';
@@ -557,5 +581,106 @@ class Sims1Adapter extends FolderBasedGameAdapter {
       if (await dir.exists()) return dir;
     }
     return null;
+  }
+
+  /// File types that belong in a skins folder. A skin is a trio: the
+  /// .bmp texture, the .cmx animation link and the .skn mesh — all three
+  /// must land together or the Sim shows up invisible in game.
+  static const _skinExtensions = {'.skn', '.cmx', '.bmp'};
+
+  /// Buyable clothing (sold in community clothing stores) uses mesh
+  /// names starting with L/S/W/H/F plus the age/body code digits
+  /// ("l200fa…"); everyday wear starts with B, heads with C. Mesh .skn
+  /// files carry an "xskin-" prefix before the same name.
+  static final _buyableName = RegExp(r'^(xskin-)?[lswhf]\d{3}');
+
+  /// The install root [modsDir] (the Downloads folder) sits in, or null
+  /// when its parent doesn't look like a Sims install — e.g. the user
+  /// pointed the app at an arbitrary folder — in which case everything
+  /// installs into [modsDir] unrouted, like any other game.
+  Future<Directory?> _installRootOf(Directory modsDir) async {
+    final root = modsDir.parent;
+    final gameData = Directory(p.join(root.path, 'GameData'));
+    return await gameData.exists() ? root : null;
+  }
+
+  /// The folder [fileName] belongs in per its type. Skins folders are
+  /// flat (the game ignores their subfolders), so callers must install
+  /// by basename there; Downloads keeps archive structure.
+  Directory _targetDirFor(Directory modsDir, Directory root, String fileName) {
+    final extension = p.extension(fileName).toLowerCase();
+    if (_skinExtensions.contains(extension)) {
+      return Directory(p.joinAll([
+        root.path,
+        ...(_buyableName.hasMatch(fileName.toLowerCase())
+            ? ['ExpansionShared', 'SkinsBuy']
+            : ['GameData', 'Skins']),
+      ]));
+    }
+    if (extension == '.wll') {
+      return Directory(p.join(root.path, 'GameData', 'Walls'));
+    }
+    if (extension == '.flr') {
+      return Directory(p.join(root.path, 'GameData', 'Floors'));
+    }
+    return modsDir;
+  }
+
+  /// Sibling folders that hold routed custom content, listed alongside
+  /// Downloads so skins/walls/floors show in the library and can be
+  /// disabled or removed like any mod.
+  List<Directory> _routedContentDirs(Directory root) => [
+        Directory(p.join(root.path, 'GameData', 'Skins')),
+        Directory(p.join(root.path, 'GameData', 'Walls')),
+        Directory(p.join(root.path, 'GameData', 'Floors')),
+        Directory(p.join(root.path, 'ExpansionShared', 'SkinsBuy')),
+      ];
+
+  @override
+  Future<List<Mod>> listMods(Directory modsDir) async {
+    final mods = [...await super.listMods(modsDir)];
+    final root = await _installRootOf(modsDir);
+    if (root != null) {
+      for (final dir in _routedContentDirs(root)) {
+        mods.addAll(await super.listMods(dir));
+      }
+      mods.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    }
+    return mods;
+  }
+
+  @override
+  Future<Mod> installMod(Directory modsDir, File source) async {
+    final root = await _installRootOf(modsDir);
+    if (root == null) return super.installMod(modsDir, source);
+    final target = _targetDirFor(modsDir, root, p.basename(source.path));
+    return super.installMod(target, source);
+  }
+
+  @override
+  Future<List<Mod>> installArchive(Directory modsDir, File archive) async {
+    final root = await _installRootOf(modsDir);
+    if (root == null) return super.installArchive(modsDir, archive);
+    // Unpack to a scratch folder first, then route each file. Downloads
+    // keeps the archive's structure; the routed folders are flat.
+    final scratch = await Directory.systemTemp.createTemp('sims1_install');
+    try {
+      final files = await extractModFiles(archive, scratch, modFileExtensions);
+      final mods = <Mod>[];
+      for (final file in files) {
+        final targetDir = _targetDirFor(modsDir, root, p.basename(file.path));
+        final target = p.equals(targetDir.path, modsDir.path)
+            ? p.join(modsDir.path, p.relative(file.path, from: scratch.path))
+            : p.join(targetDir.path, p.basename(file.path));
+        await File(target).parent.create(recursive: true);
+        final copied = await file.copy(target);
+        mods.add(toMod(copied)!);
+      }
+      return mods;
+    } finally {
+      try {
+        await scratch.delete(recursive: true);
+      } catch (_) {} // Best-effort cleanup of our own temp folder.
+    }
   }
 }

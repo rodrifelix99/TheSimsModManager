@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:archive/archive.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:sims_mod_manager/src/games/the_sims/sims_adapters.dart';
@@ -296,6 +299,137 @@ void main() {
       expect(candidates, hasLength(2));
       expect(candidates.map((d) => d.path).join(),
           contains(p.join('EA Games', 'The Sims Legacy', 'Downloads')));
+    });
+
+    /// A classic install: Downloads next to GameData, per the community
+    /// install guides (parsimonious.org "Adding Downloads").
+    Directory makeInstall() {
+      make(['Maxis', 'The Sims', 'GameData']);
+      return make(['Maxis', 'The Sims', 'Downloads']);
+    }
+
+    /// Writes a zip named [name] containing [entries] (path → content).
+    File makeZip(String name, Map<String, String> entries) {
+      final zip = Archive();
+      entries.forEach((path, content) {
+        zip.addFile(ArchiveFile.typedData(
+            path, Uint8List.fromList(utf8.encode(content))));
+      });
+      final file = File(p.join(docs.path, name));
+      file.writeAsBytesSync(ZipEncoder().encode(zip));
+      return file;
+    }
+
+    test('routes single-file installs by type into the game folders',
+        () async {
+      final downloads = makeInstall();
+      final install = downloads.parent;
+      final adapter = Sims1Adapter(programFilesOverride: [docs.path]);
+
+      for (final name in [
+        'chair.iff',
+        'xskin-b200fafit_bwar-PELVIS-BODY.skn',
+        'B200FAFit_BWar.cmx',
+        'b200fafitlgt_blackdress.bmp',
+        'l204fafit_gown.bmp', // buyable clothing: L prefix
+        'brick.wll',
+        'tile.flr',
+      ]) {
+        await adapter.installMod(downloads, makeFile(['src', name]));
+      }
+
+      expect(File(p.join(downloads.path, 'chair.iff')).existsSync(), isTrue);
+      final skins = p.join(install.path, 'GameData', 'Skins');
+      for (final name in [
+        'xskin-b200fafit_bwar-PELVIS-BODY.skn',
+        'B200FAFit_BWar.cmx',
+        'b200fafitlgt_blackdress.bmp',
+      ]) {
+        expect(File(p.join(skins, name)).existsSync(), isTrue,
+            reason: '$name belongs in GameData/Skins');
+      }
+      expect(
+          File(p.join(install.path, 'ExpansionShared', 'SkinsBuy',
+                  'l204fafit_gown.bmp'))
+              .existsSync(),
+          isTrue);
+      expect(
+          File(p.join(install.path, 'GameData', 'Walls', 'brick.wll'))
+              .existsSync(),
+          isTrue);
+      expect(
+          File(p.join(install.path, 'GameData', 'Floors', 'tile.flr'))
+              .existsSync(),
+          isTrue);
+    });
+
+    test('does not route when the folder is not inside a Sims install',
+        () async {
+      // A custom override anywhere on disk: no GameData sibling, so
+      // everything lands in the chosen folder like any other game.
+      final custom = make(['just-a-folder']);
+      final adapter = Sims1Adapter(programFilesOverride: [docs.path]);
+
+      await adapter.installMod(custom, makeFile(['src', 'skin.skn']));
+
+      expect(File(p.join(custom.path, 'skin.skn')).existsSync(), isTrue);
+    });
+
+    test('routes archive contents, keeping subfolders only in Downloads',
+        () async {
+      final downloads = makeInstall();
+      final install = downloads.parent;
+      final adapter = Sims1Adapter(programFilesOverride: [docs.path]);
+      final zip = makeZip('cc.zip', {
+        'furniture/chair.iff': 'object',
+        'skins/b200fafitlgt_blackdress.bmp': 'texture',
+        'skins/B200FAFit_BWar.cmx': 'animation',
+        'readme.txt': 'skip me',
+      });
+
+      final mods = await adapter.installArchive(downloads, zip);
+
+      expect(mods, hasLength(3));
+      // Objects keep the archive's folder structure inside Downloads.
+      expect(
+          File(p.join(downloads.path, 'furniture', 'chair.iff')).existsSync(),
+          isTrue);
+      // Skins are flattened into GameData/Skins: the game does not read
+      // subfolders there.
+      final skins = p.join(install.path, 'GameData', 'Skins');
+      expect(File(p.join(skins, 'b200fafitlgt_blackdress.bmp')).existsSync(),
+          isTrue);
+      expect(File(p.join(skins, 'B200FAFit_BWar.cmx')).existsSync(), isTrue);
+      expect(File(p.join(skins, 'readme.txt')).existsSync(), isFalse);
+    });
+
+    test('lists routed content alongside Downloads and can toggle it',
+        () async {
+      final downloads = makeInstall();
+      final install = downloads.parent;
+      makeFile(['Maxis', 'The Sims', 'Downloads', 'chair.iff']);
+      makeFile(['Maxis', 'The Sims', 'GameData', 'Skins', 'head.cmx']);
+      makeFile(['Maxis', 'The Sims', 'GameData', 'Walls', 'brick.wll']);
+      // Game files outside the content folders must not show up.
+      makeFile(['Maxis', 'The Sims', 'GameData', 'Objects.far']);
+      final adapter = Sims1Adapter(programFilesOverride: [docs.path]);
+
+      final mods = await adapter.listMods(downloads);
+
+      expect(mods.map((m) => m.name),
+          unorderedEquals(['chair.iff', 'head.cmx', 'brick.wll']));
+
+      final skin = mods.firstWhere((m) => m.name == 'head.cmx');
+      final disabled = await adapter.setEnabled(skin, enabled: false);
+      expect(
+          File(p.join(install.path, 'GameData', 'Skins', 'head.cmx.disabled'))
+              .existsSync(),
+          isTrue);
+      await adapter.setEnabled(disabled, enabled: true);
+      expect(
+          File(p.join(install.path, 'GameData', 'Skins', 'head.cmx'))
+              .existsSync(),
+          isTrue);
     });
   });
 }
