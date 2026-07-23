@@ -131,9 +131,8 @@ class AppController extends ChangeNotifier {
     return ['All', ...sorted];
   }
 
-  int categoryCount(String cat) => cat == 'All'
-      ? mods.length
-      : mods.where((m) => m.category == cat).length;
+  int categoryCount(String cat) =>
+      cat == 'All' ? mods.length : mods.where((m) => m.category == cat).length;
 
   /// Top-level subfolder of the mods directory holding [mod], or `null`
   /// when the file sits directly in the mods folder. Mods living outside
@@ -189,8 +188,7 @@ class AppController extends ChangeNotifier {
   int get enabledCount => mods.where((m) => m.isEnabled).length;
   int get conflictCount =>
       mods.where((m) => conflictPaths.contains(m.path)).length;
-  int get totalSizeBytes =>
-      mods.fold(0, (sum, m) => sum + (m.sizeBytes ?? 0));
+  int get totalSizeBytes => mods.fold(0, (sum, m) => sum + (m.sizeBytes ?? 0));
 
   /// Combined size of every game's mods, for the sidebar storage card.
   int get allGamesSizeBytes =>
@@ -303,16 +301,18 @@ class AppController extends ChangeNotifier {
     try {
       final found = await _adapter.inspectMods(missing,
           onProgress: (done, total) {
-        scanProgress = (done, total);
-        notifyListeners();
-      }, onFound: (found) {
-        // Cache mid-scan so the loading screen's floating backdrop can
-        // show artwork as it's discovered.
-        for (final entry in found.entries) {
-          final mod = byPath[entry.key];
-          if (mod != null) _insights[_insightKey(mod)] = entry.value;
-        }
-      }, isCancelled: () => _skipScan);
+            scanProgress = (done, total);
+            notifyListeners();
+          },
+          onFound: (found) {
+            // Cache mid-scan so the loading screen's floating backdrop can
+            // show artwork as it's discovered.
+            for (final entry in found.entries) {
+              final mod = byPath[entry.key];
+              if (mod != null) _insights[_insightKey(mod)] = entry.value;
+            }
+          },
+          isCancelled: () => _skipScan);
       for (final mod in missing) {
         final insight = found[mod.path];
         if (insight != null) _insights[_insightKey(mod)] = insight;
@@ -549,18 +549,23 @@ class AppController extends ChangeNotifier {
       modCounts[_adapter.game.id] = mods.length;
       notifyListeners();
     } catch (e) {
-      lastError = e.toString();
+      final error = e.toString();
       playSound(UiSound.error);
       await refresh();
+      // refresh() clears lastError, so the error must be restored after it
+      // or the UI never shows it.
+      lastError = error;
+      notifyListeners();
     }
   }
 
   Future<void> removeMod(Mod mod) async {
+    String? error;
     try {
       await _adapter.removeMod(mod);
       playSound(UiSound.uninstall);
     } catch (e) {
-      lastError = e.toString();
+      error = e.toString();
       playSound(UiSound.error);
     }
     if (_selectedModPath == mod.path) {
@@ -568,25 +573,62 @@ class AppController extends ChangeNotifier {
       screen = AppScreen.library;
     }
     await refresh();
+    // refresh() clears lastError, so the removal error must be restored
+    // after it or the UI never shows it.
+    if (error != null) {
+      lastError = error;
+      notifyListeners();
+    }
   }
 
-  Future<void> installFiles(List<File> sources) async {
+  Future<void> installFiles(List<FileSystemEntity> sources) async {
     final dir = modsDir;
     if (dir == null) return;
+    String? error;
     try {
       for (final source in sources) {
-        if (isArchivePath(source.path)) {
-          await _adapter.installArchive(dir, source);
+        if (source is Directory) {
+          await _adapter.installFolder(dir, source);
+        } else if (isArchivePath(source.path)) {
+          await _adapter.installArchive(dir, File(source.path));
         } else {
-          await _adapter.installMod(dir, source);
+          await _adapter.installMod(dir, File(source.path));
         }
       }
       playSound(UiSound.install);
     } catch (e) {
-      lastError = e.toString();
+      error = e.toString();
       playSound(UiSound.error);
     }
     await refresh();
+    // refresh() clears lastError, so the install error must be restored
+    // after it or the UI never shows it.
+    if (error != null) {
+      lastError = error;
+      notifyListeners();
+    }
+  }
+
+  /// Installs files and folders dropped onto the window, ignoring
+  /// anything the current game can't use (readmes, screenshots…).
+  Future<void> installDroppedPaths(List<String> paths) async {
+    final accepted = {
+      ..._adapter.modFileExtensions,
+      ...archiveFileExtensions,
+    };
+    final sources = <FileSystemEntity>[];
+    for (final path in paths) {
+      if (await FileSystemEntity.isDirectory(path)) {
+        sources.add(Directory(path));
+      } else if (accepted.contains(p.extension(path).toLowerCase())) {
+        sources.add(File(path));
+      }
+    }
+    if (sources.isEmpty) {
+      playSound(UiSound.alert);
+      return;
+    }
+    await installFiles(sources);
   }
 
   /// Points the current game at a user-chosen mods folder.

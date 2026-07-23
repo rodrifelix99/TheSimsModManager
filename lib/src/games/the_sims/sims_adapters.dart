@@ -548,8 +548,8 @@ class Sims1Adapter extends FolderBasedGameAdapter {
       for (final root in programFiles) ...[
         p.join(root, 'Maxis', 'The Sims'),
         p.join(root, 'EA Games', 'The Sims Legacy'),
-        p.join(root, 'Steam', 'steamapps', 'common',
-            'The Sims Legacy Collection'),
+        p.join(
+            root, 'Steam', 'steamapps', 'common', 'The Sims Legacy Collection'),
       ],
     ];
   }
@@ -666,21 +666,44 @@ class Sims1Adapter extends FolderBasedGameAdapter {
     final scratch = await Directory.systemTemp.createTemp('sims1_install');
     try {
       final files = await extractModFiles(archive, scratch, modFileExtensions);
-      final mods = <Mod>[];
-      for (final file in files) {
-        final targetDir = _targetDirFor(modsDir, root, p.basename(file.path));
-        final target = p.equals(targetDir.path, modsDir.path)
-            ? p.join(modsDir.path, p.relative(file.path, from: scratch.path))
-            : p.join(targetDir.path, p.basename(file.path));
-        await File(target).parent.create(recursive: true);
-        final copied = await file.copy(target);
-        mods.add(toMod(copied)!);
-      }
-      return mods;
+      return await _installRoutedFiles(modsDir, root, files, scratch.path);
     } finally {
       try {
         await scratch.delete(recursive: true);
       } catch (_) {} // Best-effort cleanup of our own temp folder.
     }
+  }
+
+  @override
+  Future<List<Mod>> installFolder(Directory modsDir, Directory source) async {
+    final root = await _installRootOf(modsDir);
+    if (root == null) return super.installFolder(modsDir, source);
+    final files = await modFilesIn(source);
+    if (files.isEmpty) {
+      final wanted = modFileExtensions.join(', ');
+      throw FormatException(
+          'No mod files ($wanted) found inside ${p.basename(source.path)}.');
+    }
+    // Relative to the folder's *parent* so the folder name itself is kept
+    // for the files that stay in Downloads.
+    return _installRoutedFiles(modsDir, root, files, source.parent.path);
+  }
+
+  /// Copies [files] into their per-type folders. Files bound for
+  /// Downloads keep their path relative to [from]; the routed folders
+  /// are flat (the game ignores their subfolders).
+  Future<List<Mod>> _installRoutedFiles(
+      Directory modsDir, Directory root, List<File> files, String from) async {
+    final mods = <Mod>[];
+    for (final file in files) {
+      final targetDir = _targetDirFor(modsDir, root, p.basename(file.path));
+      final target = p.equals(targetDir.path, modsDir.path)
+          ? p.join(modsDir.path, p.relative(file.path, from: from))
+          : p.join(targetDir.path, p.basename(file.path));
+      await File(target).parent.create(recursive: true);
+      final copied = await file.copy(target);
+      mods.add(toMod(copied)!);
+    }
+    return mods;
   }
 }
