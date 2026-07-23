@@ -25,6 +25,7 @@ class _RecordingAdapter extends FolderBasedGameAdapter {
   Future<Map<String, PackageInsight>> inspectMods(
     List<Mod> mods, {
     void Function(int done, int total)? onProgress,
+    void Function(Map<String, PackageInsight> found)? onFound,
     bool Function()? isCancelled,
   }) async {
     inspectCalls++;

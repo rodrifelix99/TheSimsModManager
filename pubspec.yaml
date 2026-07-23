@@ -1,7 +1,7 @@
 name: sims_mod_manager
 description: Cross-platform desktop mod manager for The Sims series (and future moddable games).
 publish_to: "none"
-version: 1.0.5
+version: 1.0.6
 environment:
   sdk: ^3.5.0
 
@@ -14,6 +14,7 @@ dependencies:
   flutter_acrylic: ^1.1.4
   shared_preferences: ^2.3.0
   window_manager: ^0.5.2
+  archive: ^4.0.9
 
 dev_dependencies:
   flutter_test:
