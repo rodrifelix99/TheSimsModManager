@@ -52,6 +52,8 @@ class SettingsView extends StatelessWidget {
                   onToggle: () => c.setPref(
                     () => s.setWarnConflicts(!s.warnConflicts),
                     sound: _toggleSound(s.warnConflicts),
+                    setting: 'warnConflicts',
+                    value: !s.warnConflicts,
                   ),
                 ),
                 _divider(t),
@@ -63,6 +65,8 @@ class SettingsView extends StatelessWidget {
                   onToggle: () => c.setPref(
                     () => s.setConfirmDelete(!s.confirmDelete),
                     sound: _toggleSound(s.confirmDelete),
+                    setting: 'confirmDelete',
+                    value: !s.confirmDelete,
                   ),
                 ),
                 _divider(t),
@@ -75,6 +79,8 @@ class SettingsView extends StatelessWidget {
                   onToggle: () => c.setPref(
                     () => s.setShowDisabled(!s.showDisabled),
                     sound: _toggleSound(s.showDisabled),
+                    setting: 'showDisabled',
+                    value: !s.showDisabled,
                   ),
                 ),
                 _divider(t),
@@ -98,9 +104,27 @@ class SettingsView extends StatelessWidget {
                   onToggle: () => c.setPref(
                     () => s.setSoundEffects(!s.soundEffects),
                     sound: _toggleSound(s.soundEffects),
+                    setting: 'soundEffects',
+                    value: !s.soundEffects,
                   ),
                 ),
               ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          _sectionLabel(t, 'PRIVACY'),
+          Container(
+            decoration: _cardDecoration(t),
+            child: _prefRow(
+              t,
+              title: 'Share anonymous usage data',
+              desc: 'Send anonymous usage statistics and crash reports to '
+                  'help improve the app. Never includes mod names, file '
+                  'paths or anything personal',
+              value: s.analyticsEnabled,
+              // Own action, not setPref: the analytics service handles
+              // its own opt-in/out bookkeeping around the flip.
+              onToggle: () => c.setAnalyticsEnabled(!s.analyticsEnabled),
             ),
           ),
           const SizedBox(height: 24),
