@@ -19,9 +19,6 @@ Please **do not** open a public issue for security problems. Instead, use
 GitHub's private reporting:
 **[Report a vulnerability](https://github.com/rodrifelix99/TheSimsModManager/security/advisories/new)**.
 
-If you can't use GitHub Security Advisories, email the maintainer at
-**rodrifelix99@gmail.com** with `SECURITY` in the subject line.
-
 A good report includes:
 
 - The app version (see **Settings → About**) and your OS.
