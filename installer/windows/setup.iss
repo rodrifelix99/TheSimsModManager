@@ -56,7 +56,10 @@ Filename: "{app}\{#AppExeName}"; Description: "{cm:LaunchProgram,{#AppName}}"; F
 // curl means no ping, and the uninstall never waits more than ~10s.
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 var
-  MarkerDir, MarkerFile, BodyFile, DistinctId, Body: String;
+  MarkerDir, MarkerFile, BodyFile: String;
+  // AnsiString, not String: LoadStringFromFile/SaveStringToFile take
+  // AnsiString in Unicode Inno Setup, and var params must match exactly.
+  DistinctId, Body: AnsiString;
   ResultCode: Integer;
 begin
   if CurUninstallStep <> usPostUninstall then
