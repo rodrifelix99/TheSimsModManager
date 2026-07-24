@@ -5,7 +5,7 @@ import '../core/mod.dart';
 import '../services/sfx.dart';
 import 'app_controller.dart';
 import 'game_theme.dart';
-import 'library_view.dart' show modDate, modTitle;
+import 'library_view.dart' show modDate, modTitle, modVersion;
 import 'widgets.dart';
 
 /// Full page for one mod: artwork, enable toggle, facts, file details.
@@ -279,6 +279,11 @@ class DetailView extends StatelessWidget {
   /// actual mods this one clashes with; each row jumps to that mod.
   Widget _conflictPanel(GameTheme t, AppController c, Mod mod) {
     final others = c.conflictingWith(mod);
+    // Same file name, or same mod under a different version token?
+    // The wording below matches the reason the scan flagged it.
+    final sameName = others.every(
+        (o) => p.basename(o.name).toLowerCase() ==
+            p.basename(mod.name).toLowerCase());
     final root = c.modsDir?.path;
     String relPath(Mod other) =>
         root == null ? other.path : p.relative(other.path, from: root);
@@ -315,10 +320,16 @@ class DetailView extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  others.length == 1
-                      ? 'Another enabled mod has the same file name:'
-                      : '${others.length} other enabled mods have the same '
-                          'file name:',
+                  sameName
+                      ? (others.length == 1
+                          ? 'Another enabled mod has the same file name:'
+                          : '${others.length} other enabled mods have the '
+                              'same file name:')
+                      : (others.length == 1
+                          ? 'Another enabled mod looks like a different '
+                              'version of this mod:'
+                          : '${others.length} other enabled mods look like '
+                              'different versions of this mod:'),
                   style: const TextStyle(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w800,
@@ -352,12 +363,16 @@ class DetailView extends StatelessWidget {
               ),
             ),
           const SizedBox(height: 8),
-          const Text(
-            'Identical names usually mean the same mod is installed twice, '
-            'or two creators\' packages clash. The game loads their '
-            'overlapping resources in an unpredictable order: keep one '
-            'and disable or remove the rest.',
-            style: TextStyle(
+          Text(
+            sameName
+                ? 'Identical names usually mean the same mod is installed '
+                    'twice, or two creators\' packages clash. The game loads '
+                    'their overlapping resources in an unpredictable order: '
+                    'keep one and disable or remove the rest.'
+                : 'Having several versions of a mod installed means the game '
+                    'loads their overlapping resources in an unpredictable '
+                    'order: keep the newest and disable or remove the rest.',
+            style: const TextStyle(
               fontSize: 12,
               height: 1.5,
               fontWeight: FontWeight.w600,
@@ -400,6 +415,10 @@ class DetailView extends StatelessWidget {
         const SizedBox(height: 20),
         Row(
           children: [
+            if (modVersion(mod) != null) ...[
+              _fact(t, 'Version', modVersion(mod)!),
+              const SizedBox(width: 12),
+            ],
             _fact(t, 'Format', p.extension(mod.name)),
             const SizedBox(width: 12),
             _fact(t, 'Size', formatBytes(mod.sizeBytes)),

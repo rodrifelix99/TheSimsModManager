@@ -379,7 +379,7 @@ class LibraryView extends StatelessWidget {
 
   /// The Conflicts stat doubles as a filter: tapping it narrows the
   /// library to the flagged mods, tapping again clears. A tooltip spells
-  /// out what "conflict" means here (duplicate file names).
+  /// out what "conflict" means here (duplicate names or versions).
   Widget _conflictStat(GameTheme t, AppController c) {
     final active = c.conflictsOnly;
     final tappable = active || c.conflictCount > 0;
@@ -391,8 +391,9 @@ class LibraryView extends StatelessWidget {
       child: Tooltip(
         message: active
             ? 'Showing conflicting mods only. Click to show all mods again.'
-            : 'Enabled mods sharing a file name with another enabled mod. '
-                'The game loads duplicates in an unpredictable order.'
+            : 'Enabled mods sharing a file name with another enabled mod, '
+                'or installed in more than one version. The game loads '
+                'duplicates in an unpredictable order.'
                 '${tappable ? ' Click to show only these mods.' : ''}',
         waitDuration: const Duration(milliseconds: 400),
         child: HoverBuilder(
@@ -857,10 +858,16 @@ class _FilterChipsState extends State<_FilterChips> {
   }
 }
 
-/// Human-friendly display title: extension stripped and creator naming
-/// conventions cleaned up ("UICheatsExtension_v1.36.ts4script" →
-/// "UI Cheats Extension v1.36").
-String modTitle(Mod mod) => humanizeModName(mod.name);
+/// Human-friendly display title: extension and version token stripped,
+/// creator naming conventions cleaned up
+/// ("UICheatsExtension_v1.36.ts4script" → "UI Cheats Extension").
+String modTitle(Mod mod) => humanizeModName(parseModName(mod.name).strippedName);
+
+/// The version guessed from the file name (`v1.36`, `2024-05-01`), shown
+/// as its own quieter text next to the title; `null` when the name
+/// carries none. The title above has the token stripped so the version
+/// never shows twice.
+String? modVersion(Mod mod) => parseModName(mod.name).versionLabel;
 
 /// The "by author" slot of the design: real files don't carry an author,
 /// so show where the file lives instead.
@@ -998,6 +1005,17 @@ class _GridCard extends StatelessWidget {
                               ),
                             ),
                           ),
+                          if (modVersion(mod) != null) ...[
+                            const SizedBox(width: 6),
+                            Text(
+                              modVersion(mod)!,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: t.muted.withValues(alpha: .75),
+                              ),
+                            ),
+                          ],
                           const SizedBox(width: 8),
                           Text(
                             modDate(mod),
@@ -1096,6 +1114,15 @@ class _ListRow extends StatelessWidget {
                       TextSpan(
                         text: modTitle(mod),
                         children: [
+                          if (modVersion(mod) != null)
+                            TextSpan(
+                              text: '  ${modVersion(mod)}',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: t.muted.withValues(alpha: .75),
+                              ),
+                            ),
                           TextSpan(
                             text: '  ${p.extension(mod.name)}',
                             style: TextStyle(
