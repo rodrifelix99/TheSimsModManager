@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/game_registry.dart';
+import '../services/analytics.dart';
 import '../services/settings_store.dart';
 import 'app_controller.dart';
 import 'shell.dart';
@@ -20,10 +21,15 @@ class ModManagerApp extends StatefulWidget {
     required this.registry,
     required this.settings,
     this.translucentSidebar = false,
+    this.analytics,
   });
 
   final GameRegistry registry;
   final SettingsStore settings;
+
+  /// PostHog client; null (tests) means a no-op instance, so widget
+  /// tests never touch the network or the preferences plugin.
+  final Analytics? analytics;
 
   /// Whether the OS is drawing a blurred backdrop behind the window
   /// (Windows acrylic / macOS vibrancy) that the sidebar should reveal.
@@ -34,8 +40,10 @@ class ModManagerApp extends StatefulWidget {
 }
 
 class _ModManagerAppState extends State<ModManagerApp> {
-  late final AppController _controller =
-      AppController(registry: widget.registry, settings: widget.settings);
+  late final AppController _controller = AppController(
+      registry: widget.registry,
+      settings: widget.settings,
+      analytics: widget.analytics);
 
   @override
   Widget build(BuildContext context) {

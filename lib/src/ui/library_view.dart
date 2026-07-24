@@ -124,6 +124,7 @@ class LibraryView extends StatelessWidget {
             ],
           ),
         ),
+        if (c.announcement != null) _announcementBanner(t, c),
         Padding(
           padding: const EdgeInsets.fromLTRB(28, 16, 28, 14),
           child: Row(
@@ -145,6 +146,64 @@ class LibraryView extends StatelessWidget {
                   : _modGrid(t, c, visible),
         ),
       ],
+    );
+  }
+
+  /// Remote announcement from PostHog's `announcement` feature flag
+  /// payload: a dismissible strip between the header and the filters.
+  Widget _announcementBanner(GameTheme t, AppController c) {
+    final a = c.announcement!;
+    final title = a['title'];
+    final message = a['message'].toString();
+    final hasUrl = a['url'] is String;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(28, 14, 28, 0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: t.tint,
+          border: Border.all(color: t.accent, width: 1.5),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.campaign_rounded, size: 20, color: t.accent),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                title is String && title.isNotEmpty
+                    ? '$title — $message'
+                    : message,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: t.text,
+                ),
+              ),
+            ),
+            if (hasUrl) ...[
+              const SizedBox(width: 12),
+              TextButton(
+                onPressed: c.openAnnouncementUrl,
+                style: TextButton.styleFrom(
+                  foregroundColor: t.accent,
+                  textStyle: const TextStyle(
+                      fontWeight: FontWeight.w800, fontSize: 13),
+                ),
+                child: const Text('Learn more'),
+              ),
+            ],
+            const SizedBox(width: 4),
+            IconButton(
+              onPressed: c.dismissAnnouncement,
+              tooltip: 'Dismiss',
+              iconSize: 17,
+              color: t.muted,
+              icon: const Icon(Icons.close_rounded),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

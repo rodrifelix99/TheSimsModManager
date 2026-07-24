@@ -10,6 +10,7 @@ import '../core/mod.dart';
 import '../core/mod_archive.dart';
 import '../core/mod_name.dart';
 import '../core/package_insight.dart';
+import '../services/analytics.dart';
 import '../services/disk_space.dart';
 import '../services/github.dart';
 import '../services/settings_store.dart';
@@ -25,14 +26,25 @@ class AppController extends ChangeNotifier {
     required this.registry,
     required this.settings,
     Sfx? sfx,
+    Analytics? analytics,
     Future<UpdateInfo?> Function()? checkUpdates,
   })  : _sfx = sfx ?? Sfx(),
+        analytics = analytics ?? Analytics.disabled(),
         _checkUpdates = checkUpdates ?? fetchAvailableUpdate,
-        _adapter = registry.byGameId('sims4') ?? registry.adapters.first;
+        _adapter = registry.byGameId('sims4') ?? registry.adapters.first {
+    // Remote flags may land after the first frame (announcement banner,
+    // kill switches); repaint when they do.
+    this.analytics.onFlagsChanged = notifyListeners;
+  }
 
   final GameRegistry registry;
   final SettingsStore settings;
   final Sfx _sfx;
+
+  /// PostHog events, flags and crash reports. A no-op instance in tests.
+  /// Event properties never include mod names or file paths — only
+  /// counts, sizes and which game is active.
+  final Analytics analytics;
 
   /// Asks GitHub for a newer release; injectable so tests never touch
   /// the network.
@@ -179,6 +191,7 @@ class AppController extends ChangeNotifier {
     final to = order.indexOf(target);
     if (from < 0 || to < 0 || from == to) return;
     playSound(UiSound.click);
+    analytics.capture('folders_reordered', {'game': _adapter.game.id});
     order.removeAt(from);
     order.insert(to, moved);
     await settings.setFolderOrder(_adapter.game.id, order);
@@ -217,14 +230,20 @@ class AppController extends ChangeNotifier {
     if (!conflictsOnly && conflictCount == 0) return;
     playSound(UiSound.cycle);
     conflictsOnly = !conflictsOnly;
+    if (conflictsOnly) {
+      analytics.capture('conflicts_filter_opened', {'conflicts': conflictCount});
+    }
     notifyListeners();
   }
 
   /// Re-runs the conflict scan; releases the conflicts-only filter when
   /// nothing is flagged anymore, so the library never sticks on an
-  /// inexplicably empty list.
+  /// inexplicably empty list. The remote kill switch can turn the scan
+  /// off for everyone if the heuristic ever misbehaves.
   void _rescanConflicts() {
-    conflictPaths = settings.warnConflicts ? findConflicts(mods) : const {};
+    final scan = settings.warnConflicts &&
+        analytics.isEnabled('conflict-detection', fallback: true);
+    conflictPaths = scan ? findConflicts(mods) : const {};
     if (conflictPaths.isEmpty) conflictsOnly = false;
   }
 
@@ -245,8 +264,11 @@ class AppController extends ChangeNotifier {
   /// stays cached; the rest falls back to stripe art and is picked up
   /// again on the next library load. No-op when no scan is running.
   void skipArtworkScan() {
-    if (scanProgress == null) return;
+    final progress = scanProgress;
+    if (progress == null) return;
     playSound(UiSound.click);
+    analytics.capture('artwork_scan_skipped',
+        {'inspected': progress.$1, 'total': progress.$2});
     _skipScan = true;
   }
 
@@ -256,6 +278,8 @@ class AppController extends ChangeNotifier {
   Future<void> setScanArtwork(bool value) async {
     if (value == settings.scanArtwork) return;
     await settings.setScanArtwork(value);
+    analytics.capture(
+        'setting_changed', {'setting': 'scanArtwork', 'value': value});
     playSound(value ? UiSound.toggleOn : UiSound.toggleOff);
     if (value) {
       await refresh();
@@ -289,6 +313,9 @@ class AppController extends ChangeNotifier {
   /// [skipArtworkScan].
   Future<void> _scanNewMods() async {
     if (!settings.scanArtwork) return;
+    // Remote kill switch: the DBPF parser reads untrusted files, so a
+    // crash-causing mod in the wild can be mitigated without a release.
+    if (!analytics.isEnabled('artwork-scan', fallback: true)) return;
     final missing = [
       for (final mod in mods)
         if (!_insights.containsKey(_insightKey(mod))) mod,
@@ -316,6 +343,13 @@ class AppController extends ChangeNotifier {
       for (final mod in missing) {
         final insight = found[mod.path];
         if (insight != null) _insights[_insightKey(mod)] = insight;
+      }
+      if (!_skipScan) {
+        analytics.capture('artwork_scan_completed', {
+          'game': _adapter.game.id,
+          'scanned': missing.length,
+          'with_artwork': found.values.where((i) => i.thumbnail != null).length,
+        });
       }
     } finally {
       scanProgress = null;
@@ -361,6 +395,10 @@ class AppController extends ChangeNotifier {
     availableUpdate = await _checkUpdates();
     checkingForUpdates = false;
     updateCheckDone = true;
+    analytics.capture('update_check_completed', {
+      'update_available': availableUpdate != null,
+      if (availableUpdate != null) 'latest_version': availableUpdate!.version,
+    });
     if (availableUpdate != null && !_updateAnnounced) {
       _updateAnnounced = true;
       playSound(UiSound.alert);
@@ -387,24 +425,40 @@ class AppController extends ChangeNotifier {
   /// Opens the newer release's download page. No-op when up to date.
   void openReleasePage() {
     final update = availableUpdate;
-    if (update != null) openUrl(Uri.parse(update.url));
+    if (update == null) return;
+    analytics.capture(
+        'update_download_clicked', {'latest_version': update.version});
+    openUrl(Uri.parse(update.url));
   }
 
   /// Opens a new bug report with version/OS/current game prefilled.
-  void reportBug() => openUrl(bugReportUrl(gameName: _adapter.game.name));
+  void reportBug() {
+    analytics.capture('feedback_opened', {'type': 'bug_report'});
+    openUrl(bugReportUrl(gameName: _adapter.game.name));
+  }
 
   /// Opens a new feature request with the current game prefilled.
-  void suggestFeature() =>
-      openUrl(featureRequestUrl(gameName: _adapter.game.name));
+  void suggestFeature() {
+    analytics.capture('feedback_opened', {'type': 'feature_request'});
+    openUrl(featureRequestUrl(gameName: _adapter.game.name));
+  }
 
   /// Opens the project wiki (user guide & FAQ).
-  void openWiki() => openUrl(wikiUrl);
+  void openWiki() {
+    analytics.capture('feedback_opened', {'type': 'wiki'});
+    openUrl(wikiUrl);
+  }
 
   Future<void> init() async {
     await refresh();
+    _captureLibraryOpened();
     // Not awaited: a network round-trip the library shouldn't wait on;
     // the Settings card and sidebar fill in when the answer arrives.
-    checkForUpdates();
+    // Remote kill switch: skip the check entirely if a release's check
+    // ever needs to be silenced (e.g. a bad tag confusing everyone).
+    if (analytics.isEnabled('update-check', fallback: true)) {
+      checkForUpdates();
+    }
     await _refreshCounts();
   }
 
@@ -420,6 +474,23 @@ class AppController extends ChangeNotifier {
     conflictsOnly = false;
     _selectedModPath = null;
     await refresh();
+    _captureLibraryOpened();
+  }
+
+  /// One event per library visit (launch or game switch) summarizing
+  /// what the user has: library size, health, whether detection worked.
+  /// Counts and sizes only — never mod names or paths.
+  void _captureLibraryOpened() {
+    analytics.capture('library_opened', {
+      'game': _adapter.game.id,
+      'folder_found': modsDir != null,
+      'using_override': usingOverride,
+      'mods': mods.length,
+      'enabled_mods': enabledCount,
+      'conflicts': conflictCount,
+      'folders': folders.length,
+      'total_size_mb': (totalSizeBytes / (1024 * 1024)).round(),
+    });
   }
 
   Future<void> refresh() async {
@@ -499,6 +570,12 @@ class AppController extends ChangeNotifier {
 
   void openMod(Mod mod) {
     playSound(UiSound.open);
+    analytics.capture('mod_details_opened', {
+      'game': _adapter.game.id,
+      'category': mod.category,
+      'enabled': mod.isEnabled,
+      'conflicted': isConflicted(mod),
+    });
     _selectedModPath = mod.path;
     screen = AppScreen.detail;
     notifyListeners();
@@ -511,30 +588,50 @@ class AppController extends ChangeNotifier {
   }
 
   void openSettings() {
-    if (screen != AppScreen.settings) playSound(UiSound.help);
+    if (screen != AppScreen.settings) {
+      playSound(UiSound.help);
+      analytics.capture('settings_opened');
+    }
     screen = AppScreen.settings;
     notifyListeners();
   }
 
   void setQuery(String value) {
+    // One event per search "session", never the typed text.
+    if (query.isEmpty && value.isNotEmpty) {
+      analytics.capture('library_searched', {'game': _adapter.game.id});
+    }
     query = value;
     notifyListeners();
   }
 
   void setCategory(String value) {
-    if (value != category) playSound(UiSound.cycle);
+    if (value != category) {
+      playSound(UiSound.cycle);
+      // Categories are the adapter's fixed taxonomy (not user data).
+      analytics.capture('category_filter_used',
+          {'game': _adapter.game.id, 'category': value});
+    }
     category = value;
     notifyListeners();
   }
 
   void setFolder(String value) {
-    if (value != folder) playSound(UiSound.cycle);
+    if (value != folder) {
+      playSound(UiSound.cycle);
+      // Folder names are the user's own; only the fact is captured.
+      analytics.capture('folder_filter_used', {'game': _adapter.game.id});
+    }
     folder = value;
     notifyListeners();
   }
 
   Future<void> setListView(bool value) async {
-    if (value != settings.listView) playSound(UiSound.cycle);
+    if (value != settings.listView) {
+      playSound(UiSound.cycle);
+      analytics
+          .capture('view_mode_changed', {'mode': value ? 'list' : 'grid'});
+    }
     await settings.setListView(value);
     notifyListeners();
   }
@@ -543,13 +640,18 @@ class AppController extends ChangeNotifier {
     try {
       final updated = await _adapter.setEnabled(mod, enabled: !mod.isEnabled);
       playSound(updated.isEnabled ? UiSound.toggleOn : UiSound.toggleOff);
+      analytics.capture(updated.isEnabled ? 'mod_enabled' : 'mod_disabled',
+          {'game': _adapter.game.id, 'category': mod.category});
       mods = [for (final m in mods) m.path == mod.path ? updated : m];
       if (_selectedModPath == mod.path) _selectedModPath = updated.path;
       _rescanConflicts();
       modCounts[_adapter.game.id] = mods.length;
       notifyListeners();
-    } catch (e) {
+    } catch (e, stack) {
       final error = e.toString();
+      analytics.captureException(e, stack, mechanism: 'toggleMod');
+      analytics.capture('mod_action_failed',
+          {'action': 'toggle', 'game': _adapter.game.id});
       playSound(UiSound.error);
       await refresh();
       // refresh() clears lastError, so the error must be restored after it
@@ -564,8 +666,16 @@ class AppController extends ChangeNotifier {
     try {
       await _adapter.removeMod(mod);
       playSound(UiSound.uninstall);
-    } catch (e) {
+      analytics.capture('mod_removed', {
+        'game': _adapter.game.id,
+        'category': mod.category,
+        'size_kb': ((mod.sizeBytes ?? 0) / 1024).round(),
+      });
+    } catch (e, stack) {
       error = e.toString();
+      analytics.captureException(e, stack, mechanism: 'removeMod');
+      analytics.capture('mod_action_failed',
+          {'action': 'remove', 'game': _adapter.game.id});
       playSound(UiSound.error);
     }
     if (_selectedModPath == mod.path) {
@@ -581,23 +691,38 @@ class AppController extends ChangeNotifier {
     }
   }
 
-  Future<void> installFiles(List<FileSystemEntity> sources) async {
+  Future<void> installFiles(List<FileSystemEntity> sources,
+      {String method = 'picker'}) async {
     final dir = modsDir;
     if (dir == null) return;
     String? error;
+    var folders = 0, archives = 0, files = 0;
     try {
       for (final source in sources) {
         if (source is Directory) {
+          folders++;
           await _adapter.installFolder(dir, source);
         } else if (isArchivePath(source.path)) {
+          archives++;
           await _adapter.installArchive(dir, File(source.path));
         } else {
+          files++;
           await _adapter.installMod(dir, File(source.path));
         }
       }
       playSound(UiSound.install);
-    } catch (e) {
+      analytics.capture('mod_installed', {
+        'game': _adapter.game.id,
+        'method': method,
+        'files': files,
+        'archives': archives,
+        'folders': folders,
+      });
+    } catch (e, stack) {
       error = e.toString();
+      analytics.captureException(e, stack, mechanism: 'installFiles');
+      analytics.capture('mod_install_failed',
+          {'game': _adapter.game.id, 'method': method});
       playSound(UiSound.error);
     }
     await refresh();
@@ -626,14 +751,17 @@ class AppController extends ChangeNotifier {
     }
     if (sources.isEmpty) {
       playSound(UiSound.alert);
+      analytics.capture('mod_drop_rejected',
+          {'game': _adapter.game.id, 'dropped': paths.length});
       return;
     }
-    await installFiles(sources);
+    await installFiles(sources, method: 'drop');
   }
 
   /// Points the current game at a user-chosen mods folder.
   Future<void> setFolderOverride(String path) async {
     playSound(UiSound.select);
+    analytics.capture('mods_folder_overridden', {'game': _adapter.game.id});
     await settings.setModsPathOverride(_adapter.game.id, path);
     await refresh();
   }
@@ -641,6 +769,7 @@ class AppController extends ChangeNotifier {
   /// Back to auto-detection for the current game.
   Future<void> clearFolderOverride() async {
     playSound(UiSound.click);
+    analytics.capture('mods_folder_reset', {'game': _adapter.game.id});
     await settings.setModsPathOverride(_adapter.game.id, null);
     await refresh();
   }
@@ -662,10 +791,16 @@ class AppController extends ChangeNotifier {
   Future<void> clearCaches() async {
     if (cacheFiles.isEmpty) return;
     try {
+      analytics.capture('caches_cleared', {
+        'game': _adapter.game.id,
+        'files': cacheFiles.length,
+        'size_kb': (cacheSizeBytes / 1024).round(),
+      });
       await _adapter.clearCaches();
       playSound(UiSound.uninstall);
-    } catch (e) {
+    } catch (e, stack) {
       lastError = e.toString();
+      analytics.captureException(e, stack, mechanism: 'clearCaches');
       playSound(UiSound.error);
     }
     try {
@@ -682,21 +817,69 @@ class AppController extends ChangeNotifier {
     try {
       await _adapter.createModsDirectory(path);
       playSound(UiSound.install);
-    } catch (e) {
+      analytics.capture('mods_folder_created', {'game': _adapter.game.id});
+    } catch (e, stack) {
       lastError = e.toString();
+      analytics.captureException(e, stack, mechanism: 'createDefaultFolder');
       playSound(UiSound.error);
     }
     await refresh();
   }
 
-  Future<void> setPref(Future<void> Function() write, {UiSound? sound}) async {
+  Future<void> setPref(Future<void> Function() write,
+      {UiSound? sound, String? setting, Object? value}) async {
     await write();
+    if (setting != null) {
+      analytics
+          .capture('setting_changed', {'setting': setting, 'value': value});
+    }
     // Played after the write so the sound-effects toggle gates itself:
     // switching sounds on confirms audibly, switching off is silent.
     if (sound != null) playSound(sound);
     // Conflict scanning and visibility react immediately.
     _rescanConflicts();
     notifyListeners();
+  }
+
+  /// Flips the anonymous-analytics opt-in (the analytics service sends
+  /// its own farewell/return events around the change).
+  Future<void> setAnalyticsEnabled(bool value) async {
+    await analytics.setEnabled(value);
+    playSound(value ? UiSound.toggleOn : UiSound.toggleOff);
+    notifyListeners();
+  }
+
+  /// Remote announcement from the `announcement` feature flag's JSON
+  /// payload ({id, title, message, url?}), or null when there's nothing
+  /// to show / the user dismissed it.
+  Map<String, Object?>? get announcement {
+    final payload = analytics.payloadOf('announcement');
+    if (payload is! Map) return null;
+    final message = payload['message'];
+    if (message is! String || message.isEmpty) return null;
+    final id = (payload['id'] ?? message).toString();
+    if (settings.dismissedAnnouncements.contains(id)) return null;
+    return {...payload.cast<String, Object?>(), 'id': id};
+  }
+
+  /// Hides the current announcement for good (per announcement id).
+  Future<void> dismissAnnouncement() async {
+    final current = announcement;
+    if (current == null) return;
+    playSound(UiSound.click);
+    analytics
+        .capture('announcement_dismissed', {'announcement': current['id']});
+    await settings.addDismissedAnnouncement(current['id'].toString());
+    notifyListeners();
+  }
+
+  /// Follows the announcement's link, when it has one.
+  void openAnnouncementUrl() {
+    final url = announcement?['url'];
+    if (url is! String || !url.startsWith('https://')) return;
+    analytics.capture(
+        'announcement_clicked', {'announcement': announcement?['id']});
+    openUrl(Uri.parse(url));
   }
 
   /// Opens the system file manager at [path] (selecting it when it's a

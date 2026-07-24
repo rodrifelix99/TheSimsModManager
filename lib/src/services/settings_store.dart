@@ -68,4 +68,40 @@ class SettingsStore {
   bool get soundEffects => _prefs.getBool('soundEffects') ?? true;
   Future<void> setSoundEffects(bool value) =>
       _prefs.setBool('soundEffects', value);
+
+  /// Share anonymous usage statistics and crash reports (PostHog).
+  bool get analyticsEnabled => _prefs.getBool('analyticsEnabled') ?? true;
+  Future<void> setAnalyticsEnabled(bool value) =>
+      _prefs.setBool('analyticsEnabled', value);
+
+  /// Random anonymous id identifying this install to analytics; never
+  /// derived from anything personal. Null until analytics first runs.
+  String? get analyticsDistinctId => _prefs.getString('analytics.distinctId');
+  Future<void> setAnalyticsDistinctId(String value) =>
+      _prefs.setString('analytics.distinctId', value);
+
+  /// App version seen on the previous launch; null on the very first run.
+  /// Analytics compares it to the running version to tell installs from
+  /// updates from plain launches.
+  String? get lastRunVersion => _prefs.getString('analytics.lastRunVersion');
+  Future<void> setLastRunVersion(String value) =>
+      _prefs.setString('analytics.lastRunVersion', value);
+
+  /// How many times the app has been launched (analytics context).
+  int get launchCount => _prefs.getInt('analytics.launchCount') ?? 0;
+  Future<void> setLaunchCount(int value) =>
+      _prefs.setInt('analytics.launchCount', value);
+
+  /// Raw JSON of the last successful feature-flag fetch, so flags keep
+  /// their last known values when the app starts offline.
+  String? get cachedFlagsJson => _prefs.getString('analytics.flagsCache');
+  Future<void> setCachedFlagsJson(String value) =>
+      _prefs.setString('analytics.flagsCache', value);
+
+  /// Ids of remote announcements the user has dismissed for good.
+  List<String> get dismissedAnnouncements =>
+      _prefs.getStringList('dismissedAnnouncements') ?? const [];
+  Future<void> addDismissedAnnouncement(String id) =>
+      _prefs.setStringList(
+          'dismissedAnnouncements', {...dismissedAnnouncements, id}.toList());
 }
