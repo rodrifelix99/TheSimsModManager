@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 
 import '../core/mod.dart';
+import '../core/mod_name.dart';
 import '../services/sfx.dart';
 import 'app_controller.dart';
 import 'game_theme.dart';
@@ -279,14 +280,24 @@ class DetailView extends StatelessWidget {
   /// actual mods this one clashes with; each row jumps to that mod.
   Widget _conflictPanel(GameTheme t, AppController c, Mod mod) {
     final others = c.conflictingWith(mod);
-    // Same file name, or same mod under a different version token?
-    // The wording below matches the reason the scan flagged it.
+    // Same file name, same mod under a different version token, or
+    // packages overriding the same resources? The wording below matches
+    // the reason the scan flagged it (name > version > resources).
     final sameName = others.every(
         (o) => p.basename(o.name).toLowerCase() ==
             p.basename(mod.name).toLowerCase());
+    final identity = parseModName(mod.name).identity;
+    final sameMod = sameName ||
+        others.every((o) => parseModName(o.name).identity == identity);
     final root = c.modsDir?.path;
     String relPath(Mod other) =>
         root == null ? other.path : p.relative(other.path, from: root);
+    String rowLabel(Mod other) {
+      final shared = c.sharedResourcesWith(mod, other);
+      if (shared == 0) return relPath(other);
+      return '${relPath(other)} — '
+          '$shared shared resource${shared == 1 ? '' : 's'}';
+    }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
@@ -325,11 +336,17 @@ class DetailView extends StatelessWidget {
                           ? 'Another enabled mod has the same file name:'
                           : '${others.length} other enabled mods have the '
                               'same file name:')
-                      : (others.length == 1
-                          ? 'Another enabled mod looks like a different '
-                              'version of this mod:'
-                          : '${others.length} other enabled mods look like '
-                              'different versions of this mod:'),
+                      : sameMod
+                          ? (others.length == 1
+                              ? 'Another enabled mod looks like a different '
+                                  'version of this mod:'
+                              : '${others.length} other enabled mods look '
+                                  'like different versions of this mod:')
+                          : (others.length == 1
+                              ? 'Another enabled mod overrides the same '
+                                  'in-game resources:'
+                              : '${others.length} other enabled mods '
+                                  'override the same in-game resources:'),
                   style: const TextStyle(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w800,
@@ -348,7 +365,7 @@ class DetailView extends StatelessWidget {
                 builder: (context, hovered) => GestureDetector(
                   onTap: () => c.openMod(other),
                   child: Text(
-                    relPath(other),
+                    rowLabel(other),
                     style: TextStyle(
                       fontSize: 12.5,
                       fontWeight: FontWeight.w700,
@@ -369,9 +386,18 @@ class DetailView extends StatelessWidget {
                     'twice, or two creators\' packages clash. The game loads '
                     'their overlapping resources in an unpredictable order: '
                     'keep one and disable or remove the rest.'
-                : 'Having several versions of a mod installed means the game '
-                    'loads their overlapping resources in an unpredictable '
-                    'order: keep the newest and disable or remove the rest.',
+                : sameMod
+                    ? 'Having several versions of a mod installed means the '
+                        'game loads their overlapping resources in an '
+                        'unpredictable order: keep the newest and disable or '
+                        'remove the rest.'
+                    : 'These packages contain resources with the same '
+                        'identifiers, so the game only keeps the copy it '
+                        'loads last. That can be intentional — patch and '
+                        'override mods shadow another mod\'s resources on '
+                        'purpose — but for unrelated mods it means one of '
+                        'them silently stops working: keep the one you '
+                        'want and disable the rest.',
             style: const TextStyle(
               fontSize: 12,
               height: 1.5,

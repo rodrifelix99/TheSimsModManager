@@ -175,6 +175,123 @@ void main() {
     });
   });
 
+  group('Wine/Proton prefix detection (Sims 2/3/4 on Linux)', () {
+    // The temp dir doubles as a fake home; the native Documents override
+    // points at an empty folder so only the prefixes can match.
+    late Directory nativeDocs;
+
+    setUp(() {
+      nativeDocs = make(['native-docs']);
+    });
+
+    test('finds The Sims 4 in a Steam Proton compatdata prefix', () async {
+      make([
+        '.local', 'share', 'Steam', 'steamapps', 'compatdata', '1222670',
+        'pfx', 'drive_c', 'users', 'steamuser', 'Documents',
+        'Electronic Arts', 'The Sims 4', 'Mods', //
+      ]);
+      final adapter =
+          Sims4Adapter(documentsOverride: nativeDocs, homeOverride: docs.path);
+
+      final dir = await adapter.resolveModsDirectory();
+
+      expect(dir, isNotNull);
+      expect(dir!.path, contains(p.join('compatdata', '1222670')));
+      expect(dir.path, endsWith('Mods'));
+    });
+
+    test('finds The Sims 4 in a Flatpak Steam prefix', () async {
+      make([
+        '.var', 'app', 'com.valvesoftware.Steam', '.local', 'share', 'Steam',
+        'steamapps', 'compatdata', '1222670', 'pfx', 'drive_c', 'users',
+        'steamuser', 'Documents', 'Electronic Arts', 'The Sims 4', 'Mods', //
+      ]);
+      final adapter =
+          Sims4Adapter(documentsOverride: nativeDocs, homeOverride: docs.path);
+
+      final dir = await adapter.resolveModsDirectory();
+
+      expect(dir, isNotNull);
+      expect(dir!.path, contains('com.valvesoftware.Steam'));
+    });
+
+    test('finds a Heroic prefix (extra pfx level)', () async {
+      make([
+        '.config', 'heroic', 'prefixes', 'The Sims 4', 'pfx', 'drive_c',
+        'users', 'steamuser', 'Documents', 'Electronic Arts', 'The Sims 4',
+        'Mods', //
+      ]);
+      final adapter =
+          Sims4Adapter(documentsOverride: nativeDocs, homeOverride: docs.path);
+
+      final dir = await adapter.resolveModsDirectory();
+
+      expect(dir, isNotNull);
+      expect(dir!.path, contains(p.join('heroic', 'prefixes')));
+    });
+
+    test('finds a Lutris prefix under ~/Games (no pfx level)', () async {
+      make([
+        'Games', 'the-sims-3', 'drive_c', 'users', 'rodri', 'Documents',
+        'Electronic Arts', 'The Sims 3', 'Mods', 'Packages', //
+      ]);
+      final adapter =
+          Sims3Adapter(documentsOverride: nativeDocs, homeOverride: docs.path);
+
+      final dir = await adapter.resolveModsDirectory();
+
+      expect(dir, isNotNull);
+      expect(dir!.path, contains(p.join('Games', 'the-sims-3')));
+    });
+
+    test('finds The Sims 2 in a plain ~/.wine prefix', () async {
+      make([
+        '.wine', 'drive_c', 'users', 'rodri', 'Documents', 'EA Games',
+        'The Sims 2', 'Downloads', //
+      ]);
+      final adapter =
+          Sims2Adapter(documentsOverride: nativeDocs, homeOverride: docs.path);
+
+      final dir = await adapter.resolveModsDirectory();
+
+      expect(dir, isNotNull);
+      expect(dir!.path, contains('.wine'));
+    });
+
+    test('prefers the native Documents install over prefix copies',
+        () async {
+      make(['native-docs', 'Electronic Arts', 'The Sims 4', 'Mods']);
+      make([
+        '.local', 'share', 'Steam', 'steamapps', 'compatdata', '1222670',
+        'pfx', 'drive_c', 'users', 'steamuser', 'Documents',
+        'Electronic Arts', 'The Sims 4', 'Mods', //
+      ]);
+      final adapter =
+          Sims4Adapter(documentsOverride: nativeDocs, homeOverride: docs.path);
+
+      final candidates = await adapter.findModsDirectoryCandidates();
+
+      expect(candidates, hasLength(2));
+      expect(candidates.first.path, contains('native-docs'));
+    });
+
+    test('does not double-count the ~/.steam/steam symlinked library',
+        () async {
+      make([
+        '.local', 'share', 'Steam', 'steamapps', 'compatdata', '1222670',
+        'pfx', 'drive_c', 'users', 'steamuser', 'Documents',
+        'Electronic Arts', 'The Sims 4', 'Mods', //
+      ]);
+      Link(p.join(docs.path, '.steam', 'steam'))
+          .createSync(p.join(docs.path, '.local', 'share', 'Steam'),
+              recursive: true);
+      final adapter =
+          Sims4Adapter(documentsOverride: nativeDocs, homeOverride: docs.path);
+
+      expect(await adapter.findModsDirectoryCandidates(), hasLength(1));
+    });
+  });
+
   group('Sims Medieval', () {
     test('finds Origin and Steam installs', () async {
       // Reuse the temp dir as a fake Program Files root.

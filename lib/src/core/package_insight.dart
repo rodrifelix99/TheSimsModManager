@@ -1,6 +1,36 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+/// A DBPF resource identity: the Type/Group/Instance triple the game uses
+/// to look resources up. When two enabled packages carry the same key the
+/// game keeps whichever it loads last, so shared keys mean the mods
+/// override each other.
+class ResourceKey {
+  const ResourceKey(this.type, this.group, this.instance);
+
+  final int type;
+  final int group;
+
+  /// 64-bit instance (high and low halves combined).
+  final int instance;
+
+  @override
+  bool operator ==(Object other) =>
+      other is ResourceKey &&
+      other.type == type &&
+      other.group == group &&
+      other.instance == instance;
+
+  @override
+  int get hashCode => Object.hash(type, group, instance);
+
+  @override
+  String toString() =>
+      '${type.toRadixString(16).padLeft(8, '0')}'
+      ':${group.toRadixString(16).padLeft(8, '0')}'
+      ':${instance.toRadixString(16).padLeft(16, '0')}';
+}
+
 /// What a best-effort look inside a mod file turned up: embedded artwork
 /// and a coarse summary of what the package contains. Plain data, safe
 /// to send across isolates.
@@ -9,6 +39,7 @@ class PackageInsight {
     this.thumbnail,
     this.resourceCount = 0,
     this.contents = const {},
+    this.keys = const [],
   });
 
   /// PNG/JPEG/BMP bytes for the UI to show, or `null` when the file
@@ -21,6 +52,12 @@ class PackageInsight {
   /// Human label → count for recognized resource kinds ("CAS parts",
   /// "Textures", …), largest first. Unrecognized types are not listed.
   final Map<String, int> contents;
+
+  /// Every resource key in the package index, for conflict detection
+  /// (`findResourceOverlaps` in conflicts.dart). Read from the index
+  /// headers only — no resource data is touched — so collecting them is
+  /// essentially free. Empty for non-package files.
+  final List<ResourceKey> keys;
 }
 
 /// Best-effort scan of a DBPF `.package` file.
@@ -111,9 +148,12 @@ const _probeByteBudget = 24 << 20;
 const _goodEnoughArea = 512 * 512;
 
 class _Entry {
-  _Entry(this.type, this.offset, this.fileSize, this.memSize, this.compression);
+  _Entry(this.type, this.group, this.instance, this.offset, this.fileSize,
+      this.memSize, this.compression);
 
   final int type;
+  final int group;
+  final int instance;
   final int offset;
   final int fileSize;
   final int memSize;
@@ -163,6 +203,7 @@ PackageInsight? _scan(RandomAccessFile raf) {
     thumbnail: _bestThumbnail(raf, entries),
     resourceCount: entries.length,
     contents: {for (final e in ordered) e.key: e.value},
+    keys: [for (final e in entries) ResourceKey(e.type, e.group, e.instance)],
   );
 }
 
@@ -223,12 +264,20 @@ List<_Entry> _parseIndexV2(Uint8List index, int count) {
     final flags = d.getUint32(pos, Endian.little);
     pos += 4;
     int? constType;
+    int? constGroup;
+    int? constInstanceHigh;
     if (flags & 1 != 0) {
       constType = d.getUint32(pos, Endian.little);
       pos += 4;
     }
-    if (flags & 2 != 0) pos += 4; // constant group
-    if (flags & 4 != 0) pos += 4; // constant instance-high
+    if (flags & 2 != 0) {
+      constGroup = d.getUint32(pos, Endian.little);
+      pos += 4;
+    }
+    if (flags & 4 != 0) {
+      constInstanceHigh = d.getUint32(pos, Endian.little);
+      pos += 4;
+    }
     for (var i = 0; i < count; i++) {
       int type;
       if (constType != null) {
@@ -237,9 +286,22 @@ List<_Entry> _parseIndexV2(Uint8List index, int count) {
         type = d.getUint32(pos, Endian.little);
         pos += 4;
       }
-      if (flags & 2 == 0) pos += 4; // group
-      if (flags & 4 == 0) pos += 4; // instance-high
-      pos += 4; // instance-low
+      int group;
+      if (constGroup != null) {
+        group = constGroup;
+      } else {
+        group = d.getUint32(pos, Endian.little);
+        pos += 4;
+      }
+      int instanceHigh;
+      if (constInstanceHigh != null) {
+        instanceHigh = constInstanceHigh;
+      } else {
+        instanceHigh = d.getUint32(pos, Endian.little);
+        pos += 4;
+      }
+      final instanceLow = d.getUint32(pos, Endian.little);
+      pos += 4;
       final offset = d.getUint32(pos, Endian.little);
       pos += 4;
       final fileSizeRaw = d.getUint32(pos, Endian.little);
@@ -251,8 +313,8 @@ List<_Entry> _parseIndexV2(Uint8List index, int count) {
         compression = d.getUint16(pos, Endian.little);
         pos += 4; // compression id + "committed" flag
       }
-      entries.add(_Entry(
-          type, offset, fileSizeRaw & 0x7FFFFFFF, memSize, compression));
+      entries.add(_Entry(type, group, (instanceHigh << 32) | instanceLow,
+          offset, fileSizeRaw & 0x7FFFFFFF, memSize, compression));
     }
   } catch (_) {
     // Truncated or malformed index: keep whatever parsed cleanly.
@@ -260,9 +322,10 @@ List<_Entry> _parseIndexV2(Uint8List index, int count) {
   return entries;
 }
 
-/// DBPF v1 index (Sims 2): fixed-size records of 20 bytes, or 24 when the
-/// index version adds a resource id. Compression isn't in the index (it
-/// lives in the DIR resource), so entries sniff it per blob instead.
+/// DBPF v1 index (Sims 2): fixed-size records of 20 bytes — type, group,
+/// instance, offset, size — or 24 when index version 7.2 inserts a second
+/// (high) instance half before the offset. Compression isn't in the index
+/// (it lives in the DIR resource), so entries sniff it per blob instead.
 List<_Entry> _parseIndexV1(Uint8List index, int count) {
   final entrySize = index.length ~/ count;
   if (entrySize != 20 && entrySize != 24) return const [];
@@ -270,8 +333,13 @@ List<_Entry> _parseIndexV1(Uint8List index, int count) {
   final entries = <_Entry>[];
   for (var i = 0; i < count; i++) {
     final base = i * entrySize;
+    final instanceLow = d.getUint32(base + 8, Endian.little);
+    final instanceHigh =
+        entrySize == 24 ? d.getUint32(base + 12, Endian.little) : 0;
     entries.add(_Entry(
       d.getUint32(base, Endian.little),
+      d.getUint32(base + 4, Endian.little),
+      (instanceHigh << 32) | instanceLow,
       d.getUint32(base + entrySize - 8, Endian.little),
       d.getUint32(base + entrySize - 4, Endian.little),
       0,

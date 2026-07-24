@@ -46,8 +46,8 @@ class SettingsView extends StatelessWidget {
                   t,
                   title: 'Warn about conflicts',
                   desc:
-                      'Scan enabled mods for duplicate file names and badge '
-                      'them in the library',
+                      'Badge enabled mods that duplicate a file name or '
+                      'override the same in-game resources as another mod',
                   value: s.warnConflicts,
                   onToggle: () => c.setPref(
                     () => s.setWarnConflicts(!s.warnConflicts),
@@ -86,9 +86,10 @@ class SettingsView extends StatelessWidget {
                 _divider(t),
                 _prefRow(
                   t,
-                  title: 'Mod artwork',
-                  desc: 'Look inside mod files for embedded artwork and '
-                      'content details while the library loads',
+                  title: 'Scan inside mods',
+                  desc: 'Look inside mod files while the library loads for '
+                      'embedded artwork, content details and mods that '
+                      'override the same resources',
                   value: s.scanArtwork,
                   // Own action, not setPref: flipping it also rescans the
                   // library (on) or clears the cached artwork (off).

@@ -26,6 +26,29 @@ class _FakeAdapter extends FolderBasedGameAdapter {
   Future<String?> defaultModsPath() async => dir.path;
 }
 
+/// Simulates Windows sharing violations: the rename throws
+/// [PathAccessException] until [failuresLeft] runs out.
+class _LockedAdapter extends _FakeAdapter {
+  _LockedAdapter(super.dir, {required this.failuresLeft});
+
+  int failuresLeft;
+  int attempts = 0;
+
+  @override
+  Duration get renameRetryDelay => Duration.zero;
+
+  @override
+  Future<File> renameModFile(File file, String newPath) {
+    attempts++;
+    if (failuresLeft > 0) {
+      failuresLeft--;
+      throw PathAccessException(
+          file.path, const OSError('file in use', 32), 'Cannot rename file');
+    }
+    return super.renameModFile(file, newPath);
+  }
+}
+
 void main() {
   late Directory tempDir;
   late _FakeAdapter adapter;
@@ -78,6 +101,59 @@ void main() {
     mod = await adapter.setEnabled(mod, enabled: true);
     expect(mod.status, ModStatus.enabled);
     expect(File(p.join(tempDir.path, 'lamp.package')).existsSync(), isTrue);
+  });
+
+  test('toggling a file already renamed on disk reports the new state',
+      () async {
+    final file = addFile('lamp.package');
+    final mod = (await adapter.listMods(tempDir)).single;
+    // Someone else (a second window, the user) already disabled it.
+    file.renameSync('${file.path}$disabledSuffix');
+
+    final updated = await adapter.setEnabled(mod, enabled: false);
+
+    expect(updated.status, ModStatus.disabled);
+  });
+
+  test('a vanished file surfaces a friendly missing-file error', () async {
+    final file = addFile('lamp.package');
+    final mod = (await adapter.listMods(tempDir)).single;
+    file.deleteSync();
+
+    expect(
+      () => adapter.setEnabled(mod, enabled: false),
+      throwsA(isA<ModToggleException>()
+          .having((e) => e.reason, 'reason', ModToggleFailure.fileMissing)
+          .having((e) => e.toString(), 'message', contains('lamp.package'))),
+    );
+  });
+
+  test('a transiently locked file is retried until the rename succeeds',
+      () async {
+    final locked = _LockedAdapter(tempDir, failuresLeft: 2);
+    addFile('lamp.package');
+    final mod = (await locked.listMods(tempDir)).single;
+
+    final updated = await locked.setEnabled(mod, enabled: false);
+
+    expect(updated.status, ModStatus.disabled);
+    expect(locked.attempts, 3);
+  });
+
+  test('a file that stays locked surfaces a friendly in-use error', () async {
+    final locked = _LockedAdapter(tempDir, failuresLeft: 99);
+    addFile('lamp.package');
+    final mod = (await locked.listMods(tempDir)).single;
+
+    await expectLater(
+      locked.setEnabled(mod, enabled: false),
+      throwsA(isA<ModToggleException>()
+          .having((e) => e.reason, 'reason', ModToggleFailure.fileInUse)
+          .having((e) => e.toString(), 'message', contains('lamp.package'))),
+    );
+    expect(locked.attempts, 4, reason: 'retries must be bounded');
+    expect(File(p.join(tempDir.path, 'lamp.package')).existsSync(), isTrue,
+        reason: 'the mod file itself is untouched');
   });
 
   test('install copies the file into the mods folder', () async {

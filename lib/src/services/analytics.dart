@@ -254,8 +254,11 @@ class Analytics {
 
   /// Reports [error] to PostHog error tracking as an `$exception` event,
   /// with the Dart stack parsed into frames so issues group and render
-  /// properly. Capped per session so a crash loop can't flood the
-  /// project. [mechanism] names the hook that caught it.
+  /// properly. On-disk paths are scrubbed from the message first — file
+  /// system errors embed full paths (usernames, mod names) that the
+  /// privacy contract forbids sending. Capped per session so a crash
+  /// loop can't flood the project. [mechanism] names the hook that
+  /// caught it.
   void captureException(
     Object error,
     StackTrace? stack, {
@@ -265,7 +268,7 @@ class Analytics {
   }) {
     if (!enabled || _exceptionCount >= 25) return;
     _exceptionCount++;
-    var value = error.toString();
+    var value = _redactPaths(error.toString());
     if (value.length > 2000) value = value.substring(0, 2000);
     final frames = stack == null ? const <Map<String, Object?>>[] : _frames(stack);
     capture(r'$exception', {
@@ -285,6 +288,32 @@ class Analytics {
       r'$exception_level': handled ? 'error' : 'fatal',
       ...properties,
     });
+  }
+
+  /// Absolute paths inside single quotes, the form `dart:io` exception
+  /// messages use — quoting means they may contain spaces.
+  static final _quotedPath = RegExp(r"'((?:[A-Za-z]:[\\/]|[\\/])[^']*)'");
+
+  /// Bare (unquoted) path tokens: a drive-letter prefix (the lookarounds
+  /// keep `https://` and other URL schemes out) or a home-directory root.
+  static final _barePath = RegExp(
+      r'''(?<![A-Za-z0-9])[A-Za-z]:[\\/](?![\\/])[^\s'"]+'''
+      r'''|[\\/](?:Users|home)[\\/][^\s'"]+''');
+
+  /// Replaces path-like spans in [text] with `<path>` plus the file's
+  /// extension chain (`<path>.package.disabled`), so error messages stay
+  /// diagnosable without carrying usernames or mod names.
+  static String _redactPaths(String text) => text
+      .replaceAllMapped(
+          _quotedPath, (m) => "'<path>${_extensionsOf(m.group(1)!)}'")
+      .replaceAllMapped(
+          _barePath, (m) => '<path>${_extensionsOf(m.group(0)!)}');
+
+  /// Trailing extension chain of a path's last segment, or `''`.
+  static String _extensionsOf(String path) {
+    final name = path.split(RegExp(r'[\\/]+')).last;
+    return RegExp(r'(?:\.[A-Za-z0-9_]{1,12})+$').firstMatch(name)?.group(0) ??
+        '';
   }
 
   static final _frameLine = RegExp(r'^#\d+\s+(.*?)\s+\((.*?)\)\s*$');
@@ -312,6 +341,13 @@ class Analytics {
         lineno = number;
         location = location.substring(0, cut);
       }
+      final inApp = location.contains('sims_mod_manager') ||
+          location.startsWith('file:');
+      // `file:` locations are absolute local paths (username and all);
+      // the basename is enough to read the trace.
+      if (location.startsWith('file:')) {
+        location = location.split('/').last;
+      }
       frames.add({
         'platform': 'custom',
         'lang': 'dart',
@@ -319,8 +355,7 @@ class Analytics {
         'filename': location,
         if (lineno != null) 'lineno': lineno,
         if (colno != null) 'colno': colno,
-        'in_app': location.contains('sims_mod_manager') ||
-            location.startsWith('file:'),
+        'in_app': inApp,
       });
       if (frames.length >= 50) break;
     }

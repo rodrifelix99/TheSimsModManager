@@ -15,3 +15,6 @@ dist/
 windows/flutter/ephemeral/
 macos/Flutter/ephemeral/
 linux/flutter/ephemeral/
+
+# FVM Version Cache
+.fvm/

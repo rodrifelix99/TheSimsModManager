@@ -70,6 +70,11 @@ class AppController extends ChangeNotifier {
   List<Mod> mods = const [];
   Set<String> conflictPaths = const {};
 
+  /// Resource-key overlaps from the package scan: mod path → (overlapping
+  /// mod's path → shared key count). See [findResourceOverlaps]. Empty
+  /// when conflict warnings are off or nothing overlaps.
+  Map<String, Map<String, int>> resourceOverlaps = const {};
+
   /// When set, [filteredMods] narrows to the mods flagged by the conflict
   /// scan. Toggled by tapping the Conflicts stat in the library header.
   bool conflictsOnly = false;
@@ -210,22 +215,30 @@ class AppController extends ChangeNotifier {
   bool isConflicted(Mod mod) => conflictPaths.contains(mod.path);
 
   /// Why [mod] is flagged: the other enabled mods sharing its file name
-  /// (case-insensitive) or looking like another version of it, matching
-  /// [findConflicts]'s heuristics. Empty when the mod isn't conflicted.
+  /// (case-insensitive), looking like another version of it, or carrying
+  /// the same resource keys inside. Empty when the mod isn't conflicted.
   List<Mod> conflictingWith(Mod mod) {
     if (!conflictPaths.contains(mod.path)) return const [];
     final name = p.basename(mod.name).toLowerCase();
     final identity = parseModName(mod.name).identity;
+    final overlapping = resourceOverlaps[mod.path] ?? const {};
     return [
       for (final other in mods)
         if (other.path != mod.path &&
             other.isEnabled &&
             (p.basename(other.name).toLowerCase() == name ||
+                overlapping.containsKey(other.path) ||
                 (conflictPaths.contains(other.path) &&
                     parseModName(other.name).identity == identity)))
           other,
     ];
   }
+
+  /// How many resource keys [mod] and [other] both carry (0 when they
+  /// don't overlap or weren't scanned), for the conflict panel's
+  /// "N shared resources" detail.
+  int sharedResourcesWith(Mod mod, Mod other) =>
+      resourceOverlaps[mod.path]?[other.path] ?? 0;
 
   /// Narrows the library to conflicting mods, or back to all of them.
   /// No-op when there's nothing to narrow to.
@@ -243,10 +256,17 @@ class AppController extends ChangeNotifier {
   /// nothing is flagged anymore, so the library never sticks on an
   /// inexplicably empty list. The remote kill switch can turn the scan
   /// off for everyone if the heuristic ever misbehaves.
+  ///
+  /// Two signals feed the flag set: the lexical heuristics
+  /// ([findConflicts]) and real resource-key overlaps from the package
+  /// scan ([findResourceOverlaps], via the insight cache — so with the
+  /// artwork scan off only the lexical pass runs).
   void _rescanConflicts() {
     final scan = settings.warnConflicts &&
         analytics.isEnabled('conflict-detection', fallback: true);
-    conflictPaths = scan ? findConflicts(mods) : const {};
+    resourceOverlaps = scan ? findResourceOverlaps(mods, insightFor) : const {};
+    conflictPaths =
+        scan ? {...findConflicts(mods), ...resourceOverlaps.keys} : const {};
     if (conflictPaths.isEmpty) conflictsOnly = false;
   }
 
@@ -290,6 +310,9 @@ class AppController extends ChangeNotifier {
       await refresh();
     } else {
       _insights.clear();
+      // Resource-overlap conflicts came from the cache that just went
+      // away; keep only what the lexical heuristics can still see.
+      _rescanConflicts();
       notifyListeners();
     }
   }
@@ -523,10 +546,12 @@ class AppController extends ChangeNotifier {
       mods = dir == null ? const [] : await _adapter.listMods(dir);
       // The filtered folder may have been renamed/emptied on disk.
       if (folder != 'All' && !folders.contains(folder)) folder = 'All';
-      _rescanConflicts();
       // Artwork/content scan happens here, under the loading screen,
-      // so the library renders instantly from cache afterwards.
+      // so the library renders instantly from cache afterwards. It must
+      // land before the conflict scan: resource-overlap detection reads
+      // the packages' resource keys out of the insight cache.
       await _scanNewMods();
+      _rescanConflicts();
       candidateDirs = await _adapter.findModsDirectoryCandidates();
       defaultPath = await _adapter.defaultModsPath();
       gameFolder = await _adapter.findGameFolder();
@@ -661,9 +686,19 @@ class AppController extends ChangeNotifier {
       notifyListeners();
     } catch (e, stack) {
       final error = e.toString();
-      analytics.captureException(e, stack, mechanism: 'toggleMod');
-      analytics.capture('mod_action_failed',
-          {'action': 'toggle', 'game': _adapter.game.id});
+      // Environmental failures (game holding the file open, file moved)
+      // are expected and user-actionable — they'd bury real bugs in error
+      // tracking, and their messages carry file paths the privacy contract
+      // forbids sending.
+      final reason = e is ModToggleException ? e.reason.name : null;
+      if (reason == null) {
+        analytics.captureException(e, stack, mechanism: 'toggleMod');
+      }
+      analytics.capture('mod_action_failed', {
+        'action': 'toggle',
+        'game': _adapter.game.id,
+        if (reason != null) 'reason': reason,
+      });
       playSound(UiSound.error);
       await refresh();
       // refresh() clears lastError, so the error must be restored after it

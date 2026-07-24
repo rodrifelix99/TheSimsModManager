@@ -11,6 +11,23 @@ import 'package_insight.dart';
 /// Suffix appended to a mod file to hide it from the game without deleting it.
 const disabledSuffix = '.disabled';
 
+/// Why a toggle failed for a reason that isn't an app bug: the user's
+/// environment got in the way (game running, file moved). Lets the UI show
+/// a helpful message and keeps these out of error tracking.
+enum ModToggleFailure { fileInUse, fileMissing }
+
+/// An enable/disable that failed for a known environmental [reason].
+/// [message] is user-readable and safe to show as-is.
+class ModToggleException implements Exception {
+  const ModToggleException(this.reason, this.message);
+
+  final ModToggleFailure reason;
+  final String message;
+
+  @override
+  String toString() => message;
+}
+
 /// Everything the manager needs to know to handle mods for one game.
 ///
 /// This is the extension point of the whole app: to support a new game,
@@ -243,15 +260,60 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
   @override
   Future<void> removeMod(Mod mod) => File(mod.path).delete();
 
+  /// Rename attempts before a locked file is given up on; antivirus and
+  /// indexer locks are usually released within a second.
+  static const _renameAttempts = 4;
+
+  /// Base wait between rename retries; grows linearly per attempt.
+  /// Overridable so tests don't sit through real delays.
+  Duration get renameRetryDelay => const Duration(milliseconds: 250);
+
   @override
   Future<Mod> setEnabled(Mod mod, {required bool enabled}) async {
     if (mod.isEnabled == enabled) return mod;
     final newPath = enabled
         ? mod.path.substring(0, mod.path.length - disabledSuffix.length)
         : '${mod.path}$disabledSuffix';
-    final renamed = await File(mod.path).rename(newPath);
-    return toMod(renamed)!;
+    final name = p.basename(enabled ? newPath : mod.path);
+    for (var attempt = 1; ; attempt++) {
+      try {
+        return toMod(await renameModFile(File(mod.path), newPath))!;
+      } on FileSystemException catch (e) {
+        if (!File(mod.path).existsSync()) {
+          // Already carrying the target name (double toggle, an external
+          // rename): the work is done, report the new state as success.
+          final already = File(newPath);
+          if (already.existsSync()) return toMod(already)!;
+          throw ModToggleException(
+            ModToggleFailure.fileMissing,
+            '"$name" is no longer in the mods folder — it may have been '
+            'moved or deleted by another program.',
+          );
+        }
+        if (e is PathAccessException) {
+          // Windows refuses to rename open files (sharing violation) and
+          // write-protected ones; the former is usually the game or an
+          // antivirus scan and often clears within a moment.
+          if (attempt < _renameAttempts) {
+            await Future<void>.delayed(renameRetryDelay * attempt);
+            continue;
+          }
+          throw ModToggleException(
+            ModToggleFailure.fileInUse,
+            '"$name" couldn\'t be renamed — it\'s in use by another program '
+            '(is the game running?) or write-protected. Close anything '
+            'using it and try again.',
+          );
+        }
+        rethrow;
+      }
+    }
   }
+
+  /// The on-disk rename behind [setEnabled]; a seam for tests to simulate
+  /// OS failures (locked or vanished files).
+  Future<File> renameModFile(File file, String newPath) =>
+      file.rename(newPath);
 
   /// Mod file extensions that *are* plain images (Sims 1 `.bmp` skins):
   /// the file itself is its own thumbnail.

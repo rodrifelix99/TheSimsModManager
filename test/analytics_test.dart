@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sims_mod_manager/src/app_version.dart';
@@ -193,6 +195,84 @@ void main() {
           f['lineno'] is int),
       isNotEmpty,
     );
+  });
+
+  test('file paths are scrubbed from exception reports', () async {
+    final settings = await freshStore({});
+    final post = RecordingPost();
+    final analytics = Analytics(settings: settings, post: post.call);
+    await analytics.init();
+
+    // The real-world shape: dart:io embeds the full path (Windows
+    // username, mod file name) in both the message and the path field.
+    analytics.captureException(
+      PathAccessException(
+        r'C:\Users\Sarah Travers\Documents\Electronic Arts\The Sims 4\Mods'
+        r'\[QICC]February_2022_Collection_Robyn_Bottom.package',
+        const OSError('O arquivo já está sendo usado', 32),
+        r"Cannot rename file to 'C:\Users\Sarah Travers\Documents"
+        r'\Electronic Arts\The Sims 4\Mods'
+        r"\[QICC]February_2022_Collection_Robyn_Bottom.package.disabled'",
+      ),
+      StackTrace.current,
+    );
+    await analytics.flush();
+
+    final event = post.events.firstWhere((e) => e['event'] == r'$exception');
+    final exception =
+        ((event['properties'] as Map)[r'$exception_list'] as List).single
+            as Map;
+    final value = exception['value'] as String;
+    expect(value, isNot(contains('Sarah')));
+    expect(value, isNot(contains(r'C:\')));
+    expect(value, isNot(contains('QICC')));
+    expect(value, contains('.package.disabled'),
+        reason: 'the extension chain keeps the report diagnosable');
+    expect(value, contains('errno = 32'));
+    expect(exception['type'], 'PathAccessException');
+    // Stack frames must not carry local paths either.
+    final frames =
+        ((exception['stacktrace'] as Map)['frames'] as List).cast<Map>();
+    for (final frame in frames) {
+      expect(frame['filename'], isNot(contains('/Users/')));
+    }
+  });
+
+  test('unix home paths and bare Windows paths are scrubbed too', () async {
+    final settings = await freshStore({});
+    final post = RecordingPost();
+    final analytics = Analytics(settings: settings, post: post.call);
+    await analytics.init();
+
+    analytics.captureException(
+      const FileSystemException('Cannot delete file',
+          '/Users/felix/Documents/The Sims 2/Downloads/cute sofa.package'),
+      null,
+    );
+    analytics.captureException(
+      Exception(r'stat failed on C:\Games\Sims\mod.ts4script'),
+      null,
+    );
+    // A URL in an error must survive the scrub untouched.
+    analytics.captureException(
+      Exception('GET https://eu.i.posthog.com/batch/ timed out'),
+      null,
+    );
+    await analytics.flush();
+
+    final values = [
+      for (final e in post.events)
+        if (e['event'] == r'$exception')
+          (((e['properties'] as Map)[r'$exception_list'] as List).single
+              as Map)['value'] as String,
+    ];
+    expect(values, hasLength(3));
+    expect(values[0], isNot(contains('felix')));
+    expect(values[0], isNot(contains('sofa')));
+    expect(values[0], contains('.package'));
+    expect(values[1], isNot(contains('Games')));
+    expect(values[1], contains('.ts4script'));
+    expect(values[2], contains('https://eu.i.posthog.com/batch/'));
   });
 
   test('failed batches are kept and retried, never duplicated', () async {

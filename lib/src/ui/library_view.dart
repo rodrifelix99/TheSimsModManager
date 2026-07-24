@@ -44,7 +44,7 @@ class LibraryView extends StatelessWidget {
                 if (progress != null) ...[
                   const SizedBox(height: 14),
                   Text(
-                    'Looking inside mods for artwork… '
+                    'Looking inside mods for artwork and conflicts… '
                     '${progress.$1} of ${progress.$2}',
                     style: TextStyle(
                       fontSize: 13,
@@ -379,7 +379,8 @@ class LibraryView extends StatelessWidget {
 
   /// The Conflicts stat doubles as a filter: tapping it narrows the
   /// library to the flagged mods, tapping again clears. A tooltip spells
-  /// out what "conflict" means here (duplicate names or versions).
+  /// out what "conflict" means here (duplicate names, versions, or
+  /// packages overriding the same resources).
   Widget _conflictStat(GameTheme t, AppController c) {
     final active = c.conflictsOnly;
     final tappable = active || c.conflictCount > 0;
@@ -392,8 +393,9 @@ class LibraryView extends StatelessWidget {
         message: active
             ? 'Showing conflicting mods only. Click to show all mods again.'
             : 'Enabled mods sharing a file name with another enabled mod, '
-                'or installed in more than one version. The game loads '
-                'duplicates in an unpredictable order.'
+                'installed in more than one version, or overriding the same '
+                'in-game resources. The game only keeps the copy it loads '
+                'last — sometimes intentional (patch mods), often not.'
                 '${tappable ? ' Click to show only these mods.' : ''}',
         waitDuration: const Duration(milliseconds: 400),
         child: HoverBuilder(

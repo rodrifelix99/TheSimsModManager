@@ -31,6 +31,77 @@ Future<Directory?> documentsDir({Directory? override}) async {
   return await docs.exists() ? docs : null;
 }
 
+/// Documents folders inside Wine/Proton prefixes under [home], for the
+/// Windows games run through a compatibility layer on Linux (Steam Deck).
+/// Each prefix holds a fake Windows home, so the Sims user data lives at
+/// `<prefix>/drive_c/users/<user>/Documents/<vendor>/<game>` instead of
+/// the native `~/Documents`. Covers the default prefix locations of the
+/// common launchers (paths per the s4lt reference and launcher docs):
+///
+/// - Steam Proton: `<library>/steamapps/compatdata/<appid>/pfx`, for the
+///   classic library locations plus the Flatpak Steam sandbox
+/// - Heroic: `~/.config/heroic/prefixes/<game>[/pfx]` (also Flatpak and
+///   the newer `~/Games/Heroic/Prefixes/default/<game>`)
+/// - Lutris: `~/Games/<game>` (one prefix per game)
+/// - plain Wine: `~/.wine`
+Future<List<Directory>> winePrefixDocumentsDirs(String home) async {
+  final prefixes = <Directory>[];
+
+  Future<void> addChildren(String path) async {
+    final dir = Directory(path);
+    if (!await dir.exists()) return;
+    await for (final entity in dir.list()) {
+      if (entity is Directory) prefixes.add(entity);
+    }
+  }
+
+  for (final library in [
+    p.join(home, '.steam', 'steam'),
+    p.join(home, '.local', 'share', 'Steam'),
+    p.join(home, '.var', 'app', 'com.valvesoftware.Steam', '.local', 'share',
+        'Steam'),
+  ]) {
+    await addChildren(p.join(library, 'steamapps', 'compatdata'));
+  }
+  await addChildren(p.join(home, '.config', 'heroic', 'prefixes'));
+  await addChildren(p.join(home, '.var', 'app',
+      'com.heroicgameslauncher.hgl', 'config', 'heroic', 'prefixes'));
+  await addChildren(p.join(home, 'Games', 'Heroic', 'Prefixes', 'default'));
+  await addChildren(p.join(home, 'Games'));
+  prefixes.add(Directory(p.join(home, '.wine')));
+
+  // The user folder inside a prefix is `steamuser` for Proton and the
+  // login name for Wine, so enumerate instead of guessing names. Proton
+  // and Heroic nest the actual prefix in a `pfx` subfolder; plain Wine
+  // and Lutris don't — accept both layouts everywhere.
+  final found = <Directory>[];
+  final seen = <String>{};
+  for (final prefix in prefixes) {
+    for (final driveC in [
+      p.join(prefix.path, 'drive_c'),
+      p.join(prefix.path, 'pfx', 'drive_c'),
+    ]) {
+      final users = Directory(p.join(driveC, 'users'));
+      if (!await users.exists()) continue;
+      await for (final user in users.list()) {
+        if (user is! Directory) continue;
+        final docs = Directory(p.join(user.path, 'Documents'));
+        if (!await docs.exists()) continue;
+        // `~/.steam/steam` is usually a symlink to `~/.local/share/Steam`,
+        // so the same prefix can be reached twice; dedupe on the real path.
+        String key;
+        try {
+          key = await docs.resolveSymbolicLinks();
+        } catch (_) {
+          key = docs.path;
+        }
+        if (seen.add(key)) found.add(docs);
+      }
+    }
+  }
+  return found;
+}
+
 /// Shared behavior for the Sims games that keep user data under
 /// `Documents/<vendor>/<game>` (Sims 2, 3 and 4).
 ///
@@ -39,10 +110,14 @@ Future<Directory?> documentsDir({Directory? override}) async {
 /// exact name we scan the vendor folder for anything that looks like this
 /// game and rank exact-looking names first.
 abstract class DocumentsSimsAdapter extends FolderBasedGameAdapter {
-  const DocumentsSimsAdapter({this.documentsOverride});
+  const DocumentsSimsAdapter({this.documentsOverride, this.homeOverride});
 
   /// Test hook: pretend this is the user's Documents folder.
   final Directory? documentsOverride;
+
+  /// Test hook: pretend this is the user's home (for the Wine/Proton
+  /// prefix scan, which otherwise only runs on Linux).
+  final String? homeOverride;
 
   /// Vendor folders to scan under Documents, e.g. `['Electronic Arts']`.
   List<String> get vendorFolders;
@@ -87,29 +162,47 @@ abstract class DocumentsSimsAdapter extends FolderBasedGameAdapter {
         normalized.endsWith(gameNumber);
   }
 
+  /// Documents folders to scan for user data: the native one plus, on
+  /// Linux, any Wine/Proton prefix Documents (Steam Deck & co.), native
+  /// first.
+  Future<List<Directory>> _documentsDirs() async {
+    final dirs = <Directory>[];
+    final docs = await documentsDir(override: documentsOverride);
+    if (docs != null) dirs.add(docs);
+    final home = homeOverride ??
+        (Platform.isLinux ? Platform.environment['HOME'] : null);
+    if (home != null) dirs.addAll(await winePrefixDocumentsDirs(home));
+    return dirs;
+  }
+
   /// User-data folders for this game, best match first.
   Future<List<Directory>> gameDataFolders() async {
-    final docs = await documentsDir(override: documentsOverride);
-    if (docs == null) return const [];
     final found = <Directory>[];
-    for (final vendor in vendorFolders) {
-      final parent = Directory(p.join(docs.path, vendor));
-      if (!await parent.exists()) continue;
-      await for (final entity in parent.list()) {
-        if (entity is Directory && matchesGameFolder(p.basename(entity.path))) {
-          found.add(entity);
+    for (final docs in await _documentsDirs()) {
+      for (final vendor in vendorFolders) {
+        final parent = Directory(p.join(docs.path, vendor));
+        if (!await parent.exists()) continue;
+        await for (final entity in parent.list()) {
+          if (entity is Directory &&
+              matchesGameFolder(p.basename(entity.path))) {
+            found.add(entity);
+          }
         }
       }
     }
-    // Exact canonical name first, then shorter (plainer) names.
-    found.sort((a, b) {
-      final an = p.basename(a.path), bn = p.basename(b.path);
+    // Exact canonical name first, then shorter (plainer) names; on ties
+    // keep the scan order, which puts the native Documents install ahead
+    // of same-named prefix ones (List.sort alone isn't stable).
+    final indexed = found.asMap().entries.toList();
+    indexed.sort((a, b) {
+      final an = p.basename(a.value.path), bn = p.basename(b.value.path);
       final aExact = an == canonicalFolderName ? 0 : 1;
       final bExact = bn == canonicalFolderName ? 0 : 1;
       if (aExact != bExact) return aExact - bExact;
-      return an.length.compareTo(bn.length);
+      if (an.length != bn.length) return an.length.compareTo(bn.length);
+      return a.key - b.key;
     });
-    return found;
+    return [for (final entry in indexed) entry.value];
   }
 
   @override
@@ -144,7 +237,7 @@ abstract class DocumentsSimsAdapter extends FolderBasedGameAdapter {
 }
 
 class Sims4Adapter extends DocumentsSimsAdapter {
-  const Sims4Adapter({super.documentsOverride});
+  const Sims4Adapter({super.documentsOverride, super.homeOverride});
 
   @override
   Game get game =>
@@ -195,7 +288,7 @@ class Sims4Adapter extends DocumentsSimsAdapter {
 }
 
 class Sims3Adapter extends DocumentsSimsAdapter {
-  const Sims3Adapter({super.documentsOverride});
+  const Sims3Adapter({super.documentsOverride, super.homeOverride});
 
   @override
   Game get game =>
@@ -254,7 +347,7 @@ class Sims3Adapter extends DocumentsSimsAdapter {
 }
 
 class Sims2Adapter extends DocumentsSimsAdapter {
-  const Sims2Adapter({super.documentsOverride});
+  const Sims2Adapter({super.documentsOverride, super.homeOverride});
 
   @override
   Game get game =>

@@ -32,11 +32,14 @@ Uint8List fakeJpeg(int w, int h) => Uint8List.fromList([
 final junk = Uint8List.fromList(List.generate(80, (i) => (i * 7) & 0xFF));
 
 class Res {
-  Res(this.type, this.data, {this.compression = 0});
+  Res(this.type, this.data, {this.compression = 0, this.group = 0,
+      this.instance});
 
   final int type;
   final Uint8List data; // already compressed when [compression] != 0
   final int compression; // DBPF v2 compression id
+  final int group;
+  final int? instance; // 64-bit; defaults to the entry's index
 }
 
 void _u32(BytesBuilder b, int v) {
@@ -61,10 +64,11 @@ Uint8List buildV2Package(List<Res> resources) {
   _u32(index, 0); // flags: nothing constant
   for (var i = 0; i < resources.length; i++) {
     final r = resources[i];
+    final instance = r.instance ?? i;
     _u32(index, r.type);
-    _u32(index, 0); // group
-    _u32(index, 0); // instance hi
-    _u32(index, i); // instance lo
+    _u32(index, r.group);
+    _u32(index, instance >> 32); // instance hi
+    _u32(index, instance & 0xFFFFFFFF); // instance lo
     _u32(index, offsets[i]);
     _u32(index, r.data.length | 0x80000000); // extended: compression follows
     _u32(index, r.data.length * 2); // memSize (any plausible value)
@@ -91,8 +95,9 @@ Uint8List buildV2Package(List<Res> resources) {
 }
 
 /// Minimal DBPF v1 package (Sims 2 layout): 20-byte index entries, no
-/// compression info in the index.
-Uint8List buildV1Package(List<Res> resources) {
+/// compression info in the index. [longIndex] switches to the 24-byte
+/// index-7.2 entries carrying a second (high) instance half.
+Uint8List buildV1Package(List<Res> resources, {bool longIndex = false}) {
   final blobs = BytesBuilder();
   final offsets = <int>[];
   for (final r in resources) {
@@ -103,9 +108,11 @@ Uint8List buildV1Package(List<Res> resources) {
   final index = BytesBuilder();
   for (var i = 0; i < resources.length; i++) {
     final r = resources[i];
+    final instance = r.instance ?? i;
     _u32(index, r.type);
-    _u32(index, 0); // group
-    _u32(index, i); // instance
+    _u32(index, r.group);
+    _u32(index, instance & 0xFFFFFFFF);
+    if (longIndex) _u32(index, instance >> 32);
     _u32(index, offsets[i]);
     _u32(index, r.data.length);
   }
@@ -120,6 +127,53 @@ Uint8List buildV1Package(List<Res> resources) {
   _u32(b, 96 + blobs.length); // 40: index offset (v1)
   _u32(b, indexBytes.length); // 44: index size
   b.add(Uint8List(96 - 48));
+  b.add(blobs.toBytes());
+  b.add(indexBytes);
+  return b.toBytes();
+}
+
+/// DBPF v2 package whose index hoists constant type/group/instance-high
+/// fields out of the per-entry records (flags 0x7), the layout common in
+/// real single-type Sims 4 CC. Entries hold [junk] and differ only in
+/// their low instance half.
+Uint8List buildV2ConstPackage({
+  required int type,
+  required int group,
+  required int instanceHigh,
+  required List<int> instanceLows,
+}) {
+  final blobs = BytesBuilder();
+  final offsets = <int>[];
+  for (var i = 0; i < instanceLows.length; i++) {
+    offsets.add(96 + blobs.length);
+    blobs.add(junk);
+  }
+
+  final index = BytesBuilder();
+  _u32(index, 7); // flags: type, group and instance-high are constant
+  _u32(index, type);
+  _u32(index, group);
+  _u32(index, instanceHigh);
+  for (var i = 0; i < instanceLows.length; i++) {
+    _u32(index, instanceLows[i]);
+    _u32(index, offsets[i]);
+    _u32(index, junk.length); // no extended-size bit: uncompressed
+    _u32(index, junk.length);
+  }
+  final indexBytes = index.toBytes();
+
+  final b = BytesBuilder();
+  b.add('DBPF'.codeUnits);
+  _u32(b, 2); // major
+  _u32(b, 1); // minor
+  b.add(Uint8List(36 - 12));
+  _u32(b, instanceLows.length); // 36: entry count
+  _u32(b, 0); // 40: v1 index offset
+  _u32(b, indexBytes.length); // 44: index size
+  b.add(Uint8List(64 - 48));
+  _u32(b, 96 + blobs.length); // 64: index offset
+  b.add(Uint8List(96 - 68));
+  assert(b.length == 96);
   b.add(blobs.toBytes());
   b.add(indexBytes);
   return b.toBytes();
@@ -257,6 +311,60 @@ void main() {
         {'tunings': 3, 'CAS parts': 2, 'textures': 1});
     expect(insight.contents.keys.first, 'tunings');
     expect(insight.thumbnail, isNull);
+  });
+
+  test('collects resource keys (type/group/instance) from a v2 index', () {
+    final file = write(
+      'keys_v2.package',
+      buildV2Package([
+        Res(0x034AEECB, junk,
+            group: 0x00000001, instance: 0x1234567890ABCDEF),
+        Res(0x0333406C, junk, group: 0x80000000, instance: 42),
+      ]),
+    );
+    expect(scanPackage(file)!.keys, [
+      const ResourceKey(0x034AEECB, 0x00000001, 0x1234567890ABCDEF),
+      const ResourceKey(0x0333406C, 0x80000000, 42),
+    ]);
+  });
+
+  test('reads keys from a v2 index with constant hoisted fields', () {
+    final file = write(
+      'keys_const.package',
+      buildV2ConstPackage(
+        type: 0x034AEECB,
+        group: 0x00000002,
+        instanceHigh: 0x000000AB,
+        instanceLows: [0x11, 0x22],
+      ),
+    );
+    expect(scanPackage(file)!.keys, [
+      const ResourceKey(0x034AEECB, 0x00000002, 0x000000AB00000011),
+      const ResourceKey(0x034AEECB, 0x00000002, 0x000000AB00000022),
+    ]);
+  });
+
+  test('collects keys from a v1 (Sims 2) index', () {
+    final file = write(
+      'keys_v1.package',
+      buildV1Package([
+        Res(0x42484156, junk, group: 0x7F01EC29, instance: 0x1000),
+      ]),
+    );
+    expect(scanPackage(file)!.keys,
+        [const ResourceKey(0x42484156, 0x7F01EC29, 0x1000)]);
+  });
+
+  test('v1 index-7.2 entries combine both instance halves', () {
+    final file = write(
+      'keys_v1_72.package',
+      buildV1Package(
+        [Res(0x42484156, junk, group: 0x7F01EC29, instance: 0xCAFE00001000)],
+        longIndex: true,
+      ),
+    );
+    expect(scanPackage(file)!.keys,
+        [const ResourceKey(0x42484156, 0x7F01EC29, 0xCAFE00001000)]);
   });
 
   test('returns null for non-DBPF and truncated files', () {
