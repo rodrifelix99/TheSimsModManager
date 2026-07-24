@@ -20,6 +20,10 @@ class _RecordingAdapter extends FolderBasedGameAdapter {
   final Directory dir;
 
   int inspectCalls = 0;
+  int inspectedMods = 0;
+
+  /// When true the scan "finds" nothing, like a script mod or .far file.
+  bool yieldNothing = false;
 
   @override
   Future<Map<String, PackageInsight>> inspectMods(
@@ -29,6 +33,8 @@ class _RecordingAdapter extends FolderBasedGameAdapter {
     bool Function()? isCancelled,
   }) async {
     inspectCalls++;
+    inspectedMods += mods.length;
+    if (yieldNothing) return const {};
     return {
       for (final mod in mods)
         mod.path: PackageInsight(thumbnail: Uint8List.fromList(const [1])),
@@ -102,6 +108,25 @@ void main() {
     expect(c.settings.scanArtwork, isTrue);
     expect(adapter.inspectCalls, 2);
     expect(c.thumbnailOf(c.mods.single), isNotNull);
+  });
+
+  test('a later refresh re-scans nothing when the library is unchanged',
+      () async {
+    final c = await makeController(const {});
+    expect(adapter.inspectedMods, 1);
+
+    await c.refresh();
+    expect(adapter.inspectedMods, 1);
+  });
+
+  test('files that scan to nothing are not re-scanned on refresh', () async {
+    adapter.yieldNothing = true;
+    final c = await makeController(const {});
+    expect(adapter.inspectedMods, 1);
+    expect(c.thumbnailOf(c.mods.single), isNull);
+
+    await c.refresh();
+    expect(adapter.inspectedMods, 1);
   });
 
   test('skipArtworkScan is a no-op when no scan is running', () async {

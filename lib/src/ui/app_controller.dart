@@ -210,16 +210,19 @@ class AppController extends ChangeNotifier {
   bool isConflicted(Mod mod) => conflictPaths.contains(mod.path);
 
   /// Why [mod] is flagged: the other enabled mods sharing its file name
-  /// (case-insensitive), matching [findConflicts]'s heuristic. Empty when
-  /// the mod isn't conflicted.
+  /// (case-insensitive) or looking like another version of it, matching
+  /// [findConflicts]'s heuristics. Empty when the mod isn't conflicted.
   List<Mod> conflictingWith(Mod mod) {
     if (!conflictPaths.contains(mod.path)) return const [];
     final name = p.basename(mod.name).toLowerCase();
+    final identity = parseModName(mod.name).identity;
     return [
       for (final other in mods)
         if (other.path != mod.path &&
             other.isEnabled &&
-            p.basename(other.name).toLowerCase() == name)
+            (p.basename(other.name).toLowerCase() == name ||
+                (conflictPaths.contains(other.path) &&
+                    parseModName(other.name).identity == identity)))
           other,
     ];
   }
@@ -249,8 +252,10 @@ class AppController extends ChangeNotifier {
 
   /// Per-file scan results (embedded artwork + content summary). Keyed by
   /// enabled-name path + size + mtime so a replaced file is re-scanned,
-  /// while a plain enable/disable rename keeps its cached entry.
-  final Map<String, PackageInsight> _insights = {};
+  /// while a plain enable/disable rename keeps its cached entry. A null
+  /// value means the file was scanned and yielded nothing — cached too,
+  /// so revisiting a game never re-scans files known to be empty.
+  final Map<String, PackageInsight?> _insights = {};
 
   /// Bulk-scan progress for the loading screen: (inspected, total).
   /// Null when no scan is running.
@@ -342,7 +347,14 @@ class AppController extends ChangeNotifier {
           isCancelled: () => _skipScan);
       for (final mod in missing) {
         final insight = found[mod.path];
-        if (insight != null) _insights[_insightKey(mod)] = insight;
+        if (insight != null) {
+          _insights[_insightKey(mod)] = insight;
+        } else if (!_skipScan) {
+          // Nothing usable inside (script mod, .far, corrupt file) — a
+          // skipped scan can't tell "empty" from "never reached", so only
+          // a completed scan records the negative.
+          _insights[_insightKey(mod)] = null;
+        }
       }
       if (!_skipScan) {
         analytics.capture('artwork_scan_completed', {
