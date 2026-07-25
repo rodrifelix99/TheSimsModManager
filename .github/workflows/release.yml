@@ -7,6 +7,16 @@ on:
 permissions:
   contents: write
 
+# Pinned, not `channel: stable`. From Flutter 3.44.0 gen_snapshot writes
+# App.framework/App itself instead of going through the linker, and the dylib it
+# produces has no exports trie — only an unsorted classic symbol table. macOS
+# 10.15/11 binary-search that table and fail to find kDartIsolateSnapshotData,
+# so the Dart VM never starts and the app segfaults on launch (our issue #1,
+# upstream flutter/flutter#189183). 3.41.9 predates the change. Unpin once
+# upstream ships a fix, and keep all three platforms on the same SDK.
+env:
+  FLUTTER_VERSION: "3.41.9"
+
 jobs:
   windows:
     runs-on: windows-latest
@@ -14,6 +24,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
       - run: flutter pub get
@@ -49,6 +60,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
       # flutter_acrylic is CocoaPods-only; Swift Package Manager integration
@@ -122,6 +134,7 @@ jobs:
             libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
       - uses: subosito/flutter-action@v2
         with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
       - run: flutter pub get
