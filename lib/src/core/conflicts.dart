@@ -7,11 +7,11 @@ import 'package_insight.dart';
 /// Paths of enabled mods that look like they clash with another enabled
 /// mod, on two heuristics:
 ///
-/// 1. **Duplicate file names** (case-insensitive) — the same mod
+/// 1. Duplicate file names (case-insensitive) - the same mod
 ///    installed twice in different subfolders, or two creators' packages
 ///    sharing a name. The game then loads overlapping resources in an
 ///    unpredictable order.
-/// 2. **Multiple versions of the same mod** — names identical except for
+/// 2. Multiple versions of the same mod - names identical except for
 ///    their version token ([parseModName]), e.g. `hair_v1.package` next
 ///    to `hair_v2.package`. Both versions require a recognizable version
 ///    marker; a versioned file next to an unversioned one is too
@@ -53,14 +53,14 @@ Set<String> findConflicts(List<Mod> mods) {
 const _ignoredOverlapTypes = <int>{0xE86B1EEF};
 
 /// Enabled mods whose packages carry the same resource keys, from the
-/// DBPF index headers collected by the package scan: path → (overlapping
-/// mod's path → how many keys the two share).
+/// DBPF index headers collected by the package scan: path -> (overlapping
+/// mod's path -> how many keys the two share).
 ///
-/// This is the real conflict signal — the game looks resources up by
+/// This is the real conflict signal - the game looks resources up by
 /// Type/Group/Instance and keeps whichever copy it loads last, so two
 /// enabled packages sharing a key silently override each other. It can
 /// still be intentional: patch/override mods and multi-part CC sets are
-/// *built* to shadow resources, which is why the UI presents overlaps as
+/// built to shadow resources, which is why the UI presents overlaps as
 /// a warning to review, not an error.
 ///
 /// [insightOf] supplies each mod's scan result (null when the file wasn't
@@ -69,7 +69,7 @@ Map<String, Map<String, int>> findResourceOverlaps(
   List<Mod> mods,
   PackageInsight? Function(Mod mod) insightOf,
 ) {
-  // Key → paths of the enabled packages carrying it (deduped per file:
+  // Key -> paths of the enabled packages carrying it (deduped per file:
   // a malformed package repeating a key must not flag itself).
   final owners = <ResourceKey, List<String>>{};
   for (final mod in mods) {

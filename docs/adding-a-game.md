@@ -41,7 +41,7 @@ Optional overrides:
   example).
 
 If the game needs a fundamentally different install/disable mechanism
-(archives, load-order files, a database…), implement `GameAdapter` directly
+(archives, load-order files, a database...), implement `GameAdapter` directly
 instead.
 
 ## 2. Register it

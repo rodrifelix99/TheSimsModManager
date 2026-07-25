@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'package:path/path.dart' as p;
 
 import 'game.dart';
+import 'install_path.dart';
 import 'mod.dart';
 import 'mod_archive.dart';
 import 'package_insight.dart';
@@ -43,7 +44,7 @@ abstract class GameAdapter {
 
   /// Human-readable guidance shown when the mods folder can't be found:
   /// where the folder normally lives and what the game needs before it
-  /// loads mods (in-game options, framework files, …).
+  /// loads mods (in-game options, framework files, ...).
   String get setupHelp;
 
   /// Best-guess mods directory on this machine, or `null` if the game
@@ -51,7 +52,7 @@ abstract class GameAdapter {
   /// per game in settings.
   Future<Directory?> resolveModsDirectory();
 
-  /// The path where this game's mods folder is *expected* to live, even
+  /// The path where this game's mods folder is expected to live, even
   /// when it doesn't exist yet, so the app can offer to create it.
   /// `null` when there is no way to guess (game not installed and no
   /// conventional location).
@@ -74,12 +75,11 @@ abstract class GameAdapter {
   Future<Directory> createModsDirectory(String path);
 
   /// Coarse content-type label for a mod file extension (lowercase, with
-  /// dot), e.g. `.ts4script` → `Script`.
+  /// dot), e.g. `.ts4script` -> `Script`.
   String categoryForExtension(String extension);
 
   Future<List<Mod>> listMods(Directory modsDir);
 
-  /// Copies [source] into [modsDir].
   Future<Mod> installMod(Directory modsDir, File source);
 
   /// Unpacks [archive] (any format in [archiveFileExtensions]) into
@@ -91,7 +91,7 @@ abstract class GameAdapter {
 
   /// Installs every mod file found anywhere under [source] (a folder the
   /// user dropped or picked) into [modsDir]. The folder itself becomes a
-  /// subfolder of [modsDir] with its internal structure preserved — so in
+  /// subfolder of [modsDir] with its internal structure preserved - so in
   /// the library it shows up as a filter chip named after the folder.
   /// Everything that isn't a mod file is skipped. Throws with a
   /// user-readable message when the folder holds no mod files.
@@ -99,7 +99,6 @@ abstract class GameAdapter {
 
   Future<void> removeMod(Mod mod);
 
-  /// Enables or disables [mod] and returns its new state.
   Future<Mod> setEnabled(Mod mod, {required bool enabled});
 
   /// Cache files the game keeps that go stale when custom content is
@@ -109,19 +108,15 @@ abstract class GameAdapter {
   /// games without such caches return an empty list.
   Future<List<File>> findCacheFiles();
 
-  /// Deletes every file from [findCacheFiles] and returns what was
-  /// deleted. Safe: the game regenerates these caches on launch.
+  /// Safe to call: the game regenerates these on its next launch.
   Future<List<File>> clearCaches();
 
   /// Looks inside every mod file for embedded artwork and a content
-  /// summary, keyed by `mod.path`. Meant to run once per library load,
-  /// off the UI thread; [onProgress] reports how many files have been
-  /// inspected so far, and [onFound] delivers each batch's discoveries
-  /// as they land (so the loading screen can show artwork mid-scan).
-  /// Files that yield nothing are simply absent from the result. When
-  /// [isCancelled] starts returning true the scan stops early (between
-  /// batches) and returns whatever it has so far.
-  /// Best-effort: must never throw.
+  /// summary, keyed by `mod.path`. Runs once per library load, off the UI
+  /// thread. [onFound] delivers each batch as it lands so the loading
+  /// screen can show artwork mid-scan; once [isCancelled] returns true the
+  /// scan stops between batches and returns what it has. Files that yield
+  /// nothing are absent from the result. Must never throw.
   Future<Map<String, PackageInsight>> inspectMods(
     List<Mod> mods, {
     void Function(int done, int total)? onProgress,
@@ -142,7 +137,6 @@ abstract class GameAdapter {
 abstract class FolderBasedGameAdapter implements GameAdapter {
   const FolderBasedGameAdapter();
 
-  /// Extension → category label used by [categoryForExtension].
   Map<String, String> get categoryByExtension => const {};
 
   @override
@@ -196,7 +190,11 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
   Future<List<Mod>> listMods(Directory modsDir) async {
     if (!await modsDir.exists()) return const [];
     final mods = <Mod>[];
-    await for (final entity in modsDir.list(recursive: true)) {
+    // A subfolder the OS refuses to open (a name another tool wrote that
+    // Windows can't address, a permission wall) must cost its own mods,
+    // not the whole library.
+    await for (final entity
+        in modsDir.list(recursive: true).handleError((Object _) {})) {
       if (entity is! File) continue;
       final mod = toMod(entity);
       if (mod != null) mods.add(mod);
@@ -229,9 +227,10 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
           'No mod files ($wanted) found inside ${p.basename(source.path)}.');
     }
     final mods = <Mod>[];
+    final taken = <String>{};
     for (final file in files) {
-      final target =
-          p.join(modsDir.path, p.relative(file.path, from: source.parent.path));
+      final target = claimInstallTarget(modsDir.path,
+          p.relative(file.path, from: source.parent.path), taken);
       await File(target).parent.create(recursive: true);
       final copied = await file.copy(target);
       mods.add(toMod(copied)!);
@@ -315,7 +314,7 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
   Future<File> renameModFile(File file, String newPath) =>
       file.rename(newPath);
 
-  /// Mod file extensions that *are* plain images (Sims 1 `.bmp` skins):
+  /// Mod file extensions that are plain images (Sims 1 `.bmp` skins):
   /// the file itself is its own thumbnail.
   static const _imageExtensions = {'.bmp', '.png', '.jpg', '.jpeg'};
 
@@ -401,7 +400,7 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
         final bytes = File(path).readAsBytesSync();
         return bytes.isEmpty ? null : PackageInsight(thumbnail: bytes);
       }
-      // Non-DBPF files (.iff, .far, .ts4script…) fail the magic check
+      // Non-DBPF files (.iff, .far, .ts4script...) fail the magic check
       // inside scanPackage and come back null almost for free.
       return scanPackage(File(path));
     } catch (_) {

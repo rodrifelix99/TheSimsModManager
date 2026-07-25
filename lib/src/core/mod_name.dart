@@ -4,9 +4,9 @@ import 'package:path/path.dart' as p;
 /// conventions Sims creators actually use: underscores/hyphens as word
 /// separators, CamelCase run-together words, url-encoded spaces:
 ///
-/// - `cozy_living-overhaul.package` → `cozy living overhaul`
-/// - `UICheatsExtension_v1.36.ts4script` → `UI Cheats Extension v1.36`
-/// - `MCCommandCenter.package` → `MC Command Center`
+/// - `cozy_living-overhaul.package` -> `cozy living overhaul`
+/// - `UICheatsExtension_v1.36.ts4script` -> `UI Cheats Extension v1.36`
+/// - `MCCommandCenter.package` -> `MC Command Center`
 ///
 /// Version markers like `v1.36` and acronyms like `MCCC` are preserved;
 /// original casing is kept (no title-casing of the author's spelling).
@@ -14,7 +14,7 @@ String humanizeModName(String fileName) {
   var name = p.basenameWithoutExtension(fileName);
   name = name.replaceAll('%20', ' ');
   name = name.replaceAll(RegExp(r'[_+-]'), ' ');
-  // CamelCase boundaries: lower/digit→Upper, and ACRONYMWord → ACRONYM Word.
+  // CamelCase boundaries: lower/digit->Upper, and ACRONYMWord -> ACRONYM Word.
   name = name.replaceAllMapped(
       RegExp(r'([a-z0-9])([A-Z])'), (m) => '${m[1]} ${m[2]}');
   name = name.replaceAllMapped(
@@ -26,7 +26,7 @@ String humanizeModName(String fileName) {
 /// What a mod's file name reveals about its identity and version.
 ///
 /// DBPF packages carry no version metadata (the header version is the
-/// *format* version, identical for every mod), so the file name is the
+/// format version, identical for every mod), so the file name is the
 /// only version signal there is. Creators overwhelmingly do encode one:
 /// `Mod_v1.36.package`, `mod-1.2.3.package`, `Fix 2024-05-01.package`.
 class ModNameInfo {
@@ -39,14 +39,14 @@ class ModNameInfo {
   /// Case- and separator-insensitive key identifying the mod regardless
   /// of its version marker, extension included: two files whose names
   /// differ only in version token, casing, or word separators share an
-  /// identity. Opaque — only useful for equality.
+  /// identity. Opaque - only useful for equality.
   final String identity;
 
   /// The file name with the version token removed (extension kept), for
   /// building display titles that don't repeat the version.
   final String strippedName;
 
-  /// Canonical version token — `1.36`, `2b`, `2024-05-01` — or `null`
+  /// Canonical version token - `1.36`, `2b`, `2024-05-01` - or `null`
   /// when the name carries no recognizable version.
   final String? version;
 

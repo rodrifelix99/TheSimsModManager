@@ -10,14 +10,12 @@ import '../app_version.dart';
 /// The project's GitHub repository, `owner/name`.
 const String githubRepo = 'rodrifelix99/TheSimsModManager';
 
-/// A newer release published on GitHub.
 class UpdateInfo {
   const UpdateInfo({required this.version, required this.url});
 
   /// The release's version, without the `v` tag prefix (e.g. `1.2.0`).
   final String version;
 
-  /// The release's web page, holding the download assets.
   final String url;
 }
 
@@ -96,12 +94,10 @@ Uri bugReportUrl({String? gameName}) =>
       if (gameName != null) 'game': gameName,
     });
 
-/// New-feature-request URL, opening the feature issue form.
 Uri featureRequestUrl({String? gameName}) =>
     Uri.https('github.com', '/$githubRepo/issues/new', {
       'template': 'feature_request.yml',
       if (gameName != null) 'game': gameName,
     });
 
-/// The project wiki (user guide & FAQ).
 Uri get wikiUrl => Uri.https('github.com', '/$githubRepo/wiki');

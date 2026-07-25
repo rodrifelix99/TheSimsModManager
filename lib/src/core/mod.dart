@@ -15,10 +15,11 @@ class Mod {
     this.modifiedAt,
   });
 
-  /// Display name (file name without the `.disabled` marker).
+  /// File name without the `.disabled` marker, so the name stays put
+  /// when a mod is toggled.
   final String name;
 
-  /// Absolute path of the mod file on disk.
+  /// Absolute path, which for a disabled mod still carries `.disabled`.
   final String path;
 
   final ModStatus status;

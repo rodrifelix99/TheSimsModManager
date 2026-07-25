@@ -4,6 +4,7 @@ import 'package:path/path.dart' as p;
 
 import '../../core/game.dart';
 import '../../core/game_adapter.dart';
+import '../../core/install_path.dart';
 import '../../core/mod.dart';
 import '../../core/mod_archive.dart';
 
@@ -17,7 +18,7 @@ import '../../core/mod_archive.dart';
 /// and of multiple copies of a game each with its own user-data folder.
 /// A per-game user override in settings is the escape hatch when every
 /// guess is wrong (custom install drives, OneDrive-relocated Documents,
-/// Wine prefixes, …).
+/// Wine prefixes, ...).
 
 const _series = 'The Sims';
 
@@ -73,7 +74,7 @@ Future<List<Directory>> winePrefixDocumentsDirs(String home) async {
   // The user folder inside a prefix is `steamuser` for Proton and the
   // login name for Wine, so enumerate instead of guessing names. Proton
   // and Heroic nest the actual prefix in a `pfx` subfolder; plain Wine
-  // and Lutris don't — accept both layouts everywhere.
+  // and Lutris don't - accept both layouts everywhere.
   final found = <Directory>[];
   final seen = <String>{};
   for (final prefix in prefixes) {
@@ -392,7 +393,7 @@ class Sims2Adapter extends DocumentsSimsAdapter {
       '"Yes" to the custom content prompt so downloads are enabled.';
 }
 
-/// The Sims Medieval (2011) forked the Sims 3 engine *before* EA moved the
+/// The Sims Medieval (2011) forked the Sims 3 engine before EA moved the
 /// mod framework into Documents, so it still uses the old install-folder
 /// framework: mods live in `<install>/Mods/Packages` and a `Resource.cfg`
 /// in the install root tells the game to read them. The Documents folder
@@ -471,7 +472,7 @@ class SimsMedievalAdapter extends FolderBasedGameAdapter {
         }
       }
     }
-    // Steam Play/Proton installs the Windows game into the *native*
+    // Steam Play/Proton installs the Windows game into the native
     // Linux Steam library (only the saves live inside the prefix).
     final home = homeOverride ?? Platform.environment['HOME'];
     if (home != null) {
@@ -511,7 +512,7 @@ class SimsMedievalAdapter extends FolderBasedGameAdapter {
   }
 
   /// Caches that must be deleted after CC changes for the new content to
-  /// show up. Unlike the mods, these live in the *Documents* user-data
+  /// show up. Unlike the mods, these live in the Documents user-data
   /// folder, whose name is localized like the disc installs.
   static const _cacheFileNames = [
     'CASPartCache.package',
@@ -567,18 +568,18 @@ class SimsMedievalAdapter extends FolderBasedGameAdapter {
 }
 
 /// The original The Sims routes custom content by file type (per the
-/// classic community guides — parsimonious.org "Adding Downloads", SiMania
+/// classic community guides - parsimonious.org "Adding Downloads", SiMania
 /// "What Goes Where"), all relative to the install folder:
 ///
-/// - objects (.iff/.far) → `Downloads` (subfolders fine)
-/// - skins (.skn/.cmx/.bmp) → `GameData\Skins`, **flat** (the game does
+/// - objects (.iff/.far) -> `Downloads` (subfolders fine)
+/// - skins (.skn/.cmx/.bmp) -> `GameData\Skins`, flat (the game does
 ///   not read subfolders there); buyable clothing (mesh names starting
-///   L/S/W/H/F instead of B/C) → `ExpansionShared\SkinsBuy`, also flat
-/// - walls (.wll) → `GameData\Walls`, floors (.flr) → `GameData\Floors`
+///   L/S/W/H/F instead of B/C) -> `ExpansionShared\SkinsBuy`, also flat
+/// - walls (.wll) -> `GameData\Walls`, floors (.flr) -> `GameData\Floors`
 ///
 /// The "mods folder" the app resolves/overrides is still `Downloads`; the
 /// sibling folders are derived from it, and only when its parent really
-/// looks like a Sims install (has a `GameData` folder) — a custom override
+/// looks like a Sims install (has a `GameData` folder) - a custom override
 /// pointing anywhere else falls back to plain single-folder behavior.
 /// The stock game keeps its own assets inside .far archives, so loose
 /// files in these folders are custom content and safe to list as mods.
@@ -677,19 +678,19 @@ class Sims1Adapter extends FolderBasedGameAdapter {
   }
 
   /// File types that belong in a skins folder. A skin is a trio: the
-  /// .bmp texture, the .cmx animation link and the .skn mesh — all three
+  /// .bmp texture, the .cmx animation link and the .skn mesh - all three
   /// must land together or the Sim shows up invisible in game.
   static const _skinExtensions = {'.skn', '.cmx', '.bmp'};
 
   /// Buyable clothing (sold in community clothing stores) uses mesh
   /// names starting with L/S/W/H/F plus the age/body code digits
-  /// ("l200fa…"); everyday wear starts with B, heads with C. Mesh .skn
+  /// ("l200fa..."); everyday wear starts with B, heads with C. Mesh .skn
   /// files carry an "xskin-" prefix before the same name.
   static final _buyableName = RegExp(r'^(xskin-)?[lswhf]\d{3}');
 
   /// The install root [modsDir] (the Downloads folder) sits in, or null
-  /// when its parent doesn't look like a Sims install — e.g. the user
-  /// pointed the app at an arbitrary folder — in which case everything
+  /// when its parent doesn't look like a Sims install - e.g. the user
+  /// pointed the app at an arbitrary folder - in which case everything
   /// installs into [modsDir] unrouted, like any other game.
   Future<Directory?> _installRootOf(Directory modsDir) async {
     final root = modsDir.parent;
@@ -777,7 +778,7 @@ class Sims1Adapter extends FolderBasedGameAdapter {
       throw FormatException(
           'No mod files ($wanted) found inside ${p.basename(source.path)}.');
     }
-    // Relative to the folder's *parent* so the folder name itself is kept
+    // Relative to the folder's parent so the folder name itself is kept
     // for the files that stay in Downloads.
     return _installRoutedFiles(modsDir, root, files, source.parent.path);
   }
@@ -788,11 +789,15 @@ class Sims1Adapter extends FolderBasedGameAdapter {
   Future<List<Mod>> _installRoutedFiles(
       Directory modsDir, Directory root, List<File> files, String from) async {
     final mods = <Mod>[];
+    final taken = <String>{};
     for (final file in files) {
       final targetDir = _targetDirFor(modsDir, root, p.basename(file.path));
       final target = p.equals(targetDir.path, modsDir.path)
-          ? p.join(modsDir.path, p.relative(file.path, from: from))
-          : p.join(targetDir.path, p.basename(file.path));
+          ? claimInstallTarget(
+              modsDir.path, p.relative(file.path, from: from), taken)
+          // The routed folders are flat by design, so same-named files
+          // overwrite each other there as they always have.
+          : installTargetPath(targetDir.path, p.basename(file.path));
       await File(target).parent.create(recursive: true);
       final copied = await file.copy(target);
       mods.add(toMod(copied)!);

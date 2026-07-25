@@ -238,6 +238,52 @@ void main() {
     }
   });
 
+  test('an apostrophe in a path does not cut the scrub short', () async {
+    final settings = await freshStore({});
+    final post = RecordingPost();
+    final analytics = Analytics(settings: settings, post: post.call);
+    await analytics.init();
+
+    // Reported from the wild: mod folders are named after their creator
+    // ("LizCrea's Hourglass Bodyshape"), and that quote used to end the
+    // scrubbed span, leaving every folder name after it in the report.
+    analytics.captureException(
+      PathNotFoundException(
+        r"C:\Users\Viktoria\AppData\Local\Temp\mod_unpack01\LizCrea's "
+        r'Hourglass Bodyshape\NEEDED IN DOWNLOADS FOLDER'
+        r'\LizCrea_nipplefix_MESH',
+        const OSError('The system cannot find the path specified', 3),
+        'Directory listing failed',
+      ),
+      null,
+    );
+    // The same name reaching the scrub through an error that isn't a
+    // FileSystemException, so has only its message to go on.
+    analytics.captureException(
+      Exception(r"scan failed for 'C:\Sims\LizCrea's Mods\hair.package'"),
+      null,
+    );
+    await analytics.flush();
+
+    final events =
+        post.events.where((e) => e['event'] == r'$exception').toList();
+    expect(events, hasLength(2));
+    for (final event in events) {
+      final text =
+          (((event['properties'] as Map)[r'$exception_list'] as List).single
+              as Map)['value'] as String;
+      expect(text, isNot(contains('LizCrea')));
+    }
+    final value =
+        (((events.first['properties'] as Map)[r'$exception_list'] as List)
+            .single as Map)['value'] as String;
+    expect(value, isNot(contains('Hourglass')));
+    expect(value, isNot(contains('DOWNLOADS')));
+    expect(value, isNot(contains('Viktoria')));
+    expect(value, contains('Directory listing failed'));
+    expect(value, contains('errno = 3'));
+  });
+
   test('unix home paths and bare Windows paths are scrubbed too', () async {
     final settings = await freshStore({});
     final post = RecordingPost();

@@ -46,6 +46,7 @@ class _FailingAdapter extends FolderBasedGameAdapter {
   bool failToggle = false;
   bool failRemove = false;
   bool lockToggle = false;
+  Object? installFailure;
 
   @override
   Duration get renameRetryDelay => Duration.zero;
@@ -92,6 +93,12 @@ class _FailingAdapter extends FolderBasedGameAdapter {
   Future<void> removeMod(Mod mod) {
     if (failRemove) throw Exception('removal went sideways');
     return super.removeMod(mod);
+  }
+
+  @override
+  Future<Mod> installMod(Directory modsDir, File source) {
+    if (installFailure case final failure?) throw failure;
+    return super.installMod(modsDir, source);
   }
 }
 
@@ -179,6 +186,48 @@ void main() {
 
     expect(c.lastError, contains('removal went sideways'));
     expect(c.mods, hasLength(1));
+  });
+
+  test('a failed install names the file and the reason the OS gave',
+      () async {
+    final source = File(p.join(modsDir.parent.path, 'grunge_sofa.package'))
+      ..writeAsStringSync('sofa');
+    addTearDown(source.deleteSync);
+    final spy = _SpyAnalytics();
+    final c = await makeController(analytics: spy);
+    adapter.installFailure = PathNotFoundException(
+        r'C:\Mods\deep\sofa.package',
+        const OSError('The system cannot find the path specified', 3),
+        'Directory listing failed');
+
+    await c.installFiles([source]);
+
+    expect(c.lastError, contains('grunge_sofa.package'));
+    expect(c.lastError, contains('The system cannot find the path specified'));
+    // Whatever the OS says stays out of the raw exception dump.
+    expect(c.lastError, isNot(contains('PathNotFoundException')));
+    final failed = spy.eventProperties[spy.events.indexOf('mod_install_failed')];
+    expect(failed['reason'], 'not_found');
+    expect(spy.exceptions, hasLength(1),
+        reason: 'a filesystem failure on install is worth investigating');
+  });
+
+  test('an archive with nothing installable is a verdict, not a bug',
+      () async {
+    final source = File(p.join(modsDir.parent.path, 'empty_bundle.package'))
+      ..writeAsStringSync('nothing');
+    addTearDown(source.deleteSync);
+    final spy = _SpyAnalytics();
+    final c = await makeController(analytics: spy);
+    adapter.installFailure =
+        const FormatException('No mod files (.package) found inside x.zip.');
+
+    await c.installFiles([source]);
+
+    expect(c.lastError, 'No mod files (.package) found inside x.zip.');
+    expect(spy.exceptions, isEmpty);
+    final failed = spy.eventProperties[spy.events.indexOf('mod_install_failed')];
+    expect(failed['reason'], 'no_mod_files');
   });
 
   test('a successful toggle and removal leave no error', () async {

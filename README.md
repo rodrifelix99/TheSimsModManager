@@ -32,13 +32,15 @@ that re-themes itself to match the game you're managing.
   sounds.
 - 🖼️ **Real thumbnails & insights**: `.package` files are parsed (DBPF) to
   pull out embedded artwork and a content breakdown (CAS parts, textures,
-  tuning…), so your library looks like a library, not a file list.
-- 🔍 **Library** with search, category filters (Package/Script/Object/…),
+  tuning...), so your library looks like a library, not a file list.
+- 🔍 **Library** with search, category filters (Package/Script/Object/...),
   grid and list layouts, and live Total/Enabled/Disabled/Conflicts stats.
 - 🔀 **One-click enable/disable**: disabling renames the file with a
   `.disabled` suffix so the game's loader skips it; nothing is ever deleted.
-- ⚠️ **Conflict warnings**: enabled mods sharing a file name are badged
-  (duplicate installs are the most common real-world conflict).
+- ⚠️ **Conflict warnings**: enabled mods are badged when they share a file
+  name, when two versions of the same mod are installed side by side, and
+  when their packages actually share DBPF resource keys (the real thing:
+  the game keeps whichever copy it loads last).
 - 🧭 **Finds your folders for you**: localized user folders
   ("Los Sims 3", "Die Sims 2", the Ultimate Collection), every install
   when a game exists more than once, and you can point at any folder
@@ -47,7 +49,9 @@ that re-themes itself to match the game you're managing.
   creates it *with the files the game needs* (e.g. the Sims 3
   `Resource.cfg` framework).
 - 📦 **Install**: pick mod files (filtered to the game's real extensions)
-  and they're copied into the right place.
+  or drop files and folders straight onto the window; `.zip`, `.rar` and
+  `.7z` archives are unpacked for you, keeping their folder structure and
+  skipping readmes and screenshots.
 
 ## 📥 Download
 
@@ -68,7 +72,7 @@ Grab the latest version from the
 | The Sims | `<install>\The Sims\Downloads` | Lives in the install folder, not Documents |
 | The Sims 2 | `Documents\EA Games\The Sims 2\Downloads` | Ultimate Collection uses its own folder name |
 | The Sims 3 | `Documents\Electronic Arts\The Sims 3\Mods\Packages` | Needs the `Resource.cfg` framework; the app creates it for you |
-| The Sims Medieval | `<install>\The Sims Medieval\Mods\Packages` | Lives in the install folder (Documents only holds saves); needs a `Resource.cfg` in the install root — the app creates it for you |
+| The Sims Medieval | `<install>\The Sims Medieval\Mods\Packages` | Lives in the install folder (Documents only holds saves); needs a `Resource.cfg` in the install root - the app creates it for you |
 | The Sims 4 | `Documents\Electronic Arts\The Sims 4\Mods` | Created by the game on first launch; enable CC/script mods in game options |
 
 All of these are best-effort defaults: every game's folder can be overridden
@@ -104,8 +108,7 @@ Bug reports, feature ideas, and pull requests are very welcome; see
 
 ## 🗺️ Roadmap
 
-Drag-and-drop install · `.zip` extraction · deep (resource-level) conflict
-detection · SimCity support. See the
+SimCity support · more games via the adapter system. See the
 [open issues](https://github.com/rodrifelix99/TheSimsModManager/issues) for
 what's planned and to suggest more.
 

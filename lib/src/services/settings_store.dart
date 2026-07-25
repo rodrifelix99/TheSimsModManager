@@ -26,8 +26,6 @@ class SettingsStore {
 
   static String _folderOrderKey(String gameId) => 'folderOrder.$gameId';
 
-  /// User-arranged order of the folder filter chips for [gameId], or
-  /// `null` when the user never rearranged them (alphabetical).
   List<String>? folderOrder(String gameId) =>
       _prefs.getStringList(_folderOrderKey(gameId));
 
@@ -39,17 +37,14 @@ class SettingsStore {
     }
   }
 
-  /// Scan enabled mods for duplicate-name conflicts and badge them.
   bool get warnConflicts => _prefs.getBool('warnConflicts') ?? true;
   Future<void> setWarnConflicts(bool value) =>
       _prefs.setBool('warnConflicts', value);
 
-  /// Ask before deleting a mod file from disk.
   bool get confirmDelete => _prefs.getBool('confirmDelete') ?? true;
   Future<void> setConfirmDelete(bool value) =>
       _prefs.setBool('confirmDelete', value);
 
-  /// Show disabled mods in the library (off = enabled mods only).
   bool get showDisabled => _prefs.getBool('showDisabled') ?? true;
   Future<void> setShowDisabled(bool value) =>
       _prefs.setBool('showDisabled', value);
@@ -64,12 +59,10 @@ class SettingsStore {
   Future<void> setScanArtwork(bool value) =>
       _prefs.setBool('scanArtwork', value);
 
-  /// Play the classic Sims UI sounds on clicks, toggles and alerts.
   bool get soundEffects => _prefs.getBool('soundEffects') ?? true;
   Future<void> setSoundEffects(bool value) =>
       _prefs.setBool('soundEffects', value);
 
-  /// Share anonymous usage statistics and crash reports (PostHog).
   bool get analyticsEnabled => _prefs.getBool('analyticsEnabled') ?? true;
   Future<void> setAnalyticsEnabled(bool value) =>
       _prefs.setBool('analyticsEnabled', value);
@@ -87,7 +80,6 @@ class SettingsStore {
   Future<void> setLastRunVersion(String value) =>
       _prefs.setString('analytics.lastRunVersion', value);
 
-  /// How many times the app has been launched (analytics context).
   int get launchCount => _prefs.getInt('analytics.launchCount') ?? 0;
   Future<void> setLaunchCount(int value) =>
       _prefs.setInt('analytics.launchCount', value);
@@ -98,7 +90,6 @@ class SettingsStore {
   Future<void> setCachedFlagsJson(String value) =>
       _prefs.setString('analytics.flagsCache', value);
 
-  /// Ids of remote announcements the user has dismissed for good.
   List<String> get dismissedAnnouncements =>
       _prefs.getStringList('dismissedAnnouncements') ?? const [];
   Future<void> addDismissedAnnouncement(String id) =>

@@ -142,4 +142,28 @@ void main() {
     expect(c.mods, isEmpty);
     expect(c.lastError, contains('JustDocs'));
   });
+
+  // The OS won't let the test build a source tree past its own path
+  // limit (Windows gives up first, at 260 characters), so what the
+  // fitting does past that point is covered by install_path_test; this
+  // guards the ordinary deep folder against it. Levels, not long names.
+  test('a deeply nested dropped folder installs whole', () async {
+    final c = await makeController();
+    final folder = Directory(p.join(dropDir.path, 'DeepCC'))..createSync();
+    var nested = folder;
+    for (var i = 0; i < 12; i++) {
+      nested = Directory(p.join(nested.path, 'sub$i'))..createSync();
+    }
+    File(p.join(nested.path, 'sofa.package')).writeAsStringSync('sofa');
+
+    await c.installDroppedPaths([folder.path]);
+
+    expect(c.lastError, isNull);
+    expect(c.mods, hasLength(1));
+    expect(File(c.mods.single.path).existsSync(), isTrue);
+    expect(c.mods.single.name, 'sofa.package');
+    // The top folder survives the trimming, so the filter chip still
+    // names the mod the user dropped.
+    expect(c.folders, contains('DeepCC'));
+  });
 }

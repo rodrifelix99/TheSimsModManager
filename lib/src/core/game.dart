@@ -11,16 +11,15 @@ class Game {
     this.year,
   });
 
-  /// Stable machine identifier, e.g. `sims4`. Used for settings keys.
+  /// Stable machine identifier, e.g. `sims4`. Used for settings keys, so
+  /// changing one orphans that game's saved folder override.
   final String id;
 
-  /// Display name, e.g. `The Sims 4`.
   final String name;
 
-  /// Franchise grouping for the UI, e.g. `The Sims` or `SimCity`.
+  /// Franchise grouping for the sidebar, e.g. `The Sims` or `SimCity`.
   final String series;
 
-  /// Original release year, e.g. 2014. Display-only.
   final int? year;
 
   @override

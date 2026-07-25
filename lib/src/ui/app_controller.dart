@@ -18,6 +18,33 @@ import '../services/sfx.dart';
 
 enum AppScreen { library, detail, settings }
 
+/// What to show the user when installing [error] failed on the file or
+/// folder at [sourcePath]. Adapters raise [FormatException] with a
+/// message written for the user; everything else is an OS failure, whose
+/// own wording (localized by the OS) says more than we could.
+String installFailureMessage(Object error, String? sourcePath) {
+  if (error is FormatException) return error.message;
+  final name = sourcePath == null ? null : p.basename(sourcePath);
+  final subject = name == null ? 'That' : '"$name"';
+  if (error is FileSystemException) {
+    final reason = error.osError?.message ?? error.message;
+    return '$subject couldn\'t be installed — $reason. Unpack it manually '
+        'and install the files inside if it keeps failing.';
+  }
+  return '$subject couldn\'t be installed — $error';
+}
+
+/// Coarse cause of an install failure, for the `mod_install_failed`
+/// event: enough to tell a rejected archive from a filesystem problem
+/// without sending anything about the file itself.
+String installFailureReason(Object error) => switch (error) {
+      FormatException() => 'no_mod_files',
+      PathAccessException() => 'access_denied',
+      PathNotFoundException() => 'not_found',
+      FileSystemException() => 'file_system',
+      _ => 'unknown',
+    };
+
 /// All UI state and actions. Views are dumb: they render this and call
 /// its methods. Talks only to [GameRegistry]/[GameAdapter]/[Mod] plus the
 /// settings store, never to a concrete game.
@@ -42,7 +69,7 @@ class AppController extends ChangeNotifier {
   final Sfx _sfx;
 
   /// PostHog events, flags and crash reports. A no-op instance in tests.
-  /// Event properties never include mod names or file paths — only
+  /// Event properties never include mod names or file paths - only
   /// counts, sizes and which game is active.
   final Analytics analytics;
 
@@ -64,14 +91,13 @@ class AppController extends ChangeNotifier {
   /// when the game/folder couldn't be located.
   Directory? modsDir;
 
-  /// Whether [modsDir] came from the user's settings override.
   bool usingOverride = false;
 
   List<Mod> mods = const [];
   Set<String> conflictPaths = const {};
 
-  /// Resource-key overlaps from the package scan: mod path → (overlapping
-  /// mod's path → shared key count). See [findResourceOverlaps]. Empty
+  /// Resource-key overlaps from the package scan: mod path -> (overlapping
+  /// mod's path -> shared key count). See [findResourceOverlaps]. Empty
   /// when conflict warnings are off or nothing overlaps.
   Map<String, Map<String, int>> resourceOverlaps = const {};
 
@@ -83,7 +109,7 @@ class AppController extends ChangeNotifier {
   /// localized names), shown when the default guess fails or as choices.
   List<Directory> candidateDirs = const [];
 
-  /// Where the mods folder is *supposed* to live, for the "create it"
+  /// Where the mods folder is supposed to live, for the "create it"
   /// offer when nothing exists yet.
   String? defaultPath;
 
@@ -125,7 +151,6 @@ class AppController extends ChangeNotifier {
     return null;
   }
 
-  /// Mods after search/category/folder/visibility filters.
   List<Mod> get filteredMods {
     final q = query.trim().toLowerCase();
     return [
@@ -259,7 +284,7 @@ class AppController extends ChangeNotifier {
   ///
   /// Two signals feed the flag set: the lexical heuristics
   /// ([findConflicts]) and real resource-key overlaps from the package
-  /// scan ([findResourceOverlaps], via the insight cache — so with the
+  /// scan ([findResourceOverlaps], via the insight cache - so with the
   /// artwork scan off only the lexical pass runs).
   void _rescanConflicts() {
     final scan = settings.warnConflicts &&
@@ -273,7 +298,7 @@ class AppController extends ChangeNotifier {
   /// Per-file scan results (embedded artwork + content summary). Keyed by
   /// enabled-name path + size + mtime so a replaced file is re-scanned,
   /// while a plain enable/disable rename keeps its cached entry. A null
-  /// value means the file was scanned and yielded nothing — cached too,
+  /// value means the file was scanned and yielded nothing - cached too,
   /// so revisiting a game never re-scans files known to be empty.
   final Map<String, PackageInsight?> _insights = {};
 
@@ -373,7 +398,7 @@ class AppController extends ChangeNotifier {
         if (insight != null) {
           _insights[_insightKey(mod)] = insight;
         } else if (!_skipScan) {
-          // Nothing usable inside (script mod, .far, corrupt file) — a
+          // Nothing usable inside (script mod, .far, corrupt file) - a
           // skipped scan can't tell "empty" from "never reached", so only
           // a completed scan records the negative.
           _insights[_insightKey(mod)] = null;
@@ -457,7 +482,6 @@ class AppController extends ChangeNotifier {
     } catch (_) {}
   }
 
-  /// Opens the newer release's download page. No-op when up to date.
   void openReleasePage() {
     final update = availableUpdate;
     if (update == null) return;
@@ -466,19 +490,16 @@ class AppController extends ChangeNotifier {
     openUrl(Uri.parse(update.url));
   }
 
-  /// Opens a new bug report with version/OS/current game prefilled.
   void reportBug() {
     analytics.capture('feedback_opened', {'type': 'bug_report'});
     openUrl(bugReportUrl(gameName: _adapter.game.name));
   }
 
-  /// Opens a new feature request with the current game prefilled.
   void suggestFeature() {
     analytics.capture('feedback_opened', {'type': 'feature_request'});
     openUrl(featureRequestUrl(gameName: _adapter.game.name));
   }
 
-  /// Opens the project wiki (user guide & FAQ).
   void openWiki() {
     analytics.capture('feedback_opened', {'type': 'wiki'});
     openUrl(wikiUrl);
@@ -514,7 +535,7 @@ class AppController extends ChangeNotifier {
 
   /// One event per library visit (launch or game switch) summarizing
   /// what the user has: library size, health, whether detection worked.
-  /// Counts and sizes only — never mod names or paths.
+  /// Counts and sizes only - never mod names or paths.
   void _captureLibraryOpened() {
     analytics.capture('library_opened', {
       'game': _adapter.game.id,
@@ -687,7 +708,7 @@ class AppController extends ChangeNotifier {
     } catch (e, stack) {
       final error = e.toString();
       // Environmental failures (game holding the file open, file moved)
-      // are expected and user-actionable — they'd bury real bugs in error
+      // are expected and user-actionable - they'd bury real bugs in error
       // tracking, and their messages carry file paths the privacy contract
       // forbids sending.
       final reason = e is ModToggleException ? e.reason.name : null;
@@ -744,8 +765,10 @@ class AppController extends ChangeNotifier {
     if (dir == null) return;
     String? error;
     var folders = 0, archives = 0, files = 0;
+    FileSystemEntity? failing;
     try {
       for (final source in sources) {
+        failing = source;
         if (source is Directory) {
           folders++;
           await _adapter.installFolder(dir, source);
@@ -766,10 +789,18 @@ class AppController extends ChangeNotifier {
         'folders': folders,
       });
     } catch (e, stack) {
-      error = e.toString();
-      analytics.captureException(e, stack, mechanism: 'installFiles');
-      analytics.capture('mod_install_failed',
-          {'game': _adapter.game.id, 'method': method});
+      error = installFailureMessage(e, failing?.path);
+      // A FormatException is the adapter reporting that the archive or
+      // folder held nothing this game can use - a verdict on the file,
+      // not a bug to investigate.
+      if (e is! FormatException) {
+        analytics.captureException(e, stack, mechanism: 'installFiles');
+      }
+      analytics.capture('mod_install_failed', {
+        'game': _adapter.game.id,
+        'method': method,
+        'reason': installFailureReason(e),
+      });
       playSound(UiSound.error);
     }
     await refresh();
@@ -782,7 +813,7 @@ class AppController extends ChangeNotifier {
   }
 
   /// Installs files and folders dropped onto the window, ignoring
-  /// anything the current game can't use (readmes, screenshots…).
+  /// anything the current game can't use (readmes, screenshots...).
   Future<void> installDroppedPaths(List<String> paths) async {
     final accepted = {
       ..._adapter.modFileExtensions,
@@ -805,7 +836,6 @@ class AppController extends ChangeNotifier {
     await installFiles(sources, method: 'drop');
   }
 
-  /// Points the current game at a user-chosen mods folder.
   Future<void> setFolderOverride(String path) async {
     playSound(UiSound.select);
     analytics.capture('mods_folder_overridden', {'game': _adapter.game.id});
@@ -813,7 +843,6 @@ class AppController extends ChangeNotifier {
     await refresh();
   }
 
-  /// Back to auto-detection for the current game.
   Future<void> clearFolderOverride() async {
     playSound(UiSound.click);
     analytics.capture('mods_folder_reset', {'game': _adapter.game.id});
@@ -920,7 +949,6 @@ class AppController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Follows the announcement's link, when it has one.
   void openAnnouncementUrl() {
     final url = announcement?['url'];
     if (url is! String || !url.startsWith('https://')) return;

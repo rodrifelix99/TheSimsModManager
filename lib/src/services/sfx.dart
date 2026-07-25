@@ -1,20 +1,17 @@
 import 'package:audioplayers/audioplayers.dart';
 
 /// Semantic UI sound events, mapped onto the Sims 1 UI sound bank
-/// (assets/sounds/s1/ui). Callers name the *intent*; which wav that
+/// (assets/sounds/s1/ui). Callers name the intent; which wav that
 /// means is decided here, so reskinning the app's audio is one file.
 enum UiSound {
-  /// Generic button/row press.
   click('UI_CLICK.wav'),
 
   /// Committing to something bigger than a button: switching game,
   /// picking a mods folder (the neighborhood-screen click).
   select('UI_NHOOD_CLICK.wav'),
 
-  /// Opening a mod's detail page.
   open('UI_PIEMENU_APPEAR.wav'),
 
-  /// Returning to the library.
   back('UI_WHOOSH.wav'),
 
   /// Cycling through choices: category chips, grid/list toggle
@@ -33,13 +30,10 @@ enum UiSound {
   /// Deleting a mod from disk (the bulldozer).
   uninstall('UI_NHOOD_BDOZE_DEMOLISH.wav'),
 
-  /// A confirmation dialog or warning appeared.
   alert('UI_NHOOD_ERROR.wav'),
 
-  /// An operation failed.
   error('UI_ERROR.wav'),
 
-  /// Opening Settings.
   help('Ui_Help.wav');
 
   const UiSound(this.file);

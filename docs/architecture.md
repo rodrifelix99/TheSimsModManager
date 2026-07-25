@@ -21,8 +21,10 @@ lib/src/
 | `Mod` | Immutable snapshot of a mod file on disk (incl. `category`, `modifiedAt`). Mutations go through the adapter and return new instances. |
 | `GameAdapter` | The extension point: mod file extensions, `setupHelp` text, folder resolution (`resolveModsDirectory`, `defaultModsPath`, `findModsDirectoryCandidates`), `createModsDirectory` (with game-specific scaffolding), categorization, list/install/remove/enable/disable. |
 | `FolderBasedGameAdapter` | Shared base for games whose mods are plain files in a folder (all Sims games). Disable = rename with a `.disabled` suffix; the game's loader then skips the file. |
-| `conflicts.dart` | `findConflicts`: duplicate-file-name heuristic over enabled mods. |
-| `package_insight.dart` | `scanPackage`: best-effort DBPF (`.package`) parser for embedded artwork, resource counts, and a content-type breakdown; zlib + RefPack decompression. Exposed as `GameAdapter.inspectMods`, a bulk scan across worker isolates. |
+| `conflicts.dart` | `findConflicts`: lexical heuristics over enabled mods (duplicate file names, two versions of the same mod). `findResourceOverlaps`: the real signal, packages sharing DBPF resource keys. |
+| `mod_name.dart` | `humanizeModName` for display titles, `parseModName` for a best-effort version token and a version-independent identity key. Package files carry no version metadata, so the file name is the only signal. |
+| `mod_archive.dart` | Installing from `.zip`/`.rar`/`.7z`. Zip is decoded in an isolate; rar/7z shell out to the system `tar` (bsdtar). Only files matching the adapter's extensions are extracted, and zip-slip paths are refused. |
+| `package_insight.dart` | `scanPackage`: best-effort DBPF (`.package`) parser for embedded artwork, resource counts, a content-type breakdown, and every index entry's resource key; zlib + RefPack decompression. Exposed as `GameAdapter.inspectMods`, a bulk scan across worker isolates. |
 | `GameRegistry` | The list of adapters; the UI only sees adapters through it. |
 
 ## `games/`: concrete adapters
@@ -48,8 +50,14 @@ Settings.
   prefs. Keyed by opaque game id only.
 - `disk_space.dart`: best-effort free/total bytes of the volume holding the
   mods folder; returns null on failure and the UI omits the numbers.
-- `sfx.dart`: `UiSound` semantic events (click, toggleOn/Off, install…)
+- `sfx.dart`: `UiSound` semantic events (click, toggleOn/Off, install...)
   mapped onto the Sims 1 UI sound bank, played fire-and-forget.
+- `github.dart`: update check against the releases API and the URL builders
+  that prefill the issue forms. Best-effort; failures come back as null.
+- `analytics.dart`: PostHog over the plain HTTP API in pure Dart (the
+  official SDK has no Windows/Linux support). Anonymous id, counts and game
+  ids only, never mod names or paths, and all of it gated on a Settings
+  toggle. Also carries the feature flags and error reporting.
 
 ## `ui/`
 

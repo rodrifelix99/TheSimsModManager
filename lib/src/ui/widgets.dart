@@ -277,8 +277,8 @@ class ConflictBadge extends StatelessWidget {
 }
 
 /// Single-line row that never wraps: children lay out left to right and
-/// the ones that don't fit are hidden. The *last* child is the overflow
-/// button (e.g. a "…" chip): it appears right after the last fitting
+/// the ones that don't fit are hidden. The last child is the overflow
+/// button (e.g. a "..." chip): it appears right after the last fitting
 /// child whenever something is hidden, and disappears when everything
 /// fits. [onVisibleCountChanged] reports how many leading children fit
 /// (overflow button excluded) so the caller can list the hidden ones in

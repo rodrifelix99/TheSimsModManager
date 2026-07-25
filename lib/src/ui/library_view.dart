@@ -458,7 +458,7 @@ class LibraryView extends StatelessWidget {
 typedef _FilterEntry = ({String label, bool isFolder});
 
 /// The single-line filter row: category chips, then folder chips.
-/// Chips that don't fit move into a "…" popup menu at the end
+/// Chips that don't fit move into a "..." popup menu at the end
 /// ([OverflowRow]). Folder chips, and only folder chips, can be
 /// drag-and-dropped onto each other to rearrange them, both on the line
 /// and inside the menu, including from the menu onto the line.
@@ -474,12 +474,12 @@ class _FilterChips extends StatefulWidget {
 
 class _FilterChipsState extends State<_FilterChips> {
   /// How many leading chips fit on the line, recorded by [OverflowRow]
-  /// during layout and read when the "…" menu opens (no rebuild needed).
+  /// during layout and read when the "..." menu opens (no rebuild needed).
   int _visibleCount = 0;
 
   final GlobalKey _dotsKey = GlobalKey();
 
-  /// The "…" menu. A hand-rolled overlay instead of [showMenu]: a modal
+  /// The "..." menu. A hand-rolled overlay instead of [showMenu]: a modal
   /// route's barrier would block drops onto the chips line below, and
   /// popping it mid-drag would kill the drag.
   OverlayEntry? _menuEntry;
@@ -862,7 +862,7 @@ class _FilterChipsState extends State<_FilterChips> {
 
 /// Human-friendly display title: extension and version token stripped,
 /// creator naming conventions cleaned up
-/// ("UICheatsExtension_v1.36.ts4script" → "UI Cheats Extension").
+/// ("UICheatsExtension_v1.36.ts4script" -> "UI Cheats Extension").
 String modTitle(Mod mod) => humanizeModName(parseModName(mod.name).strippedName);
 
 /// The version guessed from the file name (`v1.36`, `2024-05-01`), shown

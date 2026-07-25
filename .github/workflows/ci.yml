@@ -7,8 +7,15 @@ on:
 
 jobs:
   test:
-    name: Analyze & test
-    runs-on: ubuntu-latest
+    name: Analyze & test (${{ matrix.os }})
+    # Windows is where most users are, and where the path rules, the
+    # drive-letter folder guessing and the shelled-out tools behave
+    # differently enough to be worth a runner of their own.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2

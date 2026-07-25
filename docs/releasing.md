@@ -18,7 +18,7 @@ builds on GitHub runners:
 | macOS | `.app` zip |
 | Linux | tar.gz |
 
-…and publishes them to a GitHub Release with generated notes.
+...and publishes them to a GitHub Release with generated notes.
 
 Notes:
 

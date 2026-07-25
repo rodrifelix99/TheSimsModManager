@@ -18,6 +18,7 @@ AppName={#AppName}
 AppVersion={#AppVersion}
 AppPublisher=Felix
 AppPublisherURL=https://github.com/rodrifelix99/TheSimsModManager
+AppCopyright=Copyright (C) 2026 Felix. All rights reserved.
 DefaultDirName={autopf}\{#AppName}
 DefaultGroupName={#AppName}
 UninstallDisplayIcon={app}\{#AppExeName}

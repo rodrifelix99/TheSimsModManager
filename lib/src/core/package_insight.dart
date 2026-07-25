@@ -42,20 +42,17 @@ class PackageInsight {
     this.keys = const [],
   });
 
-  /// PNG/JPEG/BMP bytes for the UI to show, or `null` when the file
-  /// carries no readable artwork.
   final Uint8List? thumbnail;
 
-  /// Total resources in the package index (0 for non-package files).
   final int resourceCount;
 
-  /// Human label → count for recognized resource kinds ("CAS parts",
-  /// "Textures", …), largest first. Unrecognized types are not listed.
+  /// Human label -> count for recognized resource kinds ("CAS parts",
+  /// "Textures", ...), largest first. Unrecognized types are not listed.
   final Map<String, int> contents;
 
   /// Every resource key in the package index, for conflict detection
   /// (`findResourceOverlaps` in conflicts.dart). Read from the index
-  /// headers only — no resource data is touched — so collecting them is
+  /// headers only - no resource data is touched - so collecting them is
   /// essentially free. Empty for non-package files.
   final List<ResourceKey> keys;
 }
@@ -107,7 +104,7 @@ const _thumbnailTypes = <int>{
   0x856DDBAC,
 };
 
-/// Resource type → content label for the "what's inside" summary.
+/// Resource type -> content label for the "what's inside" summary.
 /// Best-effort and intentionally coarse; unknown types simply aren't
 /// counted. IDs cover Sims 2 (ASCII-style ids), Sims 3, and Sims 4.
 const _typeLabels = <int, String>{
@@ -322,8 +319,8 @@ List<_Entry> _parseIndexV2(Uint8List index, int count) {
   return entries;
 }
 
-/// DBPF v1 index (Sims 2): fixed-size records of 20 bytes — type, group,
-/// instance, offset, size — or 24 when index version 7.2 inserts a second
+/// DBPF v1 index (Sims 2): fixed-size records of 20 bytes - type, group,
+/// instance, offset, size - or 24 when index version 7.2 inserts a second
 /// (high) instance half before the offset. Compression isn't in the index
 /// (it lives in the DIR resource), so entries sniff it per blob instead.
 List<_Entry> _parseIndexV1(Uint8List index, int count) {

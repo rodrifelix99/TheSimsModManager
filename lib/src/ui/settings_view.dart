@@ -212,7 +212,7 @@ class SettingsView extends StatelessWidget {
                   ),
                 ],
                 // Multiple installs of the same game, each with its own
-                // mods folder (localized names, Wine prefixes, …).
+                // mods folder (localized names, Wine prefixes, ...).
                 if (c.candidateDirs.length > 1) ...[
                   const SizedBox(height: 14),
                   Text(

@@ -66,7 +66,7 @@ Future<void> main() async {
   await analytics.init();
   // Crash reporting: framework build/layout errors and uncaught async
   // errors both go to PostHog error tracking, then behave as before
-  // (except uncaught async errors no longer kill the app — they're
+  // (except uncaught async errors no longer kill the app - they're
   // logged and swallowed, which is kinder to a desktop user mid-task).
   FlutterError.onError = (details) {
     analytics.captureException(details.exception, details.stack,

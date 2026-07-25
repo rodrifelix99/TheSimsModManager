@@ -236,7 +236,7 @@ class Analytics {
         'debug_build': !_releaseBuild,
       };
 
-  /// Active flags attached to every event (PostHog's `$feature/…`
+  /// Active flags attached to every event (PostHog's `$feature/...`
   /// convention), so any metric can be broken down by flag state.
   Map<String, Object?> get _flagProperties => {
         for (final entry in _flags.entries)
@@ -254,7 +254,7 @@ class Analytics {
 
   /// Reports [error] to PostHog error tracking as an `$exception` event,
   /// with the Dart stack parsed into frames so issues group and render
-  /// properly. On-disk paths are scrubbed from the message first — file
+  /// properly. On-disk paths are scrubbed from the message first - file
   /// system errors embed full paths (usernames, mod names) that the
   /// privacy contract forbids sending. Capped per session so a crash
   /// loop can't flood the project. [mechanism] names the hook that
@@ -268,7 +268,7 @@ class Analytics {
   }) {
     if (!enabled || _exceptionCount >= 25) return;
     _exceptionCount++;
-    var value = _redactPaths(error.toString());
+    var value = _describe(error);
     if (value.length > 2000) value = value.substring(0, 2000);
     final frames = stack == null ? const <Map<String, Object?>>[] : _frames(stack);
     capture(r'$exception', {
@@ -290,9 +290,33 @@ class Analytics {
     });
   }
 
+  /// The report text for [error]. A [FileSystemException] is rebuilt
+  /// from its own fields rather than scrubbed: it is the one error whose
+  /// message is guaranteed to carry a path, and a path is free to
+  /// contain the quote character the scrub relies on ("LizCrea's Mods"),
+  /// which would leave the rest of it - folder and mod names - in the
+  /// report.
+  static String _describe(Object error) {
+    if (error is! FileSystemException) return _redactPaths(error.toString());
+    final path = error.path;
+    final os = error.osError;
+    final report = StringBuffer('${error.runtimeType}: ')
+      ..write(_redactPaths(error.message));
+    if (path != null) {
+      report.write(", path = '<path>${_extensionsOf(path)}'");
+    }
+    if (os != null) {
+      report.write(' (OS Error: ${os.message}, errno = ${os.errorCode})');
+    }
+    return report.toString();
+  }
+
   /// Absolute paths inside single quotes, the form `dart:io` exception
-  /// messages use — quoting means they may contain spaces.
-  static final _quotedPath = RegExp(r"'((?:[A-Za-z]:[\\/]|[\\/])[^']*)'");
+  /// messages use - quoting means they may contain spaces, and (rarely)
+  /// a quote of their own, so the closing one is only recognised where
+  /// dart:io puts it: at the end, or before `,` or ` (`.
+  static final _quotedPath = RegExp(
+      r"'((?:[A-Za-z]:[\\/]|[\\/])(?:[^']|'(?![,)]|\s\())*)'(?=[,)]|\s\(|$)");
 
   /// Bare (unquoted) path tokens: a drive-letter prefix (the lookarounds
   /// keep `https://` and other URL schemes out) or a home-directory root.
@@ -331,7 +355,7 @@ class Analytics {
       int? lineno;
       int? colno;
       // Location is `uri:line:col`, but the uri itself contains colons
-      // (`package:…`, `dart:async/…`), so peel numbers off the right.
+      // (`package:...`, `dart:async/...`), so peel numbers off the right.
       for (var i = 0; i < 2; i++) {
         final cut = location.lastIndexOf(':');
         if (cut < 0) break;
@@ -416,7 +440,6 @@ class Analytics {
   bool isEnabled(String key, {bool fallback = false}) =>
       _flags[key]?.enabled ?? fallback;
 
-  /// The multivariate variant this install got for [key], or null.
   String? variantOf(String key) => _flags[key]?.variant;
 
   /// The flag's JSON payload, decoded; null when off or payload-less.

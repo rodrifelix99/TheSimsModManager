@@ -8,7 +8,7 @@ import 'package:flutter/scheduler.dart';
 import 'game_theme.dart';
 
 /// Ambient backdrop for the artwork-scan loading screen: mod artwork and
-/// cleaned-up titles drift up the screen with a depth illusion — far items
+/// cleaned-up titles drift up the screen with a depth illusion - far items
 /// are smaller, fainter, blurrier, and slower than near ones.
 ///
 /// [itemsSource] is pulled fresh every time a new floater spawns, so
@@ -45,7 +45,7 @@ class _Floater {
   /// Horizontal position as a fraction of the backdrop width.
   final double x;
 
-  /// 0 = far away (small, faint, blurred, slow) … 1 = up close.
+  /// 0 = far away (small, faint, blurred, slow) ... 1 = up close.
   final double depth;
 
   /// Horizontal sway amplitude, fraction of the backdrop width.
