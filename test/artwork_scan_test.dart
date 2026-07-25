@@ -25,6 +25,9 @@ class _RecordingAdapter extends FolderBasedGameAdapter {
   /// When true the scan "finds" nothing, like a script mod or .far file.
   bool yieldNothing = false;
 
+  /// Size of the fake thumbnail each scanned mod yields.
+  int artworkBytes = 1;
+
   @override
   Future<Map<String, PackageInsight>> inspectMods(
     List<Mod> mods, {
@@ -37,7 +40,10 @@ class _RecordingAdapter extends FolderBasedGameAdapter {
     if (yieldNothing) return const {};
     return {
       for (final mod in mods)
-        mod.path: PackageInsight(thumbnail: Uint8List.fromList(const [1])),
+        mod.path: PackageInsight(
+          thumbnail: Uint8List(artworkBytes),
+          resourceCount: 3,
+        ),
     };
   }
 
@@ -69,13 +75,15 @@ void main() {
 
   tearDown(() => tempDir.deleteSync(recursive: true));
 
-  Future<AppController> makeController(Map<String, Object> prefs) async {
+  Future<AppController> makeController(Map<String, Object> prefs,
+      {int artworkBudgetBytes = AppController.defaultArtworkBudgetBytes}) async {
     SharedPreferences.setMockInitialValues(
         {'soundEffects': false, ...prefs});
     final controller = AppController(
       registry: GameRegistry([adapter]),
       settings: await SettingsStore.load(),
       checkUpdates: () async => null,
+      artworkBudgetBytes: artworkBudgetBytes,
     );
     await controller.refresh();
     return controller;
@@ -127,6 +135,26 @@ void main() {
 
     await c.refresh();
     expect(adapter.inspectedMods, 1);
+  });
+
+  test('artwork past the memory budget is dropped, the rest of the insight '
+      'kept', () async {
+    // The cache holds every image for the session and across every game
+    // visited; a library of tens of thousands of packages would otherwise
+    // pin gigabytes of JPEG and take the app down with it.
+    File(p.join(tempDir.path, 'b.package')).writeAsStringSync('bytes');
+    adapter.artworkBytes = 8;
+
+    // Room for exactly one mod's artwork.
+    final c = await makeController(const {}, artworkBudgetBytes: 8);
+
+    final withArt =
+        c.mods.where((m) => c.thumbnailOf(m) != null).toList();
+    expect(withArt, hasLength(1));
+    // The mod that lost its thumbnail was still scanned: it keeps its
+    // content summary, and its resource keys still feed conflict scans.
+    final without = c.mods.firstWhere((m) => c.thumbnailOf(m) == null);
+    expect(c.insightFor(without)?.resourceCount, 3);
   });
 
   test('skipArtworkScan is a no-op when no scan is running', () async {

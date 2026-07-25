@@ -367,6 +367,61 @@ void main() {
         [const ResourceKey(0x42484156, 0x7F01EC29, 0xCAFE00001000)]);
   });
 
+  test('refuses a header claiming an index the file cannot hold', () {
+    // Regression: the index size and entry count come straight out of the
+    // file, and the index is read in one allocation. A truncated download
+    // or a foreign format opening with 'DBPF' could ask for gigabytes -
+    // and an out-of-memory kills the process outright, it is not an
+    // exception scanPackage could swallow.
+    final good = buildV2Package([Res(0x00000001, fakePng(64, 64))]);
+    expect(scanPackage(write('sane.package', good))?.thumbnail, isNotNull);
+
+    void patch(Uint8List bytes, int offset, int value) {
+      ByteData.sublistView(bytes).setUint32(offset, value, Endian.little);
+    }
+
+    final hugeIndex = Uint8List.fromList(good);
+    patch(hugeIndex, 44, 0xFFFFFFF0); // index size
+    expect(scanPackage(write('huge_index.package', hugeIndex)), isNull);
+
+    final hugeCount = Uint8List.fromList(good);
+    patch(hugeCount, 36, 0xFFFFFFF0); // entry count
+    expect(scanPackage(write('huge_count.package', hugeCount)), isNull);
+
+    final wildOffset = Uint8List.fromList(good);
+    patch(wildOffset, 64, 0xFFFFFFF0); // v2 index offset
+    expect(scanPackage(write('wild_offset.package', wildOffset)), isNull);
+  });
+
+  test('drops the resource keys of a package with too many resources', () {
+    // Merged collections carry tens of thousands of resources, and the
+    // insight cache holds one entry per mod for the whole session.
+    final many = [
+      for (var i = 0; i < PackageInsight.maxRetainedKeys + 1; i++)
+        Res(0x0333406C, junk, instance: i),
+    ];
+    final insight = scanPackage(write('merged.package', buildV2Package(many)))!;
+
+    expect(insight.resourceCount, PackageInsight.maxRetainedKeys + 1);
+    expect(insight.keys, isEmpty);
+  });
+
+  test('ignores an image too big to be a thumbnail', () {
+    // A 300 KB blob is a texture sheet, not a preview; keeping one per mod
+    // is what a 45,000-package library cannot afford.
+    final huge = Uint8List.fromList([
+      ...fakePng(2048, 2048),
+      ...List.filled(300 << 10, 0x55),
+    ]);
+    final small = fakeJpeg(64, 64);
+    final file = write(
+      'oversized.package',
+      buildV2Package([Res(0x00000001, huge), Res(0x00000002, small)]),
+    );
+
+    expect(scanPackage(file)?.thumbnail, small);
+  });
+
   test('returns null for non-DBPF and truncated files', () {
     expect(scanPackage(write('h.package', 'not a dbpf'.codeUnits)), isNull);
     expect(scanPackage(write('i.package', [0x44, 0x42])), isNull);

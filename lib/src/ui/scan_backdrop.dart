@@ -11,18 +11,22 @@ import 'game_theme.dart';
 /// cleaned-up titles drift up the screen with a depth illusion - far items
 /// are smaller, fainter, blurrier, and slower than near ones.
 ///
-/// [itemsSource] is pulled fresh every time a new floater spawns, so
-/// artwork discovered mid-scan starts appearing without any rebuild
-/// plumbing. Purely decorative: capped particle count, no input handling.
+/// The pool is read fresh every time a new floater spawns, so artwork
+/// discovered mid-scan starts appearing without any rebuild plumbing -
+/// one item at a time ([itemCount] then [itemAt]) so a large library
+/// doesn't get walked twice a second. Purely decorative: capped particle
+/// count, no input handling.
 class ScanFloatBackdrop extends StatefulWidget {
   const ScanFloatBackdrop({
     super.key,
     required this.theme,
-    required this.itemsSource,
+    required this.itemCount,
+    required this.itemAt,
   });
 
   final GameTheme theme;
-  final List<(String, Uint8List?)> Function() itemsSource;
+  final int Function() itemCount;
+  final (String, Uint8List?) Function(int index) itemAt;
 
   @override
   State<ScanFloatBackdrop> createState() => _ScanFloatBackdropState();
@@ -92,9 +96,9 @@ class _ScanFloatBackdropState extends State<ScanFloatBackdrop>
     final now = elapsed.inMicroseconds / Duration.microsecondsPerSecond;
     _floaters.removeWhere((f) => f.topAt(now) < -0.3);
     if (now - _lastSpawn >= _spawnEvery && _floaters.length < _maxFloaters) {
-      final pool = widget.itemsSource();
-      if (pool.isNotEmpty) {
-        var (title, artwork) = pool[_random.nextInt(pool.length)];
+      final available = widget.itemCount();
+      if (available > 0) {
+        var (title, artwork) = widget.itemAt(_random.nextInt(available));
         // Keep a mix of artwork and titles even once most mods have art.
         if (artwork != null && _random.nextDouble() < 0.3) artwork = null;
         final depth = 0.15 + _random.nextDouble() * 0.85;

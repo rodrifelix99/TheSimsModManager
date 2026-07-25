@@ -53,8 +53,18 @@ class PackageInsight {
   /// Every resource key in the package index, for conflict detection
   /// (`findResourceOverlaps` in conflicts.dart). Read from the index
   /// headers only - no resource data is touched - so collecting them is
-  /// essentially free. Empty for non-package files.
+  /// essentially free. Empty for non-package files, and for packages with
+  /// more resources than [maxRetainedKeys].
   final List<ResourceKey> keys;
+
+  /// Above this many resources a package's keys are dropped instead of
+  /// kept. The insight cache holds one entry per mod for as long as the
+  /// app runs, and a library can hold tens of thousands of them, so an
+  /// unbounded per-file list is a real memory risk: merged collections
+  /// carry tens of thousands of resources each. Such a package would also
+  /// overlap half the library, which is noise rather than a useful
+  /// warning, so sitting out overlap detection costs little.
+  static const maxRetainedKeys = 8192;
 }
 
 /// Best-effort scan of a DBPF `.package` file.
@@ -130,15 +140,33 @@ const _typeLabels = <int, String>{
 /// The Sims 2 DIR resource listing compressed entries, never an image.
 const _dirResourceType = 0xE86B1EEF;
 
-/// Ignore blobs bigger than this even decompressed: thumbnails are small,
-/// anything larger is a texture or mesh not worth reading into memory.
+/// Ceiling on the output a compressed blob may declare before the
+/// decompressor refuses it outright: the size is the blob's own claim, and
+/// no resource worth reading here is anywhere near this big.
 const _maxResourceBytes = 8 << 20;
+
+/// Biggest blob still considered a candidate thumbnail. Every embedded
+/// preview any Sims game writes fits well inside this; the cap matters
+/// because the image it finds is then held in the insight cache for the
+/// rest of the session, once per mod, and because it keeps the probe from
+/// reading megabytes out of every package in the library.
+const _maxThumbnailBytes = 256 << 10;
 
 /// How many resources to probe for artwork before giving up.
 const _maxProbes = 512;
 
 /// Total compressed bytes the artwork probe may read per package.
-const _probeByteBudget = 24 << 20;
+const _probeByteBudget = 8 << 20;
+
+/// Biggest index a package may claim. A real one is a handful of bytes per
+/// resource, so even a merged collection stays far below this; the cap is
+/// there because the index is read in one allocation and the size comes
+/// straight from the file's own header.
+const _maxIndexBytes = 32 << 20;
+
+/// Smallest DBPF index entry: a v2 record with type, group and the high
+/// instance half all hoisted out as constants still carries four words.
+const _minIndexEntryBytes = 16;
 
 /// Once a found image reaches this many pixels (512×512), stop probing
 /// the generic pool; it's sharp enough for any thumbnail slot.
@@ -180,6 +208,20 @@ PackageInsight? _scan(RandomAccessFile raf) {
 
   final indexOffset =
       major >= 2 && indexOffsetV2 != 0 ? indexOffsetV2 : indexOffsetV1;
+  // Nothing below reads the header's word for what it is without checking
+  // it against the file first. A truncated download, a package another
+  // tool half-wrote, or any format that happens to open with 'DBPF' can
+  // claim a gigabyte-long index of four billion resources; the index is
+  // read in a single allocation, and running out of memory takes the whole
+  // process down - it is not an exception this function could catch.
+  final fileLength = raf.lengthSync();
+  if (indexOffset < 96 ||
+      indexOffset >= fileLength ||
+      indexSize > _maxIndexBytes ||
+      indexSize > fileLength - indexOffset ||
+      entryCount > indexSize ~/ _minIndexEntryBytes) {
+    return null;
+  }
   final index = _readAt(raf, indexOffset, indexSize);
   if (index.length < indexSize) return null;
   final entries = major >= 2
@@ -200,7 +242,9 @@ PackageInsight? _scan(RandomAccessFile raf) {
     thumbnail: _bestThumbnail(raf, entries),
     resourceCount: entries.length,
     contents: {for (final e in ordered) e.key: e.value},
-    keys: [for (final e in entries) ResourceKey(e.type, e.group, e.instance)],
+    keys: entries.length > PackageInsight.maxRetainedKeys
+        ? const []
+        : [for (final e in entries) ResourceKey(e.type, e.group, e.instance)],
   );
 }
 
@@ -208,14 +252,16 @@ PackageInsight? _scan(RandomAccessFile raf) {
 /// found (by pixel area), or `null`. Known thumbnail types are all
 /// probed; the generic pool is walked smallest-first within [_maxProbes]
 /// and [_probeByteBudget], stopping early once something crosses
-/// [_goodEnoughArea].
+/// [_goodEnoughArea]. Blobs over [_maxThumbnailBytes] are not candidates:
+/// at library scale they are what a thumbnail cache cannot afford to hold,
+/// and a preview image that big isn't one.
 Uint8List? _bestThumbnail(RandomAccessFile raf, List<_Entry> entries) {
   final preferred = <_Entry>[];
   final rest = <_Entry>[];
   for (final e in entries) {
     if (e.type == _dirResourceType) continue;
-    if (e.fileSize < 16 || e.fileSize > _maxResourceBytes) continue;
-    if (e.memSize > _maxResourceBytes) continue;
+    if (e.fileSize < 16 || e.fileSize > _maxThumbnailBytes) continue;
+    if (e.memSize > _maxThumbnailBytes) continue;
     (_thumbnailTypes.contains(e.type) ? preferred : rest).add(e);
   }
   rest.sort((a, b) => a.probeSize.compareTo(b.probeSize));
@@ -231,7 +277,10 @@ Uint8List? _bestThumbnail(RandomAccessFile raf, List<_Entry> entries) {
     final raw = _readAt(raf, e.offset, e.fileSize);
     if (raw.length < e.fileSize) return;
     final data = _decompress(raw, e.compression);
-    if (data == null || !(_isPng(data) || _isJpeg(data))) return;
+    // The size the index promised is checked again here: it is only a
+    // claim, and this image is what gets held in memory.
+    if (data == null || data.length > _maxThumbnailBytes) return;
+    if (!(_isPng(data) || _isJpeg(data))) return;
     final area = _imageArea(data);
     if (area > bestArea) {
       best = data;

@@ -30,7 +30,11 @@ class LibraryView extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           if (progress != null)
-            ScanFloatBackdrop(theme: t, itemsSource: () => c.scanShowcase),
+            ScanFloatBackdrop(
+              theme: t,
+              itemCount: () => c.scanShowcaseCount,
+              itemAt: c.scanShowcaseItem,
+            ),
           Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -946,6 +950,8 @@ class _GridCard extends StatelessWidget {
                     ModThumb(
                       seed: mod.name,
                       bytes: c.thumbnailOf(mod),
+                      // Cards are at most ~320 logical px wide.
+                      decodeWidth: 640,
                       borderRadius:
                           const BorderRadius.vertical(top: Radius.circular(14)),
                     ),
@@ -1104,6 +1110,7 @@ class _ListRow extends StatelessWidget {
                 child: ModThumb(
                   seed: mod.name,
                   bytes: c.thumbnailOf(mod),
+                  decodeWidth: 128, // a 52px row thumbnail
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),

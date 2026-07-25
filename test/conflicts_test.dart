@@ -176,6 +176,49 @@ void main() {
       expect(overlaps, isEmpty);
     });
 
+    test('a key nearly every package carries is boilerplate, not a clash',
+        () {
+      // A creator tool stamping the same id into everything it exports
+      // would otherwise flag its whole output - and cost a pair per
+      // combination of owners, which is what makes a large library run
+      // out of memory.
+      final many = [
+        for (var i = 0; i < 40; i++)
+          _mod('m$i.package', 'C:\\mods\\m$i.package'),
+      ];
+      final overlaps = findResourceOverlaps(
+          many, _insights({for (final m in many) m.path: [casp]}));
+
+      expect(overlaps, isEmpty);
+    });
+
+    test('overlap rows stop growing at the partner cap', () {
+      final many = [
+        for (var i = 0; i < 40; i++)
+          _mod('m$i.package', 'C:\\mods\\m$i.package'),
+      ];
+      // One distinct key per pair of mods, so every mod overlaps every
+      // other while no single key looks like boilerplate. Uncapped, each
+      // row would list all 39 partners.
+      ResourceKey pairKey(int i, int j) => ResourceKey(
+          0x034AEECB, 0, i < j ? i * 100 + j : j * 100 + i);
+      final overlaps = findResourceOverlaps(many, _insights({
+        for (var i = 0; i < many.length; i++)
+          many[i].path: [
+            for (var j = 0; j < many.length; j++)
+              if (i != j) pairKey(i, j),
+          ],
+      }));
+
+      // Every mod is still flagged; only how many partners are listed
+      // for it is bounded.
+      expect(overlaps, hasLength(40));
+      for (final row in overlaps.values) {
+        expect(row.length, lessThanOrEqualTo(32));
+      }
+      expect(overlaps.values.map((r) => r.length), contains(32));
+    });
+
     test('a key repeated inside one package neither self-flags nor '
         'inflates counts', () {
       final a = _mod('a.package', r'C:\mods\a.package');

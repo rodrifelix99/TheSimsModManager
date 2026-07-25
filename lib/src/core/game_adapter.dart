@@ -319,8 +319,10 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
   static const _imageExtensions = {'.bmp', '.png', '.jpg', '.jpeg'};
 
   /// Files scanned per isolate task: small enough for steady progress
-  /// updates, large enough that isolate spawns stay negligible.
-  static const _inspectBatchSize = 8;
+  /// updates, large enough that isolate spawns stay negligible. Scales
+  /// with the library, because a fixed eight files means several thousand
+  /// isolate spawns for a folder holding tens of thousands of mods.
+  static int _inspectBatchSize(int mods) => (mods ~/ 512).clamp(8, 64);
 
   /// Concurrent scanner isolates.
   static const _inspectWorkers = 4;
@@ -341,13 +343,11 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
           _imageExtensions.contains(p.extension(mod.name).toLowerCase()),
         ),
     ];
+    final batchSize = _inspectBatchSize(work.length);
     final batches = [
-      for (var i = 0; i < work.length; i += _inspectBatchSize)
+      for (var i = 0; i < work.length; i += batchSize)
         work.sublist(
-            i,
-            i + _inspectBatchSize > work.length
-                ? work.length
-                : i + _inspectBatchSize),
+            i, i + batchSize > work.length ? work.length : i + batchSize),
     ];
     var done = 0;
     var next = 0;

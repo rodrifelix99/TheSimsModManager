@@ -52,6 +52,24 @@ Set<String> findConflicts(List<Mod> mods) {
 /// compressed entries every compressed package carries).
 const _ignoredOverlapTypes = <int>{0xE86B1EEF};
 
+/// A resource key held by more enabled packages than this is treated as
+/// boilerplate rather than a clash - a fixed id some creator tool stamps
+/// into everything it exports, the kind [_ignoredOverlapTypes] lists by
+/// hand. Two reasons to drop them: "these 900 mods override each other"
+/// is not a warning anyone can act on, and every such key costs a pair
+/// per combination of its owners, so one popular key in a large library
+/// is enough to grow the overlap map beyond what the machine has. Real
+/// duplicates still surface - the same file installed twice is caught by
+/// name in [findConflicts].
+const _maxOwnersPerKey = 16;
+
+/// Most overlap partners recorded for one mod. The detail panel lists
+/// them for the user to review, which stops being useful long before this
+/// many, and the cap is what keeps the map's size linear in the size of
+/// the library. Rows that fill up simply stop growing, so a mod can be
+/// listed as another's partner without the reverse holding.
+const _maxPartnersPerMod = 32;
+
 /// Enabled mods whose packages carry the same resource keys, from the
 /// DBPF index headers collected by the package scan: path -> (overlapping
 /// mod's path -> how many keys the two share).
@@ -65,13 +83,20 @@ const _ignoredOverlapTypes = <int>{0xE86B1EEF};
 ///
 /// [insightOf] supplies each mod's scan result (null when the file wasn't
 /// scanned or isn't a DBPF package); such mods simply can't participate.
+///
+/// Two passes over the keys rather than one, because a library of tens of
+/// thousands of packages carries millions of resource keys and almost all
+/// of them are held by exactly one file: counting first means only the
+/// keys that turned out to be shared ever get an owner list built for
+/// them. See [_maxOwnersPerKey] and [_maxPartnersPerMod] for the bounds
+/// that keep the result proportional to the library.
 Map<String, Map<String, int>> findResourceOverlaps(
   List<Mod> mods,
   PackageInsight? Function(Mod mod) insightOf,
 ) {
-  // Key -> paths of the enabled packages carrying it (deduped per file:
+  // Pass 1: how many enabled packages carry each key (deduped per file:
   // a malformed package repeating a key must not flag itself).
-  final owners = <ResourceKey, List<String>>{};
+  final holders = <ResourceKey, int>{};
   for (final mod in mods) {
     if (!mod.isEnabled) continue;
     final keys = insightOf(mod)?.keys;
@@ -79,18 +104,34 @@ Map<String, Map<String, int>> findResourceOverlaps(
     final seen = <ResourceKey>{};
     for (final key in keys) {
       if (_ignoredOverlapTypes.contains(key.type)) continue;
+      if (seen.add(key)) holders[key] = (holders[key] ?? 0) + 1;
+    }
+  }
+
+  // Pass 2: owners of the keys that are actually shared, and not shared so
+  // widely that they say nothing.
+  final owners = <ResourceKey, List<String>>{};
+  for (final mod in mods) {
+    if (!mod.isEnabled) continue;
+    final keys = insightOf(mod)?.keys;
+    if (keys == null || keys.isEmpty) continue;
+    final seen = <ResourceKey>{};
+    for (final key in keys) {
+      final count = holders[key] ?? 0;
+      if (count < 2 || count > _maxOwnersPerKey) continue;
       if (seen.add(key)) owners.putIfAbsent(key, () => []).add(mod.path);
     }
   }
 
   final overlaps = <String, Map<String, int>>{};
   for (final paths in owners.values) {
-    if (paths.length < 2) continue;
     for (final path in paths) {
       final row = overlaps.putIfAbsent(path, () => {});
       for (final other in paths) {
         if (other == path) continue;
-        row[other] = (row[other] ?? 0) + 1;
+        final shared = row[other];
+        if (shared == null && row.length >= _maxPartnersPerMod) continue;
+        row[other] = (shared ?? 0) + 1;
       }
     }
   }

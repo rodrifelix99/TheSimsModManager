@@ -78,6 +78,18 @@ void main() {
     tempDir.deleteSync(recursive: true);
   });
 
+  /// Pumps until [finder] matches, giving the app's first load - real
+  /// file IO, off in its own async world - as long as the machine needs.
+  /// A fixed delay is a coin flip on a busy CI runner.
+  Future<void> pumpUntil(WidgetTester tester, Finder finder) async {
+    for (var attempt = 0; attempt < 60; attempt++) {
+      await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 50)));
+      await tester.pump();
+      if (finder.evaluate().isNotEmpty) return;
+    }
+  }
+
   testWidgets('every screen fits the minimum window size', (tester) async {
     tester.view.physicalSize = kMinWindowSize;
     tester.view.devicePixelRatio = 1.0;
@@ -89,9 +101,8 @@ void main() {
     await tester.runAsync(() async {
       await tester.pumpWidget(
           ModManagerApp(registry: registry, settings: settings));
-      await Future<void>.delayed(const Duration(milliseconds: 200));
     });
-    await tester.pump();
+    await pumpUntil(tester, find.text('Fake Game Library'));
     await tester.pump(const Duration(milliseconds: 500));
 
     // Library: toolbar, chips, stats, and at least one real card built.

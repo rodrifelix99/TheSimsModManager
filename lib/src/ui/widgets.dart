@@ -109,11 +109,18 @@ class ModThumb extends StatelessWidget {
     required this.seed,
     this.bytes,
     this.borderRadius,
+    this.decodeWidth,
   });
 
   final String seed;
   final Uint8List? bytes;
   final BorderRadius? borderRadius;
+
+  /// Widest raster to decode the artwork into. Embedded previews are often
+  /// far larger than the slot showing them, and a decoded image costs
+  /// width × height × 4 bytes however small it's drawn - so callers pass
+  /// the size they actually paint at. Null decodes at full size.
+  final int? decodeWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -128,6 +135,7 @@ class ModThumb extends StatelessWidget {
         width: double.infinity,
         height: double.infinity,
         gaplessPlayback: true,
+        cacheWidth: decodeWidth,
         errorBuilder: (_, __, ___) => fallback,
       ),
     );

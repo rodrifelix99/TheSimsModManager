@@ -55,7 +55,9 @@ class AppController extends ChangeNotifier {
     Sfx? sfx,
     Analytics? analytics,
     Future<UpdateInfo?> Function()? checkUpdates,
-  })  : _sfx = sfx ?? Sfx(),
+    int artworkBudgetBytes = defaultArtworkBudgetBytes,
+  })  : _artworkBudgetBytes = artworkBudgetBytes,
+        _sfx = sfx ?? Sfx(),
         analytics = analytics ?? Analytics.disabled(),
         _checkUpdates = checkUpdates ?? fetchAvailableUpdate,
         _adapter = registry.byGameId('sims4') ?? registry.adapters.first {
@@ -93,7 +95,13 @@ class AppController extends ChangeNotifier {
 
   bool usingOverride = false;
 
-  List<Mod> mods = const [];
+  List<Mod> _mods = const [];
+
+  /// The current game's library, as of the last [refresh]. Assign through
+  /// [_setMods] only: everything derived from it ([folders], the per-chip
+  /// counts, the filtered view) is precomputed there.
+  List<Mod> get mods => _mods;
+
   Set<String> conflictPaths = const {};
 
   /// Resource-key overlaps from the package scan: mod path -> (overlapping
@@ -142,18 +150,67 @@ class AppController extends ChangeNotifier {
 
   bool get listView => settings.listView;
 
+  /// Mod by path, and the tallies and groupings the library header and
+  /// filter row ask for. All of it is rebuilt once per [_setMods] rather
+  /// than derived on demand: a chip that counts its own members walks the
+  /// whole library, there is one per category and per subfolder, and every
+  /// repaint asks them all again - fine for a few hundred mods, seconds of
+  /// jank for the tens of thousands people actually keep.
+  final Map<String, Mod> _byPath = {};
+  final Map<String, String?> _folderOfPath = {};
+  final Map<String, int> _folderCounts = {};
+  final Map<String, int> _categoryCounts = {};
+  List<String> _sortedFolders = const [];
+  List<String> _sortedCategories = const [];
+  int _enabledCount = 0;
+  int _totalSizeBytes = 0;
+
+  /// Bumped whenever [mods] or [conflictPaths] change, so [filteredMods]
+  /// can tell a cached result from a stale one without every mutator
+  /// having to remember to invalidate it.
+  int _libraryStamp = 0;
+
+  List<Mod>? _filtered;
+  String? _filteredKey;
+
+  void _setMods(List<Mod> value) {
+    _mods = value;
+    _byPath.clear();
+    _folderOfPath.clear();
+    _folderCounts.clear();
+    _categoryCounts.clear();
+    _enabledCount = 0;
+    _totalSizeBytes = 0;
+    final root = modsDir?.path;
+    for (final mod in value) {
+      _byPath[mod.path] = mod;
+      final folder = root == null ? null : _resolveFolder(root, mod.path);
+      _folderOfPath[mod.path] = folder;
+      if (folder != null) {
+        _folderCounts[folder] = (_folderCounts[folder] ?? 0) + 1;
+      }
+      _categoryCounts[mod.category] = (_categoryCounts[mod.category] ?? 0) + 1;
+      if (mod.isEnabled) _enabledCount++;
+      _totalSizeBytes += mod.sizeBytes ?? 0;
+    }
+    _sortedFolders = _folderCounts.keys.toList()
+      ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+    _sortedCategories = _categoryCounts.keys.toList()..sort();
+    _libraryStamp++;
+  }
+
   Mod? get selectedMod {
     final path = _selectedModPath;
-    if (path == null) return null;
-    for (final mod in mods) {
-      if (mod.path == path) return mod;
-    }
-    return null;
+    return path == null ? null : _byPath[path];
   }
 
   List<Mod> get filteredMods {
     final q = query.trim().toLowerCase();
-    return [
+    final key = '$_libraryStamp|$category|$folder|$conflictsOnly'
+        '|${settings.showDisabled}|$q';
+    final cached = _filtered;
+    if (cached != null && _filteredKey == key) return cached;
+    final result = [
       for (final mod in mods)
         if ((category == 'All' || mod.category == category) &&
             (folder == 'All' || folderOf(mod) == folder) &&
@@ -164,27 +221,32 @@ class AppController extends ChangeNotifier {
                 humanizeModName(mod.name).toLowerCase().contains(q)))
           mod,
     ];
+    _filtered = result;
+    _filteredKey = key;
+    return result;
   }
 
   /// Category labels present in the current library, 'All' first.
-  List<String> get categories {
-    final seen = <String>{for (final mod in mods) mod.category};
-    final sorted = seen.toList()..sort();
-    return ['All', ...sorted];
-  }
+  List<String> get categories => ['All', ..._sortedCategories];
 
   int categoryCount(String cat) =>
-      cat == 'All' ? mods.length : mods.where((m) => m.category == cat).length;
+      cat == 'All' ? mods.length : _categoryCounts[cat] ?? 0;
 
   /// Top-level subfolder of the mods directory holding [mod], or `null`
   /// when the file sits directly in the mods folder. Mods living outside
   /// the mods directory (Sims 1 routes skins/walls/floors into sibling
   /// game folders) group under their own folder's name instead.
   String? folderOf(Mod mod) {
+    // containsKey, not a null check: sitting directly in the mods folder is
+    // a cached answer of its own.
+    if (_folderOfPath.containsKey(mod.path)) return _folderOfPath[mod.path];
     final root = modsDir?.path;
-    if (root == null) return null;
-    if (!p.isWithin(root, mod.path)) return p.basename(p.dirname(mod.path));
-    final parts = p.split(p.relative(mod.path, from: root));
+    return root == null ? null : _resolveFolder(root, mod.path);
+  }
+
+  String? _resolveFolder(String root, String path) {
+    if (!p.isWithin(root, path)) return p.basename(p.dirname(path));
+    final parts = p.split(p.relative(path, from: root));
     return parts.length > 1 ? parts.first : null;
   }
 
@@ -193,24 +255,17 @@ class AppController extends ChangeNotifier {
   /// Follows the user's drag-and-drop arrangement when one is saved;
   /// folders it doesn't mention (new on disk) append alphabetically.
   List<String> get folders {
-    final seen = <String>{};
-    for (final mod in mods) {
-      final f = folderOf(mod);
-      if (f != null) seen.add(f);
-    }
-    final sorted = seen.toList()
-      ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
     final saved = settings.folderOrder(_adapter.game.id);
-    if (saved == null) return sorted;
+    if (saved == null) return _sortedFolders;
     final ordered = <String>[
       for (final f in saved)
-        if (seen.contains(f)) f,
+        if (_folderCounts.containsKey(f)) f,
     ];
     final placed = ordered.toSet();
-    return [...ordered, ...sorted.where((f) => !placed.contains(f))];
+    return [...ordered, ..._sortedFolders.where((f) => !placed.contains(f))];
   }
 
-  int folderCount(String f) => mods.where((m) => folderOf(m) == f).length;
+  int folderCount(String f) => _folderCounts[f] ?? 0;
 
   /// Drops folder chip [moved] onto [target]: [moved] takes [target]'s
   /// position. Only the folder chips rearrange; category chips and every
@@ -228,10 +283,9 @@ class AppController extends ChangeNotifier {
     notifyListeners();
   }
 
-  int get enabledCount => mods.where((m) => m.isEnabled).length;
-  int get conflictCount =>
-      mods.where((m) => conflictPaths.contains(m.path)).length;
-  int get totalSizeBytes => mods.fold(0, (sum, m) => sum + (m.sizeBytes ?? 0));
+  int get enabledCount => _enabledCount;
+  int get conflictCount => conflictPaths.length;
+  int get totalSizeBytes => _totalSizeBytes;
 
   /// Combined size of every game's mods, for the sidebar storage card.
   int get allGamesSizeBytes =>
@@ -293,6 +347,7 @@ class AppController extends ChangeNotifier {
     conflictPaths =
         scan ? {...findConflicts(mods), ...resourceOverlaps.keys} : const {};
     if (conflictPaths.isEmpty) conflictsOnly = false;
+    _libraryStamp++;
   }
 
   /// Per-file scan results (embedded artwork + content summary). Keyed by
@@ -301,6 +356,47 @@ class AppController extends ChangeNotifier {
   /// value means the file was scanned and yielded nothing - cached too,
   /// so revisiting a game never re-scans files known to be empty.
   final Map<String, PackageInsight?> _insights = {};
+
+  /// How much embedded artwork the insight cache may hold. Past it mods
+  /// are still scanned and still get their content summary and conflict
+  /// keys, but their thumbnail is dropped and the card falls back to
+  /// stripe art. Cards render from this cache without touching the disk,
+  /// which is what keeps scrolling smooth, but it also means every image
+  /// stays in memory for the session and across every game visited - and
+  /// a library can hold 45,000 packages. Unbounded, that is gigabytes.
+  static const defaultArtworkBudgetBytes = 128 << 20;
+
+  /// Lowered by tests, which can't afford to allocate the real budget.
+  final int _artworkBudgetBytes;
+
+  int _artworkBytes = 0;
+
+  /// Whether the artwork budget ran out during the last scan, so the
+  /// completion event can say how often real libraries reach it.
+  bool _artworkBudgetSpent = false;
+
+  /// Caches [insight] for [mod], keeping its artwork only while the
+  /// budget allows.
+  void _cacheInsight(Mod mod, PackageInsight insight) {
+    final key = _insightKey(mod);
+    // The scan reports each batch through onFound and then again in its
+    // final result; the repeat must not charge the same image twice.
+    if (identical(_insights[key], insight)) return;
+    final art = insight.thumbnail;
+    if (art == null) {
+      _insights[key] = insight;
+    } else if (_artworkBytes + art.length > _artworkBudgetBytes) {
+      _artworkBudgetSpent = true;
+      _insights[key] = PackageInsight(
+        resourceCount: insight.resourceCount,
+        contents: insight.contents,
+        keys: insight.keys,
+      );
+    } else {
+      _artworkBytes += art.length;
+      _insights[key] = insight;
+    }
+  }
 
   /// Bulk-scan progress for the loading screen: (inspected, total).
   /// Null when no scan is running.
@@ -335,6 +431,7 @@ class AppController extends ChangeNotifier {
       await refresh();
     } else {
       _insights.clear();
+      _artworkBytes = 0;
       // Resource-overlap conflicts came from the cache that just went
       // away; keep only what the lexical heuristics can still see.
       _rescanConflicts();
@@ -375,13 +472,20 @@ class AppController extends ChangeNotifier {
     ];
     if (missing.isEmpty) return;
     _skipScan = false;
+    _artworkBudgetSpent = false;
     scanProgress = (0, missing.length);
     notifyListeners();
     final byPath = {for (final mod in missing) mod.path: mod};
+    // Repainting per batch means tens of thousands of frames across a big
+    // library, all of them to move a progress bar by a hair.
+    final notifyEvery = (missing.length / 200).ceil();
+    var lastNotified = 0;
     try {
       final found = await _adapter.inspectMods(missing,
           onProgress: (done, total) {
             scanProgress = (done, total);
+            if (done - lastNotified < notifyEvery && done < total) return;
+            lastNotified = done;
             notifyListeners();
           },
           onFound: (found) {
@@ -389,14 +493,14 @@ class AppController extends ChangeNotifier {
             // show artwork as it's discovered.
             for (final entry in found.entries) {
               final mod = byPath[entry.key];
-              if (mod != null) _insights[_insightKey(mod)] = entry.value;
+              if (mod != null) _cacheInsight(mod, entry.value);
             }
           },
           isCancelled: () => _skipScan);
       for (final mod in missing) {
         final insight = found[mod.path];
         if (insight != null) {
-          _insights[_insightKey(mod)] = insight;
+          _cacheInsight(mod, insight);
         } else if (!_skipScan) {
           // Nothing usable inside (script mod, .far, corrupt file) - a
           // skipped scan can't tell "empty" from "never reached", so only
@@ -409,6 +513,7 @@ class AppController extends ChangeNotifier {
           'game': _adapter.game.id,
           'scanned': missing.length,
           'with_artwork': found.values.where((i) => i.thumbnail != null).length,
+          'artwork_budget_spent': _artworkBudgetSpent,
         });
       }
     } finally {
@@ -416,12 +521,17 @@ class AppController extends ChangeNotifier {
     }
   }
 
-  /// Feed for the loading screen's floating backdrop: every mod's
-  /// cleaned-up title plus whatever artwork the scan has cached so far
-  /// (more appears as batches finish).
-  List<(String, Uint8List?)> get scanShowcase => [
-        for (final mod in mods) (humanizeModName(mod.name), thumbnailOf(mod)),
-      ];
+  /// Feed for the loading screen's floating backdrop: any mod's cleaned-up
+  /// title plus whatever artwork the scan has cached for it so far (more
+  /// appears as batches finish). One item at a time, because the backdrop
+  /// wants one per floater and building the whole library's worth several
+  /// times a second is real work when the library is large.
+  int get scanShowcaseCount => mods.length;
+
+  (String, Uint8List?) scanShowcaseItem(int index) {
+    final mod = mods[index];
+    return (humanizeModName(mod.name), thumbnailOf(mod));
+  }
 
   /// Plays [sound] unless UI sounds are switched off in Settings.
   /// Fire-and-forget: playback never blocks or fails an action.
@@ -564,7 +674,7 @@ class AppController extends ChangeNotifier {
         usingOverride = false;
       }
       modsDir = dir;
-      mods = dir == null ? const [] : await _adapter.listMods(dir);
+      _setMods(dir == null ? const [] : await _adapter.listMods(dir));
       // The filtered folder may have been renamed/emptied on disk.
       if (folder != 'All' && !folders.contains(folder)) folder = 'All';
       // Artwork/content scan happens here, under the loading screen,
@@ -700,7 +810,7 @@ class AppController extends ChangeNotifier {
       playSound(updated.isEnabled ? UiSound.toggleOn : UiSound.toggleOff);
       analytics.capture(updated.isEnabled ? 'mod_enabled' : 'mod_disabled',
           {'game': _adapter.game.id, 'category': mod.category});
-      mods = [for (final m in mods) m.path == mod.path ? updated : m];
+      _setMods([for (final m in mods) m.path == mod.path ? updated : m]);
       if (_selectedModPath == mod.path) _selectedModPath = updated.path;
       _rescanConflicts();
       modCounts[_adapter.game.id] = mods.length;
