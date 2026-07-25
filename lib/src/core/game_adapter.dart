@@ -42,10 +42,13 @@ abstract class GameAdapter {
   /// e.g. `{'.package', '.ts4script'}`.
   Set<String> get modFileExtensions;
 
-  /// Human-readable guidance shown when the mods folder can't be found:
-  /// where the folder normally lives and what the game needs before it
-  /// loads mods (in-game options, framework files, ...).
-  String get setupHelp;
+  /// Which piece of "where do mods live" guidance the UI should show when
+  /// the mods folder can't be found: where the folder normally lives and
+  /// what the game needs before it loads mods (in-game options, framework
+  /// files, ...). A key rather than the text itself, because that text is
+  /// translated and the core layer has no localizations - the UI resolves
+  /// it (see `AppText.setupHelp`). Usually just the game id.
+  String get setupHelpKey;
 
   /// Best-guess mods directory on this machine, or `null` if the game
   /// (or its mods folder) can't be located. The user can override this

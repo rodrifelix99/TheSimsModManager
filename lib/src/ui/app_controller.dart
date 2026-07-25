@@ -1,9 +1,11 @@
 import 'dart:io';
+import 'dart:ui' show Locale;
 
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 
 import '../core/conflicts.dart';
+import '../core/demo_library.dart';
 import '../core/game_adapter.dart';
 import '../core/game_registry.dart';
 import '../core/mod.dart';
@@ -149,6 +151,33 @@ class AppController extends ChangeNotifier {
   String? lastError;
 
   bool get listView => settings.listView;
+
+  /// The language Settings is forcing, or null to follow the OS (which is
+  /// what a fresh install does: Flutter resolves the system locale against
+  /// the shipped translations and falls back to English).
+  Locale? get locale {
+    final code = settings.localeCode;
+    return code == null ? null : Locale(code);
+  }
+
+  /// Switches the app's language; `null` hands the choice back to the OS.
+  Future<void> setLocale(String? code) async {
+    if (code == settings.localeCode) return;
+    await settings.setLocaleCode(code);
+    playSound(UiSound.select);
+    analytics.capture('language_changed', {'language': code ?? 'system'});
+    notifyListeners();
+  }
+
+  /// Switches between light and dark; `null` follows the OS, which is the
+  /// default, so the app starts dark on a dark desktop without being told.
+  Future<void> setThemeMode(String? name) async {
+    if (name == settings.themeModeName) return;
+    await settings.setThemeModeName(name);
+    playSound(UiSound.select);
+    analytics.capture('theme_changed', {'theme': name ?? 'system'});
+    notifyListeners();
+  }
 
   /// Mod by path, and the tallies and groupings the library header and
   /// filter row ask for. All of it is rebuilt once per [_setMods] rather
@@ -468,7 +497,9 @@ class AppController extends ChangeNotifier {
     if (!analytics.isEnabled('artwork-scan', fallback: true)) return;
     final missing = [
       for (final mod in mods)
-        if (!_insights.containsKey(_insightKey(mod))) mod,
+        // Demo mods have no file to look inside; their insights are
+        // seeded when the library is built.
+        if (!isDemoMod(mod) && !_insights.containsKey(_insightKey(mod))) mod,
     ];
     if (missing.isEmpty) return;
     _skipScan = false;
@@ -659,6 +690,98 @@ class AppController extends ChangeNotifier {
     });
   }
 
+  /// Enabled-name paths of the mods the demo library invented, so actions
+  /// on them stay in memory instead of reaching for files that don't
+  /// exist. Empty unless demo mode is on.
+  Set<String> _demoPaths = const {};
+
+  bool get demoLibrary => settings.demoLibrary;
+
+  /// Whether [mod] came from the demo library rather than the disk.
+  bool isDemoMod(Mod mod) => _demoPaths.contains(_enabledPath(mod.path));
+
+  /// [path] without the `.disabled` marker, so a mod keeps one identity
+  /// across toggles.
+  static String _enabledPath(String path) =>
+      path.toLowerCase().endsWith(disabledSuffix)
+          ? path.substring(0, path.length - disabledSuffix.length)
+          : path;
+
+  /// Today at midnight. The demo library's dates count back from here
+  /// rather than from the current instant, so a mod's insight-cache key
+  /// (which includes its mtime) survives a refresh.
+  static DateTime _demoAnchor() {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month, now.day);
+  }
+
+  /// [real] plus the invented library when demo mode is on, with the fake
+  /// insights seeded so the detail panel has contents to show. Anything
+  /// occupying a path a real mod already holds is dropped, so the demo
+  /// never shadows a file that actually exists.
+  List<Mod> _withDemoMods(List<Mod> real) {
+    _demoPaths = const {};
+    if (!settings.demoLibrary) return real;
+    final demo = buildDemoLibrary(_adapter, modsDir?.path ?? 'Mods',
+        today: _demoAnchor());
+    final taken = {for (final mod in real) _enabledPath(mod.path)};
+    final invented = [
+      for (final mod in demo.mods)
+        if (!taken.contains(_enabledPath(mod.path))) mod,
+    ];
+    _demoPaths = {for (final mod in invented) _enabledPath(mod.path)};
+    for (final mod in invented) {
+      final insight = demo.insights[mod.path];
+      if (insight != null) _insights[_insightKey(mod)] = insight;
+    }
+    return [...real, ...invented]
+      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+  }
+
+  /// Turns the invented screenshot library on or off (debug builds only -
+  /// [SettingsStore.demoLibrary] reads false in a release build).
+  Future<void> setDemoLibrary(bool value) async {
+    if (value == settings.demoLibrary) return;
+    await settings.setDemoLibrary(value);
+    playSound(value ? UiSound.toggleOn : UiSound.toggleOff);
+    await refresh();
+    await _refreshCounts();
+  }
+
+  /// Enable/disable for an invented mod: the same state change the real
+  /// path makes on disk, done in memory. Like every edit to the demo
+  /// library it lasts until the next refresh, which rebuilds it.
+  void _toggleDemoMod(Mod mod) {
+    final enabled = !mod.isEnabled;
+    final updated = Mod(
+      name: mod.name,
+      path: enabled ? _enabledPath(mod.path) : '${mod.path}$disabledSuffix',
+      status: enabled ? ModStatus.enabled : ModStatus.disabled,
+      sizeBytes: mod.sizeBytes,
+      category: mod.category,
+      modifiedAt: mod.modifiedAt,
+    );
+    playSound(enabled ? UiSound.toggleOn : UiSound.toggleOff);
+    _setMods([for (final m in mods) m.path == mod.path ? updated : m]);
+    if (_selectedModPath == mod.path) _selectedModPath = updated.path;
+    _rescanConflicts();
+    notifyListeners();
+  }
+
+  void _removeDemoMod(Mod mod) {
+    playSound(UiSound.uninstall);
+    _demoPaths = {..._demoPaths}..remove(_enabledPath(mod.path));
+    _setMods([for (final m in mods) if (m.path != mod.path) m]);
+    if (_selectedModPath == mod.path) {
+      _selectedModPath = null;
+      screen = AppScreen.library;
+    }
+    _rescanConflicts();
+    modCounts[_adapter.game.id] = mods.length;
+    modSizes[_adapter.game.id] = totalSizeBytes;
+    notifyListeners();
+  }
+
   Future<void> refresh() async {
     loading = true;
     lastError = null;
@@ -673,8 +796,17 @@ class AppController extends ChangeNotifier {
         dir = await _adapter.resolveModsDirectory();
         usingOverride = false;
       }
+      // A machine without the game has no folder to put the demo library
+      // in, and the library screen would give way to the setup screen -
+      // which is not what anyone turned demo mode on to photograph. Borrow
+      // the folder the game would have used.
+      if (dir == null && settings.demoLibrary) {
+        final fallback = await _adapter.defaultModsPath();
+        if (fallback != null) dir = Directory(fallback);
+      }
       modsDir = dir;
-      _setMods(dir == null ? const [] : await _adapter.listMods(dir));
+      _setMods(_withDemoMods(
+          dir == null ? const [] : await _adapter.listMods(dir)));
       // The filtered folder may have been renamed/emptied on disk.
       if (folder != 'All' && !folders.contains(folder)) folder = 'All';
       // Artwork/content scan happens here, under the loading screen,
@@ -728,6 +860,17 @@ class AppController extends ChangeNotifier {
         modCounts[other.game.id] = otherMods?.length;
         modSizes[other.game.id] =
             otherMods?.fold(0, (sum, m) => sum! + (m.sizeBytes ?? 0)) ?? 0;
+        // The sidebar counts every game, so demo mode has to reach them
+        // all - a screenshot with one full game and four empty ones is
+        // the shot nobody wanted.
+        if (settings.demoLibrary) {
+          final root = dir?.path ?? await other.defaultModsPath() ?? 'Mods';
+          final demo = buildDemoLibrary(other, root, today: _demoAnchor());
+          modCounts[other.game.id] =
+              (modCounts[other.game.id] ?? 0) + demo.mods.length;
+          modSizes[other.game.id] = modSizes[other.game.id]! +
+              demo.mods.fold(0, (sum, m) => sum + (m.sizeBytes ?? 0));
+        }
       } catch (_) {
         modCounts[other.game.id] = null;
         modSizes[other.game.id] = 0;
@@ -805,6 +948,7 @@ class AppController extends ChangeNotifier {
   }
 
   Future<void> toggleMod(Mod mod) async {
+    if (isDemoMod(mod)) return _toggleDemoMod(mod);
     try {
       final updated = await _adapter.setEnabled(mod, enabled: !mod.isEnabled);
       playSound(updated.isEnabled ? UiSound.toggleOn : UiSound.toggleOff);
@@ -840,6 +984,7 @@ class AppController extends ChangeNotifier {
   }
 
   Future<void> removeMod(Mod mod) async {
+    if (isDemoMod(mod)) return _removeDemoMod(mod);
     String? error;
     try {
       await _adapter.removeMod(mod);

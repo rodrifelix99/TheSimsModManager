@@ -6,6 +6,7 @@ import '../core/mod_name.dart';
 import '../services/sfx.dart';
 import 'app_controller.dart';
 import 'game_theme.dart';
+import 'l10n.dart';
 import 'library_view.dart' show modDate, modTitle, modVersion;
 import 'widgets.dart';
 
@@ -20,6 +21,7 @@ class DetailView extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = theme;
     final c = controller;
+    final l = L.of(context);
     final mod = c.selectedMod;
     if (mod == null) {
       // Mod vanished (deleted externally); bounce back gracefully.
@@ -31,14 +33,14 @@ class DetailView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _backButton(t, c),
+          _backButton(t, c, l),
           const SizedBox(height: 16),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(width: 300, child: _leftColumn(context, t, c, mod)),
+              SizedBox(width: 300, child: _leftColumn(context, t, c, l, mod)),
               const SizedBox(width: 26),
-              Expanded(child: _rightColumn(t, c, mod)),
+              Expanded(child: _rightColumn(t, c, l, mod)),
             ],
           ),
         ],
@@ -46,7 +48,7 @@ class DetailView extends StatelessWidget {
     );
   }
 
-  Widget _backButton(GameTheme t, AppController c) {
+  Widget _backButton(GameTheme t, AppController c, L l) {
     return HoverBuilder(
       cursor: SystemMouseCursors.click,
       builder: (context, hovered) => GestureDetector(
@@ -67,7 +69,7 @@ class DetailView extends StatelessWidget {
                   style: TextStyle(fontSize: 15, color: t.text, height: 1)),
               const SizedBox(width: 7),
               Text(
-                'Library',
+                l.navLibrary,
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w800,
@@ -82,7 +84,7 @@ class DetailView extends StatelessWidget {
   }
 
   Widget _leftColumn(
-      BuildContext context, GameTheme t, AppController c, Mod mod) {
+      BuildContext context, GameTheme t, AppController c, L l, Mod mod) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -90,11 +92,11 @@ class DetailView extends StatelessWidget {
           height: 220,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            boxShadow: const [
+            boxShadow: [
               BoxShadow(
-                color: Color(0x66142823),
+                color: t.shadow.withValues(alpha: .4),
                 blurRadius: 32,
-                offset: Offset(0, 16),
+                offset: const Offset(0, 16),
               ),
             ],
           ),
@@ -139,14 +141,14 @@ class DetailView extends StatelessWidget {
               padding:
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
               decoration: BoxDecoration(
-                color: mod.isEnabled ? t.accent : const Color(0x52788C87),
+                color: mod.isEnabled ? t.accent : t.switchOff,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    mod.isEnabled ? 'Enabled' : 'Disabled',
+                    mod.isEnabled ? l.enabled : l.disabled,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 14,
@@ -170,7 +172,7 @@ class DetailView extends StatelessWidget {
         const SizedBox(height: 10),
         _outlineButton(
           t,
-          label: 'Show in file manager',
+          label: l.showInFileManager,
           color: t.accent,
           background: t.tint,
           border: t.accent,
@@ -179,12 +181,12 @@ class DetailView extends StatelessWidget {
         const SizedBox(height: 10),
         _outlineButton(
           t,
-          label: 'Uninstall mod',
+          label: l.uninstallMod,
           color: conflictOrange,
           background: Colors.transparent,
           border: conflictOrange.withValues(alpha: .4),
           hoverBackground: conflictOrange.withValues(alpha: .08),
-          onTap: () => _confirmUninstall(context, t, c, mod),
+          onTap: () => _confirmUninstall(context, t, c, l, mod),
         ),
       ],
     );
@@ -227,8 +229,8 @@ class DetailView extends StatelessWidget {
     );
   }
 
-  Future<void> _confirmUninstall(
-      BuildContext context, GameTheme t, AppController c, Mod mod) async {
+  Future<void> _confirmUninstall(BuildContext context, GameTheme t,
+      AppController c, L l, Mod mod) async {
     var confirmed = true;
     if (c.settings.confirmDelete) {
       c.playSound(UiSound.alert);
@@ -239,7 +241,7 @@ class DetailView extends StatelessWidget {
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16)),
               title: Text(
-                'Uninstall ${modTitle(mod)}?',
+                l.uninstallConfirmTitle(modTitle(mod)),
                 style: TextStyle(
                   fontWeight: FontWeight.w900,
                   fontSize: 18,
@@ -247,7 +249,7 @@ class DetailView extends StatelessWidget {
                 ),
               ),
               content: Text(
-                'The file will be deleted from disk:\n${mod.path}',
+                l.uninstallConfirmBody(mod.path),
                 style: TextStyle(
                   fontSize: 13.5,
                   fontWeight: FontWeight.w600,
@@ -257,7 +259,7 @@ class DetailView extends StatelessWidget {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context, false),
-                  child: Text('Cancel',
+                  child: Text(l.cancel,
                       style: TextStyle(
                           color: t.muted, fontWeight: FontWeight.w800)),
                 ),
@@ -265,8 +267,8 @@ class DetailView extends StatelessWidget {
                   onPressed: () => Navigator.pop(context, true),
                   style:
                       FilledButton.styleFrom(backgroundColor: conflictOrange),
-                  child: const Text('Uninstall',
-                      style: TextStyle(fontWeight: FontWeight.w800)),
+                  child: Text(l.uninstall,
+                      style: const TextStyle(fontWeight: FontWeight.w800)),
                 ),
               ],
             ),
@@ -278,7 +280,7 @@ class DetailView extends StatelessWidget {
 
   /// The conflict warning: what we noticed, why it matters, and the
   /// actual mods this one clashes with; each row jumps to that mod.
-  Widget _conflictPanel(GameTheme t, AppController c, Mod mod) {
+  Widget _conflictPanel(GameTheme t, AppController c, L l, Mod mod) {
     final others = c.conflictingWith(mod);
     // Same file name, same mod under a different version token, or
     // packages overriding the same resources? The wording below matches
@@ -295,8 +297,7 @@ class DetailView extends StatelessWidget {
     String rowLabel(Mod other) {
       final shared = c.sharedResourcesWith(mod, other);
       if (shared == 0) return relPath(other);
-      return '${relPath(other)} — '
-          '$shared shared resource${shared == 1 ? '' : 's'}';
+      return '${relPath(other)} — ${l.sharedResources(shared)}';
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -332,21 +333,10 @@ class DetailView extends StatelessWidget {
               Expanded(
                 child: Text(
                   sameName
-                      ? (others.length == 1
-                          ? 'Another enabled mod has the same file name:'
-                          : '${others.length} other enabled mods have the '
-                              'same file name:')
+                      ? l.conflictSameNameHeading(others.length)
                       : sameMod
-                          ? (others.length == 1
-                              ? 'Another enabled mod looks like a different '
-                                  'version of this mod:'
-                              : '${others.length} other enabled mods look '
-                                  'like different versions of this mod:')
-                          : (others.length == 1
-                              ? 'Another enabled mod overrides the same '
-                                  'in-game resources:'
-                              : '${others.length} other enabled mods '
-                                  'override the same in-game resources:'),
+                          ? l.conflictVersionHeading(others.length)
+                          : l.conflictResourcesHeading(others.length),
                   style: const TextStyle(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w800,
@@ -382,22 +372,10 @@ class DetailView extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             sameName
-                ? 'Identical names usually mean the same mod is installed '
-                    'twice, or two creators\' packages clash. The game loads '
-                    'their overlapping resources in an unpredictable order: '
-                    'keep one and disable or remove the rest.'
+                ? l.conflictSameNameBody
                 : sameMod
-                    ? 'Having several versions of a mod installed means the '
-                        'game loads their overlapping resources in an '
-                        'unpredictable order: keep the newest and disable or '
-                        'remove the rest.'
-                    : 'These packages contain resources with the same '
-                        'identifiers, so the game only keeps the copy it '
-                        'loads last. That can be intentional — patch and '
-                        'override mods shadow another mod\'s resources on '
-                        'purpose — but for unrelated mods it means one of '
-                        'them silently stops working: keep the one you '
-                        'want and disable the rest.',
+                    ? l.conflictVersionBody
+                    : l.conflictResourcesBody,
             style: const TextStyle(
               fontSize: 12,
               height: 1.5,
@@ -410,15 +388,18 @@ class DetailView extends StatelessWidget {
     );
   }
 
-  Widget _rightColumn(GameTheme t, AppController c, Mod mod) {
+  Widget _rightColumn(GameTheme t, AppController c, L l, Mod mod) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (c.isConflicted(mod)) ...[
-          _conflictPanel(t, c, mod),
+          _conflictPanel(t, c, l, mod),
           const SizedBox(height: 16),
         ],
-        TagChip(label: mod.category, color: t.accent, background: t.tint),
+        TagChip(
+            label: l.categoryName(mod.category),
+            color: t.accent,
+            background: t.tint),
         const SizedBox(height: 12),
         Text(
           modTitle(mod),
@@ -431,7 +412,7 @@ class DetailView extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          'in ${p.dirname(mod.path)}',
+          l.modInDirectory(p.dirname(mod.path)),
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w700,
@@ -442,22 +423,22 @@ class DetailView extends StatelessWidget {
         Row(
           children: [
             if (modVersion(mod) != null) ...[
-              _fact(t, 'Version', modVersion(mod)!),
+              _fact(t, l.factVersion, modVersion(mod)!),
               const SizedBox(width: 12),
             ],
-            _fact(t, 'Format', p.extension(mod.name)),
+            _fact(t, l.factFormat, p.extension(mod.name)),
             const SizedBox(width: 12),
-            _fact(t, 'Size', formatBytes(mod.sizeBytes)),
+            _fact(t, l.factSize, formatBytes(mod.sizeBytes)),
             const SizedBox(width: 12),
-            _fact(t, 'Type', mod.category),
+            _fact(t, l.factType, l.categoryName(mod.category)),
             const SizedBox(width: 12),
-            _fact(t, 'Modified', modDate(mod)),
+            _fact(t, l.factModified, modDate(mod)),
           ],
         ),
-        ..._contentsSection(t, c, mod),
+        ..._contentsSection(t, c, l, mod),
         const SizedBox(height: 22),
         Text(
-          'Status',
+          l.statusHeading,
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w800,
@@ -467,10 +448,8 @@ class DetailView extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           mod.isEnabled
-              ? 'This mod is active: the game will load it on next launch.'
-              : 'This mod is disabled: the file is kept on disk with a '
-                  '"$disabledMarker" marker so the game skips it. Enable it '
-                  'any time; nothing is deleted.',
+              ? l.statusEnabledBody
+              : l.statusDisabledBody(disabledMarker),
           style: TextStyle(
             fontSize: 14,
             height: 1.6,
@@ -480,7 +459,7 @@ class DetailView extends StatelessWidget {
         ),
         const SizedBox(height: 22),
         Text(
-          'File on disk',
+          l.fileOnDisk,
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w800,
@@ -524,13 +503,14 @@ class DetailView extends StatelessWidget {
 
   /// "Inside the package": counts of recognized resource kinds found by
   /// the library scan. Empty for files that aren't readable packages.
-  List<Widget> _contentsSection(GameTheme t, AppController c, Mod mod) {
+  List<Widget> _contentsSection(
+      GameTheme t, AppController c, L l, Mod mod) {
     final insight = c.insightFor(mod);
     if (insight == null || insight.resourceCount == 0) return const [];
     return [
       const SizedBox(height: 22),
       Text(
-        'Inside the package',
+        l.insideThePackage,
         style: TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w800,
@@ -544,12 +524,12 @@ class DetailView extends StatelessWidget {
         children: [
           for (final entry in insight.contents.entries)
             TagChip(
-              label: '${entry.value} ${entry.key}',
+              label: '${entry.value} ${l.contentLabel(entry.key)}',
               color: t.accent,
               background: t.tint,
             ),
           TagChip(
-            label: '${insight.resourceCount} resources total',
+            label: l.resourcesTotal(insight.resourceCount),
             color: t.muted,
             background: t.surfaceAlt,
           ),

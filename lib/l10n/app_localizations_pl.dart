@@ -1,0 +1,649 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for Polish (`pl`).
+class LPl extends L {
+  LPl([String locale = 'pl']) : super(locale);
+
+  @override
+  String get appName => 'Sims Mod Manager';
+
+  @override
+  String get brandTitle => 'Mod Manager';
+
+  @override
+  String get brandSubtitle => 'do The Sims';
+
+  @override
+  String get navLibrary => 'Biblioteka';
+
+  @override
+  String get navSettings => 'Ustawienia';
+
+  @override
+  String get sidebarGames => 'GRY';
+
+  @override
+  String sidebarNotInstalled(String detail) {
+    return 'nie zainstalowana · $detail';
+  }
+
+  @override
+  String sidebarModCount(int count, String detail) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count moda',
+      many: '$count modów',
+      few: '$count mody',
+      one: '$count mod',
+    );
+    return '$_temp0 · $detail';
+  }
+
+  @override
+  String get updateAvailable => 'Jest aktualizacja';
+
+  @override
+  String updateClickToDownload(String version) {
+    return 'v$version: kliknij, żeby pobrać';
+  }
+
+  @override
+  String get storage => 'Miejsce na dysku';
+
+  @override
+  String storageInMods(String size) {
+    return '$size w modach';
+  }
+
+  @override
+  String storageFreeOf(String free, String total) {
+    return '$free wolnego z $total';
+  }
+
+  @override
+  String dropToInstall(String game) {
+    return 'Upuść tutaj, żeby zainstalować w $game';
+  }
+
+  @override
+  String get dropFolders => 'foldery';
+
+  @override
+  String scanningMods(int done, int total) {
+    return 'Zaglądamy do modów w poszukiwaniu grafik i konfliktów… $done z $total';
+  }
+
+  @override
+  String get skip => 'Pomiń';
+
+  @override
+  String libraryTitle(String game) {
+    return 'Biblioteka $game';
+  }
+
+  @override
+  String modsShown(int count, String era) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'widocznych $count moda',
+      many: 'widocznych $count modów',
+      few: 'widoczne $count mody',
+      one: 'widoczny $count mod',
+    );
+    return '$_temp0 · $era';
+  }
+
+  @override
+  String get learnMore => 'Dowiedz się więcej';
+
+  @override
+  String get dismiss => 'Ukryj';
+
+  @override
+  String get searchMods => 'Szukaj modów…';
+
+  @override
+  String get install => 'Zainstaluj';
+
+  @override
+  String filePickerModsLabel(String game) {
+    return 'Mody do $game';
+  }
+
+  @override
+  String get statTotal => 'Razem';
+
+  @override
+  String get statEnabled => 'Włączone';
+
+  @override
+  String get statDisabled => 'Wyłączone';
+
+  @override
+  String get statConflicts => 'Konflikty';
+
+  @override
+  String get conflictTooltipActive =>
+      'Widzisz tylko mody z konfliktami. Kliknij, żeby znów pokazać wszystkie.';
+
+  @override
+  String get conflictTooltip =>
+      'Włączone mody, które mają tę samą nazwę pliku co inny włączony mod, są zainstalowane w kilku wersjach albo nadpisują te same zasoby gry. Gra zostawia tylko tę kopię, którą wczyta na końcu — czasem to celowe (mody-łatki), ale często nie.';
+
+  @override
+  String get conflictTooltipClickHint =>
+      'Kliknij, żeby zobaczyć tylko te mody.';
+
+  @override
+  String get filterAll => 'Wszystkie';
+
+  @override
+  String get emptyFiltered => 'Żaden mod nie pasuje do filtrów';
+
+  @override
+  String get emptyNoMods => 'Jeszcze nie ma modów';
+
+  @override
+  String get emptyFilteredHint =>
+      'Spróbuj wyczyścić wyszukiwanie albo wybrać inny filtr.';
+
+  @override
+  String emptyNoModsHint(String path) {
+    return 'Obserwujemy ten folder:\n$path';
+  }
+
+  @override
+  String get openFolder => 'Otwórz folder';
+
+  @override
+  String get conflictBadge => 'konflikt';
+
+  @override
+  String modInFolder(String folder) {
+    return 'w $folder';
+  }
+
+  @override
+  String get modInModsFolder => 'w folderze Mods';
+
+  @override
+  String setupFoundNoModsFolder(String game) {
+    return '$game jest, ale nie ma jeszcze folderu na mody';
+  }
+
+  @override
+  String setupNotFound(String game) {
+    return 'Nie znaleziono folderu modów gry $game';
+  }
+
+  @override
+  String get setupFoundNoModsFolderBody =>
+      'Folder gry jest na tym komputerze, tylko nie ma w nim jeszcze folderu na mody. Utwórz go poniżej albo wskaż jakiś ręcznie.';
+
+  @override
+  String get setupNotFoundBody =>
+      'Gra może nie być zainstalowana, może leżeć w nietypowym miejscu albo jej folder na mody jeszcze nie istnieje.';
+
+  @override
+  String get foundOnThisComputer => 'ZNALEZIONE NA TYM KOMPUTERZE';
+
+  @override
+  String get chooseFolder => 'Wybierz folder…';
+
+  @override
+  String get createItForMe => 'Utwórz za mnie';
+
+  @override
+  String willBeCreatedAt(String path) {
+    return 'Powstanie tutaj:\n$path';
+  }
+
+  @override
+  String get checkAgain => 'Sprawdź jeszcze raz';
+
+  @override
+  String get useThis => 'Użyj tego';
+
+  @override
+  String get enabled => 'Włączony';
+
+  @override
+  String get disabled => 'Wyłączony';
+
+  @override
+  String get showInFileManager => 'Pokaż w eksploratorze';
+
+  @override
+  String get uninstallMod => 'Odinstaluj moda';
+
+  @override
+  String uninstallConfirmTitle(String title) {
+    return 'Odinstalować $title?';
+  }
+
+  @override
+  String uninstallConfirmBody(String path) {
+    return 'Plik zostanie usunięty z dysku:\n$path';
+  }
+
+  @override
+  String get cancel => 'Anuluj';
+
+  @override
+  String get uninstall => 'Odinstaluj';
+
+  @override
+  String conflictSameNameHeading(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count innych włączonych modów ma tę samą nazwę pliku:',
+      many: '$count innych włączonych modów ma tę samą nazwę pliku:',
+      few: '$count inne włączone mody mają tę samą nazwę pliku:',
+      one: 'Inny włączony mod ma tę samą nazwę pliku:',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String conflictVersionHeading(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count innych włączonych modów wygląda na inne wersje tego samego moda:',
+      many:
+          '$count innych włączonych modów wygląda na inne wersje tego samego moda:',
+      few:
+          '$count inne włączone mody wyglądają na inne wersje tego samego moda:',
+      one: 'Inny włączony mod wygląda na inną wersję tego samego moda:',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String conflictResourcesHeading(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count innych włączonych modów nadpisuje te same zasoby gry:',
+      many: '$count innych włączonych modów nadpisuje te same zasoby gry:',
+      few: '$count inne włączone mody nadpisują te same zasoby gry:',
+      one: 'Inny włączony mod nadpisuje te same zasoby gry:',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedResources(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count wspólnych zasobów',
+      many: '$count wspólnych zasobów',
+      few: '$count wspólne zasoby',
+      one: '$count wspólny zasób',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get conflictSameNameBody =>
+      'Identyczne nazwy zwykle znaczą, że ten sam mod jest zainstalowany dwa razy albo że gryzą się paczki dwóch twórców. Gra wczytuje ich nakładające się zasoby w nieprzewidywalnej kolejności: zostaw jednego, resztę wyłącz albo usuń.';
+
+  @override
+  String get conflictVersionBody =>
+      'Kilka wersji tego samego moda naraz sprawia, że gra wczytuje ich nakładające się zasoby w nieprzewidywalnej kolejności: zostaw najnowszą, resztę wyłącz albo usuń.';
+
+  @override
+  String get conflictResourcesBody =>
+      'Te paczki zawierają zasoby o tych samych identyfikatorach, więc gra zostawi tylko tę kopię, którą wczyta na końcu. Czasem tak ma być — mody-łatki i override celowo przykrywają zasoby innego moda — ale przy modach, które nie mają ze sobą nic wspólnego, oznacza to, że jeden po cichu przestaje działać: zostaw ten, na którym ci zależy, a resztę wyłącz.';
+
+  @override
+  String modInDirectory(String dir) {
+    return 'w $dir';
+  }
+
+  @override
+  String get factVersion => 'Wersja';
+
+  @override
+  String get factFormat => 'Format';
+
+  @override
+  String get factSize => 'Rozmiar';
+
+  @override
+  String get factType => 'Typ';
+
+  @override
+  String get factModified => 'Zmieniono';
+
+  @override
+  String get statusHeading => 'Status';
+
+  @override
+  String get statusEnabledBody =>
+      'Ten mod jest włączony: gra wczyta go przy następnym uruchomieniu.';
+
+  @override
+  String statusDisabledBody(String marker) {
+    return 'Ten mod jest wyłączony: plik zostaje na dysku z dopiskiem „$marker”, żeby gra go pominęła. Możesz włączyć go, kiedy chcesz — nic nie znika.';
+  }
+
+  @override
+  String get fileOnDisk => 'Plik na dysku';
+
+  @override
+  String get insideThePackage => 'W środku paczki';
+
+  @override
+  String resourcesTotal(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count zasobów łącznie',
+      many: '$count zasobów łącznie',
+      few: '$count zasoby łącznie',
+      one: '$count zasób łącznie',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settingsTitle => 'Ustawienia';
+
+  @override
+  String get sectionModManagement => 'ZARZĄDZANIE MODAMI';
+
+  @override
+  String get sectionAppearance => 'WYGLĄD';
+
+  @override
+  String get sectionLanguage => 'JĘZYK';
+
+  @override
+  String get sectionPrivacy => 'PRYWATNOŚĆ';
+
+  @override
+  String sectionModsFolder(String game) {
+    return 'FOLDER MODÓW · $game';
+  }
+
+  @override
+  String sectionGameCaches(String game) {
+    return 'PAMIĘĆ PODRĘCZNA GRY · $game';
+  }
+
+  @override
+  String get sectionFeedback => 'OPINIE';
+
+  @override
+  String get sectionAbout => 'O APLIKACJI';
+
+  @override
+  String get prefWarnConflictsTitle => 'Ostrzegaj o konfliktach';
+
+  @override
+  String get prefWarnConflictsDesc =>
+      'Oznacza włączone mody, które powielają nazwę pliku albo nadpisują te same zasoby gry co inny mod';
+
+  @override
+  String get prefConfirmDeleteTitle => 'Pytaj przed odinstalowaniem';
+
+  @override
+  String get prefConfirmDeleteDesc => 'Pytaj, zanim plik moda zniknie z dysku';
+
+  @override
+  String get prefShowDisabledTitle => 'Pokazuj wyłączone mody';
+
+  @override
+  String get prefShowDisabledDesc =>
+      'Zostawia wyłączone mody widoczne w bibliotece, zamiast je chować';
+
+  @override
+  String get prefScanArtworkTitle => 'Zaglądaj do środka modów';
+
+  @override
+  String get prefScanArtworkDesc =>
+      'Podczas wczytywania biblioteki zagląda do plików modów po grafiki, szczegóły zawartości i mody, które nadpisują te same zasoby';
+
+  @override
+  String get prefSoundEffectsTitle => 'Dźwięki interfejsu';
+
+  @override
+  String get prefSoundEffectsDesc =>
+      'Odtwarza klasyczne dźwięki interfejsu The Sims przy kliknięciach, przełącznikach i powiadomieniach';
+
+  @override
+  String get prefAnalyticsTitle => 'Udostępniaj anonimowe dane o użyciu';
+
+  @override
+  String get prefAnalyticsDesc =>
+      'Wysyła anonimowe statystyki użycia i raporty o awariach, żeby aplikacja była lepsza. Nigdy nie zawierają nazw modów, ścieżek do plików ani niczego osobistego';
+
+  @override
+  String get themeTitle => 'Motyw';
+
+  @override
+  String get themeDesc =>
+      'Jasny albo ciemny. „Systemowy” idzie za ustawieniem komputera.';
+
+  @override
+  String get themeSystem => 'Systemowy';
+
+  @override
+  String get themeLight => 'Jasny';
+
+  @override
+  String get themeDark => 'Ciemny';
+
+  @override
+  String get languageTitle => 'Język aplikacji';
+
+  @override
+  String get languageDesc =>
+      'Wybierz, w jakim języku ma być aplikacja. „Systemowy” idzie za językiem komputera.';
+
+  @override
+  String get languageSystem => 'Systemowy';
+
+  @override
+  String get folderNotFound => 'Nie znaleziono. Wybierz folder';
+
+  @override
+  String get folderNotLocated =>
+      'Nie udało się automatycznie znaleźć gry (ani jej folderu modów)';
+
+  @override
+  String folderSummary(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count moda',
+      many: '$count modów',
+      few: '$count mody',
+      one: '$count mod',
+    );
+    return '$_temp0 · $size na dysku';
+  }
+
+  @override
+  String get customFolder => 'własny folder';
+
+  @override
+  String get change => 'Zmień…';
+
+  @override
+  String get resetToAuto => 'Wróć do automatu';
+
+  @override
+  String createDefaultFolderAt(String path) {
+    return 'Utwórz domyślny folder (z plikami, których potrzebuje gra) w:\n$path';
+  }
+
+  @override
+  String get createFolder => 'Utwórz folder';
+
+  @override
+  String get alsoFoundOnThisComputer => 'Znalezione też na tym komputerze:';
+
+  @override
+  String get clearCacheTitle => 'Wyczyść pliki pamięci podręcznej';
+
+  @override
+  String clearCacheDesc(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Usunie $count plików pamięci podręcznej ($size)',
+      many: 'Usunie $count plików pamięci podręcznej ($size)',
+      few: 'Usunie $count pliki pamięci podręcznej ($size)',
+      one: 'Usunie $count plik pamięci podręcznej ($size)',
+    );
+    return '$_temp0, żeby świeżo dodana albo usunięta zawartość się pokazała; gra odbuduje je przy następnym starcie';
+  }
+
+  @override
+  String get clearCaches => 'Wyczyść pamięć podręczną';
+
+  @override
+  String get reportBugTitle => 'Zgłoś błąd';
+
+  @override
+  String get reportBugDesc =>
+      'Otwiera zgłoszenie na GitHubie z wypełnioną wersją aplikacji, systemem i aktualną grą';
+
+  @override
+  String get reportBugButton => 'Zgłoś…';
+
+  @override
+  String get suggestFeatureTitle => 'Zaproponuj funkcję';
+
+  @override
+  String get suggestFeatureDesc =>
+      'Czegoś brakuje? Napisz, co uczyniłoby menedżera modów lepszym';
+
+  @override
+  String get suggestFeatureButton => 'Zaproponuj…';
+
+  @override
+  String get wikiTitle => 'Poradnik i FAQ';
+
+  @override
+  String get wikiDesc =>
+      'Jak instalować mody, naprawić wykrywanie folderów i więcej — na wiki projektu';
+
+  @override
+  String get wikiButton => 'Otwórz wiki';
+
+  @override
+  String aboutTagline(String version) {
+    return 'Wersja $version · Obsługa The Sims 1-4 · SimCity już wkrótce';
+  }
+
+  @override
+  String updateIsAvailable(String version) {
+    return 'Wersja $version jest już dostępna';
+  }
+
+  @override
+  String get noUpdateFound => 'Brak aktualizacji';
+
+  @override
+  String getVersion(String version) {
+    return 'Pobierz v$version';
+  }
+
+  @override
+  String get checkingForUpdates => 'Sprawdzam…';
+
+  @override
+  String get checkForUpdates => 'Sprawdź aktualizacje';
+
+  @override
+  String get categoryPackage => 'Paczka';
+
+  @override
+  String get categoryScript => 'Skrypt';
+
+  @override
+  String get categoryObject => 'Obiekt';
+
+  @override
+  String get categoryArchive => 'Archiwum';
+
+  @override
+  String get categorySkin => 'Skórka';
+
+  @override
+  String get categoryTexture => 'Tekstura';
+
+  @override
+  String get categoryWall => 'Ściana';
+
+  @override
+  String get categoryFloor => 'Podłoga';
+
+  @override
+  String get contentCasParts => 'elementy CAS';
+
+  @override
+  String get contentObjects => 'obiekty';
+
+  @override
+  String get contentTunings => 'tuningi';
+
+  @override
+  String get contentBehaviors => 'zachowania';
+
+  @override
+  String get contentTextTables => 'tabele tekstu';
+
+  @override
+  String get contentTextures => 'tekstury';
+
+  @override
+  String get contentMeshes => 'siatki';
+
+  @override
+  String get eraClassic => 'Klasyka';
+
+  @override
+  String get eraNightlife => 'Nocne życie';
+
+  @override
+  String get eraAmbitions => 'Kariera';
+
+  @override
+  String get eraModern => 'Nowoczesność';
+
+  @override
+  String get eraMedieval => 'Średniowiecze';
+
+  @override
+  String get setupHelpSims1 =>
+      'Pierwsze The Sims trzyma własną zawartość w folderze instalacji, a nie w Dokumentach: obiekty trafiają do folderu Downloads obok pliku wykonywalnego gry (na przykład C:\\Program Files (x86)\\Maxis\\The Sims\\Downloads), a resztę aplikacja sortuje sama — skórki (.skn/.cmx/.bmp) do GameData\\Skins, ściany i podłogi do GameData\\Walls i GameData\\Floors. Legacy Collection z 2025 działa tak samo ze swojego folderu instalacji (EA Games\\The Sims Legacy albo Steam\\steamapps\\common\\The Sims Legacy Collection). Jeśli gra siedzi gdzie indziej (inny dysk, własna biblioteka Steam), wskaż jej folder Downloads ręcznie.';
+
+  @override
+  String get setupHelpSims2 =>
+      'The Sims 2 wczytuje własną zawartość z Dokumenty > EA Games > The Sims 2 > Downloads (Ultimate Collection używa „The Sims 2 Ultimate Collection”, a Legacy Collection z 2025 — „The Sims 2 Legacy”). Folder może nie istnieć, dopóki go nie utworzysz albo raz czegoś nie zainstalujesz. Przy starcie gry odpowiedz „Tak” na pytanie o własną zawartość, żeby pobrane rzeczy się włączyły.';
+
+  @override
+  String get setupHelpSims3 =>
+      'The Sims 3 nie tworzy folderu na mody samo z siebie: potrzebuje społecznościowego „frameworku”, czyli folderu Mods > Packages w Dokumenty > Electronic Arts > The Sims 3 plus pliku Resource.cfg, który każe grze go czytać. Aplikacja utworzy oba za ciebie. Przy instalacji z płyty albo przez Wine folder może siedzieć w samej paczce gry; wtedy wskaż go przez „Wybierz folder”.';
+
+  @override
+  String get setupHelpSims4 =>
+      'The Sims 4 wczytuje mody z Dokumenty > Electronic Arts > The Sims 4 > Mods. Gra tworzy ten folder przy pierwszym uruchomieniu, więc odpal ją raz, jeśli folderu nie ma. Potem w grze włącz Opcje > Opcje gry > Inne > „Włącz zawartość niestandardową i mody” (oraz „Zezwalaj na mody skryptowe” dla plików .ts4script) i uruchom grę ponownie.';
+
+  @override
+  String get setupHelpSimsMedieval =>
+      'The Sims Medieval wczytuje mody z folderu instalacji, a nie z Dokumentów: folder Mods > Packages obok plików gry (na przykład C:\\Program Files (x86)\\Origin Games\\The Sims Medieval) plus plik Resource.cfg w folderze instalacji, który każe grze go czytać. Aplikacja utworzy oba za ciebie (w Program Files Windows może poprosić o uprawnienia administratora). Folder Dokumenty > Electronic Arts > The Sims Medieval trzyma tylko zapisy gry; mody wrzucone tam nic nie robią. Przy Wine/CrossOver albo własnej bibliotece Steam użyj „Wybierz folder” i wskaż folder Mods > Packages w instalacji.';
+}

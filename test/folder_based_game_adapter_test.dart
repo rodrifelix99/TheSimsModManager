@@ -20,7 +20,7 @@ class _FakeAdapter extends FolderBasedGameAdapter {
   Set<String> get modFileExtensions => const {'.package'};
 
   @override
-  String get setupHelp => 'test adapter';
+  String get setupHelpKey => 'test adapter';
 
   @override
   Future<String?> defaultModsPath() async => dir.path;

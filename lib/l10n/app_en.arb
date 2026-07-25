@@ -1,0 +1,304 @@
+{
+  "@@locale": "en",
+
+  "appName": "Sims Mod Manager",
+  "brandTitle": "Mod Manager",
+  "brandSubtitle": "for The Sims",
+
+  "navLibrary": "Library",
+  "navSettings": "Settings",
+  "sidebarGames": "GAMES",
+  "sidebarNotInstalled": "not installed · {detail}",
+  "@sidebarNotInstalled": {
+    "placeholders": { "detail": { "type": "String" } }
+  },
+  "sidebarModCount": "{count, plural, =1{1 mod} other{{count} mods}} · {detail}",
+  "@sidebarModCount": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "detail": { "type": "String" }
+    }
+  },
+
+  "updateAvailable": "Update available",
+  "updateClickToDownload": "v{version}: click to download",
+  "@updateClickToDownload": {
+    "placeholders": { "version": { "type": "String" } }
+  },
+
+  "storage": "Storage",
+  "storageInMods": "{size} in mods",
+  "@storageInMods": {
+    "placeholders": { "size": { "type": "String" } }
+  },
+  "storageFreeOf": "{free} free of {total}",
+  "@storageFreeOf": {
+    "placeholders": {
+      "free": { "type": "String" },
+      "total": { "type": "String" }
+    }
+  },
+
+  "dropToInstall": "Drop to install into {game}",
+  "@dropToInstall": {
+    "placeholders": { "game": { "type": "String" } }
+  },
+  "dropFolders": "folders",
+
+  "scanningMods": "Looking inside mods for artwork and conflicts… {done} of {total}",
+  "@scanningMods": {
+    "placeholders": {
+      "done": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "skip": "Skip",
+
+  "libraryTitle": "{game} Library",
+  "@libraryTitle": {
+    "placeholders": { "game": { "type": "String" } }
+  },
+  "modsShown": "{count, plural, =1{1 mod shown} other{{count} mods shown}} · {era}",
+  "@modsShown": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "era": { "type": "String" }
+    }
+  },
+
+  "learnMore": "Learn more",
+  "dismiss": "Dismiss",
+  "searchMods": "Search mods…",
+  "install": "Install",
+  "filePickerModsLabel": "{game} mods",
+  "@filePickerModsLabel": {
+    "placeholders": { "game": { "type": "String" } }
+  },
+
+  "statTotal": "Total",
+  "statEnabled": "Enabled",
+  "statDisabled": "Disabled",
+  "statConflicts": "Conflicts",
+
+  "conflictTooltipActive": "Showing conflicting mods only. Click to show all mods again.",
+  "conflictTooltip": "Enabled mods sharing a file name with another enabled mod, installed in more than one version, or overriding the same in-game resources. The game only keeps the copy it loads last — sometimes intentional (patch mods), often not.",
+  "conflictTooltipClickHint": "Click to show only these mods.",
+
+  "filterAll": "All",
+  "emptyFiltered": "No mods match your filters",
+  "emptyNoMods": "No mods yet",
+  "emptyFilteredHint": "Try clearing the search or picking another filter.",
+  "emptyNoModsHint": "This folder is being watched:\n{path}",
+  "@emptyNoModsHint": {
+    "placeholders": { "path": { "type": "String" } }
+  },
+  "openFolder": "Open folder",
+  "conflictBadge": "conflict",
+
+  "modInFolder": "in {folder}",
+  "@modInFolder": {
+    "placeholders": { "folder": { "type": "String" } }
+  },
+  "modInModsFolder": "in Mods folder",
+
+  "setupFoundNoModsFolder": "{game} found, but no mods folder yet",
+  "@setupFoundNoModsFolder": {
+    "placeholders": { "game": { "type": "String" } }
+  },
+  "setupNotFound": "{game} mods folder not found",
+  "@setupNotFound": {
+    "placeholders": { "game": { "type": "String" } }
+  },
+  "setupFoundNoModsFolderBody": "The game's folder is on this computer; it just doesn't contain a mods folder yet. Create it below, or point at one manually.",
+  "setupNotFoundBody": "The game may not be installed, may live somewhere unusual, or its mods folder may not exist yet.",
+  "foundOnThisComputer": "FOUND ON THIS COMPUTER",
+  "chooseFolder": "Choose folder…",
+  "createItForMe": "Create it for me",
+  "willBeCreatedAt": "Will be created at:\n{path}",
+  "@willBeCreatedAt": {
+    "placeholders": { "path": { "type": "String" } }
+  },
+  "checkAgain": "Check again",
+  "useThis": "Use this",
+
+  "enabled": "Enabled",
+  "disabled": "Disabled",
+  "showInFileManager": "Show in file manager",
+  "uninstallMod": "Uninstall mod",
+  "uninstallConfirmTitle": "Uninstall {title}?",
+  "@uninstallConfirmTitle": {
+    "placeholders": { "title": { "type": "String" } }
+  },
+  "uninstallConfirmBody": "The file will be deleted from disk:\n{path}",
+  "@uninstallConfirmBody": {
+    "placeholders": { "path": { "type": "String" } }
+  },
+  "cancel": "Cancel",
+  "uninstall": "Uninstall",
+
+  "conflictSameNameHeading": "{count, plural, =1{Another enabled mod has the same file name:} other{{count} other enabled mods have the same file name:}}",
+  "@conflictSameNameHeading": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "conflictVersionHeading": "{count, plural, =1{Another enabled mod looks like a different version of this mod:} other{{count} other enabled mods look like different versions of this mod:}}",
+  "@conflictVersionHeading": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "conflictResourcesHeading": "{count, plural, =1{Another enabled mod overrides the same in-game resources:} other{{count} other enabled mods override the same in-game resources:}}",
+  "@conflictResourcesHeading": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "sharedResources": "{count, plural, =1{1 shared resource} other{{count} shared resources}}",
+  "@sharedResources": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "conflictSameNameBody": "Identical names usually mean the same mod is installed twice, or two creators' packages clash. The game loads their overlapping resources in an unpredictable order: keep one and disable or remove the rest.",
+  "conflictVersionBody": "Having several versions of a mod installed means the game loads their overlapping resources in an unpredictable order: keep the newest and disable or remove the rest.",
+  "conflictResourcesBody": "These packages contain resources with the same identifiers, so the game only keeps the copy it loads last. That can be intentional — patch and override mods shadow another mod's resources on purpose — but for unrelated mods it means one of them silently stops working: keep the one you want and disable the rest.",
+
+  "modInDirectory": "in {dir}",
+  "@modInDirectory": {
+    "placeholders": { "dir": { "type": "String" } }
+  },
+  "factVersion": "Version",
+  "factFormat": "Format",
+  "factSize": "Size",
+  "factType": "Type",
+  "factModified": "Modified",
+
+  "statusHeading": "Status",
+  "statusEnabledBody": "This mod is active: the game will load it on next launch.",
+  "statusDisabledBody": "This mod is disabled: the file is kept on disk with a \"{marker}\" marker so the game skips it. Enable it any time; nothing is deleted.",
+  "@statusDisabledBody": {
+    "placeholders": { "marker": { "type": "String" } }
+  },
+  "fileOnDisk": "File on disk",
+  "insideThePackage": "Inside the package",
+  "resourcesTotal": "{count, plural, =1{1 resource total} other{{count} resources total}}",
+  "@resourcesTotal": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "settingsTitle": "Settings",
+  "sectionModManagement": "MOD MANAGEMENT",
+  "sectionAppearance": "APPEARANCE",
+  "sectionLanguage": "LANGUAGE",
+  "sectionPrivacy": "PRIVACY",
+  "sectionModsFolder": "MODS FOLDER · {game}",
+  "@sectionModsFolder": {
+    "placeholders": { "game": { "type": "String" } }
+  },
+  "sectionGameCaches": "GAME CACHES · {game}",
+  "@sectionGameCaches": {
+    "placeholders": { "game": { "type": "String" } }
+  },
+  "sectionFeedback": "FEEDBACK",
+  "sectionAbout": "ABOUT",
+
+  "prefWarnConflictsTitle": "Warn about conflicts",
+  "prefWarnConflictsDesc": "Badge enabled mods that duplicate a file name or override the same in-game resources as another mod",
+  "prefConfirmDeleteTitle": "Confirm before uninstalling",
+  "prefConfirmDeleteDesc": "Ask before a mod file is deleted from disk",
+  "prefShowDisabledTitle": "Show disabled mods",
+  "prefShowDisabledDesc": "Keep disabled mods visible in the library instead of hiding them",
+  "prefScanArtworkTitle": "Scan inside mods",
+  "prefScanArtworkDesc": "Look inside mod files while the library loads for embedded artwork, content details and mods that override the same resources",
+  "prefSoundEffectsTitle": "UI sound effects",
+  "prefSoundEffectsDesc": "Play the classic Sims interface sounds on clicks, toggles and alerts",
+  "prefAnalyticsTitle": "Share anonymous usage data",
+  "prefAnalyticsDesc": "Send anonymous usage statistics and crash reports to help improve the app. Never includes mod names, file paths or anything personal",
+
+  "themeTitle": "Theme",
+  "themeDesc": "Light or dark. “System” follows your computer's setting.",
+  "themeSystem": "System",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+
+  "languageTitle": "App language",
+  "languageDesc": "Choose the language the app is shown in. “System” follows your computer's language.",
+  "languageSystem": "System",
+
+  "folderNotFound": "Not found. Choose a folder",
+  "folderNotLocated": "The game (or its mods folder) was not located automatically",
+  "folderSummary": "{count, plural, =1{1 mod} other{{count} mods}} · {size} on disk",
+  "@folderSummary": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "size": { "type": "String" }
+    }
+  },
+  "customFolder": "custom folder",
+  "change": "Change…",
+  "resetToAuto": "Reset to auto",
+  "createDefaultFolderAt": "Create the default folder (with the files the game needs) at:\n{path}",
+  "@createDefaultFolderAt": {
+    "placeholders": { "path": { "type": "String" } }
+  },
+  "createFolder": "Create folder",
+  "alsoFoundOnThisComputer": "Also found on this computer:",
+
+  "clearCacheTitle": "Clear cache files",
+  "clearCacheDesc": "{count, plural, =1{Delete 1 cache file ({size})} other{Delete {count} cache files ({size})}} so newly added or removed content shows up; the game rebuilds them on its next launch",
+  "@clearCacheDesc": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "size": { "type": "String" }
+    }
+  },
+  "clearCaches": "Clear caches",
+
+  "reportBugTitle": "Report a bug",
+  "reportBugDesc": "Open a bug report on GitHub; your app version, OS and current game come prefilled",
+  "reportBugButton": "Report…",
+  "suggestFeatureTitle": "Suggest a feature",
+  "suggestFeatureDesc": "Missing something? Tell us what would make the mod manager better",
+  "suggestFeatureButton": "Suggest…",
+  "wikiTitle": "User guide & FAQ",
+  "wikiDesc": "How to install mods, fix folder detection, and more, on the project wiki",
+  "wikiButton": "Open wiki",
+
+  "aboutTagline": "Version {version} · The Sims 1–4 supported · SimCity coming soon",
+  "@aboutTagline": {
+    "placeholders": { "version": { "type": "String" } }
+  },
+  "updateIsAvailable": "Version {version} is available",
+  "@updateIsAvailable": {
+    "placeholders": { "version": { "type": "String" } }
+  },
+  "noUpdateFound": "No update found",
+  "getVersion": "Get v{version}",
+  "@getVersion": {
+    "placeholders": { "version": { "type": "String" } }
+  },
+  "checkingForUpdates": "Checking…",
+  "checkForUpdates": "Check for updates",
+
+  "categoryPackage": "Package",
+  "categoryScript": "Script",
+  "categoryObject": "Object",
+  "categoryArchive": "Archive",
+  "categorySkin": "Skin",
+  "categoryTexture": "Texture",
+  "categoryWall": "Wall",
+  "categoryFloor": "Floor",
+
+  "contentCasParts": "CAS parts",
+  "contentObjects": "objects",
+  "contentTunings": "tunings",
+  "contentBehaviors": "behaviors",
+  "contentTextTables": "text tables",
+  "contentTextures": "textures",
+  "contentMeshes": "meshes",
+
+  "eraClassic": "Classic",
+  "eraNightlife": "Nightlife",
+  "eraAmbitions": "Ambitions",
+  "eraModern": "Modern",
+  "eraMedieval": "Medieval",
+
+  "setupHelpSims1": "The original The Sims keeps custom content inside its install folder, not Documents: objects go in a Downloads folder next to the game executable (e.g. C:\\Program Files (x86)\\Maxis\\The Sims\\Downloads), and this app sorts the other types automatically — skins (.skn/.cmx/.bmp) into GameData\\Skins, walls and floors into GameData\\Walls and GameData\\Floors. The 2025 Legacy Collection works the same way from its own install folder (EA Games\\The Sims Legacy, or Steam\\steamapps\\common\\The Sims Legacy Collection). If the game is installed somewhere else (a different drive, a custom Steam library), pick its Downloads folder manually.",
+  "setupHelpSims2": "The Sims 2 loads custom content from Documents > EA Games > The Sims 2 > Downloads (the Ultimate Collection uses “The Sims 2 Ultimate Collection”; the 2025 Legacy Collection uses “The Sims 2 Legacy”). The folder may not exist until you create it or install content once. When the game starts, answer “Yes” to the custom content prompt so downloads are enabled.",
+  "setupHelpSims3": "The Sims 3 does not create a mods folder on its own: it needs the community “framework”: a Mods > Packages folder inside Documents > Electronic Arts > The Sims 3, plus a Resource.cfg file that tells the game to read it. This app can create both for you. On disc/Wine installs the folder can live inside the app bundle instead; use “Choose folder” to point at it.",
+  "setupHelpSims4": "The Sims 4 loads mods from Documents > Electronic Arts > The Sims 4 > Mods. The game creates this folder the first time it runs, so launch the game once if it is missing. Then, in the game, turn on Options > Game Options > Other > “Enable Custom Content and Mods” (and “Script Mods Allowed” for .ts4script files) and restart the game.",
+  "setupHelpSimsMedieval": "The Sims Medieval loads mods from its install folder, not Documents: a Mods > Packages folder next to the game files (e.g. C:\\Program Files (x86)\\Origin Games\\The Sims Medieval), plus a Resource.cfg file in the install folder that tells the game to read it. This app can create both for you (Windows may ask for administrator rights under Program Files). The Documents > Electronic Arts > The Sims Medieval folder only holds saves; mods placed there do nothing. For Wine/CrossOver installs or a custom Steam library, use “Choose folder” to point at the Mods > Packages folder inside the game install."
+}

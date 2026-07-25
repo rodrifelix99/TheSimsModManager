@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title data-i18n="meta.title">The Sims Mod Manager: gerenciador de mods grátis para The Sims 1, 2, 3, 4 e Medieval</title>
+<meta name="description" data-i18n-attr="content:meta.description" content="Um app de desktop grátis para Windows, macOS e Linux que organiza seus mods e conteúdo personalizado do The Sims: miniaturas de verdade, ativar e desativar com um clique, avisos de conflito e detecção automática de pastas para todos os jogos principais do The Sims e o The Sims Medieval.">
+<meta property="og:title" content="The Sims Mod Manager">
+<meta property="og:description" data-i18n-attr="content:meta.social" content="Gerenciador de mods grátis e multiplataforma para The Sims 1, 2, 3, 4 e Medieval. Miniaturas de verdade, ativar e desativar com um clique, avisos de conflito.">
+<meta property="og:image" content="https://rodrifelix99.github.io/TheSimsModManager/images/library-grid.png">
+<meta property="og:image:width" content="2228">
+<meta property="og:image:height" content="1436">
+<meta property="og:image:alt" data-i18n-attr="content:meta.ogImageAlt" content="A biblioteca do The Sims Mod Manager mostrando uma grade de mods com miniaturas">
+<meta property="og:url" content="https://rodrifelix99.github.io/TheSimsModManager/pt/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="The Sims Mod Manager">
+<meta name="twitter:description" data-i18n-attr="content:meta.social" content="Gerenciador de mods grátis e multiplataforma para The Sims 1, 2, 3, 4 e Medieval. Miniaturas de verdade, ativar e desativar com um clique, avisos de conflito.">
+<meta name="twitter:image" content="https://rodrifelix99.github.io/TheSimsModManager/images/library-grid.png">
+<link rel="canonical" href="https://rodrifelix99.github.io/TheSimsModManager/pt/">
+<link rel="alternate" hreflang="en" href="https://rodrifelix99.github.io/TheSimsModManager/">
+<link rel="alternate" hreflang="zh" href="https://rodrifelix99.github.io/TheSimsModManager/zh/">
+<link rel="alternate" hreflang="es" href="https://rodrifelix99.github.io/TheSimsModManager/es/">
+<link rel="alternate" hreflang="pt" href="https://rodrifelix99.github.io/TheSimsModManager/pt/">
+<link rel="alternate" hreflang="fr" href="https://rodrifelix99.github.io/TheSimsModManager/fr/">
+<link rel="alternate" hreflang="de" href="https://rodrifelix99.github.io/TheSimsModManager/de/">
+<link rel="alternate" hreflang="it" href="https://rodrifelix99.github.io/TheSimsModManager/it/">
+<link rel="alternate" hreflang="ru" href="https://rodrifelix99.github.io/TheSimsModManager/ru/">
+<link rel="alternate" hreflang="pl" href="https://rodrifelix99.github.io/TheSimsModManager/pl/">
+<link rel="alternate" hreflang="ja" href="https://rodrifelix99.github.io/TheSimsModManager/ja/">
+<link rel="alternate" hreflang="x-default" href="https://rodrifelix99.github.io/TheSimsModManager/">
+<link rel="icon" type="image/svg+xml" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M50 4 L88 50 L50 96 L12 50 Z" fill="%231FBF8F"/><path d="M50 4 L88 50 L50 50 Z" fill="%2312B0D6" opacity="0.65"/></svg>'>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Sims 4 palette (default), swapped live by the theme switcher */
+    --accent:  #1FBF8F;
+    --accent2: #12B0D6;
+    --bg:      #EAF6F2;
+    --surface: #FFFFFF;
+    --surface-alt: #F2FAF7;
+    --text:    #0F2E28;
+    --muted:   #5F827A;
+    --border:  #D9ECE5;
+    --tint:    #DCF5EC;
+    --conflict:#E0632E;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    transition: background .45s ease, color .45s ease;
+  }
+  a { color: inherit; }
+  img { max-width: 100%; display: block; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+  /* ---------- header ---------- */
+  header {
+    position: sticky; top: 0; z-index: 50;
+    background: color-mix(in srgb, var(--surface) 82%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    transition: background .45s ease, border-color .45s ease;
+  }
+  .nav { display: flex; align-items: center; gap: 12px; height: 60px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 900; font-size: 17px; text-decoration: none; }
+  .brand svg { width: 28px; height: 28px; }
+  .nav-links { margin-left: auto; display: flex; gap: 4px; align-items: center; }
+  .nav-links a {
+    text-decoration: none; font-weight: 700; font-size: 14px; color: var(--muted);
+    padding: 7px 12px; border-radius: 999px; transition: color .2s, background .2s;
+  }
+  .nav-links a { white-space: nowrap; }
+  .nav-links a:hover { color: var(--text); background: var(--tint); }
+  .nav-links a.cta {
+    color: #fff; background: linear-gradient(135deg, var(--accent), var(--accent2));
+    box-shadow: 0 2px 10px color-mix(in srgb, var(--accent) 40%, transparent);
+  }
+  .nav-links a.cta:hover { filter: brightness(1.06); }
+  .lang {
+    font: inherit; font-weight: 700; font-size: 13.5px; color: var(--muted);
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 999px; padding: 6px 10px; margin-right: 4px; cursor: pointer;
+    transition: color .2s, border-color .2s, background .45s ease;
+  }
+  .lang:hover { color: var(--text); border-color: var(--accent); }
+  @media (max-width: 860px) { .nav-links a:not(.cta) { display: none; } }
+  @media (max-width: 480px) { .brand { font-size: 14.5px; white-space: nowrap; } .brand svg { width: 24px; height: 24px; } }
+  /* Below this the name, the language picker and the download button stop
+     fitting side by side; the diamond alone still says whose site this is. */
+  @media (max-width: 560px) { .brand-name { display: none; } }
+
+  /* ---------- language offer ---------- */
+  .lang-offer { background: var(--tint); border-bottom: 1px solid var(--border); }
+  .lang-offer .wrap { display: flex; align-items: center; gap: 14px; padding-top: 11px; padding-bottom: 11px; }
+  .lang-offer p { font-size: 14px; font-weight: 700; margin: 0; }
+  .lang-offer a { color: var(--accent); font-weight: 800; white-space: nowrap; }
+  .lang-offer button {
+    margin-left: auto; flex: none; background: none; border: 0; cursor: pointer;
+    font: inherit; font-size: 19px; line-height: 1; color: var(--muted); padding: 4px 2px;
+  }
+  .lang-offer button:hover { color: var(--text); }
+  @media (max-width: 560px) { .lang-offer p { font-size: 13px; } }
+
+  /* ---------- hero ---------- */
+  .hero { padding: 72px 0 24px; text-align: center; }
+  .hero h1 {
+    font-size: clamp(34px, 6vw, 56px); font-weight: 900; line-height: 1.12;
+    letter-spacing: -0.5px; max-width: 800px; margin: 0 auto;
+  }
+  .hero h1 .grad {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .hero p.sub {
+    font-size: clamp(16px, 2.4vw, 20px); color: var(--muted); font-weight: 600;
+    max-width: 640px; margin: 18px auto 0;
+  }
+  .hero-badges { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 22px; }
+  .hero-badges span {
+    font-size: 13px; font-weight: 700; color: var(--muted);
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 5px 14px; border-radius: 999px;
+    transition: background .45s ease, border-color .45s ease;
+  }
+  .hero-cta { margin-top: 30px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff; text-decoration: none; font-weight: 800; font-size: 17px;
+    padding: 15px 34px; border-radius: 16px;
+    box-shadow: 0 6px 24px color-mix(in srgb, var(--accent) 45%, transparent);
+    transition: transform .15s ease, box-shadow .15s ease, filter .15s;
+  }
+  .btn-primary:hover { transform: translateY(-2px); filter: brightness(1.05); }
+  .btn-primary svg { width: 20px; height: 20px; }
+  .hero-cta .alt { font-size: 13.5px; color: var(--muted); font-weight: 600; }
+  .hero-cta .alt a { color: var(--accent); font-weight: 700; }
+
+  /* The screenshots carry their own rounded window, padding and shadow, so
+     nothing is drawn around them here. */
+  .hero-shot { margin: 24px auto 0; max-width: 1040px; position: relative; }
+
+  /* ---------- theme strip ---------- */
+  .themes { padding: 84px 0 10px; text-align: center; }
+  .themes h2, section h2 {
+    font-size: clamp(26px, 4vw, 36px); font-weight: 900; letter-spacing: -0.4px; line-height: 1.2;
+  }
+  .themes p.lead, section p.lead { color: var(--muted); font-weight: 600; max-width: 620px; margin: 12px auto 0; }
+  .theme-chips { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 28px; }
+  .chip {
+    display: flex; align-items: center; gap: 10px; cursor: pointer;
+    background: var(--surface); border: 2px solid var(--border);
+    padding: 10px 20px 10px 12px; border-radius: 16px;
+    font: inherit; font-weight: 800; font-size: 15px; color: var(--text);
+    transition: border-color .25s, transform .15s, background .45s ease;
+  }
+  .chip:hover { transform: translateY(-2px); }
+  .chip.active { border-color: var(--accent); box-shadow: 0 4px 18px color-mix(in srgb, var(--accent) 25%, transparent); }
+  .chip img { width: 28px; height: 28px; object-fit: contain; }
+  .chip small { display: block; text-align: left; font-size: 11.5px; font-weight: 700; color: var(--muted); line-height: 1.2; }
+  .themes .hint { margin-top: 16px; font-size: 13px; color: var(--muted); font-weight: 600; }
+
+  /* ---------- features ---------- */
+  section { padding: 84px 0; }
+  section .head { text-align: center; margin-bottom: 44px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 18px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 18px;
+    padding: 26px; transition: background .45s ease, border-color .45s ease, transform .15s ease, box-shadow .15s ease;
+  }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px -12px color-mix(in srgb, var(--text) 22%, transparent); }
+  .card .icon {
+    width: 44px; height: 44px; border-radius: 13px; display: grid; place-items: center;
+    background: var(--tint); font-size: 21px; margin-bottom: 14px;
+    transition: background .45s ease;
+  }
+  .card h3 { font-size: 17px; font-weight: 800; margin-bottom: 6px; }
+  .card p { font-size: 14.5px; color: var(--muted); font-weight: 600; }
+
+  /* ---------- download ---------- */
+  #download { background: var(--surface-alt); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); transition: background .45s ease, border-color .45s ease; }
+  .version-pill {
+    display: inline-block; margin-top: 10px; font-size: 13px; font-weight: 800;
+    color: var(--accent); background: var(--tint); padding: 4px 14px; border-radius: 999px;
+  }
+  .dl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+  .dl-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 18px;
+    padding: 24px; display: flex; flex-direction: column; gap: 6px;
+    transition: background .45s ease, border-color .45s ease;
+  }
+  .dl-card.recommended { border-color: var(--accent); box-shadow: 0 6px 24px -8px color-mix(in srgb, var(--accent) 35%, transparent); }
+  .dl-card .os { height: 30px; margin-bottom: 4px; }
+  .dl-card .os img { height: 100%; width: auto; object-fit: contain; }
+  .dl-card h3 { font-size: 16.5px; font-weight: 800; }
+  .dl-card h3 small { font-weight: 700; color: var(--muted); font-size: 12.5px; margin-left: 4px; }
+  .dl-card p { font-size: 13px; color: var(--muted); font-weight: 600; flex: 1; }
+  .dl-card a.get {
+    margin-top: 12px; text-align: center; text-decoration: none; font-weight: 800; font-size: 14.5px;
+    color: var(--accent); border: 2px solid var(--accent); border-radius: 12px; padding: 9px 0;
+    transition: background .2s, color .2s;
+  }
+  .dl-card a.get:hover { background: var(--accent); color: #fff; }
+  .dl-card.recommended a.get { background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; color: #fff; padding: 11px 0; }
+  .dl-card.recommended a.get:hover { filter: brightness(1.06); }
+  .dl-note { margin-top: 22px; text-align: center; font-size: 13px; color: var(--muted); font-weight: 600; }
+  .dl-note a { color: var(--accent); font-weight: 700; }
+
+  /* ---------- games ---------- */
+  .games-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+  .game-card { border-radius: 18px; padding: 24px; border: 1px solid var(--border); background: var(--surface); transition: background .45s ease, border-color .45s ease; }
+  .game-card .g-icon { width: 44px; height: 44px; object-fit: contain; margin-bottom: 12px; }
+  .game-card h3 { font-size: 17px; font-weight: 800; }
+  .game-card .era { font-size: 12px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
+  .game-card p { margin-top: 8px; font-size: 13.5px; color: var(--muted); font-weight: 600; }
+  .games-note { margin-top: 20px; text-align: center; font-size: 13.5px; color: var(--muted); font-weight: 600; max-width: 640px; margin-left: auto; margin-right: auto; }
+
+  /* ---------- second shot ---------- */
+  .shot2 { max-width: 960px; margin: 22px auto 0; }
+  .shot2 figcaption { text-align: center; margin-top: 0; font-size: 13.5px; color: var(--muted); font-weight: 600; }
+
+  /* ---------- FAQ ---------- */
+  .faq { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+  details {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 16px 20px; transition: background .45s ease, border-color .45s ease;
+  }
+  summary { cursor: pointer; font-weight: 800; font-size: 15.5px; list-style: none; display: flex; align-items: center; }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: '+'; margin-left: auto; font-size: 20px; color: var(--accent); font-weight: 700; transition: transform .2s; }
+  details[open] summary::after { transform: rotate(45deg); }
+  details p { margin-top: 10px; font-size: 14.5px; color: var(--muted); font-weight: 600; }
+  details a { color: var(--accent); font-weight: 700; }
+
+  /* ---------- footer ---------- */
+  footer { border-top: 1px solid var(--border); padding: 44px 0 52px; transition: border-color .45s ease; }
+  .foot-links { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-bottom: 24px; }
+  .foot-links a { font-size: 14px; font-weight: 700; color: var(--muted); text-decoration: none; }
+  .foot-links a:hover { color: var(--accent); }
+  .disclaimer { max-width: 760px; margin: 0 auto; text-align: center; font-size: 12px; color: var(--muted); font-weight: 600; line-height: 1.7; }
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "The Sims Mod Manager",
+  "description": "Um app de desktop grátis para Windows, macOS e Linux que organiza seus mods e conteúdo personalizado do The Sims: miniaturas de verdade, ativar e desativar com um clique, avisos de conflito e detecção automática de pastas para todos os jogos principais do The Sims e o The Sims Medieval.",
+  "url": "https://rodrifelix99.github.io/TheSimsModManager/",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Windows, macOS, Linux",
+  "screenshot": "https://rodrifelix99.github.io/TheSimsModManager/images/library-grid.png",
+  "downloadUrl": "https://github.com/rodrifelix99/TheSimsModManager/releases/latest",
+  "sameAs": [
+    "https://github.com/rodrifelix99/TheSimsModManager",
+    "https://thesimsmodmanager.tumblr.com/"
+  ],
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Felix",
+    "url": "https://github.com/rodrifelix99"
+  }
+}
+</script>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="#">
+      <svg viewBox="0 0 100 100" aria-hidden="true"><path d="M50 4 L88 50 L50 96 L12 50 Z" fill="var(--accent)"/><path d="M50 4 L88 50 L50 50 Z" fill="var(--accent2)" opacity="0.65"/></svg>
+      <span class="brand-name">The Sims Mod Manager</span>
+    </a>
+    <nav class="nav-links">
+      <a href="#features" data-i18n="nav.features">Recursos</a>
+      <a href="#games" data-i18n="nav.games">Jogos</a>
+      <a href="#faq" data-i18n="nav.faq">Dúvidas</a>
+      <a href="https://github.com/rodrifelix99/TheSimsModManager">GitHub</a>
+      <select class="lang" id="lang-picker" aria-label="Language">
+        <option value="">English</option>
+        <option value="zh">简体中文</option>
+        <option value="es">Español</option>
+        <option value="pt" selected>Português</option>
+        <option value="fr">Français</option>
+        <option value="de">Deutsch</option>
+        <option value="it">Italiano</option>
+        <option value="ru">Русский</option>
+        <option value="pl">Polski</option>
+        <option value="ja">日本語</option>
+      </select>
+      <a class="cta" href="#download" data-i18n="nav.download">Baixar</a>
+    </nav>
+  </div>
+</header>
+
+<div class="hero wrap">
+  <h1 data-i18n="hero.h1">Todos os seus mods do The Sims,<br><span class="grad">finalmente organizados.</span></h1>
+  <p class="sub" data-i18n="hero.sub">Um app de desktop grátis que transforma sua pasta de mods numa biblioteca de verdade. Para The&nbsp;Sims&nbsp;1, 2, 3, 4 e Medieval, no Windows, macOS e Linux.</p>
+  <div class="hero-badges">
+    <span data-i18n="hero.badge1">✓ Grátis pra sempre</span>
+    <span data-i18n="hero.badge2">✓ Sem conta</span>
+    <span data-i18n="hero.badge3">✓ Nunca apaga seus arquivos</span>
+  </div>
+  <div class="hero-cta">
+    <a class="btn-primary" id="hero-download" href="https://github.com/rodrifelix99/TheSimsModManager/releases/latest">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span id="hero-download-label" data-i18n="hero.download">Baixar</span>
+    </a>
+    <div class="alt" data-i18n="hero.otherPlatforms">Também para <a href="#download" id="alt-platforms">outras plataformas</a></div>
+  </div>
+  <div class="hero-shot">
+    <img src="../images/library-grid.png" data-i18n-attr="alt:hero.shotAlt" alt="The Sims Mod Manager mostrando uma biblioteca de mods do The Sims 4 com miniaturas, categorias e chaves de ativar e desativar" width="1600">
+  </div>
+</div>
+
+<div class="themes wrap">
+  <h2 data-i18n="themes.h2">O app se veste pra cada jogo.</h2>
+  <p class="lead" data-i18n="themes.lead">Troque de jogo e a interface inteira muda de cor: paleta, logos e até os sons clássicos da interface do The&nbsp;Sims&nbsp;1. Testa aqui mesmo:</p>
+  <div class="theme-chips" id="theme-chips">
+    <button class="chip" data-theme="sims1"><img src="../images/games/the_sims_1_icon.png" alt=""><span>The Sims<small>2000</small></span></button>
+    <button class="chip" data-theme="sims2"><img src="../images/games/the_sims_2_icon.png" alt=""><span>The Sims 2<small>2004</small></span></button>
+    <button class="chip" data-theme="sims3"><img src="../images/games/the_sims_3_icon.png" alt=""><span>The Sims 3<small>2009</small></span></button>
+    <button class="chip" data-theme="simsmedieval"><img src="../images/games/the_sims_medieval_icon.webp" alt=""><span>The Sims Medieval<small>2011</small></span></button>
+    <button class="chip active" data-theme="sims4"><img src="../images/games/the_sims_4_icon.png" alt=""><span>The Sims 4<small>2014</small></span></button>
+  </div>
+  <p class="hint" data-i18n="themes.hint">Essas são as paletas reais do app. A página inteira acabou de mudar de tema, igualzinho ao app.</p>
+  <figure class="shot2">
+    <img src="../images/library-grid-ts2.png" data-i18n-attr="alt:themes.shotAlt" alt="The Sims Mod Manager gerenciando o The Sims 2 com o tema quentinho em creme e verde-oliva" width="1600" loading="lazy">
+    <figcaption data-i18n="themes.caption">A mesma biblioteca gerenciando o The Sims 2, com a paleta quente dele.</figcaption>
+  </figure>
+  <figure class="shot2">
+    <img src="../images/dark-mode.png" data-i18n-attr="alt:themes.darkAlt" alt="A biblioteca do The Sims Mod Manager no modo escuro, verde menta num fundo quase preto" width="1600" loading="lazy">
+    <figcaption data-i18n="themes.darkCaption">Modo escuro também tem: segue o sistema ou você escolhe nas configurações.</figcaption>
+  </figure>
+</div>
+
+<section id="features">
+  <div class="wrap">
+    <div class="head">
+      <h2 data-i18n="features.h2">Tudo que uma pasta de mods gostaria de fazer.</h2>
+      <p class="lead" data-i18n="features.lead">Chega de renomear arquivo na mão e adivinhar qual download quebrou seu jogo.</p>
+    </div>
+    <div class="grid">
+      <div class="card"><div class="icon">🖼️</div><h3 data-i18n="features.thumbs.h3">Miniaturas de verdade e detalhes</h3><p data-i18n="features.thumbs.p">O app olha dentro dos seus arquivos <b>.package</b> e tira de lá a imagem de verdade, além de um resumo do que tem dentro: peças do CAS, objetos, texturas, tunings.</p></div>
+      <div class="card"><div class="icon">🔀</div><h3 data-i18n="features.toggle.h3">Ativar e desativar com um clique</h3><p data-i18n="features.toggle.p">Vira a chave e o mod desliga sem ser apagado. O arquivo só é renomeado pro jogo pular ele; é só virar de volta quando quiser.</p></div>
+      <div class="card"><div class="icon">⚠️</div><h3 data-i18n="features.conflicts.h3">Avisos de conflito</h3><p data-i18n="features.conflicts.p">Instalou o mesmo mod duas vezes, ou deixou a versão antiga do lado da nova? Os dois ficam marcados. O app também olha dentro dos pacotes e aponta os que sobrescrevem os recursos um do outro, que é o motivo real de CC quebrar.</p></div>
+      <div class="card"><div class="icon">📦</div><h3 data-i18n="features.drop.h3">Arrasta, solta, pronto</h3><p data-i18n="features.drop.p">Solte arquivos ou pastas inteiras na janela e tudo cai no lugar certo. Downloads em <b>.zip</b>, <b>.rar</b> e <b>.7z</b> são descompactados pra você, com a estrutura de pastas mantida e sem os leia-me e as capturas de tela.</p></div>
+      <div class="card"><div class="icon">🧭</div><h3 data-i18n="features.folders.h3">Acha suas pastas sozinho</h3><p data-i18n="features.folders.p">Nomes de pasta traduzidos (“Los Sims 3”), a Ultimate Collection, Documentos movidos pelo OneDrive, várias instalações ao mesmo tempo: ele acha, e se não achar você aponta na mão.</p></div>
+      <div class="card"><div class="icon">🏗️</div><h3 data-i18n="features.setup.h3">Monta a pasta de mods direitinho</h3><p data-i18n="features.setup.p">Ainda sem pasta de mods? Um clique cria ela <i>com os arquivos que o jogo precisa</i>, tipo o framework Resource.cfg que o The Sims 3 exige antes de qualquer mod funcionar.</p></div>
+      <div class="card"><div class="icon">🔍</div><h3 data-i18n="features.search.h3">Busca, filtros e números</h3><p data-i18n="features.search.p">Busque na biblioteca inteira, filtre por categoria, alterne entre grade e lista e acompanhe ao vivo quantos mods estão ativos, inativos e em conflito.</p></div>
+    </div>
+    <figure class="shot2">
+      <img src="../images/mod-details-conflict.png" data-i18n-attr="alt:features.shotAlt" alt="A página de detalhes de um mod mostrando o que tem dentro do pacote, onde o arquivo fica e um aviso de que outro mod tem o mesmo nome" width="1600" loading="lazy">
+      <figcaption data-i18n="features.caption">Abre qualquer mod pra ver o que tem dentro, onde ele fica e por que foi marcado.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section id="download">
+  <div class="wrap">
+    <div class="head">
+      <h2 data-i18n="download.h2">Baixar</h2>
+      <p class="lead" data-i18n="download.lead">Grátis, sem conta e sem pegadinha de instalador. Escolha sua plataforma:</p>
+      <span class="version-pill" id="version-pill" data-i18n="download.latestRelease">Última versão</span>
+    </div>
+    <div class="dl-grid">
+      <div class="dl-card" data-platform="windows-setup">
+        <div class="os"><img src="../images/systems/windows.webp" alt="Windows"></div>
+        <h3>Windows <small data-i18n="download.winSetup.tag">instalador</small></h3>
+        <p data-i18n="download.winSetup.p">O recomendado pra maioria das pessoas. O SmartScreen do Windows pode avisar porque o app ainda não tem assinatura digital; escolha <b>Mais informações → Executar assim mesmo</b>.</p>
+        <a class="get" href="https://github.com/rodrifelix99/TheSimsModManager/releases/latest" data-i18n="download.getExe">Baixar .exe</a>
+      </div>
+      <div class="dl-card" data-platform="windows-portable">
+        <div class="os"><img src="../images/systems/windows.webp" alt="Windows"></div>
+        <h3>Windows <small data-i18n="download.winPortable.tag">portátil</small></h3>
+        <p data-i18n="download.winPortable.p">Sem instalar nada. Extraia o zip onde quiser e rode o <b>sims_mod_manager.exe</b>.</p>
+        <a class="get" href="https://github.com/rodrifelix99/TheSimsModManager/releases/latest" data-i18n="download.getZip">Baixar .zip</a>
+      </div>
+      <div class="dl-card" data-platform="macos">
+        <div class="os"><img src="../images/systems/apple.png" alt="macOS"></div>
+        <h3>macOS</h3>
+        <p data-i18n="download.macos.p">Assinado e notarizado pela Apple. Descompacte e <b>arraste pra Aplicativos</b>; depois é só abrir como qualquer app.</p>
+        <a class="get" href="https://github.com/rodrifelix99/TheSimsModManager/releases/latest" data-i18n="download.getZip">Baixar .zip</a>
+      </div>
+      <div class="dl-card" data-platform="linux">
+        <div class="os"><img src="../images/systems/linux.png" alt="Linux"></div>
+        <h3>Linux</h3>
+        <p data-i18n="download.linux.p">Extraia o arquivo e rode o <b>sims_mod_manager</b>. Funciona com jogos instalados via Wine/CrossOver também.</p>
+        <a class="get" href="https://github.com/rodrifelix99/TheSimsModManager/releases/latest" data-i18n="download.getTarGz">Baixar .tar.gz</a>
+      </div>
+    </div>
+    <p class="dl-note" data-i18n="download.note">Todos os downloads vêm da <a href="https://github.com/rodrifelix99/TheSimsModManager/releases">página de releases do GitHub</a>, onde cada versão aparece com a lista de mudanças.</p>
+  </div>
+</section>
+
+<section id="games">
+  <div class="wrap">
+    <div class="head">
+      <h2 data-i18n="games.h2">Todos os The Sims principais. E o Medieval.</h2>
+      <p class="lead" data-i18n="games.lead">Cada jogo guarda os mods num lugar diferente. O app sabe onde.</p>
+    </div>
+    <div class="games-grid">
+      <div class="game-card"><img class="g-icon" src="../images/games/the_sims_1_icon.png" alt="The Sims icon"><h3>The Sims</h3><div class="era">2000</div><p data-i18n="games.sims1">Os mods ficam na pasta <b>Downloads</b> da instalação, não em Documentos. O app sabe a diferença.</p></div>
+      <div class="game-card"><img class="g-icon" src="../images/games/the_sims_2_icon.png" alt="The Sims 2 icon"><h3>The Sims 2</h3><div class="era">2004</div><p data-i18n="games.sims2">Dá conta da pasta padrão <b>EA Games</b> em Documentos e do nome próprio da Ultimate Collection.</p></div>
+      <div class="game-card"><img class="g-icon" src="../images/games/the_sims_3_icon.png" alt="The Sims 3 icon"><h3>The Sims 3</h3><div class="era">2009</div><p data-i18n="games.sims3">Precisa do framework <b>Resource.cfg</b> antes de qualquer mod carregar; o app cria ele pra você.</p></div>
+      <div class="game-card"><img class="g-icon" src="../images/games/the_sims_medieval_icon.webp" alt="The Sims Medieval icon"><h3>The Sims Medieval</h3><div class="era">2011</div><p data-i18n="games.medieval">Os mods ficam na <b>pasta de instalação</b>, não em Documentos, e precisam de um <b>Resource.cfg</b>; o app monta as duas coisas.</p></div>
+      <div class="game-card"><img class="g-icon" src="../images/games/the_sims_4_icon.png" alt="The Sims 4 icon"><h3>The Sims 4</h3><div class="era">2014</div><p data-i18n="games.sims4">Usa a pasta <b>Mods</b> de sempre. Só não esqueça de ativar CC e mods de script nas opções do jogo.</p></div>
+    </div>
+    <p class="games-note" data-i18n="games.note">Cada local é só um palpite esperto; dá pra apontar qualquer jogo pra qualquer pasta nas configurações. O SimCity está no <a href="https://github.com/rodrifelix99/TheSimsModManager/issues" style="color:var(--accent);font-weight:700">roadmap</a>, e o app foi feito pra receber qualquer jogo que aceite mods.</p>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <div class="head"><h2 data-i18n="faq.h2">Dúvidas, respondidas.</h2></div>
+    <div class="faq">
+      <details>
+        <summary data-i18n="faq.free.q">É grátis mesmo?</summary>
+        <p data-i18n="faq.free.a">É. O app é grátis pra baixar e usar, e não tem conta, nem anúncio, nem versão “pro”. Se ele salvar o seu sábado, dá pra <a href="https://www.paypal.com/donate/?hosted_button_id=UFSLDMGKB9R6A">pagar um café pro desenvolvedor</a>, mas isso é totalmente opcional.</p>
+      </details>
+      <details>
+        <summary data-i18n="faq.safe.q">Ele pode quebrar meus mods ou saves?</summary>
+        <p data-i18n="faq.safe.a">Desativar um mod só renomeia o arquivo (põe o sufixo <b>.disabled</b>) pro jogo pular ele; nada é apagado, e reativar devolve exatamente o arquivo original. Seus saves nunca são tocados.</p>
+      </details>
+      <details>
+        <summary data-i18n="faq.smartscreen.q">O Windows diz que o app não é reconhecido. É seguro?</summary>
+        <p data-i18n="faq.smartscreen.a">O app ainda não tem assinatura digital (certificado é caro pra um projeto grátis), então o SmartScreen avisa na primeira vez. Escolha <b>Mais informações → Executar assim mesmo</b>. O código-fonte inteiro é <a href="https://github.com/rodrifelix99/TheSimsModManager">público no GitHub</a>, e cada download é compilado pelos próprios servidores do GitHub a partir desse código.</p>
+      </details>
+      <details>
+        <summary data-i18n="faq.localized.q">Funciona com a Ultimate Collection e com jogos traduzidos?</summary>
+        <p data-i18n="faq.localized.a">Funciona. Ele detecta pastas de usuário traduzidas (“Los Sims 3”, “Die Sims 2”…), a Ultimate Collection do The Sims 2, pastas de Documentos movidas pelo OneDrive e várias instalações do mesmo jogo. E se mesmo assim não achar, você aponta a pasta na mão.</p>
+      </details>
+      <details>
+        <summary data-i18n="faq.report.q">Onde eu relato um bug ou peço um recurso?</summary>
+        <p data-i18n="faq.report.a">Na <a href="https://github.com/rodrifelix99/TheSimsModManager/issues">página de issues do GitHub</a>; relatos e ideias são muito bem-vindos. Tem também uma <a href="https://github.com/rodrifelix99/TheSimsModManager/wiki">wiki</a> com guia de uso e perguntas frequentes.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-links">
+      <a href="https://github.com/rodrifelix99/TheSimsModManager">GitHub</a>
+      <a href="https://github.com/rodrifelix99/TheSimsModManager/releases" data-i18n="footer.releases">Versões</a>
+      <a href="https://github.com/rodrifelix99/TheSimsModManager/wiki" data-i18n="footer.wiki">Wiki</a>
+      <a href="https://github.com/rodrifelix99/TheSimsModManager/issues" data-i18n="footer.report">Relatar um bug</a>
+      <a href="https://thesimsmodmanager.tumblr.com/">Tumblr</a>
+      <a href="https://github.com/rodrifelix99/TheSimsModManager/blob/main/LICENSE.md" data-i18n="footer.license">Licença</a>
+      <a href="https://www.paypal.com/donate/?hosted_button_id=UFSLDMGKB9R6A" data-i18n="footer.donate">Doar ♥</a>
+    </div>
+    <p class="disclaimer" data-i18n="footer.disclaimer"><b>The Sims Mod Manager é um projeto de fãs não oficial.</b> Não tem ligação com a Electronic Arts Inc. nem com a Maxis, e não é endossado nem patrocinado por elas. <i>The Sims</i>, <i>SimCity</i> e todos os logos, imagens e sons relacionados são marcas registradas ou material protegido por direitos autorais da Electronic Arts Inc., usados aqui só para identificação e interoperabilidade. O app é grátis e o código está disponível pra ler e contribuir no GitHub.</p>
+  </div>
+</footer>
+
+<script type="application/json" id="lang-offers">{"en":{"msg":"This page is also available in English.","cta":"Switch to English","close":"Dismiss"},"zh":{"msg":"本页面也有简体中文版。","cta":"切换到简体中文","close":"关闭"},"es":{"msg":"Esta página también está disponible en español.","cta":"Verla en español","close":"Descartar"},"pt":{"msg":"Esta página também está disponível em português.","cta":"Ver em português","close":"Dispensar"},"fr":{"msg":"Cette page existe aussi en français.","cta":"La lire en français","close":"Masquer"},"de":{"msg":"Diese Seite gibt es auch auf Deutsch.","cta":"Auf Deutsch ansehen","close":"Ausblenden"},"it":{"msg":"Questa pagina è disponibile anche in italiano.","cta":"Vedila in italiano","close":"Chiudi"},"ru":{"msg":"Эта страница есть и на русском.","cta":"Открыть на русском","close":"Скрыть"},"pl":{"msg":"Ta strona jest też po polsku.","cta":"Zobacz po polsku","close":"Ukryj"},"ja":{"msg":"このページは日本語でもご覧いただけます。","cta":"日本語で読む","close":"閉じる"}}</script>
+<script type="application/json" id="page-strings">
+{
+  "osWindows": "Baixar para Windows",
+  "osMacos": "Baixar para macOS",
+  "osLinux": "Baixar para Linux",
+  "download": "Baixar",
+  "latest": "Última: "
+}
+</script>
+<script>
+  /* ---------- language picker: same page, different folder ---------- */
+  const LANGS = ['zh','es','pt','fr','de','it','ru','pl','ja'];
+  const langRoot = () => location.pathname
+    .replace(/index\.html$/, '')
+    .replace(new RegExp('/(' + LANGS.join('|') + ')/$'), '/');
+  const langHref = code => langRoot() + (code && code !== 'en' ? code + '/' : '');
+
+  document.getElementById('lang-picker').addEventListener('change', e => {
+    location.href = langHref(e.target.value);
+  });
+
+  /* ---------- offer the visitor's own language, without redirecting ----------
+     Sending people somewhere based on Accept-Language would mean Googlebot,
+     which crawls from the US, only ever sees the English page. So the other
+     nine stay reachable by their own URL and this only suggests. */
+  function offerLanguage() {
+    document.querySelector('.lang-offer')?.remove();
+    let dismissed = false;
+    try { dismissed = localStorage.getItem('lang-offer') === 'off'; } catch (e) {}
+    if (dismissed) return;
+    const offers = JSON.parse(document.getElementById('lang-offers').textContent);
+    const here = document.documentElement.lang;
+    const wanted = (navigator.languages && navigator.languages.length
+        ? navigator.languages : [navigator.language || ''])
+      .map(tag => tag.toLowerCase().split('-')[0])
+      .find(code => offers[code]);
+    if (!wanted || wanted === here) return;
+
+    const offer = offers[wanted];
+    const bar = document.createElement('div');
+    bar.className = 'lang-offer';
+    // The banner speaks the visitor's language, not the page's, so it needs
+    // to say so for screen readers and for hyphenation.
+    bar.lang = wanted;
+    const wrap = document.createElement('div');
+    wrap.className = 'wrap';
+    const text = document.createElement('p');
+    text.textContent = offer.msg;
+    const link = document.createElement('a');
+    link.href = langHref(wanted);
+    link.textContent = offer.cta;
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.textContent = '\u00d7';
+    close.setAttribute('aria-label', offer.close);
+    close.addEventListener('click', () => {
+      try { localStorage.setItem('lang-offer', 'off'); } catch (e) {}
+      bar.remove();
+    });
+    wrap.append(text, link, close);
+    bar.append(wrap);
+    document.querySelector('header').insertAdjacentElement('afterend', bar);
+  }
+  offerLanguage();
+
+  /* ---------- live theme switcher (palettes mirror lib/src/ui/game_theme.dart) ---------- */
+  const THEMES = {
+    sims1: { accent:'#12898A', accent2:'#E0A53A', bg:'#EEF2EC', surface:'#FFFFFF', surfaceAlt:'#F2F5EF', text:'#1E3A37', muted:'#6C827E', border:'#DBE4DE', tint:'#DCEFEE' },
+    sims2: { accent:'#5BA12C', accent2:'#E07B2E', bg:'#F4EFE4', surface:'#FFFDF6', surfaceAlt:'#F6F1E6', text:'#31301D', muted:'#83806B', border:'#E6DDC9', tint:'#EAF3DD' },
+    sims3: { accent:'#7CB518', accent2:'#2F7D9E', bg:'#ECEFF0', surface:'#FFFFFF', surfaceAlt:'#F1F4F5', text:'#22303A', muted:'#6C7F88', border:'#DDE4E7', tint:'#E9F2D8' },
+    sims4: { accent:'#1FBF8F', accent2:'#12B0D6', bg:'#EAF6F2', surface:'#FFFFFF', surfaceAlt:'#F2FAF7', text:'#0F2E28', muted:'#5F827A', border:'#D9ECE5', tint:'#DCF5EC' },
+    simsmedieval: { accent:'#9C7B1E', accent2:'#5E9732', bg:'#F1EBDC', surface:'#FFFDF4', surfaceAlt:'#F5EFDF', text:'#33290F', muted:'#857A5C', border:'#E3DAC0', tint:'#F0E7CB' },
+  };
+  const chips = document.querySelectorAll('#theme-chips .chip');
+  chips.forEach(chip => chip.addEventListener('click', () => {
+    const t = THEMES[chip.dataset.theme];
+    const r = document.documentElement.style;
+    r.setProperty('--accent', t.accent);      r.setProperty('--accent2', t.accent2);
+    r.setProperty('--bg', t.bg);              r.setProperty('--surface', t.surface);
+    r.setProperty('--surface-alt', t.surfaceAlt); r.setProperty('--text', t.text);
+    r.setProperty('--muted', t.muted);        r.setProperty('--border', t.border);
+    r.setProperty('--tint', t.tint);
+    chips.forEach(c => c.classList.toggle('active', c === chip));
+  }));
+
+  /* ---------- populate download links from the latest GitHub release ---------- */
+  const RELEASES = 'https://github.com/rodrifelix99/TheSimsModManager/releases/latest';
+  const SUFFIXES = {
+    'windows-setup':    n => n.endsWith('-windows-setup.exe'),
+    'windows-portable': n => n.endsWith('-windows-portable.zip'),
+    'macos':            n => n.endsWith('-macos.zip'),
+    'linux':            n => n.endsWith('-linux-x64.tar.gz'),
+  };
+  const fmtMB = b => (b / 1048576).toFixed(0) + ' MB';
+
+  function detectPlatform() {
+    const ua = navigator.userAgent;
+    if (/Windows/i.test(ua)) return 'windows-setup';
+    if (/Macintosh|Mac OS X/i.test(ua)) return 'macos';
+    if (/Linux/i.test(ua) && !/Android/i.test(ua)) return 'linux';
+    return null;
+  }
+
+  const STRINGS = JSON.parse(document.getElementById('page-strings').textContent);
+  const OS_LABELS = {
+    'windows-setup': STRINGS.osWindows,
+    'macos': STRINGS.osMacos,
+    'linux': STRINGS.osLinux,
+  };
+
+  fetch('https://api.github.com/repos/rodrifelix99/TheSimsModManager/releases/latest')
+    .then(r => r.ok ? r.json() : Promise.reject())
+    .then(rel => {
+      const version = rel.tag_name || '';
+      if (version) {
+        document.getElementById('version-pill').textContent = STRINGS.latest + version;
+      }
+
+      const links = {};
+      for (const asset of rel.assets || []) {
+        for (const [key, match] of Object.entries(SUFFIXES)) {
+          if (match(asset.name)) links[key] = asset;
+        }
+      }
+      document.querySelectorAll('.dl-card').forEach(card => {
+        const asset = links[card.dataset.platform];
+        if (!asset) return;
+        const a = card.querySelector('a.get');
+        a.href = asset.browser_download_url;
+        a.textContent += '  ·  ' + fmtMB(asset.size);
+      });
+
+      const plat = detectPlatform();
+      const hero = document.getElementById('hero-download');
+      const label = document.getElementById('hero-download-label');
+      if (plat && links[plat]) {
+        hero.href = links[plat].browser_download_url;
+        label.textContent =
+          (OS_LABELS[plat] || STRINGS.download) + (version ? ' · ' + version : '');
+        document.querySelector(`.dl-card[data-platform="${plat}"]`)?.classList.add('recommended');
+      } else {
+        label.textContent = STRINGS.download + (version ? ' ' + version : '');
+      }
+    })
+    .catch(() => { /* API unavailable; buttons keep linking to the releases page */ });
+</script>
+
+</body>
+</html>

@@ -4,12 +4,16 @@ import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 
+import 'package:intl/intl.dart' show DateFormat;
+
+import '../core/game.dart';
 import '../core/mod.dart';
 import '../core/mod_archive.dart';
 import '../core/mod_name.dart';
 import '../services/sfx.dart';
 import 'app_controller.dart';
 import 'game_theme.dart';
+import 'l10n.dart';
 import 'scan_backdrop.dart';
 import 'widgets.dart';
 
@@ -24,6 +28,7 @@ class LibraryView extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = theme;
     final c = controller;
+    final l = L.of(context);
     if (c.loading) {
       final progress = c.scanProgress;
       return Stack(
@@ -48,8 +53,7 @@ class LibraryView extends StatelessWidget {
                 if (progress != null) ...[
                   const SizedBox(height: 14),
                   Text(
-                    'Looking inside mods for artwork and conflicts… '
-                    '${progress.$1} of ${progress.$2}',
+                    l.scanningMods(progress.$1, progress.$2),
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
@@ -64,7 +68,7 @@ class LibraryView extends StatelessWidget {
                       textStyle: const TextStyle(
                           fontWeight: FontWeight.w800, fontSize: 13),
                     ),
-                    child: const Text('Skip'),
+                    child: Text(l.skip),
                   ),
                 ],
               ],
@@ -77,7 +81,8 @@ class LibraryView extends StatelessWidget {
       return _FolderSetupView(theme: t, controller: c);
     }
     final visible = c.filteredMods;
-    final logoAsset = GameTheme.logoAsset(c.adapter.game);
+    final logoAsset =
+        GameTheme.logoAsset(c.adapter.game, Theme.of(context).brightness);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -95,11 +100,11 @@ class LibraryView extends StatelessWidget {
                         height: 42,
                         alignment: Alignment.centerLeft,
                         fit: BoxFit.contain,
-                        semanticLabel: '${c.adapter.game.name} Library',
+                        semanticLabel: l.libraryTitle(c.adapter.game.name),
                       )
                     else
                       Text(
-                        '${c.adapter.game.name} Library',
+                        l.libraryTitle(c.adapter.game.name),
                         style: TextStyle(
                           fontSize: 23,
                           fontWeight: FontWeight.w900,
@@ -109,7 +114,8 @@ class LibraryView extends StatelessWidget {
                       ),
                     const SizedBox(height: 4),
                     Text(
-                      '${visible.length} mods shown · ${t.era}',
+                      l.modsShown(
+                          visible.length, eraLabel(l, t, c.adapter.game)),
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
@@ -120,25 +126,25 @@ class LibraryView extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 14),
-              _searchField(t, c),
+              _searchField(t, c, l),
               const SizedBox(width: 14),
               _viewToggle(t, c),
               const SizedBox(width: 14),
-              _installButton(t, c),
+              _installButton(t, c, l),
             ],
           ),
         ),
-        if (c.announcement != null) _announcementBanner(t, c),
+        if (c.announcement != null) _announcementBanner(t, c, l),
         Padding(
           padding: const EdgeInsets.fromLTRB(28, 16, 28, 14),
           child: Row(
             children: [
               Expanded(child: _FilterChips(theme: t, controller: c)),
-              _stat(t, 'Total', '${c.mods.length}', t.text),
-              _stat(t, 'Enabled', '${c.enabledCount}', t.accent),
-              _stat(
-                  t, 'Disabled', '${c.mods.length - c.enabledCount}', t.muted),
-              _conflictStat(t, c),
+              _stat(t, l.statTotal, '${c.mods.length}', t.text),
+              _stat(t, l.statEnabled, '${c.enabledCount}', t.accent),
+              _stat(t, l.statDisabled, '${c.mods.length - c.enabledCount}',
+                  t.muted),
+              _conflictStat(t, c, l),
             ],
           ),
         ),
@@ -155,7 +161,7 @@ class LibraryView extends StatelessWidget {
 
   /// Remote announcement from PostHog's `announcement` feature flag
   /// payload: a dismissible strip between the header and the filters.
-  Widget _announcementBanner(GameTheme t, AppController c) {
+  Widget _announcementBanner(GameTheme t, AppController c, L l) {
     final a = c.announcement!;
     final title = a['title'];
     final message = a['message'].toString();
@@ -194,13 +200,13 @@ class LibraryView extends StatelessWidget {
                   textStyle: const TextStyle(
                       fontWeight: FontWeight.w800, fontSize: 13),
                 ),
-                child: const Text('Learn more'),
+                child: Text(l.learnMore),
               ),
             ],
             const SizedBox(width: 4),
             IconButton(
               onPressed: c.dismissAnnouncement,
-              tooltip: 'Dismiss',
+              tooltip: l.dismiss,
               iconSize: 17,
               color: t.muted,
               icon: const Icon(Icons.close_rounded),
@@ -211,7 +217,7 @@ class LibraryView extends StatelessWidget {
     );
   }
 
-  Widget _searchField(GameTheme t, AppController c) {
+  Widget _searchField(GameTheme t, AppController c, L l) {
     return SizedBox(
       width: 210,
       child: TextField(
@@ -223,7 +229,7 @@ class LibraryView extends StatelessWidget {
         ),
         cursorColor: t.accent,
         decoration: InputDecoration(
-          hintText: 'Search mods…',
+          hintText: l.searchMods,
           hintStyle: TextStyle(
             fontSize: 13.5,
             fontWeight: FontWeight.w600,
@@ -285,11 +291,11 @@ class LibraryView extends StatelessWidget {
     );
   }
 
-  Widget _installButton(GameTheme t, AppController c) {
+  Widget _installButton(GameTheme t, AppController c, L l) {
     return HoverBuilder(
       cursor: SystemMouseCursors.click,
       builder: (context, hovered) => GestureDetector(
-        onTap: () => _pickAndInstall(c),
+        onTap: () => _pickAndInstall(c, l),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
           transform: Matrix4.translationValues(0, hovered ? -1 : 0, 0),
@@ -305,19 +311,19 @@ class LibraryView extends StatelessWidget {
               ),
             ],
           ),
-          child: const Row(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('＋',
+              const Text('＋',
                   style: TextStyle(
                       color: Colors.white,
                       fontSize: 17,
                       fontWeight: FontWeight.w800,
                       height: 1)),
-              SizedBox(width: 6),
+              const SizedBox(width: 6),
               Text(
-                'Install',
-                style: TextStyle(
+                l.install,
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 13.5,
                   fontWeight: FontWeight.w800,
@@ -330,7 +336,7 @@ class LibraryView extends StatelessWidget {
     );
   }
 
-  static Future<void> _pickAndInstall(AppController c) async {
+  static Future<void> _pickAndInstall(AppController c, L l) async {
     c.playSound(UiSound.click);
     // Archives are accepted alongside plain mod files: the adapter
     // unpacks them and installs the mod files they contain.
@@ -339,7 +345,9 @@ class LibraryView extends StatelessWidget {
       for (final e in archiveFileExtensions) e.replaceFirst('.', ''),
     ];
     final files = await openFiles(acceptedTypeGroups: [
-      XTypeGroup(label: '${c.adapter.game.name} mods', extensions: extensions),
+      XTypeGroup(
+          label: l.filePickerModsLabel(c.adapter.game.name),
+          extensions: extensions),
     ]);
     if (files.isEmpty) return;
     await c.installFiles([for (final f in files) File(f.path)]);
@@ -385,7 +393,7 @@ class LibraryView extends StatelessWidget {
   /// library to the flagged mods, tapping again clears. A tooltip spells
   /// out what "conflict" means here (duplicate names, versions, or
   /// packages overriding the same resources).
-  Widget _conflictStat(GameTheme t, AppController c) {
+  Widget _conflictStat(GameTheme t, AppController c, L l) {
     final active = c.conflictsOnly;
     final tappable = active || c.conflictCount > 0;
     return Container(
@@ -395,12 +403,9 @@ class LibraryView extends StatelessWidget {
       ),
       child: Tooltip(
         message: active
-            ? 'Showing conflicting mods only. Click to show all mods again.'
-            : 'Enabled mods sharing a file name with another enabled mod, '
-                'installed in more than one version, or overriding the same '
-                'in-game resources. The game only keeps the copy it loads '
-                'last — sometimes intentional (patch mods), often not.'
-                '${tappable ? ' Click to show only these mods.' : ''}',
+            ? l.conflictTooltipActive
+            : '${l.conflictTooltip}'
+                '${tappable ? ' ${l.conflictTooltipClickHint}' : ''}',
         waitDuration: const Duration(milliseconds: 400),
         child: HoverBuilder(
           cursor:
@@ -418,8 +423,8 @@ class LibraryView extends StatelessWidget {
                         : Colors.transparent,
                 borderRadius: BorderRadius.circular(9),
               ),
-              child: _statBody(t, 'Conflicts', '${c.conflictCount}',
-                  conflictOrange),
+              child: _statBody(
+                  t, l.statConflicts, '${c.conflictCount}', conflictOrange),
             ),
           ),
         ),
@@ -509,6 +514,7 @@ class _FilterChipsState extends State<_FilterChips> {
   Widget build(BuildContext context) {
     final t = widget.theme;
     final c = widget.controller;
+    final l = L.of(context);
     final entries = _entries(c);
     return OverflowRow(
       spacing: 9,
@@ -524,15 +530,17 @@ class _FilterChipsState extends State<_FilterChips> {
       },
       children: [
         for (final e in entries)
-          e.isFolder ? _folderChip(t, c, e.label) : _categoryChip(t, c, e.label),
+          e.isFolder
+              ? _folderChip(t, c, e.label)
+              : _categoryChip(t, c, l, e.label),
         _overflowButton(t, c),
       ],
     );
   }
 
-  Widget _categoryChip(GameTheme t, AppController c, String cat) => _chip(
+  Widget _categoryChip(GameTheme t, AppController c, L l, String cat) => _chip(
         t,
-        cat,
+        categoryChipLabel(l, cat),
         count: c.categoryCount(cat),
         active: cat == c.category,
         onTap: () => c.setCategory(cat),
@@ -644,6 +652,7 @@ class _FilterChipsState extends State<_FilterChips> {
     return ListenableBuilder(
       listenable: c,
       builder: (context, _) {
+        final l = L.of(context);
         final entries = _entries(c);
         final hidden = entries.sublist(_visibleCount.clamp(0, entries.length));
         if (hidden.isEmpty) {
@@ -677,11 +686,11 @@ class _FilterChipsState extends State<_FilterChips> {
                     color: t.surface,
                     border: Border.all(color: t.border),
                     borderRadius: BorderRadius.circular(12),
-                    boxShadow: const [
+                    boxShadow: [
                       BoxShadow(
-                        color: Color(0x33142823),
+                        color: t.shadow.withValues(alpha: .2),
                         blurRadius: 24,
-                        offset: Offset(0, 10),
+                        offset: const Offset(0, 10),
                       ),
                     ],
                   ),
@@ -693,7 +702,7 @@ class _FilterChipsState extends State<_FilterChips> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          for (final e in hidden) _menuRow(t, c, e),
+                          for (final e in hidden) _menuRow(t, c, l, e),
                         ],
                       ),
                     ),
@@ -710,7 +719,7 @@ class _FilterChipsState extends State<_FilterChips> {
   /// A menu entry. Folder rows are drag sources and drop targets exactly
   /// like the line chips, so folders reorder within the menu and drag out
   /// of it onto the line; category rows only tap.
-  Widget _menuRow(GameTheme t, AppController c, _FilterEntry e) {
+  Widget _menuRow(GameTheme t, AppController c, L l, _FilterEntry e) {
     final active = e.isFolder ? e.label == c.folder : e.label == c.category;
     final count =
         e.isFolder ? c.folderCount(e.label) : c.categoryCount(e.label);
@@ -741,7 +750,7 @@ class _FilterChipsState extends State<_FilterChips> {
               ],
               Flexible(
                 child: Text(
-                  e.label,
+                  e.isFolder ? e.label : categoryChipLabel(l, e.label),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -780,7 +789,7 @@ class _FilterChipsState extends State<_FilterChips> {
         type: MaterialType.transparency,
         child: _chip(
           t,
-          e.label,
+          e.isFolder ? e.label : categoryChipLabel(l, e.label),
           count: count,
           active: active,
           onTap: () {},
@@ -864,6 +873,22 @@ class _FilterChipsState extends State<_FilterChips> {
   }
 }
 
+/// The theme's flavor label next to the game name ("Modern · 2014"),
+/// translated. Themes without one (a game with no bespoke palette yet)
+/// fall back to the game's own series and year.
+String eraLabel(L l, GameTheme t, Game game) {
+  final key = t.eraKey;
+  final name = key == null ? game.series : l.eraName(key);
+  final detail = t.eraDetail ?? game.year?.toString();
+  return detail == null ? name : '$name · $detail';
+}
+
+/// Label for a category filter chip. Categories travel through the app as
+/// stable English keys (they key analytics and the adapters' taxonomy),
+/// so they are only translated at the moment they are drawn.
+String categoryChipLabel(L l, String category) =>
+    category == 'All' ? l.filterAll : l.categoryName(category);
+
 /// Human-friendly display title: extension and version token stripped,
 /// creator naming conventions cleaned up
 /// ("UICheatsExtension_v1.36.ts4script" -> "UI Cheats Extension").
@@ -877,33 +902,26 @@ String? modVersion(Mod mod) => parseModName(mod.name).versionLabel;
 
 /// The "by author" slot of the design: real files don't carry an author,
 /// so show where the file lives instead.
-String modSubtitle(AppController c, Mod mod) {
+String modSubtitle(L l, AppController c, Mod mod) {
   final root = c.modsDir?.path;
   if (root != null) {
     final rel = p.relative(p.dirname(mod.path), from: root);
-    if (rel != '.') return 'in $rel';
+    if (rel != '.') return l.modInFolder(rel);
   }
-  return 'in Mods folder';
+  return l.modInModsFolder;
 }
 
+/// The file's modification date, written the way the current language
+/// writes dates. Falls back to English if intl was never handed the
+/// locale's date symbols (widget tests, which don't run main()).
 String modDate(Mod mod) {
   final d = mod.modifiedAt;
   if (d == null) return '';
-  const months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
-  return '${d.day} ${months[d.month - 1]} ${d.year}';
+  try {
+    return DateFormat.yMMMd().format(d);
+  } catch (_) {
+    return DateFormat.yMMMd('en').format(d);
+  }
 }
 
 class _GridCard extends StatelessWidget {
@@ -918,6 +936,7 @@ class _GridCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = theme;
     final c = controller;
+    final l = L.of(context);
     return HoverBuilder(
       cursor: SystemMouseCursors.click,
       builder: (context, hovered) => GestureDetector(
@@ -930,11 +949,11 @@ class _GridCard extends StatelessWidget {
             border: Border.all(color: hovered ? t.accent : t.border),
             borderRadius: BorderRadius.circular(15),
             boxShadow: hovered
-                ? const [
+                ? [
                     BoxShadow(
-                      color: Color(0x73142823),
+                      color: t.shadow.withValues(alpha: .45),
                       blurRadius: 34,
-                      offset: Offset(0, 18),
+                      offset: const Offset(0, 18),
                     ),
                   ]
                 : const [],
@@ -984,6 +1003,7 @@ class _GridCard extends StatelessWidget {
                       child: PillSwitch(
                         value: mod.isEnabled,
                         activeColor: t.accent,
+                        inactiveColor: t.switchOff,
                         onChanged: () => c.toggleMod(mod),
                       ),
                     ),
@@ -1037,7 +1057,7 @@ class _GridCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        modSubtitle(c, mod),
+                        modSubtitle(l, c, mod),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -1051,7 +1071,7 @@ class _GridCard extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           TagChip(
-                            label: mod.category,
+                            label: l.categoryName(mod.category),
                             color: t.accent,
                             background: t.tint,
                           ),
@@ -1089,6 +1109,7 @@ class _ListRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = theme;
     final c = controller;
+    final l = L.of(context);
     return HoverBuilder(
       cursor: SystemMouseCursors.click,
       builder: (context, hovered) => GestureDetector(
@@ -1151,7 +1172,7 @@ class _ListRow extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      '${modSubtitle(c, mod)} · ${modDate(mod)}',
+                      '${modSubtitle(l, c, mod)} · ${modDate(mod)}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -1165,14 +1186,14 @@ class _ListRow extends StatelessWidget {
               ),
               if (c.isConflicted(mod)) ...[
                 TagChip(
-                  label: 'conflict',
+                  label: l.conflictBadge,
                   color: conflictOrange,
                   background: conflictOrange.withValues(alpha: .12),
                 ),
                 const SizedBox(width: 8),
               ],
               TagChip(
-                label: mod.category,
+                label: l.categoryName(mod.category),
                 color: t.accent,
                 background: t.tint,
               ),
@@ -1192,6 +1213,7 @@ class _ListRow extends StatelessWidget {
               PillSwitch(
                 value: mod.isEnabled,
                 activeColor: t.accent,
+                inactiveColor: t.switchOff,
                 onChanged: () => c.toggleMod(mod),
               ),
             ],
@@ -1213,6 +1235,7 @@ class _EmptyLibrary extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = theme;
     final c = controller;
+    final l = L.of(context);
     final filtering = c.query.isNotEmpty ||
         c.category != 'All' ||
         c.folder != 'All' ||
@@ -1222,7 +1245,7 @@ class _EmptyLibrary extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            filtering ? 'No mods match your filters' : 'No mods yet',
+            filtering ? l.emptyFiltered : l.emptyNoMods,
             style: TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.w900,
@@ -1232,8 +1255,8 @@ class _EmptyLibrary extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             filtering
-                ? 'Try clearing the search or picking another filter.'
-                : 'This folder is being watched:\n${c.modsDir?.path}',
+                ? l.emptyFilteredHint
+                : l.emptyNoModsHint('${c.modsDir?.path}'),
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 13,
@@ -1253,7 +1276,7 @@ class _EmptyLibrary extends StatelessWidget {
                 textStyle:
                     const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
               ),
-              child: const Text('Open folder'),
+              child: Text(l.openFolder),
             ),
           ],
         ],
@@ -1276,6 +1299,7 @@ class _FolderSetupView extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = theme;
     final c = controller;
+    final l = L.of(context);
     // The game folder being present changes the story entirely: the game
     // is there, only its mods folder is missing; don't suggest the game
     // may not be installed.
@@ -1290,8 +1314,8 @@ class _FolderSetupView extends StatelessWidget {
             children: [
               Text(
                 gameFolder != null
-                    ? '${c.adapter.game.name} found, but no mods folder yet'
-                    : '${c.adapter.game.name} mods folder not found',
+                    ? l.setupFoundNoModsFolder(c.adapter.game.name)
+                    : l.setupNotFound(c.adapter.game.name),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 21,
@@ -1302,11 +1326,8 @@ class _FolderSetupView extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 gameFolder != null
-                    ? 'The game\'s folder is on this computer; it just '
-                        'doesn\'t contain a mods folder yet. Create it below, '
-                        'or point at one manually.'
-                    : 'The game may not be installed, may live somewhere '
-                        'unusual, or its mods folder may not exist yet.',
+                    ? l.setupFoundNoModsFolderBody
+                    : l.setupNotFoundBody,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 13.5,
@@ -1335,7 +1356,7 @@ class _FolderSetupView extends StatelessWidget {
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Text(
-                  c.adapter.setupHelp,
+                  l.setupHelp(c.adapter.setupHelpKey),
                   style: TextStyle(
                     fontSize: 13,
                     height: 1.55,
@@ -1347,7 +1368,7 @@ class _FolderSetupView extends StatelessWidget {
               const SizedBox(height: 16),
               if (c.candidateDirs.isNotEmpty) ...[
                 Text(
-                  'FOUND ON THIS COMPUTER',
+                  l.foundOnThisComputer,
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
@@ -1359,7 +1380,7 @@ class _FolderSetupView extends StatelessWidget {
                 for (final dir in c.candidateDirs)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
-                    child: _candidateRow(t, c, dir.path),
+                    child: _candidateRow(t, c, l, dir.path),
                   ),
                 const SizedBox(height: 8),
               ],
@@ -1376,7 +1397,7 @@ class _FolderSetupView extends StatelessWidget {
                         textStyle: const TextStyle(
                             fontWeight: FontWeight.w800, fontSize: 13.5),
                       ),
-                      child: const Text('Choose folder…'),
+                      child: Text(l.chooseFolder),
                     ),
                   ),
                   if (c.defaultPath != null) ...[
@@ -1394,7 +1415,7 @@ class _FolderSetupView extends StatelessWidget {
                           textStyle: const TextStyle(
                               fontWeight: FontWeight.w800, fontSize: 13.5),
                         ),
-                        child: const Text('Create it for me'),
+                        child: Text(l.createItForMe),
                       ),
                     ),
                   ],
@@ -1403,7 +1424,7 @@ class _FolderSetupView extends StatelessWidget {
               if (c.defaultPath != null) ...[
                 const SizedBox(height: 12),
                 Text(
-                  'Will be created at:\n${c.defaultPath}',
+                  l.willBeCreatedAt('${c.defaultPath}'),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontFamily: 'monospace',
@@ -1427,7 +1448,7 @@ class _FolderSetupView extends StatelessWidget {
                         fontWeight: FontWeight.w800, fontSize: 13),
                   ),
                   icon: const Icon(Icons.refresh, size: 16),
-                  label: const Text('Check again'),
+                  label: Text(l.checkAgain),
                 ),
               ),
             ],
@@ -1437,7 +1458,7 @@ class _FolderSetupView extends StatelessWidget {
     );
   }
 
-  Widget _candidateRow(GameTheme t, AppController c, String path) {
+  Widget _candidateRow(GameTheme t, AppController c, L l, String path) {
     return Container(
       padding: const EdgeInsets.fromLTRB(13, 9, 9, 9),
       decoration: BoxDecoration(
@@ -1467,7 +1488,7 @@ class _FolderSetupView extends StatelessWidget {
               textStyle:
                   const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
             ),
-            child: const Text('Use this'),
+            child: Text(l.useThis),
           ),
         ],
       ),

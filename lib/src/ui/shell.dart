@@ -9,6 +9,7 @@ import '../core/mod_archive.dart';
 import 'app_controller.dart';
 import 'detail_view.dart';
 import 'game_theme.dart';
+import 'l10n.dart';
 import 'library_view.dart';
 import 'settings_view.dart';
 import 'widgets.dart';
@@ -52,7 +53,9 @@ class _AppShellState extends State<AppShell> {
     return ListenableBuilder(
       listenable: c,
       builder: (context, _) {
-        final t = GameTheme.forGame(c.adapter.game);
+        // MaterialApp already resolved "system" against the OS, so this is
+        // the single place the whole app learns whether it is dark.
+        final t = GameTheme.forGame(c.adapter.game, Theme.of(context).brightness);
         // macOS keeps its native traffic lights overlaid; Windows/Linux lose
         // their caption buttons with the hidden title bar, so we draw our own.
         final ownButtons = Platform.isWindows || Platform.isLinux;
@@ -159,6 +162,7 @@ class _DropOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = theme;
+    final l = L.of(context);
     final accepted = [
       ...controller.adapter.modFileExtensions,
       ...archiveFileExtensions,
@@ -167,6 +171,8 @@ class _DropOverlay extends StatelessWidget {
       color: t.bg.withValues(alpha: .8),
       alignment: Alignment.center,
       child: Container(
+        constraints: const BoxConstraints(maxWidth: 520),
+        margin: const EdgeInsets.symmetric(horizontal: 24),
         padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 28),
         decoration: BoxDecoration(
           color: t.surface,
@@ -179,7 +185,8 @@ class _DropOverlay extends StatelessWidget {
             Icon(Icons.file_download_outlined, size: 42, color: t.accent),
             const SizedBox(height: 10),
             Text(
-              'Drop to install into ${controller.adapter.game.name}',
+              l.dropToInstall(controller.adapter.game.name),
+              textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w800,
@@ -188,7 +195,8 @@ class _DropOverlay extends StatelessWidget {
             ),
             const SizedBox(height: 5),
             Text(
-              [...accepted, 'folders'].join('  ·  '),
+              [...accepted, l.dropFolders].join('  ·  '),
+              textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w600,
@@ -305,6 +313,7 @@ class _SidebarState extends State<_Sidebar>
   Widget build(BuildContext context) {
     final t = widget.theme;
     final c = widget.controller;
+    final l = L.of(context);
     return AnimatedContainer(
       duration: const Duration(milliseconds: 450),
       width: 250,
@@ -319,12 +328,12 @@ class _SidebarState extends State<_Sidebar>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _logo(t),
+          _logo(t, l),
           const SizedBox(height: 18),
           Padding(
             padding: const EdgeInsets.fromLTRB(6, 0, 6, 8),
             child: Text(
-              'GAMES',
+              l.sidebarGames,
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w800,
@@ -334,7 +343,7 @@ class _SidebarState extends State<_Sidebar>
             ),
           ),
           for (final adapter in c.registry.adapters) ...[
-            _gameRow(t, c, adapter),
+            _gameRow(t, c, l, adapter),
             const SizedBox(height: 4),
           ],
           const SizedBox(height: 14),
@@ -342,7 +351,7 @@ class _SidebarState extends State<_Sidebar>
           const SizedBox(height: 14),
           _navButton(
             t,
-            label: 'Library',
+            label: l.navLibrary,
             active: c.screen != AppScreen.settings,
             iconBuilder: (color) => Container(
               width: 18,
@@ -357,7 +366,7 @@ class _SidebarState extends State<_Sidebar>
           const SizedBox(height: 4),
           _navButton(
             t,
-            label: 'Settings',
+            label: l.navSettings,
             active: c.screen == AppScreen.settings,
             iconBuilder: (color) => Container(
               width: 18,
@@ -371,10 +380,10 @@ class _SidebarState extends State<_Sidebar>
           ),
           const Spacer(),
           if (c.availableUpdate != null) ...[
-            _updateCard(t, c),
+            _updateCard(t, c, l),
             const SizedBox(height: 10),
           ],
-          _storageCard(t, c),
+          _storageCard(t, c, l),
         ],
       ),
     );
@@ -382,7 +391,7 @@ class _SidebarState extends State<_Sidebar>
 
   /// Accent-tinted banner shown once a newer GitHub release is known;
   /// clicking opens its download page.
-  Widget _updateCard(GameTheme t, AppController c) {
+  Widget _updateCard(GameTheme t, AppController c, L l) {
     final update = c.availableUpdate!;
     return HoverBuilder(
       cursor: SystemMouseCursors.click,
@@ -418,7 +427,7 @@ class _SidebarState extends State<_Sidebar>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Update available',
+                      l.updateAvailable,
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w900,
@@ -426,7 +435,7 @@ class _SidebarState extends State<_Sidebar>
                       ),
                     ),
                     Text(
-                      'v${update.version}: click to download',
+                      l.updateClickToDownload(update.version),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -445,7 +454,7 @@ class _SidebarState extends State<_Sidebar>
     );
   }
 
-  Widget _logo(GameTheme t) {
+  Widget _logo(GameTheme t, L l) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Row(
@@ -481,7 +490,7 @@ class _SidebarState extends State<_Sidebar>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Mod Manager',
+                  l.brandTitle,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -492,7 +501,7 @@ class _SidebarState extends State<_Sidebar>
                   ),
                 ),
                 Text(
-                  'for The Sims',
+                  l.brandSubtitle,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -509,13 +518,14 @@ class _SidebarState extends State<_Sidebar>
     );
   }
 
-  Widget _gameRow(GameTheme t, AppController c, GameAdapter adapter) {
+  Widget _gameRow(GameTheme t, AppController c, L l, GameAdapter adapter) {
     final game = adapter.game;
     final active = game.id == c.adapter.game.id;
     final count = c.modCounts[game.id];
     final installed = count != null;
-    final badgeColor =
-        installed ? GameTheme.badgeColor(game) : t.muted.withValues(alpha: .5);
+    final badgeColor = installed
+        ? GameTheme.badgeColor(game, Theme.of(context).brightness)
+        : t.muted.withValues(alpha: .5);
     final iconAsset = GameTheme.iconAsset(game);
     final trailing = game.name.replaceAll(RegExp(r'[^0-9]'), '');
     final badge = trailing.isEmpty ? game.name.substring(0, 1) : trailing;
@@ -612,8 +622,10 @@ class _SidebarState extends State<_Sidebar>
                       ),
                       Text(
                         count == null
-                            ? 'not installed · ${game.year ?? game.series}'
-                            : '$count mods · ${game.year ?? game.series}',
+                            ? l.sidebarNotInstalled(
+                                '${game.year ?? game.series}')
+                            : l.sidebarModCount(
+                                count, '${game.year ?? game.series}'),
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
@@ -663,12 +675,16 @@ class _SidebarState extends State<_Sidebar>
             children: [
               iconBuilder(color),
               const SizedBox(width: 11),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w800,
-                  color: color,
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w800,
+                    color: color,
+                  ),
                 ),
               ),
             ],
@@ -678,7 +694,7 @@ class _SidebarState extends State<_Sidebar>
     );
   }
 
-  Widget _storageCard(GameTheme t, AppController c) {
+  Widget _storageCard(GameTheme t, AppController c, L l) {
     final used = c.allGamesSizeBytes;
     final disk = c.diskSpace;
     final pct = disk == null || disk.totalBytes <= 0
@@ -697,17 +713,21 @@ class _SidebarState extends State<_Sidebar>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Storage',
-                style: TextStyle(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w800,
-                  color: t.text,
+              Flexible(
+                child: Text(
+                  l.storage,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w800,
+                    color: t.text,
+                  ),
                 ),
               ),
               Flexible(
                 child: Text(
-                  '${formatBytes(used)} in mods',
+                  l.storageInMods(formatBytes(used)),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -745,8 +765,8 @@ class _SidebarState extends State<_Sidebar>
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                '${formatBytes(disk.freeBytes)} free of '
-                '${formatBytes(disk.totalBytes)}',
+                l.storageFreeOf(formatBytes(disk.freeBytes),
+                    formatBytes(disk.totalBytes)),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(

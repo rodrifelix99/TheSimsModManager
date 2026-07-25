@@ -264,13 +264,7 @@ class Sims4Adapter extends DocumentsSimsAdapter {
   List<String> get modsSegments => const ['Mods'];
 
   @override
-  String get setupHelp =>
-      'The Sims 4 loads mods from Documents > Electronic Arts >'
-      ' The Sims 4 > Mods. The game creates this folder the '
-      'first time it runs, so launch the game once if it is missing. '
-      'Then, in the game, turn on Options > Game Options >'
-      ' Other > "Enable Custom Content and Mods" (and "Script '
-      'Mods Allowed" for .ts4script files) and restart the game.';
+  String get setupHelpKey => 'sims4';
 
   /// The game generates this exact Resource.cfg on first launch; writing
   /// it up front makes a hand-created folder work immediately.
@@ -322,13 +316,7 @@ class Sims3Adapter extends DocumentsSimsAdapter {
       ];
 
   @override
-  String get setupHelp =>
-      'The Sims 3 does not create a mods folder on its own: it needs the '
-      'community "framework": a Mods > Packages folder inside '
-      'Documents > Electronic Arts > The Sims 3, plus a '
-      'Resource.cfg file that tells the game to read it. This app can '
-      'create both for you. On disc/Wine installs the folder can live '
-      'inside the app bundle instead; use "Choose folder" to point at it.';
+  String get setupHelpKey => 'sims3';
 
   /// The standard Sims 3 framework (per NRaas/TSR): Resource.cfg lives in
   /// the Mods folder and points the game at Packages/, up to five levels
@@ -384,13 +372,7 @@ class Sims2Adapter extends DocumentsSimsAdapter {
   }
 
   @override
-  String get setupHelp =>
-      'The Sims 2 loads custom content from Documents > EA Games >'
-      ' The Sims 2 > Downloads (the Ultimate Collection uses '
-      '"The Sims 2 Ultimate Collection"; the 2025 Legacy Collection uses '
-      '"The Sims 2 Legacy"). The folder may not exist until '
-      'you create it or install content once. When the game starts, answer '
-      '"Yes" to the custom content prompt so downloads are enabled.';
+  String get setupHelpKey => 'sims2';
 }
 
 /// The Sims Medieval (2011) forked the Sims 3 engine before EA moved the
@@ -425,17 +407,7 @@ class SimsMedievalAdapter extends FolderBasedGameAdapter {
   Set<String> get modFileExtensions => const {'.package'};
 
   @override
-  String get setupHelp =>
-      'The Sims Medieval loads mods from its install folder, not '
-      'Documents: a Mods > Packages folder next to the game files (e.g. '
-      'C:\\Program Files (x86)\\Origin Games\\The Sims Medieval), plus a '
-      'Resource.cfg file in the install folder that tells the game to '
-      'read it. This app can create both for you (Windows may ask for '
-      'administrator rights under Program Files). The Documents >'
-      ' Electronic Arts > The Sims Medieval folder only holds saves; '
-      'mods placed there do nothing. For Wine/CrossOver installs or a '
-      'custom Steam library, use "Choose folder" to point at the '
-      'Mods > Packages folder inside the game install.';
+  String get setupHelpKey => 'simsmedieval';
 
   /// Disc installs use localized folder names ("Die Sims Mittelalter"),
   /// so under the Electronic Arts vendor folder we verify candidates by
@@ -612,18 +584,7 @@ class Sims1Adapter extends FolderBasedGameAdapter {
       };
 
   @override
-  String get setupHelp =>
-      'The original The Sims keeps custom content inside its install '
-      'folder, not Documents: objects go in a Downloads folder next to '
-      'the game executable (e.g. C:\\Program Files (x86)\\Maxis\\The Sims\\'
-      'Downloads), and this app sorts the other types automatically — '
-      'skins (.skn/.cmx/.bmp) into GameData\\Skins, walls and floors into '
-      'GameData\\Walls and GameData\\Floors. The 2025 Legacy Collection '
-      'works the same way from its own install folder (EA Games\\'
-      'The Sims Legacy, or Steam\\steamapps\\common\\'
-      'The Sims Legacy Collection). If the game is installed somewhere '
-      'else (a different drive, a custom Steam library), pick its '
-      'Downloads folder manually.';
+  String get setupHelpKey => 'sims1';
 
   /// The Sims 1 lives in the install directory, so scan the usual ones:
   /// the classic disc/Complete Collection path plus the 2025 Legacy

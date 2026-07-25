@@ -19,9 +19,13 @@ that re-themes itself to match the game you're managing.
 
 <img src="docs/images/library-grid.png" alt="Library view (The Sims 4)" width="800">
 
-<sub>The UI re-themes per game. Here's the same library managing The Sims 1:</sub>
+<sub>The UI re-themes per game. Here's the same library managing The Sims 2:</sub>
 
-<img src="docs/images/library-sims1.png" alt="Library view (The Sims 1, classic theme)" width="800">
+<img src="docs/images/library-grid-ts2.png" alt="Library view (The Sims 2, warm cream theme)" width="800">
+
+<sub>Every palette comes in a dark version too, following your system or your own pick:</sub>
+
+<img src="docs/images/dark-mode.png" alt="Library view in dark mode" width="800">
 
 </div>
 
@@ -29,7 +33,7 @@ that re-themes itself to match the game you're managing.
 
 - 🎨 **Per-game themed UI**: the whole app re-tints as you switch between
   The Sims 1, 2, 3, 4 and Medieval, complete with the classic Sims 1 UI
-  sounds.
+  sounds, in light or dark.
 - 🖼️ **Real thumbnails & insights**: `.package` files are parsed (DBPF) to
   pull out embedded artwork and a content breakdown (CAS parts, textures,
   tuning...), so your library looks like a library, not a file list.
@@ -52,6 +56,14 @@ that re-themes itself to match the game you're managing.
   or drop files and folders straight onto the window; `.zip`, `.rar` and
   `.7z` archives are unpacked for you, keeping their folder structure and
   skipping readmes and screenshots.
+
+<div align="center">
+
+<img src="docs/images/mod-details-conflict.png" alt="Mod detail view with a duplicate file name warning" width="800">
+
+<sub>A mod's detail view: what's inside the package, where the file lives, and why it got flagged.</sub>
+
+</div>
 
 ## 📥 Download
 

@@ -4,6 +4,7 @@ import 'dart:ui' show PlatformDispatcher;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart';
+import 'package:intl/date_symbol_data_local.dart' show initializeDateFormatting;
 import 'package:window_manager/window_manager.dart';
 
 import 'src/core/game_registry.dart';
@@ -34,6 +35,9 @@ class _FlushOnClose with WindowListener {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Month names for every shipped language; without this intl only knows
+  // how to write a date in English.
+  await initializeDateFormatting();
   // Hide the native title bar so the app's themed chrome extends all the way
   // to the top edge; AppShell overlays its own drag strip + caption buttons.
   await windowManager.ensureInitialized();
@@ -49,19 +53,17 @@ Future<void> main() async {
     titleBarStyle: TitleBarStyle.hidden,
     minimumSize: kMinWindowSize,
   );
+  final settings = await SettingsStore.load();
   unawaited(windowManager.waitUntilReadyToShow(windowOptions, () async {
+    // Before show(), not after the first frame: the window opens with its
+    // backdrop already in place, and on macOS the vibrancy view keeps the
+    // opaque material it was born with until something sets one.
     if (translucentSidebar) {
-      await Window.setEffect(
-        effect: Platform.isMacOS ? WindowEffect.sidebar : WindowEffect.acrylic,
-        // Milky base tint so the blurred backdrop stays light-theme friendly.
-        color: const Color(0x66FFFFFF),
-        dark: false,
-      );
+      await _setWindowEffect(_startingBrightness(settings));
     }
     await windowManager.show();
     await windowManager.focus();
   }));
-  final settings = await SettingsStore.load();
   final analytics = Analytics(settings: settings);
   await analytics.init();
   // Crash reporting: framework build/layout errors and uncaught async
@@ -95,5 +97,37 @@ Future<void> main() async {
     settings: settings,
     translucentSidebar: translucentSidebar,
     analytics: analytics,
+    // Set from the app rather than up front, because the OS blur has to be
+    // re-tinted whenever the theme flips: a milky white backdrop behind a
+    // dark sidebar washes it straight back out.
+    onBrightnessChanged: translucentSidebar ? _setWindowEffect : null,
   ));
+}
+
+/// Which way the app will resolve before it has drawn anything, so the
+/// backdrop is right on the very first frame.
+Brightness _startingBrightness(SettingsStore settings) =>
+    switch (settings.themeModeName) {
+      'light' => Brightness.light,
+      'dark' => Brightness.dark,
+      _ => PlatformDispatcher.instance.platformBrightness,
+    };
+
+Future<void> _setWindowEffect(Brightness brightness) async {
+  final dark = brightness == Brightness.dark;
+  try {
+    // macOS ignores `color` and `dark` here - it only swaps the material,
+    // and how that material frosts is decided by the window's own
+    // appearance. Without this the sidebar reads as a light pane of glass
+    // under a dark theme, or the reverse.
+    if (Platform.isMacOS) await Window.overrideMacOSBrightness(dark: dark);
+    await Window.setEffect(
+      effect: Platform.isMacOS ? WindowEffect.sidebar : WindowEffect.acrylic,
+      color: dark ? const Color(0x33000000) : const Color(0x66FFFFFF),
+      dark: dark,
+    );
+  } catch (_) {
+    // Purely decorative; a platform that refuses just keeps the plain
+    // window it already has.
+  }
 }

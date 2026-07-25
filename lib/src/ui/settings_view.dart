@@ -1,12 +1,14 @@
 import 'dart:io';
 
 import 'package:file_selector/file_selector.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 
 import '../app_version.dart';
 import '../services/sfx.dart';
 import 'app_controller.dart';
 import 'game_theme.dart';
+import 'l10n.dart';
 import 'widgets.dart';
 
 /// Settings: mod-management toggles, per-game mods folder, about card.
@@ -22,13 +24,14 @@ class SettingsView extends StatelessWidget {
     final t = theme;
     final c = controller;
     final s = c.settings;
+    final l = L.of(context);
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(28, 24, 28, 28),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Settings',
+            l.settingsTitle,
             style: TextStyle(
               fontSize: 23,
               fontWeight: FontWeight.w900,
@@ -37,17 +40,15 @@ class SettingsView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 22),
-          _sectionLabel(t, 'MOD MANAGEMENT'),
+          _sectionLabel(t, l.sectionModManagement),
           Container(
             decoration: _cardDecoration(t),
             child: Column(
               children: [
                 _prefRow(
                   t,
-                  title: 'Warn about conflicts',
-                  desc:
-                      'Badge enabled mods that duplicate a file name or '
-                      'override the same in-game resources as another mod',
+                  title: l.prefWarnConflictsTitle,
+                  desc: l.prefWarnConflictsDesc,
                   value: s.warnConflicts,
                   onToggle: () => c.setPref(
                     () => s.setWarnConflicts(!s.warnConflicts),
@@ -59,8 +60,8 @@ class SettingsView extends StatelessWidget {
                 _divider(t),
                 _prefRow(
                   t,
-                  title: 'Confirm before uninstalling',
-                  desc: 'Ask before a mod file is deleted from disk',
+                  title: l.prefConfirmDeleteTitle,
+                  desc: l.prefConfirmDeleteDesc,
                   value: s.confirmDelete,
                   onToggle: () => c.setPref(
                     () => s.setConfirmDelete(!s.confirmDelete),
@@ -72,9 +73,8 @@ class SettingsView extends StatelessWidget {
                 _divider(t),
                 _prefRow(
                   t,
-                  title: 'Show disabled mods',
-                  desc: 'Keep disabled mods visible in the library instead '
-                      'of hiding them',
+                  title: l.prefShowDisabledTitle,
+                  desc: l.prefShowDisabledDesc,
                   value: s.showDisabled,
                   onToggle: () => c.setPref(
                     () => s.setShowDisabled(!s.showDisabled),
@@ -86,10 +86,8 @@ class SettingsView extends StatelessWidget {
                 _divider(t),
                 _prefRow(
                   t,
-                  title: 'Scan inside mods',
-                  desc: 'Look inside mod files while the library loads for '
-                      'embedded artwork, content details and mods that '
-                      'override the same resources',
+                  title: l.prefScanArtworkTitle,
+                  desc: l.prefScanArtworkDesc,
                   value: s.scanArtwork,
                   // Own action, not setPref: flipping it also rescans the
                   // library (on) or clears the cached artwork (off).
@@ -98,9 +96,8 @@ class SettingsView extends StatelessWidget {
                 _divider(t),
                 _prefRow(
                   t,
-                  title: 'UI sound effects',
-                  desc: 'Play the classic Sims interface sounds on clicks, '
-                      'toggles and alerts',
+                  title: l.prefSoundEffectsTitle,
+                  desc: l.prefSoundEffectsDesc,
                   value: s.soundEffects,
                   onToggle: () => c.setPref(
                     () => s.setSoundEffects(!s.soundEffects),
@@ -113,15 +110,25 @@ class SettingsView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          _sectionLabel(t, 'PRIVACY'),
+          _sectionLabel(t, l.sectionAppearance),
+          Container(
+            decoration: _cardDecoration(t),
+            child: _themeRow(t, c, l),
+          ),
+          const SizedBox(height: 24),
+          _sectionLabel(t, l.sectionLanguage),
+          Container(
+            decoration: _cardDecoration(t),
+            child: _languageRow(t, c, l),
+          ),
+          const SizedBox(height: 24),
+          _sectionLabel(t, l.sectionPrivacy),
           Container(
             decoration: _cardDecoration(t),
             child: _prefRow(
               t,
-              title: 'Share anonymous usage data',
-              desc: 'Send anonymous usage statistics and crash reports to '
-                  'help improve the app. Never includes mod names, file '
-                  'paths or anything personal',
+              title: l.prefAnalyticsTitle,
+              desc: l.prefAnalyticsDesc,
               value: s.analyticsEnabled,
               // Own action, not setPref: the analytics service handles
               // its own opt-in/out bookkeeping around the flip.
@@ -129,7 +136,7 @@ class SettingsView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          _sectionLabel(t, 'MODS FOLDER · ${c.adapter.game.name}'),
+          _sectionLabel(t, l.sectionModsFolder(c.adapter.game.name)),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
             decoration: _cardDecoration(t),
@@ -143,7 +150,7 @@ class SettingsView extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            c.modsDir?.path ?? 'Not found. Choose a folder',
+                            c.modsDir?.path ?? l.folderNotFound,
                             style: TextStyle(
                               fontFamily: 'monospace',
                               fontSize: 12.5,
@@ -153,11 +160,12 @@ class SettingsView extends StatelessWidget {
                           const SizedBox(height: 3),
                           Text(
                             c.modsDir == null
-                                ? 'The game (or its mods folder) was not '
-                                    'located automatically'
-                                : '${c.mods.length} mods · '
-                                    '${formatBytes(c.totalSizeBytes)} on disk'
-                                    '${c.usingOverride ? ' · custom folder' : ''}',
+                                ? l.folderNotLocated
+                                : l.folderSummary(c.mods.length,
+                                        formatBytes(c.totalSizeBytes)) +
+                                    (c.usingOverride
+                                        ? ' · ${l.customFolder}'
+                                        : ''),
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -171,7 +179,7 @@ class SettingsView extends StatelessWidget {
                     OutlinedButton(
                       onPressed: () => _chooseFolder(c),
                       style: _accentButtonStyle(t),
-                      child: const Text('Change…'),
+                      child: Text(l.change),
                     ),
                     if (c.usingOverride) ...[
                       const SizedBox(width: 8),
@@ -182,7 +190,7 @@ class SettingsView extends StatelessWidget {
                           textStyle: const TextStyle(
                               fontWeight: FontWeight.w800, fontSize: 13),
                         ),
-                        child: const Text('Reset to auto'),
+                        child: Text(l.resetToAuto),
                       ),
                     ],
                   ],
@@ -193,8 +201,7 @@ class SettingsView extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          'Create the default folder (with the files the '
-                          'game needs) at:\n${c.defaultPath}',
+                          l.createDefaultFolderAt('${c.defaultPath}'),
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -206,7 +213,7 @@ class SettingsView extends StatelessWidget {
                       OutlinedButton(
                         onPressed: c.createDefaultFolder,
                         style: _accentButtonStyle(t),
-                        child: const Text('Create folder'),
+                        child: Text(l.createFolder),
                       ),
                     ],
                   ),
@@ -216,7 +223,7 @@ class SettingsView extends StatelessWidget {
                 if (c.candidateDirs.length > 1) ...[
                   const SizedBox(height: 14),
                   Text(
-                    'Also found on this computer:',
+                    l.alsoFoundOnThisComputer,
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w800,
@@ -250,7 +257,7 @@ class SettingsView extends StatelessWidget {
                                     fontWeight: FontWeight.w800,
                                     fontSize: 12.5),
                               ),
-                              child: const Text('Use this'),
+                              child: Text(l.useThis),
                             ),
                           ],
                         ),
@@ -261,7 +268,7 @@ class SettingsView extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            c.adapter.setupHelp,
+            l.setupHelp(c.adapter.setupHelpKey),
             style: TextStyle(
               fontSize: 12,
               height: 1.5,
@@ -273,59 +280,53 @@ class SettingsView extends StatelessWidget {
           // report cache files; for everyone else the card is absent.
           if (c.cacheFiles.isNotEmpty) ...[
             const SizedBox(height: 24),
-            _sectionLabel(t, 'GAME CACHES · ${c.adapter.game.name}'),
+            _sectionLabel(t, l.sectionGameCaches(c.adapter.game.name)),
             Container(
               decoration: _cardDecoration(t),
               child: _linkRow(
                 t,
-                title: 'Clear cache files',
-                desc: 'Delete ${c.cacheFiles.length} cache '
-                    'file${c.cacheFiles.length == 1 ? '' : 's'} '
-                    '(${formatBytes(c.cacheSizeBytes)}) so newly added or '
-                    'removed content shows up; the game rebuilds them on '
-                    'its next launch',
-                buttonLabel: 'Clear caches',
+                title: l.clearCacheTitle,
+                desc: l.clearCacheDesc(
+                    c.cacheFiles.length, formatBytes(c.cacheSizeBytes)),
+                buttonLabel: l.clearCaches,
                 onTap: c.clearCaches,
               ),
             ),
           ],
           const SizedBox(height: 24),
-          _sectionLabel(t, 'FEEDBACK'),
+          _sectionLabel(t, l.sectionFeedback),
           Container(
             decoration: _cardDecoration(t),
             child: Column(
               children: [
                 _linkRow(
                   t,
-                  title: 'Report a bug',
-                  desc: 'Open a bug report on GitHub; your app version, '
-                      'OS and current game come prefilled',
-                  buttonLabel: 'Report…',
+                  title: l.reportBugTitle,
+                  desc: l.reportBugDesc,
+                  buttonLabel: l.reportBugButton,
                   onTap: c.reportBug,
                 ),
                 _divider(t),
                 _linkRow(
                   t,
-                  title: 'Suggest a feature',
-                  desc: 'Missing something? Tell us what would make the '
-                      'mod manager better',
-                  buttonLabel: 'Suggest…',
+                  title: l.suggestFeatureTitle,
+                  desc: l.suggestFeatureDesc,
+                  buttonLabel: l.suggestFeatureButton,
                   onTap: c.suggestFeature,
                 ),
                 _divider(t),
                 _linkRow(
                   t,
-                  title: 'User guide & FAQ',
-                  desc: 'How to install mods, fix folder detection, '
-                      'and more, on the project wiki',
-                  buttonLabel: 'Open wiki',
+                  title: l.wikiTitle,
+                  desc: l.wikiDesc,
+                  buttonLabel: l.wikiButton,
                   onTap: c.openWiki,
                 ),
               ],
             ),
           ),
           const SizedBox(height: 24),
-          _sectionLabel(t, 'ABOUT'),
+          _sectionLabel(t, l.sectionAbout),
           Container(
             padding: const EdgeInsets.all(18),
             decoration: _cardDecoration(t),
@@ -355,7 +356,7 @@ class SettingsView extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Sims Mod Manager',
+                        l.appName,
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w900,
@@ -363,8 +364,7 @@ class SettingsView extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        'Version $appVersion · The Sims 1–4 supported · '
-                        'SimCity coming soon',
+                        l.aboutTagline(appVersion),
                         style: TextStyle(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w600,
@@ -375,9 +375,8 @@ class SettingsView extends StatelessWidget {
                         const SizedBox(height: 3),
                         Text(
                           c.availableUpdate != null
-                              ? 'Version ${c.availableUpdate!.version} is '
-                                  'available'
-                              : 'No update found',
+                              ? l.updateIsAvailable(c.availableUpdate!.version)
+                              : l.noUpdateFound,
                           style: TextStyle(
                             fontSize: 12.5,
                             fontWeight: FontWeight.w800,
@@ -395,7 +394,7 @@ class SettingsView extends StatelessWidget {
                   OutlinedButton(
                     onPressed: c.openReleasePage,
                     style: _accentButtonStyle(t),
-                    child: Text('Get v${c.availableUpdate!.version}'),
+                    child: Text(l.getVersion(c.availableUpdate!.version)),
                   )
                 else
                   OutlinedButton(
@@ -403,10 +402,153 @@ class SettingsView extends StatelessWidget {
                         c.checkingForUpdates ? null : c.checkForUpdates,
                     style: _accentButtonStyle(t),
                     child: Text(c.checkingForUpdates
-                        ? 'Checking…'
-                        : 'Check for updates'),
+                        ? l.checkingForUpdates
+                        : l.checkForUpdates),
                   ),
               ],
+            ),
+          ),
+          // Debug builds only, and deliberately not translated: nobody
+          // running the shipped app can reach this row, so putting its
+          // wording through ten ARB files would only give translators
+          // something meaningless to translate.
+          if (kDebugMode) ...[
+            const SizedBox(height: 24),
+            _sectionLabel(t, 'DEVELOPER'),
+            Container(
+              decoration: _cardDecoration(t),
+              child: _prefRow(
+                t,
+                title: 'Demo library',
+                desc: 'Fill every game with invented mods, for screenshots. '
+                    'Nothing is written to disk.',
+                value: c.demoLibrary,
+                onToggle: () => c.setDemoLibrary(!c.demoLibrary),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// The language picker. "System" is the default, so most people never
+  /// touch this row; the menu is there for the ones whose system language
+  /// isn't the one they want to read.
+  Widget _languageRow(GameTheme t, AppController c, L l) => _pickerRow(
+        t,
+        title: l.languageTitle,
+        desc: l.languageDesc,
+        selected: c.settings.localeCode ?? '',
+        options: [
+          (value: '', label: l.languageSystem),
+          for (final language in appLanguages)
+            (value: language.code, label: language.name),
+        ],
+        onSelected: (value) => c.setLocale(value.isEmpty ? null : value),
+      );
+
+  /// Light, dark, or whatever the desktop is set to.
+  Widget _themeRow(GameTheme t, AppController c, L l) => _pickerRow(
+        t,
+        title: l.themeTitle,
+        desc: l.themeDesc,
+        selected: c.settings.themeModeName ?? '',
+        options: [
+          (value: '', label: l.themeSystem),
+          (value: 'light', label: l.themeLight),
+          (value: 'dark', label: l.themeDark),
+        ],
+        onSelected: (value) => c.setThemeMode(value.isEmpty ? null : value),
+      );
+
+  /// A row whose trailing control is a dropdown of [options]. The empty
+  /// string is the "follow the system" option: PopupMenuItem can't carry
+  /// null and still tell "chose nothing" from "chose the default".
+  Widget _pickerRow(
+    GameTheme t, {
+    required String title,
+    required String desc,
+    required String selected,
+    required List<({String value, String label})> options,
+    required ValueChanged<String> onSelected,
+  }) {
+    final current = options.firstWhere((o) => o.value == selected,
+        orElse: () => options.first);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: t.text,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  desc,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: t.muted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 16),
+          PopupMenuButton<String>(
+            initialValue: current.value,
+            tooltip: '',
+            color: t.surface,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: t.border)),
+            onSelected: onSelected,
+            itemBuilder: (context) => [
+              for (final option in options)
+                PopupMenuItem(
+                  value: option.value,
+                  child: Text(
+                    option.label,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: t.text,
+                    ),
+                  ),
+                ),
+            ],
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+              decoration: BoxDecoration(
+                color: t.tint,
+                border: Border.all(color: t.accent, width: 1.5),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    current.label,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: t.accent,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Icon(Icons.expand_more_rounded, size: 17, color: t.accent),
+                ],
+              ),
             ),
           ),
         ],
@@ -545,6 +687,7 @@ class SettingsView extends StatelessWidget {
             width: 44,
             height: 25,
             activeColor: t.accent,
+            inactiveColor: t.switchOff,
             onChanged: onToggle,
           ),
         ],

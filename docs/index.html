@@ -3,21 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Sims Mod Manager: free mod manager for The Sims 1, 2, 3, 4 &amp; Medieval</title>
-<meta name="description" content="A free desktop app for Windows, macOS and Linux that manages your Sims mods and custom content: real thumbnails, one-click enable/disable, conflict warnings, and automatic folder detection for every mainline Sims game and The Sims Medieval.">
+<title data-i18n="meta.title">The Sims Mod Manager: free mod manager for The Sims 1, 2, 3, 4 &amp; Medieval</title>
+<meta name="description" data-i18n-attr="content:meta.description" content="A free desktop app for Windows, macOS and Linux that manages your Sims mods and custom content: real thumbnails, one-click enable/disable, conflict warnings, and automatic folder detection for every mainline Sims game and The Sims Medieval.">
 <meta property="og:title" content="The Sims Mod Manager">
-<meta property="og:description" content="Free, cross-platform mod manager for The Sims 1, 2, 3, 4 & Medieval. Real thumbnails, one-click enable/disable, conflict warnings.">
+<meta property="og:description" data-i18n-attr="content:meta.social" content="Free, cross-platform mod manager for The Sims 1, 2, 3, 4 & Medieval. Real thumbnails, one-click enable/disable, conflict warnings.">
 <meta property="og:image" content="https://rodrifelix99.github.io/TheSimsModManager/images/library-grid.png">
 <meta property="og:image:width" content="2228">
 <meta property="og:image:height" content="1436">
-<meta property="og:image:alt" content="The Sims Mod Manager library view showing a grid of mods with thumbnails">
+<meta property="og:image:alt" data-i18n-attr="content:meta.ogImageAlt" content="The Sims Mod Manager library view showing a grid of mods with thumbnails">
 <meta property="og:url" content="https://rodrifelix99.github.io/TheSimsModManager/">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="The Sims Mod Manager">
-<meta name="twitter:description" content="Free, cross-platform mod manager for The Sims 1, 2, 3, 4 &amp; Medieval. Real thumbnails, one-click enable/disable, conflict warnings.">
+<meta name="twitter:description" data-i18n-attr="content:meta.social" content="Free, cross-platform mod manager for The Sims 1, 2, 3, 4 &amp; Medieval. Real thumbnails, one-click enable/disable, conflict warnings.">
 <meta name="twitter:image" content="https://rodrifelix99.github.io/TheSimsModManager/images/library-grid.png">
 <link rel="canonical" href="https://rodrifelix99.github.io/TheSimsModManager/">
+<link rel="alternate" hreflang="en" href="https://rodrifelix99.github.io/TheSimsModManager/">
+<link rel="alternate" hreflang="zh" href="https://rodrifelix99.github.io/TheSimsModManager/zh/">
+<link rel="alternate" hreflang="es" href="https://rodrifelix99.github.io/TheSimsModManager/es/">
+<link rel="alternate" hreflang="pt" href="https://rodrifelix99.github.io/TheSimsModManager/pt/">
+<link rel="alternate" hreflang="fr" href="https://rodrifelix99.github.io/TheSimsModManager/fr/">
+<link rel="alternate" hreflang="de" href="https://rodrifelix99.github.io/TheSimsModManager/de/">
+<link rel="alternate" hreflang="it" href="https://rodrifelix99.github.io/TheSimsModManager/it/">
+<link rel="alternate" hreflang="ru" href="https://rodrifelix99.github.io/TheSimsModManager/ru/">
+<link rel="alternate" hreflang="pl" href="https://rodrifelix99.github.io/TheSimsModManager/pl/">
+<link rel="alternate" hreflang="ja" href="https://rodrifelix99.github.io/TheSimsModManager/ja/">
+<link rel="alternate" hreflang="x-default" href="https://rodrifelix99.github.io/TheSimsModManager/">
 <link rel="icon" type="image/svg+xml" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M50 4 L88 50 L50 96 L12 50 Z" fill="%231FBF8F"/><path d="M50 4 L88 50 L50 50 Z" fill="%2312B0D6" opacity="0.65"/></svg>'>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -65,14 +76,37 @@
     text-decoration: none; font-weight: 700; font-size: 14px; color: var(--muted);
     padding: 7px 12px; border-radius: 999px; transition: color .2s, background .2s;
   }
+  .nav-links a { white-space: nowrap; }
   .nav-links a:hover { color: var(--text); background: var(--tint); }
   .nav-links a.cta {
     color: #fff; background: linear-gradient(135deg, var(--accent), var(--accent2));
     box-shadow: 0 2px 10px color-mix(in srgb, var(--accent) 40%, transparent);
   }
   .nav-links a.cta:hover { filter: brightness(1.06); }
-  @media (max-width: 640px) { .nav-links a:not(.cta) { display: none; } }
+  .lang {
+    font: inherit; font-weight: 700; font-size: 13.5px; color: var(--muted);
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 999px; padding: 6px 10px; margin-right: 4px; cursor: pointer;
+    transition: color .2s, border-color .2s, background .45s ease;
+  }
+  .lang:hover { color: var(--text); border-color: var(--accent); }
+  @media (max-width: 860px) { .nav-links a:not(.cta) { display: none; } }
   @media (max-width: 480px) { .brand { font-size: 14.5px; white-space: nowrap; } .brand svg { width: 24px; height: 24px; } }
+  /* Below this the name, the language picker and the download button stop
+     fitting side by side; the diamond alone still says whose site this is. */
+  @media (max-width: 560px) { .brand-name { display: none; } }
+
+  /* ---------- language offer ---------- */
+  .lang-offer { background: var(--tint); border-bottom: 1px solid var(--border); }
+  .lang-offer .wrap { display: flex; align-items: center; gap: 14px; padding-top: 11px; padding-bottom: 11px; }
+  .lang-offer p { font-size: 14px; font-weight: 700; margin: 0; }
+  .lang-offer a { color: var(--accent); font-weight: 800; white-space: nowrap; }
+  .lang-offer button {
+    margin-left: auto; flex: none; background: none; border: 0; cursor: pointer;
+    font: inherit; font-size: 19px; line-height: 1; color: var(--muted); padding: 4px 2px;
+  }
+  .lang-offer button:hover { color: var(--text); }
+  @media (max-width: 560px) { .lang-offer p { font-size: 13px; } }
 
   /* ---------- hero ---------- */
   .hero { padding: 72px 0 24px; text-align: center; }
@@ -109,11 +143,9 @@
   .hero-cta .alt { font-size: 13.5px; color: var(--muted); font-weight: 600; }
   .hero-cta .alt a { color: var(--accent); font-weight: 700; }
 
-  .hero-shot { margin: 48px auto 0; max-width: 980px; position: relative; }
-  .hero-shot img {
-    border-radius: 18px; border: 1px solid var(--border);
-    box-shadow: 0 24px 70px -18px color-mix(in srgb, var(--text) 30%, transparent);
-  }
+  /* The screenshots carry their own rounded window, padding and shadow, so
+     nothing is drawn around them here. */
+  .hero-shot { margin: 24px auto 0; max-width: 1040px; position: relative; }
 
   /* ---------- theme strip ---------- */
   .themes { padding: 84px 0 10px; text-align: center; }
@@ -191,9 +223,8 @@
   .games-note { margin-top: 20px; text-align: center; font-size: 13.5px; color: var(--muted); font-weight: 600; max-width: 640px; margin-left: auto; margin-right: auto; }
 
   /* ---------- second shot ---------- */
-  .shot2 { max-width: 900px; margin: 44px auto 0; }
-  .shot2 img { border-radius: 18px; border: 1px solid var(--border); box-shadow: 0 20px 60px -18px color-mix(in srgb, var(--text) 28%, transparent); }
-  .shot2 figcaption { text-align: center; margin-top: 14px; font-size: 13.5px; color: var(--muted); font-weight: 600; }
+  .shot2 { max-width: 960px; margin: 22px auto 0; }
+  .shot2 figcaption { text-align: center; margin-top: 0; font-size: 13.5px; color: var(--muted); font-weight: 600; }
 
   /* ---------- FAQ ---------- */
   .faq { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
@@ -249,41 +280,53 @@
   <div class="wrap nav">
     <a class="brand" href="#">
       <svg viewBox="0 0 100 100" aria-hidden="true"><path d="M50 4 L88 50 L50 96 L12 50 Z" fill="var(--accent)"/><path d="M50 4 L88 50 L50 50 Z" fill="var(--accent2)" opacity="0.65"/></svg>
-      The Sims Mod Manager
+      <span class="brand-name">The Sims Mod Manager</span>
     </a>
     <nav class="nav-links">
-      <a href="#features">Features</a>
-      <a href="#games">Games</a>
-      <a href="#faq">FAQ</a>
+      <a href="#features" data-i18n="nav.features">Features</a>
+      <a href="#games" data-i18n="nav.games">Games</a>
+      <a href="#faq" data-i18n="nav.faq">FAQ</a>
       <a href="https://github.com/rodrifelix99/TheSimsModManager">GitHub</a>
-      <a class="cta" href="#download">Download</a>
+      <select class="lang" id="lang-picker" aria-label="Language">
+        <option value="" selected>English</option>
+        <option value="zh">简体中文</option>
+        <option value="es">Español</option>
+        <option value="pt">Português</option>
+        <option value="fr">Français</option>
+        <option value="de">Deutsch</option>
+        <option value="it">Italiano</option>
+        <option value="ru">Русский</option>
+        <option value="pl">Polski</option>
+        <option value="ja">日本語</option>
+      </select>
+      <a class="cta" href="#download" data-i18n="nav.download">Download</a>
     </nav>
   </div>
 </header>
 
 <div class="hero wrap">
-  <h1>All your Sims mods,<br><span class="grad">finally organized.</span></h1>
-  <p class="sub">A free desktop app that turns your mods folder into a proper library. For The&nbsp;Sims&nbsp;1, 2, 3, 4 &amp; Medieval, on Windows, macOS and Linux.</p>
+  <h1 data-i18n="hero.h1">All your Sims mods,<br><span class="grad">finally organized.</span></h1>
+  <p class="sub" data-i18n="hero.sub">A free desktop app that turns your mods folder into a proper library. For The&nbsp;Sims&nbsp;1, 2, 3, 4 &amp; Medieval, on Windows, macOS and Linux.</p>
   <div class="hero-badges">
-    <span>✓ Free forever</span>
-    <span>✓ No account needed</span>
-    <span>✓ Never deletes your files</span>
+    <span data-i18n="hero.badge1">✓ Free forever</span>
+    <span data-i18n="hero.badge2">✓ No account needed</span>
+    <span data-i18n="hero.badge3">✓ Never deletes your files</span>
   </div>
   <div class="hero-cta">
     <a class="btn-primary" id="hero-download" href="https://github.com/rodrifelix99/TheSimsModManager/releases/latest">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      <span id="hero-download-label">Download</span>
+      <span id="hero-download-label" data-i18n="hero.download">Download</span>
     </a>
-    <div class="alt">Also for <a href="#download" id="alt-platforms">other platforms</a></div>
+    <div class="alt" data-i18n="hero.otherPlatforms">Also for <a href="#download" id="alt-platforms">other platforms</a></div>
   </div>
   <div class="hero-shot">
-    <img src="images/library-grid.png" alt="The Sims Mod Manager showing a Sims 4 mod library with thumbnails, categories and enable/disable toggles" width="1600">
+    <img src="images/library-grid.png" data-i18n-attr="alt:hero.shotAlt" alt="The Sims Mod Manager showing a Sims 4 mod library with thumbnails, categories and enable/disable toggles" width="1600">
   </div>
 </div>
 
 <div class="themes wrap">
-  <h2>The app dresses up for every game.</h2>
-  <p class="lead">Switch games and the whole interface re-themes: colors, logos, even the classic Sims&nbsp;1 UI sounds. Try it on this page:</p>
+  <h2 data-i18n="themes.h2">The app dresses up for every game.</h2>
+  <p class="lead" data-i18n="themes.lead">Switch games and the whole interface re-themes: colors, logos, even the classic Sims&nbsp;1 UI sounds. Try it on this page:</p>
   <div class="theme-chips" id="theme-chips">
     <button class="chip" data-theme="sims1"><img src="images/games/the_sims_1_icon.png" alt=""><span>The Sims<small>2000</small></span></button>
     <button class="chip" data-theme="sims2"><img src="images/games/the_sims_2_icon.png" alt=""><span>The Sims 2<small>2004</small></span></button>
@@ -291,108 +334,116 @@
     <button class="chip" data-theme="simsmedieval"><img src="images/games/the_sims_medieval_icon.webp" alt=""><span>The Sims Medieval<small>2011</small></span></button>
     <button class="chip active" data-theme="sims4"><img src="images/games/the_sims_4_icon.png" alt=""><span>The Sims 4<small>2014</small></span></button>
   </div>
-  <p class="hint">These are the real in-app palettes. The whole page just re-themed, exactly like the app does.</p>
+  <p class="hint" data-i18n="themes.hint">These are the real in-app palettes. The whole page just re-themed, exactly like the app does.</p>
   <figure class="shot2">
-    <img src="images/library-sims1.png" alt="The Sims Mod Manager managing The Sims 1 with the classic teal-and-gold theme" width="1600" loading="lazy">
-    <figcaption>The same library managing The Sims 1, in its classic theme.</figcaption>
+    <img src="images/library-grid-ts2.png" data-i18n-attr="alt:themes.shotAlt" alt="The Sims Mod Manager managing The Sims 2 with its warm cream-and-olive theme" width="1600" loading="lazy">
+    <figcaption data-i18n="themes.caption">The same library managing The Sims 2, in its own warm palette.</figcaption>
+  </figure>
+  <figure class="shot2">
+    <img src="images/dark-mode.png" data-i18n-attr="alt:themes.darkAlt" alt="The Sims Mod Manager's library in dark mode, mint green on near-black" width="1600" loading="lazy">
+    <figcaption data-i18n="themes.darkCaption">It does dark, too: follow your system, or pick a side in Settings.</figcaption>
   </figure>
 </div>
 
 <section id="features">
   <div class="wrap">
     <div class="head">
-      <h2>Everything a mod folder wishes it could do.</h2>
-      <p class="lead">Stop renaming files by hand and guessing which download broke your game.</p>
+      <h2 data-i18n="features.h2">Everything a mod folder wishes it could do.</h2>
+      <p class="lead" data-i18n="features.lead">Stop renaming files by hand and guessing which download broke your game.</p>
     </div>
     <div class="grid">
-      <div class="card"><div class="icon">🖼️</div><h3>Real thumbnails &amp; insights</h3><p>The app looks inside your <b>.package</b> files and pulls out the actual artwork, plus a breakdown of what's inside: CAS parts, objects, textures, tuning.</p></div>
-      <div class="card"><div class="icon">🔀</div><h3>One-click enable / disable</h3><p>Flip a toggle to turn any mod off without deleting it. The file is safely renamed so the game just skips it; flip it back any time.</p></div>
-      <div class="card"><div class="icon">⚠️</div><h3>Conflict warnings</h3><p>Installed the same mod twice, or kept an old version next to the new one? Both get badged. The app also looks inside your packages and flags the ones that override each other's resources, the real reason CC breaks.</p></div>
-      <div class="card"><div class="icon">📦</div><h3>Drag, drop, done</h3><p>Drop files or whole folders onto the window and they land in the right place. <b>.zip</b>, <b>.rar</b> and <b>.7z</b> downloads are unpacked for you, folder structure kept, readmes and screenshots left out.</p></div>
-      <div class="card"><div class="icon">🧭</div><h3>Finds your folders for you</h3><p>Localized folder names ("Los Sims 3"), the Ultimate Collection, OneDrive-moved Documents, multiple installs: it finds them, or you can point it anywhere.</p></div>
-      <div class="card"><div class="icon">🏗️</div><h3>Sets up mods folders properly</h3><p>No mods folder yet? One click creates it <i>with the files the game needs</i>, like the Resource.cfg framework The Sims 3 requires before mods work at all.</p></div>
-      <div class="card"><div class="icon">🔍</div><h3>Search, filter &amp; stats</h3><p>Search your whole library, filter by category, switch between grid and list, and watch live totals for enabled, disabled and conflicting mods.</p></div>
+      <div class="card"><div class="icon">🖼️</div><h3 data-i18n="features.thumbs.h3">Real thumbnails &amp; insights</h3><p data-i18n="features.thumbs.p">The app looks inside your <b>.package</b> files and pulls out the actual artwork, plus a breakdown of what's inside: CAS parts, objects, textures, tuning.</p></div>
+      <div class="card"><div class="icon">🔀</div><h3 data-i18n="features.toggle.h3">One-click enable / disable</h3><p data-i18n="features.toggle.p">Flip a toggle to turn any mod off without deleting it. The file is safely renamed so the game just skips it; flip it back any time.</p></div>
+      <div class="card"><div class="icon">⚠️</div><h3 data-i18n="features.conflicts.h3">Conflict warnings</h3><p data-i18n="features.conflicts.p">Installed the same mod twice, or kept an old version next to the new one? Both get badged. The app also looks inside your packages and flags the ones that override each other's resources, the real reason CC breaks.</p></div>
+      <div class="card"><div class="icon">📦</div><h3 data-i18n="features.drop.h3">Drag, drop, done</h3><p data-i18n="features.drop.p">Drop files or whole folders onto the window and they land in the right place. <b>.zip</b>, <b>.rar</b> and <b>.7z</b> downloads are unpacked for you, folder structure kept, readmes and screenshots left out.</p></div>
+      <div class="card"><div class="icon">🧭</div><h3 data-i18n="features.folders.h3">Finds your folders for you</h3><p data-i18n="features.folders.p">Localized folder names ("Los Sims 3"), the Ultimate Collection, OneDrive-moved Documents, multiple installs: it finds them, or you can point it anywhere.</p></div>
+      <div class="card"><div class="icon">🏗️</div><h3 data-i18n="features.setup.h3">Sets up mods folders properly</h3><p data-i18n="features.setup.p">No mods folder yet? One click creates it <i>with the files the game needs</i>, like the Resource.cfg framework The Sims 3 requires before mods work at all.</p></div>
+      <div class="card"><div class="icon">🔍</div><h3 data-i18n="features.search.h3">Search, filter &amp; stats</h3><p data-i18n="features.search.p">Search your whole library, filter by category, switch between grid and list, and watch live totals for enabled, disabled and conflicting mods.</p></div>
     </div>
+    <figure class="shot2">
+      <img src="images/mod-details-conflict.png" data-i18n-attr="alt:features.shotAlt" alt="A mod's detail page showing what's inside the package, where the file lives, and a warning that another mod has the same file name" width="1600" loading="lazy">
+      <figcaption data-i18n="features.caption">Open any mod to see what's inside it, where it lives, and why it got flagged.</figcaption>
+    </figure>
   </div>
 </section>
 
 <section id="download">
   <div class="wrap">
     <div class="head">
-      <h2>Download</h2>
-      <p class="lead">Free, with no account and no installer tricks. Pick your platform:</p>
-      <span class="version-pill" id="version-pill">Latest release</span>
+      <h2 data-i18n="download.h2">Download</h2>
+      <p class="lead" data-i18n="download.lead">Free, with no account and no installer tricks. Pick your platform:</p>
+      <span class="version-pill" id="version-pill" data-i18n="download.latestRelease">Latest release</span>
     </div>
     <div class="dl-grid">
       <div class="dl-card" data-platform="windows-setup">
         <div class="os"><img src="images/systems/windows.webp" alt="Windows"></div>
-        <h3>Windows <small>installer</small></h3>
-        <p>Recommended for most people. Windows SmartScreen may warn because the app isn't code-signed yet; choose <b>More info → Run anyway</b>.</p>
-        <a class="get" href="https://github.com/rodrifelix99/TheSimsModManager/releases/latest">Download .exe</a>
+        <h3>Windows <small data-i18n="download.winSetup.tag">installer</small></h3>
+        <p data-i18n="download.winSetup.p">Recommended for most people. Windows SmartScreen may warn because the app isn't code-signed yet; choose <b>More info → Run anyway</b>.</p>
+        <a class="get" href="https://github.com/rodrifelix99/TheSimsModManager/releases/latest" data-i18n="download.getExe">Download .exe</a>
       </div>
       <div class="dl-card" data-platform="windows-portable">
         <div class="os"><img src="images/systems/windows.webp" alt="Windows"></div>
-        <h3>Windows <small>portable</small></h3>
-        <p>No install needed. Extract the zip anywhere and run <b>sims_mod_manager.exe</b>.</p>
-        <a class="get" href="https://github.com/rodrifelix99/TheSimsModManager/releases/latest">Download .zip</a>
+        <h3>Windows <small data-i18n="download.winPortable.tag">portable</small></h3>
+        <p data-i18n="download.winPortable.p">No install needed. Extract the zip anywhere and run <b>sims_mod_manager.exe</b>.</p>
+        <a class="get" href="https://github.com/rodrifelix99/TheSimsModManager/releases/latest" data-i18n="download.getZip">Download .zip</a>
       </div>
       <div class="dl-card" data-platform="macos">
         <div class="os"><img src="images/systems/apple.png" alt="macOS"></div>
         <h3>macOS</h3>
-        <p>Signed &amp; notarized by Apple. Unzip and <b>drag to Applications</b>, then open like any other app.</p>
-        <a class="get" href="https://github.com/rodrifelix99/TheSimsModManager/releases/latest">Download .zip</a>
+        <p data-i18n="download.macos.p">Signed &amp; notarized by Apple. Unzip and <b>drag to Applications</b>, then open like any other app.</p>
+        <a class="get" href="https://github.com/rodrifelix99/TheSimsModManager/releases/latest" data-i18n="download.getZip">Download .zip</a>
       </div>
       <div class="dl-card" data-platform="linux">
         <div class="os"><img src="images/systems/linux.png" alt="Linux"></div>
         <h3>Linux</h3>
-        <p>Extract the archive and run <b>sims_mod_manager</b>. Works with Wine/CrossOver game installs too.</p>
-        <a class="get" href="https://github.com/rodrifelix99/TheSimsModManager/releases/latest">Download .tar.gz</a>
+        <p data-i18n="download.linux.p">Extract the archive and run <b>sims_mod_manager</b>. Works with Wine/CrossOver game installs too.</p>
+        <a class="get" href="https://github.com/rodrifelix99/TheSimsModManager/releases/latest" data-i18n="download.getTarGz">Download .tar.gz</a>
       </div>
     </div>
-    <p class="dl-note">All downloads come from the <a href="https://github.com/rodrifelix99/TheSimsModManager/releases">GitHub Releases page</a>, where every version is listed with its changelog.</p>
+    <p class="dl-note" data-i18n="download.note">All downloads come from the <a href="https://github.com/rodrifelix99/TheSimsModManager/releases">GitHub Releases page</a>, where every version is listed with its changelog.</p>
   </div>
 </section>
 
 <section id="games">
   <div class="wrap">
     <div class="head">
-      <h2>Every mainline Sims game. And Medieval.</h2>
-      <p class="lead">Each game keeps its mods somewhere different. The app knows where.</p>
+      <h2 data-i18n="games.h2">Every mainline Sims game. And Medieval.</h2>
+      <p class="lead" data-i18n="games.lead">Each game keeps its mods somewhere different. The app knows where.</p>
     </div>
     <div class="games-grid">
-      <div class="game-card"><img class="g-icon" src="images/games/the_sims_1_icon.png" alt="The Sims icon"><h3>The Sims</h3><div class="era">2000</div><p>Mods live in the install folder's <b>Downloads</b> directory, not in Documents. The app knows the difference.</p></div>
-      <div class="game-card"><img class="g-icon" src="images/games/the_sims_2_icon.png" alt="The Sims 2 icon"><h3>The Sims 2</h3><div class="era">2004</div><p>Handles the standard <b>EA Games</b> Documents folder and the Ultimate Collection's own folder name.</p></div>
-      <div class="game-card"><img class="g-icon" src="images/games/the_sims_3_icon.png" alt="The Sims 3 icon"><h3>The Sims 3</h3><div class="era">2009</div><p>Needs the <b>Resource.cfg</b> mod framework before any mod loads; the app creates it for you.</p></div>
-      <div class="game-card"><img class="g-icon" src="images/games/the_sims_medieval_icon.webp" alt="The Sims Medieval icon"><h3>The Sims Medieval</h3><div class="era">2011</div><p>Mods live in the <b>install folder</b>, not Documents, and need a <b>Resource.cfg</b>; the app sets both up for you.</p></div>
-      <div class="game-card"><img class="g-icon" src="images/games/the_sims_4_icon.png" alt="The Sims 4 icon"><h3>The Sims 4</h3><div class="era">2014</div><p>Uses the standard <b>Mods</b> folder. Just remember to enable CC &amp; script mods in the game's options.</p></div>
+      <div class="game-card"><img class="g-icon" src="images/games/the_sims_1_icon.png" alt="The Sims icon"><h3>The Sims</h3><div class="era">2000</div><p data-i18n="games.sims1">Mods live in the install folder's <b>Downloads</b> directory, not in Documents. The app knows the difference.</p></div>
+      <div class="game-card"><img class="g-icon" src="images/games/the_sims_2_icon.png" alt="The Sims 2 icon"><h3>The Sims 2</h3><div class="era">2004</div><p data-i18n="games.sims2">Handles the standard <b>EA Games</b> Documents folder and the Ultimate Collection's own folder name.</p></div>
+      <div class="game-card"><img class="g-icon" src="images/games/the_sims_3_icon.png" alt="The Sims 3 icon"><h3>The Sims 3</h3><div class="era">2009</div><p data-i18n="games.sims3">Needs the <b>Resource.cfg</b> mod framework before any mod loads; the app creates it for you.</p></div>
+      <div class="game-card"><img class="g-icon" src="images/games/the_sims_medieval_icon.webp" alt="The Sims Medieval icon"><h3>The Sims Medieval</h3><div class="era">2011</div><p data-i18n="games.medieval">Mods live in the <b>install folder</b>, not Documents, and need a <b>Resource.cfg</b>; the app sets both up for you.</p></div>
+      <div class="game-card"><img class="g-icon" src="images/games/the_sims_4_icon.png" alt="The Sims 4 icon"><h3>The Sims 4</h3><div class="era">2014</div><p data-i18n="games.sims4">Uses the standard <b>Mods</b> folder. Just remember to enable CC &amp; script mods in the game's options.</p></div>
     </div>
-    <p class="games-note">Every location is just a smart default; you can point any game at any folder in Settings. SimCity support is on the <a href="https://github.com/rodrifelix99/TheSimsModManager/issues" style="color:var(--accent);font-weight:700">roadmap</a>, and the app was built so any moddable game can be added.</p>
+    <p class="games-note" data-i18n="games.note">Every location is just a smart default; you can point any game at any folder in Settings. SimCity support is on the <a href="https://github.com/rodrifelix99/TheSimsModManager/issues" style="color:var(--accent);font-weight:700">roadmap</a>, and the app was built so any moddable game can be added.</p>
   </div>
 </section>
 
 <section id="faq">
   <div class="wrap">
-    <div class="head"><h2>Questions, answered.</h2></div>
+    <div class="head"><h2 data-i18n="faq.h2">Questions, answered.</h2></div>
     <div class="faq">
       <details>
-        <summary>Is it really free?</summary>
-        <p>Yes. The app is free to download and use, and there's no account, no ads, and no "pro" version. If it saves your Saturday, you can <a href="https://www.paypal.com/donate/?hosted_button_id=UFSLDMGKB9R6A">buy the developer a coffee</a>, but that's entirely optional.</p>
+        <summary data-i18n="faq.free.q">Is it really free?</summary>
+        <p data-i18n="faq.free.a">Yes. The app is free to download and use, and there's no account, no ads, and no "pro" version. If it saves your Saturday, you can <a href="https://www.paypal.com/donate/?hosted_button_id=UFSLDMGKB9R6A">buy the developer a coffee</a>, but that's entirely optional.</p>
       </details>
       <details>
-        <summary>Can it break my mods or saves?</summary>
-        <p>Disabling a mod only renames the file (adding a <b>.disabled</b> suffix) so the game skips it; nothing is ever deleted, and re-enabling restores the exact original file. Your saves are never touched.</p>
+        <summary data-i18n="faq.safe.q">Can it break my mods or saves?</summary>
+        <p data-i18n="faq.safe.a">Disabling a mod only renames the file (adding a <b>.disabled</b> suffix) so the game skips it; nothing is ever deleted, and re-enabling restores the exact original file. Your saves are never touched.</p>
       </details>
       <details>
-        <summary>Windows says the app is unrecognized. Is it safe?</summary>
-        <p>The app isn't code-signed yet (certificates are expensive for a free project), so SmartScreen shows a warning on first run. Choose <b>More info → Run anyway</b>. The full source code is <a href="https://github.com/rodrifelix99/TheSimsModManager">public on GitHub</a>, and every download is built automatically from that code by GitHub's own servers.</p>
+        <summary data-i18n="faq.smartscreen.q">Windows says the app is unrecognized. Is it safe?</summary>
+        <p data-i18n="faq.smartscreen.a">The app isn't code-signed yet (certificates are expensive for a free project), so SmartScreen shows a warning on first run. Choose <b>More info → Run anyway</b>. The full source code is <a href="https://github.com/rodrifelix99/TheSimsModManager">public on GitHub</a>, and every download is built automatically from that code by GitHub's own servers.</p>
       </details>
       <details>
-        <summary>Does it work with the Ultimate Collection / localized games?</summary>
-        <p>Yes. It detects localized user folders ("Los Sims 3", "Die Sims 2"…), the Sims 2 Ultimate Collection, Documents folders moved by OneDrive, and multiple installs of the same game. If all else fails, you can point it at any folder manually.</p>
+        <summary data-i18n="faq.localized.q">Does it work with the Ultimate Collection / localized games?</summary>
+        <p data-i18n="faq.localized.a">Yes. It detects localized user folders ("Los Sims 3", "Die Sims 2"…), the Sims 2 Ultimate Collection, Documents folders moved by OneDrive, and multiple installs of the same game. If all else fails, you can point it at any folder manually.</p>
       </details>
       <details>
-        <summary>Where do I report a bug or ask for a feature?</summary>
-        <p>On the <a href="https://github.com/rodrifelix99/TheSimsModManager/issues">GitHub issues page</a>; bug reports and ideas are very welcome. There's also a <a href="https://github.com/rodrifelix99/TheSimsModManager/wiki">wiki</a> with a user guide and FAQ.</p>
+        <summary data-i18n="faq.report.q">Where do I report a bug or ask for a feature?</summary>
+        <p data-i18n="faq.report.a">On the <a href="https://github.com/rodrifelix99/TheSimsModManager/issues">GitHub issues page</a>; bug reports and ideas are very welcome. There's also a <a href="https://github.com/rodrifelix99/TheSimsModManager/wiki">wiki</a> with a user guide and FAQ.</p>
       </details>
     </div>
   </div>
@@ -402,14 +453,14 @@
   <div class="wrap">
     <div class="foot-links">
       <a href="https://github.com/rodrifelix99/TheSimsModManager">GitHub</a>
-      <a href="https://github.com/rodrifelix99/TheSimsModManager/releases">Releases</a>
-      <a href="https://github.com/rodrifelix99/TheSimsModManager/wiki">Wiki</a>
-      <a href="https://github.com/rodrifelix99/TheSimsModManager/issues">Report a bug</a>
+      <a href="https://github.com/rodrifelix99/TheSimsModManager/releases" data-i18n="footer.releases">Releases</a>
+      <a href="https://github.com/rodrifelix99/TheSimsModManager/wiki" data-i18n="footer.wiki">Wiki</a>
+      <a href="https://github.com/rodrifelix99/TheSimsModManager/issues" data-i18n="footer.report">Report a bug</a>
       <a href="https://thesimsmodmanager.tumblr.com/">Tumblr</a>
-      <a href="https://github.com/rodrifelix99/TheSimsModManager/blob/main/LICENSE.md">License</a>
-      <a href="https://www.paypal.com/donate/?hosted_button_id=UFSLDMGKB9R6A">Donate ♥</a>
+      <a href="https://github.com/rodrifelix99/TheSimsModManager/blob/main/LICENSE.md" data-i18n="footer.license">License</a>
+      <a href="https://www.paypal.com/donate/?hosted_button_id=UFSLDMGKB9R6A" data-i18n="footer.donate">Donate ♥</a>
     </div>
-    <p class="disclaimer">
+    <p class="disclaimer" data-i18n="footer.disclaimer">
       <b>The Sims Mod Manager is an unofficial fan project.</b> It is not affiliated with, endorsed by, or
       sponsored by Electronic Arts Inc. or Maxis. <i>The Sims</i>, <i>SimCity</i>, and all related logos, artwork,
       and sounds are trademarks or copyrighted material of Electronic Arts Inc. and are used for identification
@@ -418,7 +469,72 @@
   </div>
 </footer>
 
+<script type="application/json" id="lang-offers">{"en":{"msg":"This page is also available in English.","cta":"Switch to English","close":"Dismiss"},"zh":{"msg":"本页面也有简体中文版。","cta":"切换到简体中文","close":"关闭"},"es":{"msg":"Esta página también está disponible en español.","cta":"Verla en español","close":"Descartar"},"pt":{"msg":"Esta página também está disponível em português.","cta":"Ver em português","close":"Dispensar"},"fr":{"msg":"Cette page existe aussi en français.","cta":"La lire en français","close":"Masquer"},"de":{"msg":"Diese Seite gibt es auch auf Deutsch.","cta":"Auf Deutsch ansehen","close":"Ausblenden"},"it":{"msg":"Questa pagina è disponibile anche in italiano.","cta":"Vedila in italiano","close":"Chiudi"},"ru":{"msg":"Эта страница есть и на русском.","cta":"Открыть на русском","close":"Скрыть"},"pl":{"msg":"Ta strona jest też po polsku.","cta":"Zobacz po polsku","close":"Ukryj"},"ja":{"msg":"このページは日本語でもご覧いただけます。","cta":"日本語で読む","close":"閉じる"}}</script>
+<script type="application/json" id="page-strings">
+{
+  "osWindows": "Download for Windows",
+  "osMacos": "Download for macOS",
+  "osLinux": "Download for Linux",
+  "download": "Download",
+  "latest": "Latest: "
+}
+</script>
 <script>
+  /* ---------- language picker: same page, different folder ---------- */
+  const LANGS = ['zh','es','pt','fr','de','it','ru','pl','ja'];
+  const langRoot = () => location.pathname
+    .replace(/index\.html$/, '')
+    .replace(new RegExp('/(' + LANGS.join('|') + ')/$'), '/');
+  const langHref = code => langRoot() + (code && code !== 'en' ? code + '/' : '');
+
+  document.getElementById('lang-picker').addEventListener('change', e => {
+    location.href = langHref(e.target.value);
+  });
+
+  /* ---------- offer the visitor's own language, without redirecting ----------
+     Sending people somewhere based on Accept-Language would mean Googlebot,
+     which crawls from the US, only ever sees the English page. So the other
+     nine stay reachable by their own URL and this only suggests. */
+  function offerLanguage() {
+    document.querySelector('.lang-offer')?.remove();
+    let dismissed = false;
+    try { dismissed = localStorage.getItem('lang-offer') === 'off'; } catch (e) {}
+    if (dismissed) return;
+    const offers = JSON.parse(document.getElementById('lang-offers').textContent);
+    const here = document.documentElement.lang;
+    const wanted = (navigator.languages && navigator.languages.length
+        ? navigator.languages : [navigator.language || ''])
+      .map(tag => tag.toLowerCase().split('-')[0])
+      .find(code => offers[code]);
+    if (!wanted || wanted === here) return;
+
+    const offer = offers[wanted];
+    const bar = document.createElement('div');
+    bar.className = 'lang-offer';
+    // The banner speaks the visitor's language, not the page's, so it needs
+    // to say so for screen readers and for hyphenation.
+    bar.lang = wanted;
+    const wrap = document.createElement('div');
+    wrap.className = 'wrap';
+    const text = document.createElement('p');
+    text.textContent = offer.msg;
+    const link = document.createElement('a');
+    link.href = langHref(wanted);
+    link.textContent = offer.cta;
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.textContent = '\u00d7';
+    close.setAttribute('aria-label', offer.close);
+    close.addEventListener('click', () => {
+      try { localStorage.setItem('lang-offer', 'off'); } catch (e) {}
+      bar.remove();
+    });
+    wrap.append(text, link, close);
+    bar.append(wrap);
+    document.querySelector('header').insertAdjacentElement('afterend', bar);
+  }
+  offerLanguage();
+
   /* ---------- live theme switcher (palettes mirror lib/src/ui/game_theme.dart) ---------- */
   const THEMES = {
     sims1: { accent:'#12898A', accent2:'#E0A53A', bg:'#EEF2EC', surface:'#FFFFFF', surfaceAlt:'#F2F5EF', text:'#1E3A37', muted:'#6C827E', border:'#DBE4DE', tint:'#DCEFEE' },
@@ -457,13 +573,20 @@
     return null;
   }
 
-  const OS_LABELS = { 'windows-setup': 'Download for Windows', 'macos': 'Download for macOS', 'linux': 'Download for Linux' };
+  const STRINGS = JSON.parse(document.getElementById('page-strings').textContent);
+  const OS_LABELS = {
+    'windows-setup': STRINGS.osWindows,
+    'macos': STRINGS.osMacos,
+    'linux': STRINGS.osLinux,
+  };
 
   fetch('https://api.github.com/repos/rodrifelix99/TheSimsModManager/releases/latest')
     .then(r => r.ok ? r.json() : Promise.reject())
     .then(rel => {
       const version = rel.tag_name || '';
-      if (version) document.getElementById('version-pill').textContent = 'Latest: ' + version;
+      if (version) {
+        document.getElementById('version-pill').textContent = STRINGS.latest + version;
+      }
 
       const links = {};
       for (const asset of rel.assets || []) {
@@ -484,10 +607,11 @@
       const label = document.getElementById('hero-download-label');
       if (plat && links[plat]) {
         hero.href = links[plat].browser_download_url;
-        label.textContent = (OS_LABELS[plat] || 'Download') + (version ? ' · ' + version : '');
+        label.textContent =
+          (OS_LABELS[plat] || STRINGS.download) + (version ? ' · ' + version : '');
         document.querySelector(`.dl-card[data-platform="${plat}"]`)?.classList.add('recommended');
       } else {
-        label.textContent = 'Download' + (version ? ' ' + version : '');
+        label.textContent = STRINGS.download + (version ? ' ' + version : '');
       }
     })
     .catch(() => { /* API unavailable; buttons keep linking to the releases page */ });

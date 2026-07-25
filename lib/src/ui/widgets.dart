@@ -4,8 +4,10 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:intl/intl.dart' show NumberFormat;
 
 import 'game_theme.dart';
+import 'l10n.dart';
 
 /// Rebuilds with `hovered: true` while the pointer is over the child.
 class HoverBuilder extends StatefulWidget {
@@ -41,6 +43,7 @@ class PillSwitch extends StatelessWidget {
     this.width = 40,
     this.height = 23,
     this.activeColor,
+    this.inactiveColor,
     this.trackColor,
   });
 
@@ -50,6 +53,9 @@ class PillSwitch extends StatelessWidget {
   final double height;
   final Color? activeColor;
 
+  /// Track color while off; defaults to the light theme's gray-green.
+  final Color? inactiveColor;
+
   /// Explicit track color override (used on the detail screen where the
   /// switch sits on a colored button).
   final Color? trackColor;
@@ -57,7 +63,8 @@ class PillSwitch extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final knobSize = height - 5;
-    final active = activeColor ?? const Color(0xFF1FBF8F);
+    final active = activeColor ?? const Color(0xFF189771);
+    final inactive = inactiveColor ?? const Color(0x52788C87);
     return GestureDetector(
       onTap: onChanged,
       behavior: HitTestBehavior.opaque,
@@ -68,8 +75,7 @@ class PillSwitch extends StatelessWidget {
           width: width,
           height: height,
           decoration: BoxDecoration(
-            color: trackColor ??
-                (value ? active : const Color(0x52788C87)), // 32% gray-green
+            color: trackColor ?? (value ? active : inactive),
             borderRadius: BorderRadius.circular(height / 2),
           ),
           child: AnimatedAlign(
@@ -270,9 +276,9 @@ class ConflictBadge extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 5),
-          const Text(
-            'conflict',
-            style: TextStyle(
+          Text(
+            L.of(context).conflictBadge,
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 10.5,
               fontWeight: FontWeight.w800,
@@ -454,17 +460,23 @@ class _RenderOverflowRow extends RenderBox
 }
 
 /// Formats a byte count the way the design does: "480 MB", "2.2 GB".
+/// The unit stays as-is everywhere (KB/MB/GB read fine in every language
+/// we ship), but the number itself follows the locale, so German reads
+/// "2,2 GB" rather than "2.2 GB".
 String formatBytes(int? bytes) {
   if (bytes == null) return '-';
   const mb = 1024 * 1024;
   const gb = 1000 * mb;
-  if (bytes >= 1000 * gb) {
-    return '${(bytes / (1000 * gb)).toStringAsFixed(1)} TB';
-  }
-  if (bytes >= gb) {
-    return '${(bytes / gb).toStringAsFixed(1)} GB';
-  }
-  if (bytes >= mb) return '${(bytes / mb).round()} MB';
-  if (bytes >= 1024) return '${(bytes / 1024).round()} KB';
-  return '$bytes B';
+  if (bytes >= 1000 * gb) return '${_oneDecimal(bytes / (1000 * gb))} TB';
+  if (bytes >= gb) return '${_oneDecimal(bytes / gb)} GB';
+  if (bytes >= mb) return '${_whole(bytes / mb)} MB';
+  if (bytes >= 1024) return '${_whole(bytes / 1024)} KB';
+  return '${_whole(bytes.toDouble())} B';
 }
+
+String _oneDecimal(double value) =>
+    NumberFormat.decimalPatternDigits(decimalDigits: 1).format(value);
+
+String _whole(double value) => NumberFormat.decimalPattern().format(
+      value.round(),
+    );

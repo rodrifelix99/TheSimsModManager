@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Persisted user preferences: per-game mods-folder overrides and the
@@ -37,6 +38,28 @@ class SettingsStore {
     }
   }
 
+  /// Language the user picked in Settings as a bare language subtag
+  /// ('de', 'pt', ...), or `null` to follow the operating system.
+  String? get localeCode => _prefs.getString('localeCode');
+  Future<void> setLocaleCode(String? code) async {
+    if (code == null) {
+      await _prefs.remove('localeCode');
+    } else {
+      await _prefs.setString('localeCode', code);
+    }
+  }
+
+  /// Theme the user picked in Settings - 'light' or 'dark', or `null` to
+  /// follow the operating system.
+  String? get themeModeName => _prefs.getString('themeMode');
+  Future<void> setThemeModeName(String? name) async {
+    if (name == null) {
+      await _prefs.remove('themeMode');
+    } else {
+      await _prefs.setString('themeMode', name);
+    }
+  }
+
   bool get warnConflicts => _prefs.getBool('warnConflicts') ?? true;
   Future<void> setWarnConflicts(bool value) =>
       _prefs.setBool('warnConflicts', value);
@@ -62,6 +85,14 @@ class SettingsStore {
   bool get soundEffects => _prefs.getBool('soundEffects') ?? true;
   Future<void> setSoundEffects(bool value) =>
       _prefs.setBool('soundEffects', value);
+
+  /// Fills the library with invented mods for screenshots. Reads false in
+  /// a release build whatever is stored, so a debug run of the app can't
+  /// leave the shipped one showing mods nobody has.
+  bool get demoLibrary =>
+      kDebugMode && (_prefs.getBool('demoLibrary') ?? false);
+  Future<void> setDemoLibrary(bool value) =>
+      _prefs.setBool('demoLibrary', value);
 
   bool get analyticsEnabled => _prefs.getBool('analyticsEnabled') ?? true;
   Future<void> setAnalyticsEnabled(bool value) =>
