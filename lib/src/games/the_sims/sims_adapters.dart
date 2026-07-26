@@ -65,8 +65,8 @@ Future<List<Directory>> winePrefixDocumentsDirs(String home) async {
     await addChildren(p.join(library, 'steamapps', 'compatdata'));
   }
   await addChildren(p.join(home, '.config', 'heroic', 'prefixes'));
-  await addChildren(p.join(home, '.var', 'app',
-      'com.heroicgameslauncher.hgl', 'config', 'heroic', 'prefixes'));
+  await addChildren(p.join(home, '.var', 'app', 'com.heroicgameslauncher.hgl',
+      'config', 'heroic', 'prefixes'));
   await addChildren(p.join(home, 'Games', 'Heroic', 'Prefixes', 'default'));
   await addChildren(p.join(home, 'Games'));
   prefixes.add(Directory(p.join(home, '.wine')));
@@ -99,6 +99,180 @@ Future<List<Directory>> winePrefixDocumentsDirs(String home) async {
         if (seen.add(key)) found.add(docs);
       }
     }
+  }
+  return found;
+}
+
+/// Whether [dir] is an install of a particular game, told by a file only
+/// that game ships. Folder names can't answer this: they're localized,
+/// every re-release picks a new one, and a repack or a hand-moved copy
+/// invents its own.
+typedef InstallSignature = Future<bool> Function(Directory dir);
+
+/// The Program Files roots to look in, both architectures. The environment
+/// variables come first so a Windows installed on another drive works.
+Set<String> programFilesRoots({List<String>? override}) =>
+    override?.toSet() ??
+    [
+      Platform.environment['ProgramFiles(x86)'],
+      Platform.environment['ProgramFiles'],
+      r'C:\Program Files (x86)',
+      r'C:\Program Files',
+    ].whereType<String>().toSet();
+
+/// Steam libraries on this machine, read out of Steam's own
+/// `libraryfolders.vdf`. Steam only keeps its default library beside the
+/// client; a second one on a roomier drive is registered in that file and
+/// is otherwise unguessable.
+Future<List<String>> steamLibraries({List<String>? steamRootsOverride}) async {
+  final roots = steamRootsOverride ??
+      [
+        for (final root in programFilesRoots()) p.join(root, 'Steam'),
+        for (final drive in await windowsDriveRoots()) ...[
+          p.join(drive, 'Steam'),
+          p.join(drive, 'SteamLibrary'),
+        ],
+        if (Platform.environment['HOME'] case final home?) ...[
+          p.join(home, '.steam', 'steam'),
+          p.join(home, '.local', 'share', 'Steam'),
+          p.join(home, '.var', 'app', 'com.valvesoftware.Steam', '.local',
+              'share', 'Steam'),
+          p.join(home, 'Library', 'Application Support', 'Steam'),
+        ],
+      ];
+  final found = <String>[];
+  for (final root in roots) {
+    if (!await Directory(root).exists()) continue;
+    found.add(root); // Steam's own folder is always a library.
+    for (final vdf in [
+      // Current Steam keeps it in config/; older clients in steamapps/.
+      File(p.join(root, 'config', 'libraryfolders.vdf')),
+      File(p.join(root, 'steamapps', 'libraryfolders.vdf')),
+    ]) {
+      String text;
+      try {
+        if (!await vdf.exists()) continue;
+        text = await vdf.readAsString();
+      } on FileSystemException {
+        continue;
+      }
+      // Deliberately not a VDF parser: the library paths are the only
+      // thing wanted out of the file, and they are the only "path" keys
+      // in it. Windows paths come out doubly escaped.
+      for (final match in RegExp(r'"path"\s*"([^"]*)"').allMatches(text)) {
+        found.add(match.group(1)!.replaceAll(r'\\', r'\'));
+      }
+    }
+  }
+  // The default library is both a probed root and its own entry in the file.
+  return found.toSet().toList();
+}
+
+/// Drive roots that exist right now (`C:\`, `D:\`, ...); empty off Windows.
+/// Dart has no drive-enumeration API, so probe the letters - an unmapped
+/// letter or an empty optical drive just doesn't exist.
+Future<List<String>> windowsDriveRoots() async {
+  if (!Platform.isWindows) return const [];
+  final found = <String>[];
+  for (var letter = 'C'.codeUnitAt(0); letter <= 'Z'.codeUnitAt(0); letter++) {
+    final root = '${String.fromCharCode(letter)}:\\';
+    if (await Directory(root).exists()) found.add(root);
+  }
+  return found;
+}
+
+/// First-level folders the scan below never needs to walk into: they hold
+/// no games and some of them (profiles, OneDrive placeholders) cost real
+/// time to enumerate.
+const _unscannedFolders = {
+  r'$recycle.bin',
+  'system volume information',
+  'windows',
+  'programdata',
+  'appdata',
+  'users',
+  'onedrive',
+  'proc',
+  'sys',
+  'dev',
+};
+
+/// A hung network drive must not hang the library behind it; whatever the
+/// scan has found by then is good enough.
+const _scanTimeout = Duration(seconds: 10);
+
+/// Folder levels below a scan root to look at. Three, so that a bundled
+/// download's own folder (`C:\Games\<bundle>\<game>`) is still reached.
+const _scanDepth = 3;
+
+final _installScans = <String, Future<List<Directory>>>{};
+
+/// Game installs found by their own files instead of a known path, for the
+/// games whose mods live in the install folder. Launchers put games under
+/// Program Files, but an install can sit anywhere - a second drive, a
+/// custom Steam library, a folder the user moved by hand - so probe a
+/// bounded set of roots and keep whatever [signature] recognizes:
+///
+/// - every Steam library Steam itself lists, at `steamapps/common`
+/// - each drive root on Windows, the home folder elsewhere
+///
+/// [_scanDepth] levels deep, which is what reaches the real layouts:
+/// `D:\<game>`, `D:\EA Games\<game>`, and the bundled downloads that put
+/// the game inside their own folder inside a games folder
+/// (`C:\Games\<bundle>\<game>`). Anything more buried is what the manual
+/// folder picker in Settings is for.
+///
+/// Memoized per [cacheKey] for the run: it's the slow path, only reached
+/// when the known locations come up empty, and installs don't move while
+/// the app is open - a game installed mid-session shows up on restart.
+Future<List<Directory>> scanForInstalls(
+  String cacheKey,
+  InstallSignature signature, {
+  List<String>? rootsOverride,
+}) {
+  if (rootsOverride != null) return _scanForInstalls(signature, rootsOverride);
+  return _installScans.putIfAbsent(
+      cacheKey,
+      () => _scanRoots()
+          .then((roots) => _scanForInstalls(signature, roots))
+          .timeout(_scanTimeout, onTimeout: () => const []));
+}
+
+Future<List<String>> _scanRoots() async => [
+      for (final library in await steamLibraries())
+        p.join(library, 'steamapps', 'common'),
+      ...await windowsDriveRoots(),
+      if (!Platform.isWindows)
+        if (Platform.environment['HOME'] case final home?) home,
+    ];
+
+Future<List<Directory>> _scanForInstalls(
+    InstallSignature signature, List<String> roots) async {
+  final found = <Directory>[];
+  final seen = <String>{};
+
+  Future<void> visit(Directory dir, int depth) async {
+    if (!seen.add(p.canonicalize(dir.path))) return;
+    if (await signature(dir)) {
+      found.add(dir); // An install holds no other install.
+      return;
+    }
+    if (depth == 0) return;
+    try {
+      await for (final entity in dir.list(followLinks: false)) {
+        if (entity is! Directory) continue;
+        if (_unscannedFolders.contains(p.basename(entity.path).toLowerCase())) {
+          continue;
+        }
+        await visit(entity, depth - 1);
+      }
+    } on FileSystemException {
+      // Unreadable folder: not somewhere the user installed a game.
+    }
+  }
+
+  for (final root in roots) {
+    await visit(Directory(root), _scanDepth);
   }
   return found;
 }
@@ -384,10 +558,17 @@ class Sims2Adapter extends DocumentsSimsAdapter {
 /// same install in place, so one Mods folder serves both.
 class SimsMedievalAdapter extends FolderBasedGameAdapter {
   const SimsMedievalAdapter(
-      {this.programFilesOverride, this.homeOverride, this.documentsOverride});
+      {this.programFilesOverride,
+      this.homeOverride,
+      this.documentsOverride,
+      this.scanRootsOverride});
 
   /// Test hook: pretend these are the Program Files roots to scan.
   final List<String>? programFilesOverride;
+
+  /// Test hook: pretend these are the drives to scan for installs (pass an
+  /// empty list to keep a test off the real machine's drives).
+  final List<String>? scanRootsOverride;
 
   /// Test hook: pretend this is the user's home (for Linux Steam libraries).
   final String? homeOverride;
@@ -419,15 +600,11 @@ class SimsMedievalAdapter extends FolderBasedGameAdapter {
   /// Install directories on this machine: fixed English-named locations
   /// (Origin/EA App, Steam on Windows, native Steam libraries on Linux)
   /// plus a signature-checked scan of `Electronic Arts` for disc installs.
+  /// Nothing found there means the install is somewhere of the user's own
+  /// choosing, which only the wider signature scan can find.
   Future<List<Directory>> _installCandidates() async {
     final found = <Directory>[];
-    final programFiles = programFilesOverride?.toSet() ??
-        [
-          Platform.environment['ProgramFiles(x86)'],
-          Platform.environment['ProgramFiles'],
-          r'C:\Program Files (x86)',
-          r'C:\Program Files',
-        ].whereType<String>().toSet();
+    final programFiles = programFilesRoots(override: programFilesOverride);
     for (final root in programFiles) {
       for (final fixed in [
         p.join(root, 'Origin Games', 'The Sims Medieval'),
@@ -456,6 +633,10 @@ class SimsMedievalAdapter extends FolderBasedGameAdapter {
             p.join(library, 'steamapps', 'common', 'The Sims Medieval'));
         if (await dir.exists()) found.add(dir);
       }
+    }
+    if (found.isEmpty) {
+      found.addAll(await scanForInstalls(game.id, _looksLikeInstall,
+          rootsOverride: scanRootsOverride));
     }
     return found;
   }
@@ -556,13 +737,20 @@ class SimsMedievalAdapter extends FolderBasedGameAdapter {
 /// The stock game keeps its own assets inside .far archives, so loose
 /// files in these folders are custom content and safe to list as mods.
 class Sims1Adapter extends FolderBasedGameAdapter {
-  const Sims1Adapter({this.installOverride, this.programFilesOverride});
+  const Sims1Adapter(
+      {this.installOverride,
+      this.programFilesOverride,
+      this.scanRootsOverride});
 
   /// Test hook / future settings hook: explicit install folder.
   final Directory? installOverride;
 
   /// Test hook: pretend these are the Program Files roots to scan.
   final List<String>? programFilesOverride;
+
+  /// Test hook: pretend these are the drives to scan for installs (pass an
+  /// empty list to keep a test off the real machine's drives).
+  final List<String>? scanRootsOverride;
 
   @override
   Game get game =>
@@ -586,34 +774,48 @@ class Sims1Adapter extends FolderBasedGameAdapter {
   @override
   String get setupHelpKey => 'sims1';
 
-  /// The Sims 1 lives in the install directory, so scan the usual ones:
+  /// The game ships its executable next to the GameData folder holding the
+  /// stock content - true of every release, from the 2000 discs to the 2025
+  /// Legacy Collection, wherever the folder ended up and whatever it's
+  /// called. `Downloads` is deliberately not part of the signature: a fresh
+  /// install has none, and creating it is the setup screen's job.
+  static Future<bool> _looksLikeInstall(Directory dir) async =>
+      await File(p.join(dir.path, 'Sims.exe')).exists() &&
+      await Directory(p.join(dir.path, 'GameData')).exists();
+
+  /// The Sims 1 lives in the install directory, so look in the usual ones:
   /// the classic disc/Complete Collection path plus the 2025 Legacy
-  /// Collection's EA App and Steam locations.
-  List<String> get _installCandidates {
+  /// Collection's EA App and Steam locations. When none of them exists the
+  /// game is installed somewhere of the user's choosing (another drive, a
+  /// custom Steam library, a folder they moved), which only the signature
+  /// scan can find - it costs enough to be worth skipping otherwise.
+  Future<List<Directory>> _installCandidates() async {
     final override = installOverride;
-    if (override != null) return [override.path];
-    final programFiles = programFilesOverride?.toSet() ??
-        [
-          Platform.environment['ProgramFiles(x86)'],
-          Platform.environment['ProgramFiles'],
-          r'C:\Program Files (x86)',
-          r'C:\Program Files',
-        ].whereType<String>().toSet();
-    return [
-      for (final root in programFiles) ...[
+    if (override != null) return [override];
+    final found = <Directory>[];
+    for (final root in programFilesRoots(override: programFilesOverride)) {
+      for (final fixed in [
         p.join(root, 'Maxis', 'The Sims'),
         p.join(root, 'EA Games', 'The Sims Legacy'),
         p.join(
             root, 'Steam', 'steamapps', 'common', 'The Sims Legacy Collection'),
-      ],
-    ];
+      ]) {
+        final dir = Directory(fixed);
+        if (await dir.exists()) found.add(dir);
+      }
+    }
+    if (found.isEmpty) {
+      found.addAll(await scanForInstalls(game.id, _looksLikeInstall,
+          rootsOverride: scanRootsOverride));
+    }
+    return found;
   }
 
   @override
   Future<List<Directory>> findModsDirectoryCandidates() async {
     final result = <Directory>[];
-    for (final install in _installCandidates) {
-      final downloads = Directory(p.join(install, 'Downloads'));
+    for (final install in await _installCandidates()) {
+      final downloads = Directory(p.join(install.path, 'Downloads'));
       if (await downloads.exists()) result.add(downloads);
     }
     return result;
@@ -621,21 +823,15 @@ class Sims1Adapter extends FolderBasedGameAdapter {
 
   @override
   Future<String?> defaultModsPath() async {
-    for (final install in _installCandidates) {
-      if (await Directory(install).exists()) {
-        return p.join(install, 'Downloads');
-      }
-    }
-    return null; // Game not installed: nowhere sensible to create it.
+    final installs = await _installCandidates();
+    if (installs.isEmpty) return null; // Not installed: nowhere sensible.
+    return p.join(installs.first.path, 'Downloads');
   }
 
   @override
   Future<Directory?> findGameFolder() async {
-    for (final install in _installCandidates) {
-      final dir = Directory(install);
-      if (await dir.exists()) return dir;
-    }
-    return null;
+    final installs = await _installCandidates();
+    return installs.isEmpty ? null : installs.first;
   }
 
   /// File types that belong in a skins folder. A skin is a trio: the

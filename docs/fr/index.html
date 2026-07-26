@@ -245,6 +245,7 @@
   .foot-links a { font-size: 14px; font-weight: 700; color: var(--muted); text-decoration: none; }
   .foot-links a:hover { color: var(--accent); }
   .disclaimer { max-width: 760px; margin: 0 auto; text-align: center; font-size: 12px; color: var(--muted); font-weight: 600; line-height: 1.7; }
+  .credit { text-align: center; font-size: 13px; color: var(--muted); font-weight: 600; margin-bottom: 18px; }
 </style>
 <script type="application/ld+json">
 {
@@ -256,9 +257,8 @@
   "applicationCategory": "UtilitiesApplication",
   "operatingSystem": "Windows, macOS, Linux",
   "screenshot": "https://rodrifelix99.github.io/TheSimsModManager/images/library-grid.png",
-  "downloadUrl": "https://github.com/rodrifelix99/TheSimsModManager/releases/latest",
+  "downloadUrl": "https://rodrifelix99.github.io/TheSimsModManager/#download",
   "sameAs": [
-    "https://github.com/rodrifelix99/TheSimsModManager",
     "https://thesimsmodmanager.tumblr.com/"
   ],
   "offers": {
@@ -268,8 +268,7 @@
   },
   "author": {
     "@type": "Person",
-    "name": "Felix",
-    "url": "https://github.com/rodrifelix99"
+    "name": "Felix"
   }
 }
 </script>
@@ -286,7 +285,6 @@
       <a href="#features" data-i18n="nav.features">Fonctions</a>
       <a href="#games" data-i18n="nav.games">Jeux</a>
       <a href="#faq" data-i18n="nav.faq">FAQ</a>
-      <a href="https://github.com/rodrifelix99/TheSimsModManager">GitHub</a>
       <select class="lang" id="lang-picker" aria-label="Language">
         <option value="">English</option>
         <option value="zh">简体中文</option>
@@ -400,7 +398,7 @@
         <a class="get" href="https://github.com/rodrifelix99/TheSimsModManager/releases/latest" data-i18n="download.getTarGz">Télécharger le .tar.gz</a>
       </div>
     </div>
-    <p class="dl-note" data-i18n="download.note">Tous les téléchargements viennent de la <a href="https://github.com/rodrifelix99/TheSimsModManager/releases">page des releases GitHub</a>, où chaque version est listée avec son changelog.</p>
+    <p class="dl-note" data-i18n="download.note">Chaque version est compilée automatiquement pour les trois plateformes, et l’appli te prévient quand une mise à jour sort.</p>
   </div>
 </section>
 
@@ -417,7 +415,7 @@
       <div class="game-card"><img class="g-icon" src="../images/games/the_sims_medieval_icon.webp" alt="The Sims Medieval icon"><h3>The Sims Medieval</h3><div class="era">2011</div><p data-i18n="games.medieval">Les mods vivent dans le <b>dossier d’installation</b>, pas dans Documents, et réclament un <b>Resource.cfg</b> ; l’appli met les deux en place.</p></div>
       <div class="game-card"><img class="g-icon" src="../images/games/the_sims_4_icon.png" alt="The Sims 4 icon"><h3>The Sims 4</h3><div class="era">2014</div><p data-i18n="games.sims4">Utilise le dossier <b>Mods</b> habituel. Pense juste à activer le CC et les mods de script dans les options du jeu.</p></div>
     </div>
-    <p class="games-note" data-i18n="games.note">Chaque emplacement n’est qu’une supposition bien informée ; tu peux pointer n’importe quel jeu vers n’importe quel dossier dans les réglages. SimCity est sur la <a href="https://github.com/rodrifelix99/TheSimsModManager/issues" style="color:var(--accent);font-weight:700">feuille de route</a>, et l’appli est faite pour accueillir n’importe quel jeu moddable.</p>
+    <p class="games-note" data-i18n="games.note">Chaque emplacement n’est qu’une supposition bien informée ; tu peux pointer n’importe quel jeu vers n’importe quel dossier dans les réglages. SimCity est sur la feuille de route, et l’appli est faite pour accueillir n’importe quel jeu moddable.</p>
   </div>
 </section>
 
@@ -435,7 +433,7 @@
       </details>
       <details>
         <summary data-i18n="faq.smartscreen.q">Windows dit que l’appli n’est pas reconnue. C’est sûr ?</summary>
-        <p data-i18n="faq.smartscreen.a">L’appli n’est pas encore signée (les certificats coûtent cher pour un projet gratuit), donc SmartScreen prévient au premier lancement. Choisis <b>Informations complémentaires → Exécuter quand même</b>. Tout le code source est <a href="https://github.com/rodrifelix99/TheSimsModManager">public sur GitHub</a>, et chaque téléchargement est compilé à partir de ce code par les serveurs de GitHub eux-mêmes.</p>
+        <p data-i18n="faq.smartscreen.a">L’appli n’est pas encore signée (les certificats coûtent cher pour un projet gratuit), donc SmartScreen prévient au premier lancement. Choisis <b>Informations complémentaires → Exécuter quand même</b>. Chaque téléchargement est compilé et publié automatiquement par les serveurs de GitHub eux-mêmes, donc personne ne peut y glisser quoi que ce soit en chemin.</p>
       </details>
       <details>
         <summary data-i18n="faq.localized.q">Ça marche avec l’Ultimate Collection et les jeux traduits ?</summary>
@@ -443,7 +441,7 @@
       </details>
       <details>
         <summary data-i18n="faq.report.q">Où signaler un bug ou proposer une idée ?</summary>
-        <p data-i18n="faq.report.a">Sur la <a href="https://github.com/rodrifelix99/TheSimsModManager/issues">page des issues GitHub</a> ; les rapports et les idées sont les bienvenus. Il y a aussi un <a href="https://github.com/rodrifelix99/TheSimsModManager/wiki">wiki</a> avec un guide d’utilisation et une FAQ.</p>
+        <p data-i18n="faq.report.a">Directement dans l’appli : ouvre <b>Réglages → Signaler un bug</b> (ou <b>Proposer une idée</b>), et ta version de l’appli, ton système et le jeu en cours sont déjà préremplis. Tu peux aussi nous écrire sur <a href="https://thesimsmodmanager.tumblr.com/">Tumblr</a>.</p>
       </details>
     </div>
   </div>
@@ -452,15 +450,12 @@
 <footer>
   <div class="wrap">
     <div class="foot-links">
-      <a href="https://github.com/rodrifelix99/TheSimsModManager">GitHub</a>
-      <a href="https://github.com/rodrifelix99/TheSimsModManager/releases" data-i18n="footer.releases">Versions</a>
-      <a href="https://github.com/rodrifelix99/TheSimsModManager/wiki" data-i18n="footer.wiki">Wiki</a>
-      <a href="https://github.com/rodrifelix99/TheSimsModManager/issues" data-i18n="footer.report">Signaler un bug</a>
+      <a href="#download" data-i18n="nav.download">Télécharger</a>
       <a href="https://thesimsmodmanager.tumblr.com/">Tumblr</a>
-      <a href="https://github.com/rodrifelix99/TheSimsModManager/blob/main/LICENSE.md" data-i18n="footer.license">Licence</a>
       <a href="https://www.paypal.com/donate/?hosted_button_id=UFSLDMGKB9R6A" data-i18n="footer.donate">Faire un don ♥</a>
     </div>
-    <p class="disclaimer" data-i18n="footer.disclaimer"><b>The Sims Mod Manager est un projet de fans non officiel.</b> Il n’est ni affilié à Electronic Arts Inc. ou Maxis, ni approuvé ou sponsorisé par eux. <i>Les Sims</i>, <i>SimCity</i> et tous les logos, visuels et sons associés sont des marques ou des œuvres protégées d’Electronic Arts Inc., utilisés ici uniquement à des fins d’identification et d’interopérabilité. L’appli est gratuite et son code est consultable et ouvert aux contributions sur GitHub.</p>
+    <p class="credit" data-i18n="footer.credit">Version française par <b>clodesims</b>.</p>
+    <p class="disclaimer" data-i18n="footer.disclaimer"><b>The Sims Mod Manager est un projet de fans non officiel.</b> Il n’est ni affilié à Electronic Arts Inc. ou Maxis, ni approuvé ou sponsorisé par eux. <i>Les Sims</i>, <i>SimCity</i> et tous les logos, visuels et sons associés sont des marques ou des œuvres protégées d’Electronic Arts Inc., utilisés ici uniquement à des fins d’identification et d’interopérabilité. L’appli est gratuite.</p>
   </div>
 </footer>
 
@@ -550,8 +545,7 @@
     chips.forEach(c => c.classList.toggle('active', c === chip));
   }));
 
-  /* ---------- populate download links from the latest GitHub release ---------- */
-  const RELEASES = 'https://github.com/rodrifelix99/TheSimsModManager/releases/latest';
+  /* ---------- populate download links from the latest release ---------- */
   const SUFFIXES = {
     'windows-setup':    n => n.endsWith('-windows-setup.exe'),
     'windows-portable': n => n.endsWith('-windows-portable.zip'),

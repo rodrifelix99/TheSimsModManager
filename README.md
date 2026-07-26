@@ -7,11 +7,11 @@
 [![Latest release](https://img.shields.io/github/v/release/rodrifelix99/TheSimsModManager?label=download&color=2ea44f)](https://github.com/rodrifelix99/TheSimsModManager/releases/latest)
 [![Build](https://github.com/rodrifelix99/TheSimsModManager/actions/workflows/release.yml/badge.svg)](https://github.com/rodrifelix99/TheSimsModManager/actions/workflows/release.yml)
 [![Downloads](https://img.shields.io/github/downloads/rodrifelix99/TheSimsModManager/total)](https://github.com/rodrifelix99/TheSimsModManager/releases)
-[![Platforms](https://img.shields.io/badge/platforms-Windows%20%7C%20macOS%20%7C%20Linux-blue)](#-download)
+[![Platforms](https://img.shields.io/badge/platforms-Windows%20%7C%20macOS%20%7C%20Linux-blue)](#download)
 [![License](https://img.shields.io/badge/license-source--available-lightgrey)](LICENSE.md)
 [![Donate](https://img.shields.io/badge/donate-PayPal-00457C?logo=paypal&logoColor=white)](https://www.paypal.com/donate/?hosted_button_id=UFSLDMGKB9R6A)
 
-**[✨ Visit the website →](https://rodrifelix99.github.io/TheSimsModManager/)** · **[📓 Follow on Tumblr](https://thesimsmodmanager.tumblr.com/)**
+**[Visit the website →](https://rodrifelix99.github.io/TheSimsModManager/)** · **[Follow on Tumblr](https://thesimsmodmanager.tumblr.com/)**
 
 Browse, install, enable/disable, and clean up your mods and custom content
 for every mainline Sims game (and The Sims Medieval), in one app, with a UI
@@ -29,30 +29,30 @@ that re-themes itself to match the game you're managing.
 
 </div>
 
-## ✨ Features
+## Features
 
-- 🎨 **Per-game themed UI**: the whole app re-tints as you switch between
+- **Per-game themed UI**: the whole app re-tints as you switch between
   The Sims 1, 2, 3, 4 and Medieval, complete with the classic Sims 1 UI
   sounds, in light or dark.
-- 🖼️ **Real thumbnails & insights**: `.package` files are parsed (DBPF) to
+- **Real thumbnails & insights**: `.package` files are parsed (DBPF) to
   pull out embedded artwork and a content breakdown (CAS parts, textures,
   tuning...), so your library looks like a library, not a file list.
-- 🔍 **Library** with search, category filters (Package/Script/Object/...),
+- **Library** with search, category filters (Package/Script/Object/...),
   grid and list layouts, and live Total/Enabled/Disabled/Conflicts stats.
-- 🔀 **One-click enable/disable**: disabling renames the file with a
+- **One-click enable/disable**: disabling renames the file with a
   `.disabled` suffix so the game's loader skips it; nothing is ever deleted.
-- ⚠️ **Conflict warnings**: enabled mods are badged when they share a file
+- **Conflict warnings**: enabled mods are badged when they share a file
   name, when two versions of the same mod are installed side by side, and
   when their packages actually share DBPF resource keys (the real thing:
   the game keeps whichever copy it loads last).
-- 🧭 **Finds your folders for you**: localized user folders
+- **Finds your folders for you**: localized user folders
   ("Los Sims 3", "Die Sims 2", the Ultimate Collection), every install
   when a game exists more than once, and you can point at any folder
   manually.
-- 🏗️ **Mods-folder scaffolding**: if a game has no mods folder yet, the app
+- **Mods-folder scaffolding**: if a game has no mods folder yet, the app
   creates it *with the files the game needs* (e.g. the Sims 3
   `Resource.cfg` framework).
-- 📦 **Install**: pick mod files (filtered to the game's real extensions)
+- **Install**: pick mod files (filtered to the game's real extensions)
   or drop files and folders straight onto the window; `.zip`, `.rar` and
   `.7z` archives are unpacked for you, keeping their folder structure and
   skipping readmes and screenshots.
@@ -65,7 +65,7 @@ that re-themes itself to match the game you're managing.
 
 </div>
 
-## 📥 Download
+## Download
 
 Grab the latest version from the
 **[Releases page](https://github.com/rodrifelix99/TheSimsModManager/releases/latest)**. Free, no account needed.
@@ -77,7 +77,7 @@ Grab the latest version from the
 | **macOS** | `TheSimsModManager-x.y.z-macos.zip` | Signed & notarized by Apple. Unzip and drag to Applications |
 | **Linux** | `TheSimsModManager-x.y.z-linux-x64.tar.gz` | Extract, run `sims_mod_manager` |
 
-## 🕹️ Supported games
+## Supported games
 
 | Game | Default mods location | Notes |
 | --- | --- | --- |
@@ -95,7 +95,7 @@ The core is game-agnostic by design: support for the **SimCity** series (and
 any other moddable game) can be added without touching the rest of the app.
 See [docs/adding-a-game.md](docs/adding-a-game.md).
 
-## 🧰 Building from source
+## Building from source
 
 Requires the [Flutter SDK](https://docs.flutter.dev/get-started/install) with
 desktop support enabled.
@@ -108,23 +108,59 @@ flutter run -d windows   # or: -d macos / -d linux
 Run the tests and analyzer with `flutter test` and `flutter analyze`.
 More detail in [docs/architecture.md](docs/architecture.md).
 
-## 🤝 Contributing
+## Languages
+
+The app (and the website) speak ten languages. English and Portuguese are
+mine; the other eight were done by simmers who actually play in them, which
+is why they use each scene's own modding slang instead of a dictionary
+translation:
+
+| Language | Translated by |
+| --- | --- |
+| English | rodrifelix99 |
+| 简体中文 | xiaoyu_sims |
+| Español | marisol_plumbob |
+| Português (Brasil) | rodrifelix99 |
+| Français | clodesims |
+| Deutsch | plumbobjonas |
+| Italiano | giuliapixel89 |
+| Русский | verasimka |
+| Polski | kasia_pxl |
+| 日本語 | mochi_simjp |
+
+Spotted something that reads wrong in your language, or want to add one that
+isn't here? The strings live in [lib/l10n](lib/l10n) (app) and
+[docs/i18n](docs/i18n) (website) - open an issue or a PR, credit included.
+
+## Contributing
 
 Bug reports, feature ideas, and pull requests are very welcome; see
 [CONTRIBUTING.md](.github/CONTRIBUTING.md). Good first stops:
 
-- 📚 The **[Wiki](https://github.com/rodrifelix99/TheSimsModManager/wiki)**: user guide & FAQ
-- 📓 The **[Tumblr blog](https://thesimsmodmanager.tumblr.com/)**: news & release announcements
-- 🏛️ [docs/architecture.md](docs/architecture.md): how the app is put together
-- 🎮 [docs/adding-a-game.md](docs/adding-a-game.md): add support for a new game
+- The **[Wiki](https://github.com/rodrifelix99/TheSimsModManager/wiki)**: user guide & FAQ
+- The **[Tumblr blog](https://thesimsmodmanager.tumblr.com/)**: news & release announcements
+- [docs/architecture.md](docs/architecture.md): how the app is put together
+- [docs/adding-a-game.md](docs/adding-a-game.md): add support for a new game
 
-## 🗺️ Roadmap
+## Thanks
+
+A good chunk of this app exists because someone with more patience than me answered a question at a bad hour:
+
+- **bunsenpixel**, who figured out that a macOS window keeps the material it was born with, so the blur has to be set inside `waitUntilReadyToShow` and not a frame later. Two evenings of staring at a solid white window, fixed in one message.
+- **wanderbyte**, for spotting that bsdtar unpacks `.rar`/`.7z` through `\\?\` paths and then leaves behind names the normal Windows API can't reach again, which is why a single deep archive was taking whole installs down with it.
+- **mothcache**, for the RefPack notes that got the DBPF parser reading compressed resources instead of shrugging at half the packages in my Mods folder.
+- **plumbtreemods**, who knows exactly where every kind of Sims 1 file is meant to land, mesh-name prefixes for buyable clothing included. The Sims 1 routing rules are theirs, I only wrote them down in Dart.
+- **hexley_j**, for the Inno Setup warning that stopped me changing the `AppId` and shipping an "upgrade" that installs itself a second time next to the old one.
+
+And to everyone who reported a bug with a screenshot and their real folder layout attached: that saves more time than it looks like it does.
+
+## Roadmap
 
 SimCity support · more games via the adapter system. See the
 [open issues](https://github.com/rodrifelix99/TheSimsModManager/issues) for
 what's planned and to suggest more.
 
-## 📄 License & disclaimer
+## License & disclaimer
 
 The source is available for reading and contributing, but this is **not** an
 open-source license: the code may not be reused or redistributed. The app

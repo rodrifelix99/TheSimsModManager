@@ -7,6 +7,7 @@ import 'package:sims_mod_manager/src/core/game.dart';
 import 'package:sims_mod_manager/src/core/game_adapter.dart';
 import 'package:sims_mod_manager/src/core/game_registry.dart';
 import 'package:sims_mod_manager/src/core/mod.dart';
+import 'package:sims_mod_manager/src/core/mod_archive.dart';
 import 'package:sims_mod_manager/src/core/package_insight.dart';
 import 'package:sims_mod_manager/src/services/analytics.dart';
 import 'package:sims_mod_manager/src/services/settings_store.dart';
@@ -46,10 +47,11 @@ class _FailingAdapter extends FolderBasedGameAdapter {
   bool failToggle = false;
   bool failRemove = false;
   bool lockToggle = false;
+  bool lockRemove = false;
   Object? installFailure;
 
   @override
-  Duration get renameRetryDelay => Duration.zero;
+  Duration get lockedFileRetryDelay => Duration.zero;
 
   @override
   Future<File> renameModFile(File file, String newPath) {
@@ -58,6 +60,15 @@ class _FailingAdapter extends FolderBasedGameAdapter {
           file.path, const OSError('file in use', 32), 'Cannot rename file');
     }
     return super.renameModFile(file, newPath);
+  }
+
+  @override
+  Future<void> deleteModFile(File file) {
+    if (lockRemove) {
+      throw PathAccessException(
+          file.path, const OSError('file in use', 32), 'Cannot delete file');
+    }
+    return super.deleteModFile(file);
   }
 
   /// The real implementation reads files in isolates the test can't wait on.
@@ -186,6 +197,40 @@ void main() {
 
     expect(c.lastError, contains('removal went sideways'));
     expect(c.mods, hasLength(1));
+  });
+
+  test('a mod the game is holding open stays out of tracking', () async {
+    seedMod('cozy_sofa.package');
+    final spy = _SpyAnalytics();
+    final c = await makeController(analytics: spy);
+    adapter.lockRemove = true;
+
+    await c.removeMod(c.mods.single);
+
+    expect(c.lastError, contains('in use by another program'));
+    expect(c.lastError, contains('cozy_sofa.package'));
+    expect(spy.exceptions, isEmpty,
+        reason: 'environmental failures are not app bugs');
+    final failed = spy.eventProperties[spy.events.indexOf('mod_action_failed')];
+    expect(failed['reason'], 'fileInUse');
+  });
+
+  test('an archive that will not unpack is a verdict, not a bug', () async {
+    final source = File(p.join(modsDir.parent.path, 'peggy_hair.package'))
+      ..writeAsStringSync('bytes');
+    addTearDown(source.deleteSync);
+    final spy = _SpyAnalytics();
+    final c = await makeController(analytics: spy);
+    adapter.installFailure = const ArchiveExtractionException(
+        'Could not extract peggy_hair.rar. Unpack it manually and install '
+        'the files inside.');
+
+    await c.installFiles([source]);
+
+    expect(c.lastError, startsWith('Could not extract peggy_hair.rar.'));
+    expect(spy.exceptions, isEmpty);
+    final failed = spy.eventProperties[spy.events.indexOf('mod_install_failed')];
+    expect(failed['reason'], 'unpack_failed');
   });
 
   test('a failed install names the file and the reason the OS gave',

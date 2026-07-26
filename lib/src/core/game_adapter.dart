@@ -12,17 +12,17 @@ import 'package_insight.dart';
 /// Suffix appended to a mod file to hide it from the game without deleting it.
 const disabledSuffix = '.disabled';
 
-/// Why a toggle failed for a reason that isn't an app bug: the user's
-/// environment got in the way (game running, file moved). Lets the UI show
-/// a helpful message and keeps these out of error tracking.
-enum ModToggleFailure { fileInUse, fileMissing }
+/// Why an action on a mod file failed for a reason that isn't an app bug:
+/// the user's environment got in the way (game running, file moved). Lets
+/// the UI show a helpful message and keeps these out of error tracking.
+enum ModActionFailure { fileInUse, fileMissing }
 
-/// An enable/disable that failed for a known environmental [reason].
-/// [message] is user-readable and safe to show as-is.
-class ModToggleException implements Exception {
-  const ModToggleException(this.reason, this.message);
+/// An enable/disable/remove that failed for a known environmental
+/// [reason]. [message] is user-readable and safe to show as-is.
+class ModActionException implements Exception {
+  const ModActionException(this.reason, this.message);
 
-  final ModToggleFailure reason;
+  final ModActionFailure reason;
   final String message;
 
   @override
@@ -260,15 +260,44 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
   }
 
   @override
-  Future<void> removeMod(Mod mod) => File(mod.path).delete();
+  Future<void> removeMod(Mod mod) async {
+    final name = p.basename(mod.path);
+    for (var attempt = 1; ; attempt++) {
+      try {
+        await deleteModFile(File(mod.path));
+        return;
+      } on PathNotFoundException {
+        // Already off the disk (a second window, the user's own file
+        // manager). That is what the caller asked for; nothing to report.
+        return;
+      } on PathAccessException {
+        // Windows won't delete a file the game or an antivirus scan
+        // still has open; those locks usually clear within a moment.
+        if (attempt < _lockedFileAttempts) {
+          await Future<void>.delayed(lockedFileRetryDelay * attempt);
+          continue;
+        }
+        throw ModActionException(
+          ModActionFailure.fileInUse,
+          '"$name" couldn\'t be deleted — it\'s in use by another program '
+          '(is the game running?) or write-protected. Close anything '
+          'using it and try again.',
+        );
+      }
+    }
+  }
 
-  /// Rename attempts before a locked file is given up on; antivirus and
-  /// indexer locks are usually released within a second.
-  static const _renameAttempts = 4;
+  /// The on-disk delete behind [removeMod]; a seam for tests to simulate
+  /// OS failures (locked or vanished files).
+  Future<void> deleteModFile(File file) => file.delete();
 
-  /// Base wait between rename retries; grows linearly per attempt.
-  /// Overridable so tests don't sit through real delays.
-  Duration get renameRetryDelay => const Duration(milliseconds: 250);
+  /// Attempts before a locked file is given up on; antivirus and indexer
+  /// locks are usually released within a second.
+  static const _lockedFileAttempts = 4;
+
+  /// Base wait between retries on a locked file; grows linearly per
+  /// attempt. Overridable so tests don't sit through real delays.
+  Duration get lockedFileRetryDelay => const Duration(milliseconds: 250);
 
   @override
   Future<Mod> setEnabled(Mod mod, {required bool enabled}) async {
@@ -286,8 +315,8 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
           // rename): the work is done, report the new state as success.
           final already = File(newPath);
           if (already.existsSync()) return toMod(already)!;
-          throw ModToggleException(
-            ModToggleFailure.fileMissing,
+          throw ModActionException(
+            ModActionFailure.fileMissing,
             '"$name" is no longer in the mods folder — it may have been '
             'moved or deleted by another program.',
           );
@@ -296,12 +325,12 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
           // Windows refuses to rename open files (sharing violation) and
           // write-protected ones; the former is usually the game or an
           // antivirus scan and often clears within a moment.
-          if (attempt < _renameAttempts) {
-            await Future<void>.delayed(renameRetryDelay * attempt);
+          if (attempt < _lockedFileAttempts) {
+            await Future<void>.delayed(lockedFileRetryDelay * attempt);
             continue;
           }
-          throw ModToggleException(
-            ModToggleFailure.fileInUse,
+          throw ModActionException(
+            ModActionFailure.fileInUse,
             '"$name" couldn\'t be renamed — it\'s in use by another program '
             '(is the game running?) or write-protected. Close anything '
             'using it and try again.',

@@ -21,11 +21,13 @@ import '../services/sfx.dart';
 enum AppScreen { library, detail, settings }
 
 /// What to show the user when installing [error] failed on the file or
-/// folder at [sourcePath]. Adapters raise [FormatException] with a
-/// message written for the user; everything else is an OS failure, whose
-/// own wording (localized by the OS) says more than we could.
+/// folder at [sourcePath]. Adapters raise [FormatException] and
+/// [ArchiveExtractionException] with a message written for the user;
+/// everything else is an OS failure, whose own wording (localized by the
+/// OS) says more than we could.
 String installFailureMessage(Object error, String? sourcePath) {
   if (error is FormatException) return error.message;
+  if (error is ArchiveExtractionException) return error.message;
   final name = sourcePath == null ? null : p.basename(sourcePath);
   final subject = name == null ? 'That' : '"$name"';
   if (error is FileSystemException) {
@@ -41,6 +43,7 @@ String installFailureMessage(Object error, String? sourcePath) {
 /// without sending anything about the file itself.
 String installFailureReason(Object error) => switch (error) {
       FormatException() => 'no_mod_files',
+      ArchiveExtractionException() => 'unpack_failed',
       PathAccessException() => 'access_denied',
       PathNotFoundException() => 'not_found',
       FileSystemException() => 'file_system',
@@ -965,7 +968,7 @@ class AppController extends ChangeNotifier {
       // are expected and user-actionable - they'd bury real bugs in error
       // tracking, and their messages carry file paths the privacy contract
       // forbids sending.
-      final reason = e is ModToggleException ? e.reason.name : null;
+      final reason = e is ModActionException ? e.reason.name : null;
       if (reason == null) {
         analytics.captureException(e, stack, mechanism: 'toggleMod');
       }
@@ -996,9 +999,18 @@ class AppController extends ChangeNotifier {
       });
     } catch (e, stack) {
       error = e.toString();
-      analytics.captureException(e, stack, mechanism: 'removeMod');
-      analytics.capture('mod_action_failed',
-          {'action': 'remove', 'game': _adapter.game.id});
+      // As with toggling: a file the game is holding open is the user's
+      // environment, not an app bug, and its message carries a path the
+      // privacy contract forbids sending.
+      final reason = e is ModActionException ? e.reason.name : null;
+      if (reason == null) {
+        analytics.captureException(e, stack, mechanism: 'removeMod');
+      }
+      analytics.capture('mod_action_failed', {
+        'action': 'remove',
+        'game': _adapter.game.id,
+        if (reason != null) 'reason': reason,
+      });
       playSound(UiSound.error);
     }
     if (_selectedModPath == mod.path) {
@@ -1046,9 +1058,10 @@ class AppController extends ChangeNotifier {
     } catch (e, stack) {
       error = installFailureMessage(e, failing?.path);
       // A FormatException is the adapter reporting that the archive or
-      // folder held nothing this game can use - a verdict on the file,
-      // not a bug to investigate.
-      if (e is! FormatException) {
+      // folder held nothing this game can use, an ArchiveExtractionException
+      // that the archive wouldn't open at all - verdicts on the file, not
+      // bugs to investigate.
+      if (e is! FormatException && e is! ArchiveExtractionException) {
         analytics.captureException(e, stack, mechanism: 'installFiles');
       }
       analytics.capture('mod_install_failed', {

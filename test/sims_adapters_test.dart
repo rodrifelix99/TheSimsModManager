@@ -258,8 +258,7 @@ void main() {
       expect(dir!.path, contains('.wine'));
     });
 
-    test('prefers the native Documents install over prefix copies',
-        () async {
+    test('prefers the native Documents install over prefix copies', () async {
       make(['native-docs', 'Electronic Arts', 'The Sims 4', 'Mods']);
       make([
         '.local', 'share', 'Steam', 'steamapps', 'compatdata', '1222670',
@@ -282,9 +281,9 @@ void main() {
         'pfx', 'drive_c', 'users', 'steamuser', 'Documents',
         'Electronic Arts', 'The Sims 4', 'Mods', //
       ]);
-      Link(p.join(docs.path, '.steam', 'steam'))
-          .createSync(p.join(docs.path, '.local', 'share', 'Steam'),
-              recursive: true);
+      Link(p.join(docs.path, '.steam', 'steam')).createSync(
+          p.join(docs.path, '.local', 'share', 'Steam'),
+          recursive: true);
       final adapter =
           Sims4Adapter(documentsOverride: nativeDocs, homeOverride: docs.path);
 
@@ -359,10 +358,29 @@ void main() {
 
     test('proposes no path when the game is not installed', () async {
       final adapter = SimsMedievalAdapter(
-          programFilesOverride: const [], homeOverride: docs.path);
+          programFilesOverride: const [],
+          homeOverride: docs.path,
+          scanRootsOverride: const []);
 
       expect(await adapter.defaultModsPath(), isNull);
       expect(await adapter.findGameFolder(), isNull);
+    });
+
+    test('finds an install outside the launcher folders by signature',
+        () async {
+      // The install sits two levels under a scanned root, as bundled
+      // downloads and hand-made game folders do.
+      makeFile(
+          ['Games', 'tsm-bundle', 'Mittelalter', 'Game', 'Bin', 'TSM.exe']);
+      final adapter = SimsMedievalAdapter(
+          programFilesOverride: const [],
+          homeOverride: docs.path,
+          scanRootsOverride: [docs.path]);
+
+      final install = await adapter.findGameFolder();
+
+      expect(install, isNotNull);
+      expect(p.basename(install!.path), 'Mittelalter');
     });
 
     test('createModsDirectory writes Resource.cfg into the install root',
@@ -439,6 +457,36 @@ void main() {
       expect(candidates, hasLength(2));
       expect(candidates.map((d) => d.path).join(),
           contains(p.join('EA Games', 'The Sims Legacy', 'Downloads')));
+    });
+
+    test('finds an install outside the launcher folders by signature',
+        () async {
+      // What a bundled download looks like: the game inside the bundle's
+      // own folder, inside whatever folder the user keeps games in.
+      makeFile(['Games', 'sims-bundle', 'The Sims Legacy', 'Sims.exe']);
+      final install =
+          make(['Games', 'sims-bundle', 'The Sims Legacy', 'GameData']).parent;
+      final downloads =
+          make(['Games', 'sims-bundle', 'The Sims Legacy', 'Downloads']);
+      final adapter = Sims1Adapter(
+          programFilesOverride: const [], scanRootsOverride: [docs.path]);
+
+      expect(await adapter.findGameFolder(), isNotNull);
+      expect((await adapter.findGameFolder())!.path, install.path);
+      expect(await adapter.defaultModsPath(), downloads.path);
+      expect((await adapter.findModsDirectoryCandidates()).single.path,
+          downloads.path);
+    });
+
+    test('ignores folders without the game executable', () async {
+      // A folder named like the game but holding no game: the signature,
+      // not the name, decides.
+      make(['Games', 'The Sims Legacy Collection', 'GameData']);
+      final adapter = Sims1Adapter(
+          programFilesOverride: const [], scanRootsOverride: [docs.path]);
+
+      expect(await adapter.findGameFolder(), isNull);
+      expect(await adapter.defaultModsPath(), isNull);
     });
 
     /// A classic install: Downloads next to GameData, per the community
@@ -596,6 +644,43 @@ void main() {
           File(p.join(install.path, 'GameData', 'Skins', 'head.cmx'))
               .existsSync(),
           isTrue);
+    });
+  });
+
+  group('Steam libraries', () {
+    test('reads the extra libraries out of libraryfolders.vdf', () async {
+      final steam = make(['Steam']);
+      makeFile(['Steam', 'config', 'libraryfolders.vdf']).writeAsStringSync(r'''
+"libraryfolders"
+{
+	"0"
+	{
+		"path"		"C:\\Program Files (x86)\\Steam"
+		"label"		""
+	}
+	"1"
+	{
+		"path"		"D:\\SteamLibrary"
+		"label"		""
+	}
+}
+''');
+
+      final libraries = await steamLibraries(steamRootsOverride: [steam.path]);
+
+      // Steam's own folder counts as a library, and the escaped Windows
+      // paths come back usable.
+      expect(libraries, [
+        steam.path,
+        r'C:\Program Files (x86)\Steam',
+        r'D:\SteamLibrary',
+      ]);
+    });
+
+    test('ignores a Steam folder that is not there', () async {
+      expect(
+          await steamLibraries(steamRootsOverride: [p.join(docs.path, 'nope')]),
+          isEmpty);
     });
   });
 }

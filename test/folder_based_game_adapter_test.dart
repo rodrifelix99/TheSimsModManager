@@ -26,7 +26,7 @@ class _FakeAdapter extends FolderBasedGameAdapter {
   Future<String?> defaultModsPath() async => dir.path;
 }
 
-/// Simulates Windows sharing violations: the rename throws
+/// Simulates Windows sharing violations: renames and deletes throw
 /// [PathAccessException] until [failuresLeft] runs out.
 class _LockedAdapter extends _FakeAdapter {
   _LockedAdapter(super.dir, {required this.failuresLeft});
@@ -35,17 +35,28 @@ class _LockedAdapter extends _FakeAdapter {
   int attempts = 0;
 
   @override
-  Duration get renameRetryDelay => Duration.zero;
+  Duration get lockedFileRetryDelay => Duration.zero;
 
-  @override
-  Future<File> renameModFile(File file, String newPath) {
+  /// Throws once per remaining failure, counting every attempt.
+  void _attempt(File file, String message) {
     attempts++;
     if (failuresLeft > 0) {
       failuresLeft--;
       throw PathAccessException(
-          file.path, const OSError('file in use', 32), 'Cannot rename file');
+          file.path, const OSError('file in use', 32), message);
     }
+  }
+
+  @override
+  Future<File> renameModFile(File file, String newPath) {
+    _attempt(file, 'Cannot rename file');
     return super.renameModFile(file, newPath);
+  }
+
+  @override
+  Future<void> deleteModFile(File file) {
+    _attempt(file, 'Cannot delete file');
+    return super.deleteModFile(file);
   }
 }
 
@@ -122,8 +133,8 @@ void main() {
 
     expect(
       () => adapter.setEnabled(mod, enabled: false),
-      throwsA(isA<ModToggleException>()
-          .having((e) => e.reason, 'reason', ModToggleFailure.fileMissing)
+      throwsA(isA<ModActionException>()
+          .having((e) => e.reason, 'reason', ModActionFailure.fileMissing)
           .having((e) => e.toString(), 'message', contains('lamp.package'))),
     );
   });
@@ -147,8 +158,8 @@ void main() {
 
     await expectLater(
       locked.setEnabled(mod, enabled: false),
-      throwsA(isA<ModToggleException>()
-          .having((e) => e.reason, 'reason', ModToggleFailure.fileInUse)
+      throwsA(isA<ModActionException>()
+          .having((e) => e.reason, 'reason', ModActionFailure.fileInUse)
           .having((e) => e.toString(), 'message', contains('lamp.package'))),
     );
     expect(locked.attempts, 4, reason: 'retries must be bounded');
@@ -176,5 +187,41 @@ void main() {
     await adapter.removeMod(mod);
 
     expect(await adapter.listMods(tempDir), isEmpty);
+  });
+
+  test('removing a file that is already gone counts as done', () async {
+    final file = addFile('old_mod.package');
+    final mod = (await adapter.listMods(tempDir)).single;
+    file.deleteSync();
+
+    await expectLater(adapter.removeMod(mod), completes);
+  });
+
+  test('a transiently locked file is retried until the delete succeeds',
+      () async {
+    final locked = _LockedAdapter(tempDir, failuresLeft: 2);
+    addFile('old_mod.package');
+    final mod = (await locked.listMods(tempDir)).single;
+
+    await locked.removeMod(mod);
+
+    expect(locked.attempts, 3);
+    expect(await locked.listMods(tempDir), isEmpty);
+  });
+
+  test('a file that stays locked surfaces a friendly in-use error', () async {
+    final locked = _LockedAdapter(tempDir, failuresLeft: 99);
+    addFile('old_mod.package');
+    final mod = (await locked.listMods(tempDir)).single;
+
+    await expectLater(
+      locked.removeMod(mod),
+      throwsA(isA<ModActionException>()
+          .having((e) => e.reason, 'reason', ModActionFailure.fileInUse)
+          .having((e) => e.toString(), 'message', contains('old_mod.package'))),
+    );
+    expect(locked.attempts, 4, reason: 'retries must be bounded');
+    expect(File(p.join(tempDir.path, 'old_mod.package')).existsSync(), isTrue,
+        reason: 'the mod file itself is untouched');
   });
 }

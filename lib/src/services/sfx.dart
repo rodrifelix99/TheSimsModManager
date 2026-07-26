@@ -52,16 +52,29 @@ class Sfx {
   /// A player per playback so rapid sounds overlap instead of cutting
   /// each other off; disposed as soon as the clip finishes.
   Future<void> play(UiSound sound) async {
-    AudioPlayer? player;
+    final player = AudioPlayer();
+    // audioplayers throws out of dispose() when the player is already
+    // disposed, and the throw lands in whatever zone the completion
+    // event arrived on - unhandled, and loud in error tracking. The
+    // completion event and a failing play() both want to clean up, so
+    // the second one has to be a no-op rather than a second dispose.
+    var disposing = false;
+    Future<void> disposeOnce() async {
+      if (disposing) return;
+      disposing = true;
+      try {
+        await player.dispose();
+      } catch (_) {
+        // Nothing left to do about a player that won't close.
+      }
+    }
+
     try {
-      player = AudioPlayer();
-      player.onPlayerComplete.listen(
-        (_) => player?.dispose(),
-        onError: (_) => player?.dispose(),
-      );
+      player.onPlayerComplete
+          .listen((_) => disposeOnce(), onError: (_) => disposeOnce());
       await player.play(AssetSource('$bankPath/${sound.file}'));
     } catch (_) {
-      player?.dispose();
+      await disposeOnce();
     }
   }
 }

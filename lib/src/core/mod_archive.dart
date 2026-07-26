@@ -15,6 +15,20 @@ const archiveFileExtensions = {'.zip', '.rar', '.7z'};
 bool isArchivePath(String path) =>
     archiveFileExtensions.contains(p.extension(path).toLowerCase());
 
+/// An archive this machine can't unpack: no system `tar`, or bsdtar
+/// refused the file (a password, one part of a split set, a format this
+/// build of it can't read). Like [FormatException] here, it is a verdict
+/// on the file rather than a bug to investigate, and [message] is
+/// written for the user.
+class ArchiveExtractionException implements Exception {
+  const ArchiveExtractionException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
+}
+
 /// Extracts every file in [archive] whose extension (lowercase, with
 /// dot) is in [fileExtensions] into [destination], preserving the
 /// archive's internal folder structure, and returns the extracted files.
@@ -88,13 +102,13 @@ Future<List<String>> _extractWithSystemTar(
       result = await Process.run(
           'tar', ['-xf', archive.path, '-C', scratch.path]);
     } on ProcessException {
-      throw FileSystemException(
+      throw ArchiveExtractionException(
           'Extracting $format archives needs the system tar tool, which was '
           'not found. Unpack ${p.basename(archive.path)} manually and '
           'install the files inside.');
     }
     if (result.exitCode != 0) {
-      throw FileSystemException(
+      throw ArchiveExtractionException(
           'Could not extract ${p.basename(archive.path)}. Unpack it '
           'manually and install the files inside.');
     }
