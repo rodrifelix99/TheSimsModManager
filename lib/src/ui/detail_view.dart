@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 
+import '../core/conflicts.dart' show ConflictReason;
+import '../core/game_adapter.dart' show disabledSuffix;
 import '../core/mod.dart';
-import '../core/mod_name.dart';
 import '../services/sfx.dart';
 import 'app_controller.dart';
 import 'game_theme.dart';
 import 'l10n.dart';
-import 'library_view.dart' show modDate, modTitle, modVersion;
+import 'mod_presentation.dart' show modDate, modTitle, modVersion;
 import 'widgets.dart';
 
 /// Full page for one mod: artwork, enable toggle, facts, file details.
@@ -160,6 +161,9 @@ class DetailView extends StatelessWidget {
                       value: mod.isEnabled,
                       width: 42,
                       height: 24,
+                      activeColor: t.accent,
+                      inactiveColor: t.switchOff,
+                      shadow: t.shadow,
                       trackColor: Colors.white.withValues(alpha: .35),
                       onChanged: () {},
                     ),
@@ -182,10 +186,10 @@ class DetailView extends StatelessWidget {
         _outlineButton(
           t,
           label: l.uninstallMod,
-          color: conflictOrange,
+          color: t.warning,
           background: Colors.transparent,
-          border: conflictOrange.withValues(alpha: .4),
-          hoverBackground: conflictOrange.withValues(alpha: .08),
+          border: t.warning.withValues(alpha: .4),
+          hoverBackground: t.warning.withValues(alpha: .08),
           onTap: () => _confirmUninstall(context, t, c, l, mod),
         ),
       ],
@@ -266,7 +270,7 @@ class DetailView extends StatelessWidget {
                 FilledButton(
                   onPressed: () => Navigator.pop(context, true),
                   style:
-                      FilledButton.styleFrom(backgroundColor: conflictOrange),
+                      FilledButton.styleFrom(backgroundColor: t.warning),
                   child: Text(l.uninstall,
                       style: const TextStyle(fontWeight: FontWeight.w800)),
                 ),
@@ -282,15 +286,7 @@ class DetailView extends StatelessWidget {
   /// actual mods this one clashes with; each row jumps to that mod.
   Widget _conflictPanel(GameTheme t, AppController c, L l, Mod mod) {
     final others = c.conflictingWith(mod);
-    // Same file name, same mod under a different version token, or
-    // packages overriding the same resources? The wording below matches
-    // the reason the scan flagged it (name > version > resources).
-    final sameName = others.every(
-        (o) => p.basename(o.name).toLowerCase() ==
-            p.basename(mod.name).toLowerCase());
-    final identity = parseModName(mod.name).identity;
-    final sameMod = sameName ||
-        others.every((o) => parseModName(o.name).identity == identity);
+    final reason = c.conflictReasonOf(mod) ?? ConflictReason.resourceOverlap;
     final root = c.modsDir?.path;
     String relPath(Mod other) =>
         root == null ? other.path : p.relative(other.path, from: root);
@@ -302,8 +298,8 @@ class DetailView extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: conflictOrange.withValues(alpha: .1),
-        border: Border.all(color: conflictOrange.withValues(alpha: .3)),
+        color: t.warning.withValues(alpha: .1),
+        border: Border.all(color: t.warning.withValues(alpha: .3)),
         borderRadius: BorderRadius.circular(11),
       ),
       child: Column(
@@ -315,8 +311,8 @@ class DetailView extends StatelessWidget {
                 width: 18,
                 height: 18,
                 alignment: Alignment.center,
-                decoration: const BoxDecoration(
-                  color: conflictOrange,
+                decoration: BoxDecoration(
+                  color: t.warning,
                   shape: BoxShape.circle,
                 ),
                 child: const Text(
@@ -332,15 +328,18 @@ class DetailView extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  sameName
-                      ? l.conflictSameNameHeading(others.length)
-                      : sameMod
-                          ? l.conflictVersionHeading(others.length)
-                          : l.conflictResourcesHeading(others.length),
-                  style: const TextStyle(
+                  switch (reason) {
+                    ConflictReason.duplicateName =>
+                      l.conflictSameNameHeading(others.length),
+                    ConflictReason.versionPair =>
+                      l.conflictVersionHeading(others.length),
+                    ConflictReason.resourceOverlap =>
+                      l.conflictResourcesHeading(others.length),
+                  },
+                  style: TextStyle(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w800,
-                    color: conflictOrangeDark,
+                    color: t.onWarningTint,
                   ),
                 ),
               ),
@@ -359,11 +358,11 @@ class DetailView extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 12.5,
                       fontWeight: FontWeight.w700,
-                      color: conflictOrangeDark,
+                      color: t.onWarningTint,
                       decoration: hovered
                           ? TextDecoration.underline
                           : TextDecoration.none,
-                      decorationColor: conflictOrangeDark,
+                      decorationColor: t.onWarningTint,
                     ),
                   ),
                 ),
@@ -371,16 +370,16 @@ class DetailView extends StatelessWidget {
             ),
           const SizedBox(height: 8),
           Text(
-            sameName
-                ? l.conflictSameNameBody
-                : sameMod
-                    ? l.conflictVersionBody
-                    : l.conflictResourcesBody,
-            style: const TextStyle(
+            switch (reason) {
+              ConflictReason.duplicateName => l.conflictSameNameBody,
+              ConflictReason.versionPair => l.conflictVersionBody,
+              ConflictReason.resourceOverlap => l.conflictResourcesBody,
+            },
+            style: TextStyle(
               fontSize: 12,
               height: 1.5,
               fontWeight: FontWeight.w600,
-              color: conflictOrangeDark,
+              color: t.onWarningTint,
             ),
           ),
         ],
@@ -449,7 +448,7 @@ class DetailView extends StatelessWidget {
         Text(
           mod.isEnabled
               ? l.statusEnabledBody
-              : l.statusDisabledBody(disabledMarker),
+              : l.statusDisabledBody(disabledSuffix),
           style: TextStyle(
             fontSize: 14,
             height: 1.6,
@@ -576,6 +575,3 @@ class DetailView extends StatelessWidget {
     );
   }
 }
-
-/// User-facing name of the disable marker ('.disabled').
-const disabledMarker = '.disabled';

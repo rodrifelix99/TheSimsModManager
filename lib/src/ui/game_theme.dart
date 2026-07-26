@@ -2,10 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../core/game.dart';
 
-/// Warning color for mod conflicts (shared across all game themes).
-const conflictOrange = Color(0xFFE0632E);
-const conflictOrangeDark = Color(0xFFB34A1E);
-
 /// The visual identity of one game: the whole chrome re-tints when the
 /// user switches games. Values mirror the design prototype; each game has
 /// a light and a dark palette, picked by [forGame].
@@ -22,6 +18,8 @@ class GameTheme {
     required this.tint,
     required this.shadow,
     required this.switchOff,
+    this.warning = const Color(0xFFD6551F),
+    this.onWarningTint = const Color(0xFFB34A1E),
     this.eraKey,
     this.eraDetail,
   });
@@ -44,6 +42,14 @@ class GameTheme {
   /// The "off" gray: a switch's unlit track and the disabled-mod slab on
   /// the detail screen.
   final Color switchOff;
+
+  /// Conflict/warning chrome, one hue for every game but split by
+  /// brightness like everything else here: [warning] fills the badges,
+  /// borders and tints, [onWarningTint] carries the warning panel's text.
+  /// The defaults are the light pair; [forGame] swaps in the dark pair,
+  /// because the light text variant disappears against a dark surface.
+  final Color warning;
+  final Color onWarningTint;
 
   /// Flavor label shown next to the game name, e.g. "Modern · 2014",
   /// split so it can be translated: [eraKey] names the mood (resolved by
@@ -224,24 +230,31 @@ class GameTheme {
     final palettes =
         brightness == Brightness.dark ? _darkByGameId : _lightByGameId;
     final palette = palettes[game.id] ?? palettes['sims4']!;
-    return palette._withEra(_eraByGameId[game.id]);
+    return palette._finish(_eraByGameId[game.id], brightness);
   }
 
-  GameTheme _withEra((String, String)? era) => GameTheme(
-        accent: accent,
-        accent2: accent2,
-        bg: bg,
-        surface: surface,
-        surfaceAlt: surfaceAlt,
-        text: text,
-        muted: muted,
-        border: border,
-        tint: tint,
-        shadow: shadow,
-        switchOff: switchOff,
-        eraKey: era?.$1,
-        eraDetail: era?.$2,
-      );
+  /// Stitches on the era label and the brightness-wide colors the
+  /// per-game palettes don't repeat.
+  GameTheme _finish((String, String)? era, Brightness brightness) {
+    final dark = brightness == Brightness.dark;
+    return GameTheme(
+      accent: accent,
+      accent2: accent2,
+      bg: bg,
+      surface: surface,
+      surfaceAlt: surfaceAlt,
+      text: text,
+      muted: muted,
+      border: border,
+      tint: tint,
+      shadow: shadow,
+      switchOff: switchOff,
+      warning: dark ? const Color(0xFFE8794A) : warning,
+      onWarningTint: dark ? const Color(0xFFF2A583) : onWarningTint,
+      eraKey: era?.$1,
+      eraDetail: era?.$2,
+    );
+  }
 
   /// Sidebar badge color per game (the design gives each row its own dot).
   static Color badgeColor(Game game, Brightness brightness) =>

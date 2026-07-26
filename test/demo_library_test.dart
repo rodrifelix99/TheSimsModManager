@@ -120,7 +120,7 @@ void main() {
       // Both kinds: a duplicate file name and two versions side by side.
       final names = [
         for (final mod in demo.mods)
-          if (conflicts.contains(mod.path)) mod.name,
+          if (conflicts.containsKey(mod.path)) mod.name,
       ];
       expect(names.where((n) => n.contains('Hair_Marigold')).length, 2);
       expect(names.where((n) => n.contains('Career_Florist_v')).length, 2);

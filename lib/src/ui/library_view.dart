@@ -4,16 +4,13 @@ import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 
-import 'package:intl/intl.dart' show DateFormat;
-
-import '../core/game.dart';
 import '../core/mod.dart';
 import '../core/mod_archive.dart';
-import '../core/mod_name.dart';
 import '../services/sfx.dart';
 import 'app_controller.dart';
 import 'game_theme.dart';
 import 'l10n.dart';
+import 'mod_presentation.dart';
 import 'scan_backdrop.dart';
 import 'widgets.dart';
 
@@ -417,14 +414,14 @@ class LibraryView extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 color: active
-                    ? conflictOrange.withValues(alpha: .14)
+                    ? t.warning.withValues(alpha: .14)
                     : hovered && tappable
-                        ? conflictOrange.withValues(alpha: .07)
+                        ? t.warning.withValues(alpha: .07)
                         : Colors.transparent,
                 borderRadius: BorderRadius.circular(9),
               ),
               child: _statBody(
-                  t, l.statConflicts, '${c.conflictCount}', conflictOrange),
+                  t, l.statConflicts, '${c.conflictCount}', t.warning),
             ),
           ),
         ),
@@ -789,7 +786,7 @@ class _FilterChipsState extends State<_FilterChips> {
         type: MaterialType.transparency,
         child: _chip(
           t,
-          e.isFolder ? e.label : categoryChipLabel(l, e.label),
+          e.label,
           count: count,
           active: active,
           onTap: () {},
@@ -873,57 +870,6 @@ class _FilterChipsState extends State<_FilterChips> {
   }
 }
 
-/// The theme's flavor label next to the game name ("Modern · 2014"),
-/// translated. Themes without one (a game with no bespoke palette yet)
-/// fall back to the game's own series and year.
-String eraLabel(L l, GameTheme t, Game game) {
-  final key = t.eraKey;
-  final name = key == null ? game.series : l.eraName(key);
-  final detail = t.eraDetail ?? game.year?.toString();
-  return detail == null ? name : '$name · $detail';
-}
-
-/// Label for a category filter chip. Categories travel through the app as
-/// stable English keys (they key analytics and the adapters' taxonomy),
-/// so they are only translated at the moment they are drawn.
-String categoryChipLabel(L l, String category) =>
-    category == 'All' ? l.filterAll : l.categoryName(category);
-
-/// Human-friendly display title: extension and version token stripped,
-/// creator naming conventions cleaned up
-/// ("UICheatsExtension_v1.36.ts4script" -> "UI Cheats Extension").
-String modTitle(Mod mod) => humanizeModName(parseModName(mod.name).strippedName);
-
-/// The version guessed from the file name (`v1.36`, `2024-05-01`), shown
-/// as its own quieter text next to the title; `null` when the name
-/// carries none. The title above has the token stripped so the version
-/// never shows twice.
-String? modVersion(Mod mod) => parseModName(mod.name).versionLabel;
-
-/// The "by author" slot of the design: real files don't carry an author,
-/// so show where the file lives instead.
-String modSubtitle(L l, AppController c, Mod mod) {
-  final root = c.modsDir?.path;
-  if (root != null) {
-    final rel = p.relative(p.dirname(mod.path), from: root);
-    if (rel != '.') return l.modInFolder(rel);
-  }
-  return l.modInModsFolder;
-}
-
-/// The file's modification date, written the way the current language
-/// writes dates. Falls back to English if intl was never handed the
-/// locale's date symbols (widget tests, which don't run main()).
-String modDate(Mod mod) {
-  final d = mod.modifiedAt;
-  if (d == null) return '';
-  try {
-    return DateFormat.yMMMd().format(d);
-  } catch (_) {
-    return DateFormat.yMMMd('en').format(d);
-  }
-}
-
 class _GridCard extends StatelessWidget {
   const _GridCard(
       {required this.theme, required this.controller, required this.mod});
@@ -995,8 +941,8 @@ class _GridCard extends StatelessWidget {
                       ),
                     ),
                     if (c.isConflicted(mod))
-                      const Positioned(
-                          left: 10, top: 10, child: ConflictBadge()),
+                      Positioned(
+                          left: 10, top: 10, child: ConflictBadge(theme: t)),
                     Positioned(
                       right: 9,
                       top: 9,
@@ -1004,6 +950,7 @@ class _GridCard extends StatelessWidget {
                         value: mod.isEnabled,
                         activeColor: t.accent,
                         inactiveColor: t.switchOff,
+                        shadow: t.shadow,
                         onChanged: () => c.toggleMod(mod),
                       ),
                     ),
@@ -1187,8 +1134,8 @@ class _ListRow extends StatelessWidget {
               if (c.isConflicted(mod)) ...[
                 TagChip(
                   label: l.conflictBadge,
-                  color: conflictOrange,
-                  background: conflictOrange.withValues(alpha: .12),
+                  color: t.warning,
+                  background: t.warning.withValues(alpha: .12),
                 ),
                 const SizedBox(width: 8),
               ],
@@ -1214,6 +1161,7 @@ class _ListRow extends StatelessWidget {
                 value: mod.isEnabled,
                 activeColor: t.accent,
                 inactiveColor: t.switchOff,
+                shadow: t.shadow,
                 onChanged: () => c.toggleMod(mod),
               ),
             ],
@@ -1268,14 +1216,7 @@ class _EmptyLibrary extends StatelessWidget {
             const SizedBox(height: 16),
             OutlinedButton(
               onPressed: () => c.revealInFileManager(c.modsDir!.path),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: t.accent,
-                side: BorderSide(color: t.accent, width: 1.5),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
-                textStyle:
-                    const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
-              ),
+              style: accentButtonStyle(t),
               child: Text(l.openFolder),
             ),
           ],
@@ -1367,15 +1308,7 @@ class _FolderSetupView extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               if (c.candidateDirs.isNotEmpty) ...[
-                Text(
-                  l.foundOnThisComputer,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 1.2,
-                    color: t.muted,
-                  ),
-                ),
+                Text(l.foundOnThisComputer, style: eyebrowStyle(t)),
                 const SizedBox(height: 8),
                 for (final dir in c.candidateDirs)
                   Padding(
@@ -1388,7 +1321,7 @@ class _FolderSetupView extends StatelessWidget {
                 children: [
                   Expanded(
                     child: FilledButton(
-                      onPressed: () => _chooseFolder(c),
+                      onPressed: c.pickFolderOverride,
                       style: FilledButton.styleFrom(
                         backgroundColor: t.accent,
                         padding: const EdgeInsets.symmetric(vertical: 13),
@@ -1493,11 +1426,5 @@ class _FolderSetupView extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  static Future<void> _chooseFolder(AppController c) async {
-    final path = await getDirectoryPath();
-    if (path == null) return;
-    await c.setFolderOverride(path);
   }
 }

@@ -404,6 +404,12 @@ class LJa extends L {
   String get languageSystem => 'システム';
 
   @override
+  String get translatorsTitle => '翻訳';
+
+  @override
+  String get translatorsDesc => 'アプリが10か国語で使えるのは、訳してくれたシマーたちのおかげです。';
+
+  @override
   String get folderNotFound => '見つかりません。フォルダを選んでください';
 
   @override
@@ -541,6 +547,61 @@ class LJa extends L {
 
   @override
   String get contentMeshes => 'メッシュ';
+
+  @override
+  String errorNoModFiles(String extensions, String name) {
+    return '$name の中にMODファイル（$extensions）が見つかりませんでした。';
+  }
+
+  @override
+  String errorUnreadableArchive(String name) {
+    return '$name はこのアプリで読めるZIPアーカイブではありません。';
+  }
+
+  @override
+  String errorNoUnpacker(String format, String name) {
+    return 'このパソコンには$formatアーカイブを展開できるものがありません。$name を自分で展開して、中のファイルをインストールしてね。';
+  }
+
+  @override
+  String errorNoUnpackerLinux(String format, String name) {
+    return 'このパソコンには$formatアーカイブを展開できるものがありません。p7zip をインストールしてもう一度試すか、$name を自分で展開して中のファイルをインストールしてね。';
+  }
+
+  @override
+  String errorNoUnpackerLinuxRar(String format, String name) {
+    return 'このパソコンには$formatアーカイブを展開できるものがありません。p7zip か unrar をインストールしてもう一度試すか、$name を自分で展開して中のファイルをインストールしてね。';
+  }
+
+  @override
+  String errorUnpackFailed(String name) {
+    return '$name を展開できませんでした。パスワード付き、分割アーカイブの一部、またはダウンロードが壊れているのかもしれません。手動で展開して、中のファイルをインストールしてね。';
+  }
+
+  @override
+  String errorInstallFailed(String name, String reason) {
+    return '「$name」をインストールできませんでした — $reason。うまくいかないままなら、手動で展開して中のファイルをインストールしてね。';
+  }
+
+  @override
+  String errorInstallFailedRaw(String name, String reason) {
+    return '「$name」をインストールできませんでした — $reason';
+  }
+
+  @override
+  String errorFileInUseDelete(String name) {
+    return '「$name」を削除できませんでした — 別のプログラムが使用中（ゲームは起動中？）か、書き込み禁止になっています。使っているものを閉じて、もう一度試してね。';
+  }
+
+  @override
+  String errorFileInUseRename(String name) {
+    return '「$name」の名前を変更できませんでした — 別のプログラムが使用中（ゲームは起動中？）か、書き込み禁止になっています。使っているものを閉じて、もう一度試してね。';
+  }
+
+  @override
+  String errorFileMissing(String name) {
+    return '「$name」はもうMODフォルダーにありません — 別のプログラムが移動したか削除したのかもしれません。';
+  }
 
   @override
   String get eraClassic => 'クラシック';

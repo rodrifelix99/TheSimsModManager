@@ -140,7 +140,8 @@ void main() {
     await c.installDroppedPaths([folder.path]);
 
     expect(c.mods, isEmpty);
-    expect(c.lastError, contains('JustDocs'));
+    expect(c.lastError?.key, 'noModFiles');
+    expect(c.lastError?.args, contains('JustDocs'));
   });
 
   // The OS won't let the test build a source tree past its own path

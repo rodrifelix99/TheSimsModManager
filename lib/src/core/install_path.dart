@@ -4,10 +4,10 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 
 /// Longest path Windows accepts through its regular API, terminator
-/// included. Tools that address files through the `\\?\` form (bsdtar,
-/// which unpacks rar and 7z archives here) create longer ones happily,
-/// and then nothing that doesn't use that form - Explorer, the game's
-/// loader, this app - can open them again.
+/// included. Tools that address files through the `\\?\` form (the
+/// external unpackers that handle rar and 7z here) create longer ones
+/// happily, and then nothing that doesn't use that form - Explorer, the
+/// game's loader, this app - can open them again.
 const windowsPathLimit = 259;
 
 /// PATH_MAX is 1024 on macOS and 4096 on Linux; the tighter of the two
@@ -109,9 +109,9 @@ String installTargetPath(String destination, String relative,
 /// already in [taken]. Used where two files could otherwise collapse
 /// onto one path and silently overwrite each other; the variants stay
 /// within the platform's path limit.
-String unusedVariantOf(String path, Set<String> taken, {bool? windows}) {
-  if (!taken.contains(_key(path))) return path;
+String _unusedVariantOf(String path, Set<String> taken, {bool? windows}) {
   final onWindows = windows ?? Platform.isWindows;
+  if (!taken.contains(_key(path, onWindows))) return path;
   final context = onWindows ? p.windows : p.posix;
   final limit = onWindows ? windowsPathLimit : posixPathLimit;
   final directory = context.dirname(path);
@@ -123,7 +123,7 @@ String unusedVariantOf(String path, Set<String> taken, {bool? windows}) {
     final room = limit - context.join(directory, suffix).length;
     final trimmed = _trim(stem, chars: room, bytes: maxComponentBytes);
     final candidate = context.join(directory, '$trimmed$suffix');
-    if (!taken.contains(_key(candidate))) return candidate;
+    if (!taken.contains(_key(candidate, onWindows))) return candidate;
   }
 }
 
@@ -141,8 +141,8 @@ String claimInstallTarget(
   // the source layout, where overwriting is what the user asked for.
   final claimed = target == context.join(destination, relative)
       ? target
-      : unusedVariantOf(target, taken, windows: onWindows);
-  taken.add(_key(claimed));
+      : _unusedVariantOf(target, taken, windows: onWindows);
+  taken.add(_key(claimed, onWindows));
   return claimed;
 }
 
@@ -165,7 +165,7 @@ String windowsExtendedPath(String path) {
 final _windowsDrivePath = RegExp(r'^[A-Za-z]:\\');
 
 /// Case-insensitive on Windows, where two spellings name one file.
-String _key(String path) => Platform.isWindows ? path.toLowerCase() : path;
+String _key(String path, bool windows) => windows ? path.toLowerCase() : path;
 
 /// [name] cut down to [chars] characters and [bytes] UTF-8 bytes (the
 /// unit filesystems count names in, which stops matching characters as

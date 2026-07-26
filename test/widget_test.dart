@@ -15,12 +15,28 @@ import 'package:sims_mod_manager/src/ui/app.dart';
 import 'package:sims_mod_manager/src/ui/widgets.dart';
 
 class _FakeAdapter extends FolderBasedGameAdapter {
-  _FakeAdapter(this.dir, {this.gameFolder});
+  _FakeAdapter(this.dir, {this.gameFolder, this.lockRename = false});
 
   final Directory dir;
 
   /// Simulates the game's own folder being detected (mods dir missing).
   final Directory? gameFolder;
+
+  /// Simulates the game holding the file open, the way Windows reports
+  /// it: the rename behind every enable/disable fails.
+  final bool lockRename;
+
+  @override
+  Duration get lockedFileRetryDelay => Duration.zero;
+
+  @override
+  Future<File> renameModFile(File file, String newPath) {
+    if (lockRename) {
+      throw PathAccessException(
+          file.path, const OSError('file in use', 32), 'Cannot rename file');
+    }
+    return super.renameModFile(file, newPath);
+  }
 
   @override
   Future<Directory?> findGameFolder() async => gameFolder;
@@ -96,6 +112,49 @@ void main() {
           .existsSync(),
       isTrue,
     );
+  });
+
+  testWidgets('a failed action is named in the shell banner and dismissed',
+      (tester) async {
+    tester.view.physicalSize = const Size(1280, 824);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    SharedPreferences.setMockInitialValues({'soundEffects': false});
+    final tempDir = Directory.systemTemp.createTempSync('mod_manager_ui');
+    addTearDown(() => tempDir.deleteSync(recursive: true));
+    File(p.join(tempDir.path, 'cozy_sofa.package')).writeAsStringSync('sofa');
+
+    final registry = GameRegistry([_FakeAdapter(tempDir, lockRename: true)]);
+    final settings = await SettingsStore.load();
+
+    await tester.runAsync(() async {
+      await tester.pumpWidget(
+          ModManagerApp(registry: registry, settings: settings));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    await tester.runAsync(() async {
+      await tester.tap(find.byType(PillSwitch).first);
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
+    await tester.pump(const Duration(milliseconds: 400));
+
+    // The banner says which file and why, translated from the key the
+    // core layer raised - not the raw exception, and not silence.
+    final banner = find.textContaining('in use by another program');
+    expect(banner, findsOneWidget);
+    expect(find.textContaining('cozy_sofa.package'), findsWidgets);
+
+    // It lives in the shell, so it follows the user off the library.
+    await tester.tap(find.text('cozy sofa'));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(banner, findsOneWidget);
+
+    await tester.tap(find.byTooltip('Dismiss'));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(banner, findsNothing);
   });
 
   testWidgets('conflicts stat filters the library and detail names the clash',

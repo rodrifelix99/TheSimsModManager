@@ -128,6 +128,8 @@
   "languageTitle": "应用语言",
   "languageDesc": "选择应用界面使用的语言。「跟随系统」会使用你电脑的语言。",
   "languageSystem": "跟随系统",
+  "translatorsTitle": "翻译者",
+  "translatorsDesc": "这个应用能有十种语言，全靠这些模拟人生玩家。",
 
   "folderNotFound": "没找到。请选择一个文件夹",
   "folderNotLocated": "没能自动找到游戏（或它的 MOD 文件夹）",
@@ -176,6 +178,18 @@
   "contentTextTables": "文本表",
   "contentTextures": "贴图",
   "contentMeshes": "模型",
+
+  "errorNoModFiles": "{name} 里没有找到模组文件（{extensions}）。",
+  "errorUnreadableArchive": "{name} 不是这个应用能读取的 zip 压缩包。",
+  "errorNoUnpacker": "这台电脑上没有能解压 {format} 压缩包的工具。自己把 {name} 解压出来，再安装里面的文件吧。",
+  "errorNoUnpackerLinux": "这台电脑上没有能解压 {format} 压缩包的工具。装上 p7zip 再试一次，或者自己把 {name} 解压出来，再安装里面的文件。",
+  "errorNoUnpackerLinuxRar": "这台电脑上没有能解压 {format} 压缩包的工具。装上 p7zip 或 unrar 再试一次，或者自己把 {name} 解压出来，再安装里面的文件。",
+  "errorUnpackFailed": "{name} 解压失败。可能有密码、是分卷压缩包的一部分，或者下载损坏了。手动解压后再安装里面的文件吧。",
+  "errorInstallFailed": "「{name}」安装失败 — {reason}。要是一直不行，就手动解压后安装里面的文件。",
+  "errorInstallFailedRaw": "「{name}」安装失败 — {reason}",
+  "errorFileInUseDelete": "「{name}」删除失败 — 文件被别的程序占用了（游戏还开着？），或者是只读的。先关掉占用它的程序，再试一次。",
+  "errorFileInUseRename": "「{name}」重命名失败 — 文件被别的程序占用了（游戏还开着？），或者是只读的。先关掉占用它的程序，再试一次。",
+  "errorFileMissing": "「{name}」已经不在模组文件夹里了 — 可能被别的程序移动或删除了。",
 
   "eraClassic": "经典",
   "eraNightlife": "夜生活",

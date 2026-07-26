@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sims_mod_manager/src/core/app_message.dart';
 import 'package:sims_mod_manager/src/core/game.dart';
 import 'package:sims_mod_manager/src/core/game_adapter.dart';
 import 'package:sims_mod_manager/src/core/game_registry.dart';
@@ -154,7 +155,7 @@ void main() {
     await c.toggleMod(c.mods.single);
 
     // refresh() clears lastError at its start; the error must survive it.
-    expect(c.lastError, contains('toggle went sideways'));
+    expect('${c.lastError}', contains('toggle went sideways'));
   });
 
   test('a locked file shows a friendly message and stays out of tracking',
@@ -166,8 +167,10 @@ void main() {
 
     await c.toggleMod(c.mods.single);
 
-    expect(c.lastError, contains('in use by another program'));
-    expect(c.lastError, contains('cozy_sofa.package'));
+    // A key and the file name, not a finished English sentence: the UI
+    // translates it where it draws it.
+    expect(c.lastError?.key, 'fileInUseRename');
+    expect(c.lastError?.args, ['cozy_sofa.package']);
     expect(spy.exceptions, isEmpty,
         reason: 'environmental failures are not app bugs');
     final failed = spy.eventProperties[spy.events.indexOf('mod_action_failed')];
@@ -195,7 +198,7 @@ void main() {
 
     await c.removeMod(c.mods.single);
 
-    expect(c.lastError, contains('removal went sideways'));
+    expect('${c.lastError}', contains('removal went sideways'));
     expect(c.mods, hasLength(1));
   });
 
@@ -207,8 +210,8 @@ void main() {
 
     await c.removeMod(c.mods.single);
 
-    expect(c.lastError, contains('in use by another program'));
-    expect(c.lastError, contains('cozy_sofa.package'));
+    expect(c.lastError?.key, 'fileInUseDelete');
+    expect(c.lastError?.args, ['cozy_sofa.package']);
     expect(spy.exceptions, isEmpty,
         reason: 'environmental failures are not app bugs');
     final failed = spy.eventProperties[spy.events.indexOf('mod_action_failed')];
@@ -221,16 +224,36 @@ void main() {
     addTearDown(source.deleteSync);
     final spy = _SpyAnalytics();
     final c = await makeController(analytics: spy);
-    adapter.installFailure = const ArchiveExtractionException(
-        'Could not extract peggy_hair.rar. Unpack it manually and install '
-        'the files inside.');
+    adapter.installFailure =
+        const ArchiveExtractionException(AppMessage('unpackFailed', [
+      'peggy_hair.rar',
+    ]));
 
     await c.installFiles([source]);
 
-    expect(c.lastError, startsWith('Could not extract peggy_hair.rar.'));
+    expect(c.lastError?.key, 'unpackFailed');
+    expect(c.lastError?.args, ['peggy_hair.rar']);
     expect(spy.exceptions, isEmpty);
     final failed = spy.eventProperties[spy.events.indexOf('mod_install_failed')];
     expect(failed['reason'], 'unpack_failed');
+  });
+
+  test('a machine with no unpacker is told apart from a bad archive',
+      () async {
+    final source = File(p.join(modsDir.parent.path, 'peggy_hair.package'))
+      ..writeAsStringSync('bytes');
+    addTearDown(source.deleteSync);
+    final spy = _SpyAnalytics();
+    final c = await makeController(analytics: spy);
+    adapter.installFailure = const ArchiveExtractionException(
+        AppMessage('noUnpacker', ['RAR', 'peggy_hair.rar']),
+        cause: ArchiveExtractionFailure.noUnpacker);
+
+    await c.installFiles([source]);
+
+    expect(spy.exceptions, isEmpty);
+    final failed = spy.eventProperties[spy.events.indexOf('mod_install_failed')];
+    expect(failed['reason'], 'no_unpacker');
   });
 
   test('a failed install names the file and the reason the OS gave',
@@ -247,10 +270,11 @@ void main() {
 
     await c.installFiles([source]);
 
-    expect(c.lastError, contains('grunge_sofa.package'));
-    expect(c.lastError, contains('The system cannot find the path specified'));
-    // Whatever the OS says stays out of the raw exception dump.
-    expect(c.lastError, isNot(contains('PathNotFoundException')));
+    expect(c.lastError?.key, 'installFailed');
+    // What the OS said, in the user's own language, and nothing of the
+    // raw exception dump around it.
+    expect(c.lastError?.args,
+        ['grunge_sofa.package', 'The system cannot find the path specified']);
     final failed = spy.eventProperties[spy.events.indexOf('mod_install_failed')];
     expect(failed['reason'], 'not_found');
     expect(spy.exceptions, hasLength(1),
@@ -265,14 +289,39 @@ void main() {
     final spy = _SpyAnalytics();
     final c = await makeController(analytics: spy);
     adapter.installFailure =
-        const FormatException('No mod files (.package) found inside x.zip.');
+        ModContentException(const AppMessage('noModFiles', [
+      '.package',
+      'x.zip',
+    ]));
 
     await c.installFiles([source]);
 
-    expect(c.lastError, 'No mod files (.package) found inside x.zip.');
+    expect(c.lastError?.key, 'noModFiles');
+    expect(c.lastError?.args, ['.package', 'x.zip']);
     expect(spy.exceptions, isEmpty);
     final failed = spy.eventProperties[spy.events.indexOf('mod_install_failed')];
     expect(failed['reason'], 'no_mod_files');
+  });
+
+  test('a zip nothing could read is tallied as a failed unpack', () async {
+    final source = File(p.join(modsDir.parent.path, 'broken.package'))
+      ..writeAsStringSync('bytes');
+    addTearDown(source.deleteSync);
+    final spy = _SpyAnalytics();
+    final c = await makeController(analytics: spy);
+    // The user still hears the zip verdict; only the failure tally files
+    // a broken download with the unpacks, not the empty archives.
+    adapter.installFailure =
+        ModContentException(const AppMessage('unreadableArchive', [
+      'broken.zip',
+    ]));
+
+    await c.installFiles([source]);
+
+    expect(c.lastError?.key, 'unreadableArchive');
+    expect(spy.exceptions, isEmpty);
+    final failed = spy.eventProperties[spy.events.indexOf('mod_install_failed')];
+    expect(failed['reason'], 'unpack_failed');
   });
 
   test('a successful toggle and removal leave no error', () async {

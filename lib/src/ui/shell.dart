@@ -87,6 +87,12 @@ class _AppShellState extends State<AppShell> {
                           children: [
                             // Breathing room under the caption-button overlay.
                             const SizedBox(height: kWindowCaptionHeight),
+                            // Above the screens rather than inside one: a
+                            // toggle that fails from the detail view, or a
+                            // cache clear that fails in Settings, has to be
+                            // readable where it happened.
+                            if (c.lastError != null)
+                              _ErrorBanner(theme: t, controller: c),
                             Expanded(
                               child: AnimatedSwitcher(
                                 duration: const Duration(milliseconds: 320),
@@ -148,6 +154,60 @@ class _AppShellState extends State<AppShell> {
           ),
         );
       },
+    );
+  }
+}
+
+/// Why the last thing the user asked for didn't happen
+/// ([AppController.lastError]): a strip they can read and wave away,
+/// rather than a dialog standing between them and the next attempt. The
+/// message travels as a key (`AppMessage`) and is translated here, at the
+/// moment it is drawn.
+class _ErrorBanner extends StatelessWidget {
+  const _ErrorBanner({required this.theme, required this.controller});
+
+  final GameTheme theme;
+  final AppController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = theme;
+    final l = L.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(28, 8, 28, 0),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
+        decoration: BoxDecoration(
+          color: t.warning.withValues(alpha: .1),
+          border: Border.all(
+              color: t.warning.withValues(alpha: .45), width: 1.5),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.error_outline_rounded, size: 20, color: t.warning),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                l.errorText(controller.lastError!),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: t.text,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              onPressed: controller.dismissError,
+              tooltip: l.dismiss,
+              iconSize: 17,
+              color: t.muted,
+              icon: const Icon(Icons.close_rounded),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -332,15 +392,7 @@ class _SidebarState extends State<_Sidebar>
           const SizedBox(height: 18),
           Padding(
             padding: const EdgeInsets.fromLTRB(6, 0, 6, 8),
-            child: Text(
-              l.sidebarGames,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 1.3,
-                color: t.muted,
-              ),
-            ),
+            child: Text(l.sidebarGames, style: eyebrowStyle(t)),
           ),
           for (final adapter in c.registry.adapters) ...[
             _gameRow(t, c, l, adapter),
@@ -466,22 +518,9 @@ class _SidebarState extends State<_Sidebar>
               animation: _bob,
               builder: (context, child) => Transform.translate(
                 offset: Offset(0, -2 + 4 * _bob.value),
-                child: Transform.rotate(angle: 0.785398, child: child),
+                child: child,
               ),
-              child: Container(
-                margin: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  gradient: t.accentGradient,
-                  borderRadius: BorderRadius.circular(6),
-                  boxShadow: [
-                    BoxShadow(
-                      color: t.accent.withValues(alpha: .55),
-                      blurRadius: 14,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
-                ),
-              ),
+              child: Center(child: BrandMark(theme: t, size: 22)),
             ),
           ),
           const SizedBox(width: 12),

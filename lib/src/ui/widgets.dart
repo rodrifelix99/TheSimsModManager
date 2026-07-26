@@ -34,16 +34,72 @@ class _HoverBuilderState extends State<HoverBuilder> {
   }
 }
 
+/// The eyebrow style for the small all-caps-feeling section labels
+/// (sidebar "Games", Settings section headers, the setup screen's
+/// "Found on this computer"). One style, because each screen had begun
+/// typing its own with a slightly different letter spacing.
+TextStyle eyebrowStyle(GameTheme t) => TextStyle(
+      fontSize: 11,
+      fontWeight: FontWeight.w800,
+      letterSpacing: 1.1,
+      color: t.muted,
+    );
+
+/// The standard accent-outlined chrome button (Settings' folder actions,
+/// the empty library's "open folder"). The setup screen's big paired CTAs
+/// keep their own larger geometry to match their FilledButton sibling.
+ButtonStyle accentButtonStyle(GameTheme t) => OutlinedButton.styleFrom(
+      foregroundColor: t.accent,
+      backgroundColor: t.tint,
+      side: BorderSide(color: t.accent, width: 1.5),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+    );
+
+/// The app's rotated-diamond plumbob mark with the accent glow, drawn at
+/// [size]. One widget for the sidebar and the about card, whose two
+/// hand-built copies had drifted a constant at a time.
+class BrandMark extends StatelessWidget {
+  const BrandMark({super.key, required this.theme, this.size = 26});
+
+  final GameTheme theme;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Transform.rotate(
+      angle: math.pi / 4,
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          gradient: theme.accentGradient,
+          borderRadius: BorderRadius.circular(size * .27),
+          boxShadow: [
+            BoxShadow(
+              color: theme.accent.withValues(alpha: .5),
+              blurRadius: 14,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// The design's iOS-style toggle: colored track, springy white knob.
 class PillSwitch extends StatelessWidget {
   const PillSwitch({
     super.key,
     required this.value,
     required this.onChanged,
+    required this.activeColor,
+    required this.inactiveColor,
+    required this.shadow,
     this.width = 40,
     this.height = 23,
-    this.activeColor,
-    this.inactiveColor,
     this.trackColor,
   });
 
@@ -51,10 +107,14 @@ class PillSwitch extends StatelessWidget {
   final VoidCallback onChanged;
   final double width;
   final double height;
-  final Color? activeColor;
+  final Color activeColor;
 
-  /// Track color while off; defaults to the light theme's gray-green.
-  final Color? inactiveColor;
+  /// Track color while off (the theme's [GameTheme.switchOff]).
+  final Color inactiveColor;
+
+  /// Base color of the knob's drop shadow (the theme's
+  /// [GameTheme.shadow]).
+  final Color shadow;
 
   /// Explicit track color override (used on the detail screen where the
   /// switch sits on a colored button).
@@ -63,8 +123,6 @@ class PillSwitch extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final knobSize = height - 5;
-    final active = activeColor ?? const Color(0xFF189771);
-    final inactive = inactiveColor ?? const Color(0x52788C87);
     return GestureDetector(
       onTap: onChanged,
       behavior: HitTestBehavior.opaque,
@@ -75,7 +133,7 @@ class PillSwitch extends StatelessWidget {
           width: width,
           height: height,
           decoration: BoxDecoration(
-            color: trackColor ?? (value ? active : inactive),
+            color: trackColor ?? (value ? activeColor : inactiveColor),
             borderRadius: BorderRadius.circular(height / 2),
           ),
           child: AnimatedAlign(
@@ -89,11 +147,11 @@ class PillSwitch extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Colors.white,
                 shape: BoxShape.circle,
-                boxShadow: const [
+                boxShadow: [
                   BoxShadow(
-                    color: Color(0x4D000000),
+                    color: shadow.withValues(alpha: .3),
                     blurRadius: 3,
-                    offset: Offset(0, 1),
+                    offset: const Offset(0, 1),
                   ),
                 ],
               ),
@@ -244,14 +302,16 @@ class TagChip extends StatelessWidget {
 
 /// The little "conflict" badge with the white exclamation dot.
 class ConflictBadge extends StatelessWidget {
-  const ConflictBadge({super.key});
+  const ConflictBadge({super.key, required this.theme});
+
+  final GameTheme theme;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(6, 3, 8, 3),
       decoration: BoxDecoration(
-        color: conflictOrange,
+        color: theme.warning,
         borderRadius: BorderRadius.circular(7),
       ),
       child: Row(
@@ -265,10 +325,10 @@ class ConflictBadge extends StatelessWidget {
               color: Colors.white,
               shape: BoxShape.circle,
             ),
-            child: const Text(
+            child: Text(
               '!',
               style: TextStyle(
-                color: conflictOrange,
+                color: theme.warning,
                 fontSize: 10,
                 fontWeight: FontWeight.w800,
                 height: 1,

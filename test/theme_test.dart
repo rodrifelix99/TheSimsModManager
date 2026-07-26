@@ -125,6 +125,23 @@ void main() {
     }
   });
 
+  // The warning pair is shared across games but split by brightness; the
+  // panel text sits on the warning tint over a surface, the badge fill
+  // reads as a UI component (3.0).
+  test('the warning colors read on every surface they touch', () {
+    for (final id in gameIds) {
+      for (final brightness in Brightness.values) {
+        final t = GameTheme.forGame(game(id), brightness);
+        expect(_contrast(t.onWarningTint, t.surface), greaterThan(4.5),
+            reason: '$id $brightness warning text on surface');
+        expect(_contrast(t.warning, t.surface), greaterThan(3.0),
+            reason: '$id $brightness warning on surface');
+        expect(_contrast(t.warning, t.bg), greaterThan(3.0),
+            reason: '$id $brightness warning on bg');
+      }
+    }
+  });
+
   test('a game with no palette borrows one and keeps its own era label', () {
     for (final brightness in Brightness.values) {
       final fallback = GameTheme.forGame(game('simcity4'), brightness);

@@ -27,8 +27,10 @@ void main() {
 
     final conflicts = findConflicts(mods);
 
-    expect(conflicts,
-        {r'C:\mods\hair.package', r'C:\mods\sub\hair.package'});
+    expect(conflicts, {
+      r'C:\mods\hair.package': ConflictReason.duplicateName,
+      r'C:\mods\sub\hair.package': ConflictReason.duplicateName,
+    });
   });
 
   test('name comparison is case-insensitive', () {
@@ -58,8 +60,8 @@ void main() {
     ];
 
     expect(findConflicts(mods), {
-      r'C:\mods\CoolHair_v1.package',
-      r'C:\mods\sub\CoolHair_v2.package',
+      r'C:\mods\CoolHair_v1.package': ConflictReason.versionPair,
+      r'C:\mods\sub\CoolHair_v2.package': ConflictReason.versionPair,
     });
   });
 
@@ -97,7 +99,10 @@ void main() {
       _mod('CoolHair_v2.package', r'C:\mods\sub\CoolHair_v2.package'),
     ];
 
-    expect(findConflicts(mods), hasLength(2));
+    final conflicts = findConflicts(mods);
+    expect(conflicts, hasLength(2));
+    expect(conflicts.values,
+        everyElement(ConflictReason.duplicateName));
   });
 
   test('different mods with versions do not cross-flag', () {

@@ -38,6 +38,7 @@ class LPt extends L {
       locale: localeName,
       other: '$count mods',
       one: '1 mod',
+      zero: '0 mods',
     );
     return '$_temp0 · $detail';
   }
@@ -91,6 +92,7 @@ class LPt extends L {
       locale: localeName,
       other: '$count mods à mostra',
       one: '1 mod à mostra',
+      zero: '0 mods à mostra',
     );
     return '$_temp0 · $era';
   }
@@ -439,6 +441,13 @@ class LPt extends L {
   String get languageSystem => 'Sistema';
 
   @override
+  String get translatorsTitle => 'Traduzido por';
+
+  @override
+  String get translatorsDesc =>
+      'O app fala dez idiomas graças a estes simmers.';
+
+  @override
   String get folderNotFound => 'Não encontrada. Escolha uma pasta';
 
   @override
@@ -452,6 +461,7 @@ class LPt extends L {
       locale: localeName,
       other: '$count mods',
       one: '1 mod',
+      zero: '0 mods',
     );
     return '$_temp0 · $size no disco';
   }
@@ -591,6 +601,61 @@ class LPt extends L {
 
   @override
   String get contentMeshes => 'malhas';
+
+  @override
+  String errorNoModFiles(String extensions, String name) {
+    return 'Nenhum arquivo de mod ($extensions) dentro de $name.';
+  }
+
+  @override
+  String errorUnreadableArchive(String name) {
+    return '$name não é um zip que este app consiga ler.';
+  }
+
+  @override
+  String errorNoUnpacker(String format, String name) {
+    return 'Nada neste computador consegue descompactar arquivos $format. Descompacte $name por conta própria e instale os arquivos de dentro.';
+  }
+
+  @override
+  String errorNoUnpackerLinux(String format, String name) {
+    return 'Nada neste computador consegue descompactar arquivos $format. Instale p7zip e tente de novo, ou descompacte $name por conta própria e instale os arquivos de dentro.';
+  }
+
+  @override
+  String errorNoUnpackerLinuxRar(String format, String name) {
+    return 'Nada neste computador consegue descompactar arquivos $format. Instale p7zip ou unrar e tente de novo, ou descompacte $name por conta própria e instale os arquivos de dentro.';
+  }
+
+  @override
+  String errorUnpackFailed(String name) {
+    return 'Não deu para descompactar $name. Ele pode estar protegido por senha, ser parte de um arquivo dividido ou ser um download corrompido. Descompacte na mão e instale os arquivos de dentro.';
+  }
+
+  @override
+  String errorInstallFailed(String name, String reason) {
+    return 'Não deu para instalar “$name” — $reason. Se continuar falhando, descompacte na mão e instale os arquivos de dentro.';
+  }
+
+  @override
+  String errorInstallFailedRaw(String name, String reason) {
+    return 'Não deu para instalar “$name” — $reason';
+  }
+
+  @override
+  String errorFileInUseDelete(String name) {
+    return 'Não deu para excluir “$name” — outro programa está usando o arquivo (o jogo está aberto?) ou ele está protegido contra gravação. Feche o que estiver usando e tente de novo.';
+  }
+
+  @override
+  String errorFileInUseRename(String name) {
+    return 'Não deu para renomear “$name” — outro programa está usando o arquivo (o jogo está aberto?) ou ele está protegido contra gravação. Feche o que estiver usando e tente de novo.';
+  }
+
+  @override
+  String errorFileMissing(String name) {
+    return '“$name” não está mais na pasta de mods — outro programa pode ter movido ou excluído o arquivo.';
+  }
 
   @override
   String get eraClassic => 'Clássico';

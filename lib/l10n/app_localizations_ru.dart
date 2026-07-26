@@ -455,6 +455,13 @@ class LRu extends L {
   String get languageSystem => 'Системный';
 
   @override
+  String get translatorsTitle => 'Перевели';
+
+  @override
+  String get translatorsDesc =>
+      'Приложение говорит на десяти языках благодаря этим симмерам.';
+
+  @override
   String get folderNotFound => 'Не найдена. Выбери папку';
 
   @override
@@ -611,6 +618,61 @@ class LRu extends L {
 
   @override
   String get contentMeshes => 'меши';
+
+  @override
+  String errorNoModFiles(String extensions, String name) {
+    return 'Внутри $name нет файлов модов ($extensions).';
+  }
+
+  @override
+  String errorUnreadableArchive(String name) {
+    return '$name — это не zip-архив, который приложение может прочитать.';
+  }
+
+  @override
+  String errorNoUnpacker(String format, String name) {
+    return 'На этом компьютере нечем распаковать архивы $format. Распакуй $name вручную и установи файлы из него.';
+  }
+
+  @override
+  String errorNoUnpackerLinux(String format, String name) {
+    return 'На этом компьютере нечем распаковать архивы $format. Установи p7zip и попробуй снова или распакуй $name вручную и установи файлы из него.';
+  }
+
+  @override
+  String errorNoUnpackerLinuxRar(String format, String name) {
+    return 'На этом компьютере нечем распаковать архивы $format. Установи p7zip или unrar и попробуй снова или распакуй $name вручную и установи файлы из него.';
+  }
+
+  @override
+  String errorUnpackFailed(String name) {
+    return 'Не удалось распаковать $name. Возможно, архив под паролем, это часть многотомного архива или повреждённая загрузка. Распакуй его вручную и установи файлы из него.';
+  }
+
+  @override
+  String errorInstallFailed(String name, String reason) {
+    return 'Не удалось установить «$name» — $reason. Если так и продолжится, распакуй вручную и установи файлы из него.';
+  }
+
+  @override
+  String errorInstallFailedRaw(String name, String reason) {
+    return 'Не удалось установить «$name» — $reason';
+  }
+
+  @override
+  String errorFileInUseDelete(String name) {
+    return 'Не удалось удалить «$name» — файл занят другой программой (игра запущена?) или защищён от записи. Закрой всё, что его использует, и попробуй снова.';
+  }
+
+  @override
+  String errorFileInUseRename(String name) {
+    return 'Не удалось переименовать «$name» — файл занят другой программой (игра запущена?) или защищён от записи. Закрой всё, что его использует, и попробуй снова.';
+  }
+
+  @override
+  String errorFileMissing(String name) {
+    return '«$name» больше нет в папке модов — возможно, другая программа переместила или удалила файл.';
+  }
 
   @override
   String get eraClassic => 'Классика';

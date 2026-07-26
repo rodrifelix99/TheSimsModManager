@@ -439,6 +439,13 @@ class LIt extends L {
   String get languageSystem => 'Sistema';
 
   @override
+  String get translatorsTitle => 'Tradotto da';
+
+  @override
+  String get translatorsDesc =>
+      'L’app parla dieci lingue grazie a questi simmer.';
+
+  @override
   String get folderNotFound => 'Non trovata. Scegli una cartella';
 
   @override
@@ -591,6 +598,61 @@ class LIt extends L {
 
   @override
   String get contentMeshes => 'mesh';
+
+  @override
+  String errorNoModFiles(String extensions, String name) {
+    return 'Nessun file di mod ($extensions) dentro $name.';
+  }
+
+  @override
+  String errorUnreadableArchive(String name) {
+    return '$name non è un archivio zip che l’app riesca a leggere.';
+  }
+
+  @override
+  String errorNoUnpacker(String format, String name) {
+    return 'Su questo computer non c’è niente che sappia aprire gli archivi $format. Estrai $name per conto tuo e installa i file che ci sono dentro.';
+  }
+
+  @override
+  String errorNoUnpackerLinux(String format, String name) {
+    return 'Su questo computer non c’è niente che sappia aprire gli archivi $format. Installa p7zip e riprova, oppure estrai $name per conto tuo e installa i file che ci sono dentro.';
+  }
+
+  @override
+  String errorNoUnpackerLinuxRar(String format, String name) {
+    return 'Su questo computer non c’è niente che sappia aprire gli archivi $format. Installa p7zip o unrar e riprova, oppure estrai $name per conto tuo e installa i file che ci sono dentro.';
+  }
+
+  @override
+  String errorUnpackFailed(String name) {
+    return 'Non è stato possibile estrarre $name. Potrebbe avere una password, essere una parte di un archivio diviso o un download danneggiato. Estrailo a mano e installa i file che ci sono dentro.';
+  }
+
+  @override
+  String errorInstallFailed(String name, String reason) {
+    return 'Non è stato possibile installare «$name» — $reason. Se continua a non funzionare, estrailo a mano e installa i file che ci sono dentro.';
+  }
+
+  @override
+  String errorInstallFailedRaw(String name, String reason) {
+    return 'Non è stato possibile installare «$name» — $reason';
+  }
+
+  @override
+  String errorFileInUseDelete(String name) {
+    return 'Non è stato possibile eliminare «$name» — lo sta usando un altro programma (il gioco è aperto?) oppure è protetto da scrittura. Chiudi quello che lo sta usando e riprova.';
+  }
+
+  @override
+  String errorFileInUseRename(String name) {
+    return 'Non è stato possibile rinominare «$name» — lo sta usando un altro programma (il gioco è aperto?) oppure è protetto da scrittura. Chiudi quello che lo sta usando e riprova.';
+  }
+
+  @override
+  String errorFileMissing(String name) {
+    return '«$name» non è più nella cartella dei mod — forse un altro programma l’ha spostato o eliminato.';
+  }
 
   @override
   String get eraClassic => 'Classico';

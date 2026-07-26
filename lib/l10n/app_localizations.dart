@@ -749,6 +749,18 @@ abstract class L {
   /// **'System'**
   String get languageSystem;
 
+  /// No description provided for @translatorsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Translated by'**
+  String get translatorsTitle;
+
+  /// No description provided for @translatorsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The app speaks ten languages thanks to these simmers.'**
+  String get translatorsDesc;
+
   /// No description provided for @folderNotFound.
   ///
   /// In en, this message translates to:
@@ -1000,6 +1012,72 @@ abstract class L {
   /// In en, this message translates to:
   /// **'meshes'**
   String get contentMeshes;
+
+  /// No description provided for @errorNoModFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'No mod files ({extensions}) found inside {name}.'**
+  String errorNoModFiles(String extensions, String name);
+
+  /// No description provided for @errorUnreadableArchive.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} isn’t a zip archive this app can read.'**
+  String errorUnreadableArchive(String name);
+
+  /// No description provided for @errorNoUnpacker.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing on this computer can unpack {format} archives. Unpack {name} yourself and install the files inside.'**
+  String errorNoUnpacker(String format, String name);
+
+  /// No description provided for @errorNoUnpackerLinux.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing on this computer can unpack {format} archives. Install p7zip and try again, or unpack {name} yourself and install the files inside.'**
+  String errorNoUnpackerLinux(String format, String name);
+
+  /// No description provided for @errorNoUnpackerLinuxRar.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing on this computer can unpack {format} archives. Install p7zip or unrar and try again, or unpack {name} yourself and install the files inside.'**
+  String errorNoUnpackerLinuxRar(String format, String name);
+
+  /// No description provided for @errorUnpackFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t unpack {name}. It may be password-protected, one part of a split archive, or a damaged download. Unpack it manually and install the files inside.'**
+  String errorUnpackFailed(String name);
+
+  /// No description provided for @errorInstallFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” couldn’t be installed — {reason}. Unpack it manually and install the files inside if it keeps failing.'**
+  String errorInstallFailed(String name, String reason);
+
+  /// No description provided for @errorInstallFailedRaw.
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” couldn’t be installed — {reason}'**
+  String errorInstallFailedRaw(String name, String reason);
+
+  /// No description provided for @errorFileInUseDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” couldn’t be deleted — it’s in use by another program (is the game running?) or write-protected. Close anything using it and try again.'**
+  String errorFileInUseDelete(String name);
+
+  /// No description provided for @errorFileInUseRename.
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” couldn’t be renamed — it’s in use by another program (is the game running?) or write-protected. Close anything using it and try again.'**
+  String errorFileInUseRename(String name);
+
+  /// No description provided for @errorFileMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” is no longer in the mods folder — it may have been moved or deleted by another program.'**
+  String errorFileMissing(String name);
 
   /// No description provided for @eraClassic.
   ///

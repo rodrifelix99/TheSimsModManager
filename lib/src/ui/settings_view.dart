@@ -1,6 +1,3 @@
-import 'dart:io';
-
-import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 
@@ -119,7 +116,17 @@ class SettingsView extends StatelessWidget {
           _sectionLabel(t, l.sectionLanguage),
           Container(
             decoration: _cardDecoration(t),
-            child: _languageRow(t, c, l),
+            child: Column(
+              // The credits are the one row with no trailing control to
+              // stretch them, so without this they sit centered while
+              // every other row in the card runs flush left.
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _languageRow(t, c, l),
+                _divider(t),
+                _translatorsBlock(context, t, l),
+              ],
+            ),
           ),
           const SizedBox(height: 24),
           _sectionLabel(t, l.sectionPrivacy),
@@ -177,8 +184,8 @@ class SettingsView extends StatelessWidget {
                     ),
                     const SizedBox(width: 16),
                     OutlinedButton(
-                      onPressed: () => _chooseFolder(c),
-                      style: _accentButtonStyle(t),
+                      onPressed: c.pickFolderOverride,
+                      style: accentButtonStyle(t),
                       child: Text(l.change),
                     ),
                     if (c.usingOverride) ...[
@@ -212,7 +219,7 @@ class SettingsView extends StatelessWidget {
                       const SizedBox(width: 12),
                       OutlinedButton(
                         onPressed: c.createDefaultFolder,
-                        style: _accentButtonStyle(t),
+                        style: accentButtonStyle(t),
                         child: Text(l.createFolder),
                       ),
                     ],
@@ -332,24 +339,7 @@ class SettingsView extends StatelessWidget {
             decoration: _cardDecoration(t),
             child: Row(
               children: [
-                Transform.rotate(
-                  angle: 0.785398,
-                  child: Container(
-                    width: 26,
-                    height: 26,
-                    decoration: BoxDecoration(
-                      gradient: t.accentGradient,
-                      borderRadius: BorderRadius.circular(7),
-                      boxShadow: [
-                        BoxShadow(
-                          color: t.accent.withValues(alpha: .5),
-                          blurRadius: 14,
-                          offset: const Offset(0, 5),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                BrandMark(theme: t, size: 26),
                 const SizedBox(width: 20),
                 Expanded(
                   child: Column(
@@ -393,14 +383,14 @@ class SettingsView extends StatelessWidget {
                 if (c.availableUpdate != null)
                   OutlinedButton(
                     onPressed: c.openReleasePage,
-                    style: _accentButtonStyle(t),
+                    style: accentButtonStyle(t),
                     child: Text(l.getVersion(c.availableUpdate!.version)),
                   )
                 else
                   OutlinedButton(
                     onPressed:
                         c.checkingForUpdates ? null : c.checkForUpdates,
-                    style: _accentButtonStyle(t),
+                    style: accentButtonStyle(t),
                     child: Text(c.checkingForUpdates
                         ? l.checkingForUpdates
                         : l.checkForUpdates),
@@ -448,6 +438,50 @@ class SettingsView extends StatelessWidget {
         onSelected: (value) => c.setLocale(value.isEmpty ? null : value),
       );
 
+  /// Who wrote each translation, sitting right under the picker that
+  /// switches between them. Only the two labels go through the ARB files -
+  /// the handles and the native language names read the same everywhere.
+  /// The language currently on screen is drawn in the accent color, since
+  /// that is the one credit the reader is actually looking at.
+  Widget _translatorsBlock(BuildContext context, GameTheme t, L l) {
+    final current = Localizations.localeOf(context).languageCode;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _rowLabel(t, l.translatorsTitle, l.translatorsDesc),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 22,
+            runSpacing: 7,
+            children: [
+              for (final language in appLanguages)
+                Text.rich(
+                  TextSpan(
+                    children: [
+                      TextSpan(
+                        text: language.name,
+                        style: TextStyle(
+                          color: language.code == current ? t.accent : t.text,
+                        ),
+                      ),
+                      TextSpan(
+                        text: ' · ${language.by}',
+                        style: TextStyle(color: t.muted),
+                      ),
+                    ],
+                  ),
+                  style: const TextStyle(
+                      fontSize: 12.5, fontWeight: FontWeight.w700),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   /// Light, dark, or whatever the desktop is set to.
   Widget _themeRow(GameTheme t, AppController c, L l) => _pickerRow(
         t,
@@ -479,30 +513,7 @@ class SettingsView extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
       child: Row(
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    color: t.text,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  desc,
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w600,
-                    color: t.muted,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          Expanded(child: _rowLabel(t, title, desc)),
           const SizedBox(width: 16),
           PopupMenuButton<String>(
             initialValue: current.value,
@@ -569,34 +580,11 @@ class SettingsView extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
       child: Row(
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    color: t.text,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  desc,
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w600,
-                    color: t.muted,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          Expanded(child: _rowLabel(t, title, desc)),
           const SizedBox(width: 16),
           OutlinedButton(
             onPressed: onTap,
-            style: _accentButtonStyle(t),
+            style: accentButtonStyle(t),
             child: Text(buttonLabel),
           ),
         ],
@@ -608,21 +596,28 @@ class SettingsView extends StatelessWidget {
   static UiSound _toggleSound(bool current) =>
       current ? UiSound.toggleOff : UiSound.toggleOn;
 
-  static Future<void> _chooseFolder(AppController c) async {
-    final path = await getDirectoryPath();
-    if (path == null) return;
-    if (!await Directory(path).exists()) return;
-    await c.setFolderOverride(path);
-  }
-
-  ButtonStyle _accentButtonStyle(GameTheme t) => OutlinedButton.styleFrom(
-        foregroundColor: t.accent,
-        backgroundColor: t.tint,
-        side: BorderSide(color: t.accent, width: 1.5),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+  /// The title-over-description column every card row leads with.
+  Widget _rowLabel(GameTheme t, String title, String desc) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+              color: t.text,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            desc,
+            style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              color: t.muted,
+            ),
+          ),
+        ],
       );
 
   BoxDecoration _cardDecoration(GameTheme t) => BoxDecoration(
@@ -635,12 +630,7 @@ class SettingsView extends StatelessWidget {
         padding: const EdgeInsets.only(bottom: 10),
         child: Text(
           label,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 1.1,
-            color: t.muted,
-          ),
+          style: eyebrowStyle(t),
         ),
       );
 
@@ -657,30 +647,7 @@ class SettingsView extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
       child: Row(
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    color: t.text,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  desc,
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w600,
-                    color: t.muted,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          Expanded(child: _rowLabel(t, title, desc)),
           const SizedBox(width: 16),
           PillSwitch(
             value: value,
@@ -688,6 +655,7 @@ class SettingsView extends StatelessWidget {
             height: 25,
             activeColor: t.accent,
             inactiveColor: t.switchOff,
+            shadow: t.shadow,
             onChanged: onToggle,
           ),
         ],

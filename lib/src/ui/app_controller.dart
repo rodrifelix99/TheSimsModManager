@@ -1,9 +1,11 @@
 import 'dart:io';
 import 'dart:ui' show Locale;
 
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 
+import '../core/app_message.dart';
 import '../core/conflicts.dart';
 import '../core/demo_library.dart';
 import '../core/game_adapter.dart';
@@ -20,29 +22,50 @@ import '../services/sfx.dart';
 
 enum AppScreen { library, detail, settings }
 
-/// What to show the user when installing [error] failed on the file or
-/// folder at [sourcePath]. Adapters raise [FormatException] and
-/// [ArchiveExtractionException] with a message written for the user;
-/// everything else is an OS failure, whose own wording (localized by the
-/// OS) says more than we could.
-String installFailureMessage(Object error, String? sourcePath) {
-  if (error is FormatException) return error.message;
-  if (error is ArchiveExtractionException) return error.message;
+/// What to tell the user when installing [error] failed on the file or
+/// folder at [sourcePath]. Adapters raise [ModContentException] and
+/// [ArchiveExtractionException] already carrying the message; everything
+/// else is an OS failure, whose own wording (in the user's language,
+/// because the OS wrote it) says more about it than we could.
+AppMessage installFailureMessage(Object error, String? sourcePath) {
+  if (error is ModContentException) return error.detail;
+  if (error is ArchiveExtractionException) return error.detail;
+  final String reason = error is FileSystemException
+      ? error.osError?.message ?? error.message
+      : '$error';
   final name = sourcePath == null ? null : p.basename(sourcePath);
-  final subject = name == null ? 'That' : '"$name"';
-  if (error is FileSystemException) {
-    final reason = error.osError?.message ?? error.message;
-    return '$subject couldn\'t be installed — $reason. Unpack it manually '
-        'and install the files inside if it keeps failing.';
-  }
-  return '$subject couldn\'t be installed — $error';
+  // Nothing to name it by (no source made it as far as the failure) and
+  // the OS wording is all there is to pass on.
+  if (name == null) return AppMessage.verbatim(reason);
+  return AppMessage(
+      error is FileSystemException ? 'installFailed' : 'installFailedRaw',
+      [name, reason]);
 }
+
+/// The user-facing side of [error], for the actions that have nothing to
+/// add to it: the exceptions we raise ourselves carry their own message,
+/// anything else says what it says (an OS error, in the user's language;
+/// an unforeseen exception, in none).
+AppMessage errorMessage(Object error) => switch (error) {
+      ModContentException(:final detail) => detail,
+      ArchiveExtractionException(:final detail) => detail,
+      ModActionException(:final detail) => detail,
+      _ => AppMessage.verbatim('$error'),
+    };
 
 /// Coarse cause of an install failure, for the `mod_install_failed`
 /// event: enough to tell a rejected archive from a filesystem problem
 /// without sending anything about the file itself.
 String installFailureReason(Object error) => switch (error) {
-      FormatException() => 'no_mod_files',
+      // A zip nothing could read is still reported to the user as a
+      // verdict on the file (see ModContentException), but in the tally
+      // it belongs with the failed unpacks: it is a broken download, not
+      // an archive that held nothing useful.
+      ModContentException(detail: AppMessage(key: 'unreadableArchive')) =>
+        'unpack_failed',
+      ModContentException() => 'no_mod_files',
+      ArchiveExtractionException(cause: ArchiveExtractionFailure.noUnpacker) =>
+        'no_unpacker',
       ArchiveExtractionException() => 'unpack_failed',
       PathAccessException() => 'access_denied',
       PathNotFoundException() => 'not_found',
@@ -109,6 +132,10 @@ class AppController extends ChangeNotifier {
 
   Set<String> conflictPaths = const {};
 
+  /// Why each flagged mod is flagged (see [ConflictReason]); the detail
+  /// panel words its warning from this. Keys are exactly [conflictPaths].
+  Map<String, ConflictReason> conflictReasons = const {};
+
   /// Resource-key overlaps from the package scan: mod path -> (overlapping
   /// mod's path -> shared key count). See [findResourceOverlaps]. Empty
   /// when conflict warnings are off or nothing overlaps.
@@ -151,7 +178,20 @@ class AppController extends ChangeNotifier {
   DiskSpace? diskSpace;
   String? _diskSpacePath;
 
-  String? lastError;
+  /// What went wrong with the last thing the user asked for, as a key the
+  /// UI translates when it draws it (`AppText.errorText`) - the core layer
+  /// that raises most of these has no localizations of its own.
+  AppMessage? lastError;
+
+  /// Waves the last failure's message away. The banner keeps it until
+  /// then or until the next [refresh] clears it - a failed install is
+  /// worth reading twice, and nothing else on the screen is blocked by it.
+  void dismissError() {
+    if (lastError == null) return;
+    playSound(UiSound.click);
+    lastError = null;
+    notifyListeners();
+  }
 
   bool get listView => settings.listView;
 
@@ -376,11 +416,22 @@ class AppController extends ChangeNotifier {
     final scan = settings.warnConflicts &&
         analytics.isEnabled('conflict-detection', fallback: true);
     resourceOverlaps = scan ? findResourceOverlaps(mods, insightFor) : const {};
-    conflictPaths =
-        scan ? {...findConflicts(mods), ...resourceOverlaps.keys} : const {};
+    // The lexical reasons spread last: a mod both signals flag reports
+    // the more specific lexical one.
+    conflictReasons = !scan
+        ? const {}
+        : {
+            for (final path in resourceOverlaps.keys)
+              path: ConflictReason.resourceOverlap,
+            ...findConflicts(mods),
+          };
+    conflictPaths = conflictReasons.keys.toSet();
     if (conflictPaths.isEmpty) conflictsOnly = false;
     _libraryStamp++;
   }
+
+  /// Why the scan flagged [mod], or null when it didn't.
+  ConflictReason? conflictReasonOf(Mod mod) => conflictReasons[mod.path];
 
   /// Per-file scan results (embedded artwork + content summary). Keyed by
   /// enabled-name path + size + mtime so a replaced file is re-scanned,
@@ -471,14 +522,9 @@ class AppController extends ChangeNotifier {
     }
   }
 
-  String _insightKey(Mod mod) {
-    var path = mod.path;
-    if (path.toLowerCase().endsWith(disabledSuffix)) {
-      path = path.substring(0, path.length - disabledSuffix.length);
-    }
-    return '$path|${mod.sizeBytes ?? 0}'
-        '|${mod.modifiedAt?.millisecondsSinceEpoch ?? 0}';
-  }
+  String _insightKey(Mod mod) => '${enabledPathOf(mod.path)}'
+      '|${mod.sizeBytes ?? 0}'
+      '|${mod.modifiedAt?.millisecondsSinceEpoch ?? 0}';
 
   /// What the bulk scan found inside [mod], or null when the file has
   /// been scanned and yielded nothing (or isn't scanned yet).
@@ -701,14 +747,7 @@ class AppController extends ChangeNotifier {
   bool get demoLibrary => settings.demoLibrary;
 
   /// Whether [mod] came from the demo library rather than the disk.
-  bool isDemoMod(Mod mod) => _demoPaths.contains(_enabledPath(mod.path));
-
-  /// [path] without the `.disabled` marker, so a mod keeps one identity
-  /// across toggles.
-  static String _enabledPath(String path) =>
-      path.toLowerCase().endsWith(disabledSuffix)
-          ? path.substring(0, path.length - disabledSuffix.length)
-          : path;
+  bool isDemoMod(Mod mod) => _demoPaths.contains(enabledPathOf(mod.path));
 
   /// Today at midnight. The demo library's dates count back from here
   /// rather than from the current instant, so a mod's insight-cache key
@@ -727,12 +766,12 @@ class AppController extends ChangeNotifier {
     if (!settings.demoLibrary) return real;
     final demo = buildDemoLibrary(_adapter, modsDir?.path ?? 'Mods',
         today: _demoAnchor());
-    final taken = {for (final mod in real) _enabledPath(mod.path)};
+    final taken = {for (final mod in real) enabledPathOf(mod.path)};
     final invented = [
       for (final mod in demo.mods)
-        if (!taken.contains(_enabledPath(mod.path))) mod,
+        if (!taken.contains(enabledPathOf(mod.path))) mod,
     ];
-    _demoPaths = {for (final mod in invented) _enabledPath(mod.path)};
+    _demoPaths = {for (final mod in invented) enabledPathOf(mod.path)};
     for (final mod in invented) {
       final insight = demo.insights[mod.path];
       if (insight != null) _insights[_insightKey(mod)] = insight;
@@ -758,7 +797,7 @@ class AppController extends ChangeNotifier {
     final enabled = !mod.isEnabled;
     final updated = Mod(
       name: mod.name,
-      path: enabled ? _enabledPath(mod.path) : '${mod.path}$disabledSuffix',
+      path: enabled ? enabledPathOf(mod.path) : '${mod.path}$disabledSuffix',
       status: enabled ? ModStatus.enabled : ModStatus.disabled,
       sizeBytes: mod.sizeBytes,
       category: mod.category,
@@ -773,7 +812,7 @@ class AppController extends ChangeNotifier {
 
   void _removeDemoMod(Mod mod) {
     playSound(UiSound.uninstall);
-    _demoPaths = {..._demoPaths}..remove(_enabledPath(mod.path));
+    _demoPaths = {..._demoPaths}..remove(enabledPathOf(mod.path));
     _setMods([for (final m in mods) if (m.path != mod.path) m]);
     if (_selectedModPath == mod.path) {
       _selectedModPath = null;
@@ -828,11 +867,22 @@ class AppController extends ChangeNotifier {
       // wait on it; the card fills in when the answer arrives.
       _updateDiskSpace();
     } catch (e) {
-      lastError = e.toString();
+      lastError = errorMessage(e);
       playSound(UiSound.error);
     }
     loading = false;
     notifyListeners();
+  }
+
+  /// Re-reads the library after a failed action and restores [error]:
+  /// [refresh] clears [lastError], so the failure that forced the reload
+  /// has to be put back afterwards or the banner never shows it.
+  Future<void> _refreshKeepingError(AppMessage? error) async {
+    await refresh();
+    if (error != null) {
+      lastError = error;
+      notifyListeners();
+    }
   }
 
   Future<void> _updateDiskSpace() async {
@@ -963,32 +1013,36 @@ class AppController extends ChangeNotifier {
       modCounts[_adapter.game.id] = mods.length;
       notifyListeners();
     } catch (e, stack) {
-      final error = e.toString();
-      // Environmental failures (game holding the file open, file moved)
-      // are expected and user-actionable - they'd bury real bugs in error
-      // tracking, and their messages carry file paths the privacy contract
-      // forbids sending.
-      final reason = e is ModActionException ? e.reason.name : null;
-      if (reason == null) {
-        analytics.captureException(e, stack, mechanism: 'toggleMod');
-      }
-      analytics.capture('mod_action_failed', {
-        'action': 'toggle',
-        'game': _adapter.game.id,
-        if (reason != null) 'reason': reason,
-      });
-      playSound(UiSound.error);
-      await refresh();
-      // refresh() clears lastError, so the error must be restored after it
-      // or the UI never shows it.
-      lastError = error;
-      notifyListeners();
+      await _refreshKeepingError(
+          _reportModActionFailure(e, stack, action: 'toggle'));
     }
+  }
+
+  /// The shared verdict on a failed toggle or remove: sound the error,
+  /// count it, and hand back what to tell the user. Environmental
+  /// failures (game holding the file open, file moved) are expected and
+  /// user-actionable - they'd bury real bugs in error tracking, and
+  /// their messages carry file paths the privacy contract forbids
+  /// sending - so only what arrives without a [ModActionException]
+  /// reason is reported as an exception.
+  AppMessage _reportModActionFailure(Object e, StackTrace stack,
+      {required String action}) {
+    final reason = e is ModActionException ? e.reason.name : null;
+    if (reason == null) {
+      analytics.captureException(e, stack, mechanism: '${action}Mod');
+    }
+    analytics.capture('mod_action_failed', {
+      'action': action,
+      'game': _adapter.game.id,
+      if (reason != null) 'reason': reason,
+    });
+    playSound(UiSound.error);
+    return errorMessage(e);
   }
 
   Future<void> removeMod(Mod mod) async {
     if (isDemoMod(mod)) return _removeDemoMod(mod);
-    String? error;
+    AppMessage? error;
     try {
       await _adapter.removeMod(mod);
       playSound(UiSound.uninstall);
@@ -998,39 +1052,20 @@ class AppController extends ChangeNotifier {
         'size_kb': ((mod.sizeBytes ?? 0) / 1024).round(),
       });
     } catch (e, stack) {
-      error = e.toString();
-      // As with toggling: a file the game is holding open is the user's
-      // environment, not an app bug, and its message carries a path the
-      // privacy contract forbids sending.
-      final reason = e is ModActionException ? e.reason.name : null;
-      if (reason == null) {
-        analytics.captureException(e, stack, mechanism: 'removeMod');
-      }
-      analytics.capture('mod_action_failed', {
-        'action': 'remove',
-        'game': _adapter.game.id,
-        if (reason != null) 'reason': reason,
-      });
-      playSound(UiSound.error);
+      error = _reportModActionFailure(e, stack, action: 'remove');
     }
     if (_selectedModPath == mod.path) {
       _selectedModPath = null;
       screen = AppScreen.library;
     }
-    await refresh();
-    // refresh() clears lastError, so the removal error must be restored
-    // after it or the UI never shows it.
-    if (error != null) {
-      lastError = error;
-      notifyListeners();
-    }
+    await _refreshKeepingError(error);
   }
 
   Future<void> installFiles(List<FileSystemEntity> sources,
       {String method = 'picker'}) async {
     final dir = modsDir;
     if (dir == null) return;
-    String? error;
+    AppMessage? error;
     var folders = 0, archives = 0, files = 0;
     FileSystemEntity? failing;
     try {
@@ -1057,11 +1092,11 @@ class AppController extends ChangeNotifier {
       });
     } catch (e, stack) {
       error = installFailureMessage(e, failing?.path);
-      // A FormatException is the adapter reporting that the archive or
+      // A ModContentException is the adapter reporting that the archive or
       // folder held nothing this game can use, an ArchiveExtractionException
       // that the archive wouldn't open at all - verdicts on the file, not
       // bugs to investigate.
-      if (e is! FormatException && e is! ArchiveExtractionException) {
+      if (e is! ModContentException && e is! ArchiveExtractionException) {
         analytics.captureException(e, stack, mechanism: 'installFiles');
       }
       analytics.capture('mod_install_failed', {
@@ -1071,13 +1106,7 @@ class AppController extends ChangeNotifier {
       });
       playSound(UiSound.error);
     }
-    await refresh();
-    // refresh() clears lastError, so the install error must be restored
-    // after it or the UI never shows it.
-    if (error != null) {
-      lastError = error;
-      notifyListeners();
-    }
+    await _refreshKeepingError(error);
   }
 
   /// Installs files and folders dropped onto the window, ignoring
@@ -1102,6 +1131,16 @@ class AppController extends ChangeNotifier {
       return;
     }
     await installFiles(sources, method: 'drop');
+  }
+
+  /// Asks the user for a mods folder and makes it the override. Both the
+  /// setup screen and Settings offer this; a cancelled dialog (or a folder
+  /// gone by the time it lands) changes nothing.
+  Future<void> pickFolderOverride() async {
+    final path = await getDirectoryPath();
+    if (path == null) return;
+    if (!await Directory(path).exists()) return;
+    await setFolderOverride(path);
   }
 
   Future<void> setFolderOverride(String path) async {
@@ -1143,7 +1182,7 @@ class AppController extends ChangeNotifier {
       await _adapter.clearCaches();
       playSound(UiSound.uninstall);
     } catch (e, stack) {
-      lastError = e.toString();
+      lastError = errorMessage(e);
       analytics.captureException(e, stack, mechanism: 'clearCaches');
       playSound(UiSound.error);
     }
@@ -1163,7 +1202,7 @@ class AppController extends ChangeNotifier {
       playSound(UiSound.install);
       analytics.capture('mods_folder_created', {'game': _adapter.game.id});
     } catch (e, stack) {
-      lastError = e.toString();
+      lastError = errorMessage(e);
       analytics.captureException(e, stack, mechanism: 'createDefaultFolder');
       playSound(UiSound.error);
     }

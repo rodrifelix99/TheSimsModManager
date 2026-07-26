@@ -441,6 +441,13 @@ class LDe extends L {
   String get languageSystem => 'System';
 
   @override
+  String get translatorsTitle => 'Übersetzt von';
+
+  @override
+  String get translatorsDesc =>
+      'Die App spricht zehn Sprachen dank dieser Simmer.';
+
+  @override
   String get folderNotFound => 'Nicht gefunden. Wähl einen Ordner';
 
   @override
@@ -594,6 +601,61 @@ class LDe extends L {
 
   @override
   String get contentMeshes => 'Meshes';
+
+  @override
+  String errorNoModFiles(String extensions, String name) {
+    return 'Keine Mod-Dateien ($extensions) in $name gefunden.';
+  }
+
+  @override
+  String errorUnreadableArchive(String name) {
+    return '$name ist kein ZIP-Archiv, das diese App lesen kann.';
+  }
+
+  @override
+  String errorNoUnpacker(String format, String name) {
+    return 'Auf diesem Computer kann nichts $format-Archive entpacken. Entpack $name selbst und installier die Dateien daraus.';
+  }
+
+  @override
+  String errorNoUnpackerLinux(String format, String name) {
+    return 'Auf diesem Computer kann nichts $format-Archive entpacken. Installier p7zip und versuch es nochmal, oder entpack $name selbst und installier die Dateien daraus.';
+  }
+
+  @override
+  String errorNoUnpackerLinuxRar(String format, String name) {
+    return 'Auf diesem Computer kann nichts $format-Archive entpacken. Installier p7zip oder unrar und versuch es nochmal, oder entpack $name selbst und installier die Dateien daraus.';
+  }
+
+  @override
+  String errorUnpackFailed(String name) {
+    return '$name ließ sich nicht entpacken. Vielleicht ist es passwortgeschützt, Teil eines mehrteiligen Archivs oder ein beschädigter Download. Entpack es von Hand und installier die Dateien daraus.';
+  }
+
+  @override
+  String errorInstallFailed(String name, String reason) {
+    return '„$name“ konnte nicht installiert werden — $reason. Wenn es weiter schiefgeht, entpack es von Hand und installier die Dateien daraus.';
+  }
+
+  @override
+  String errorInstallFailedRaw(String name, String reason) {
+    return '„$name“ konnte nicht installiert werden — $reason';
+  }
+
+  @override
+  String errorFileInUseDelete(String name) {
+    return '„$name“ konnte nicht gelöscht werden — die Datei wird von einem anderen Programm benutzt (läuft das Spiel?) oder ist schreibgeschützt. Schließ alles, was sie benutzt, und versuch es nochmal.';
+  }
+
+  @override
+  String errorFileInUseRename(String name) {
+    return '„$name“ konnte nicht umbenannt werden — die Datei wird von einem anderen Programm benutzt (läuft das Spiel?) oder ist schreibgeschützt. Schließ alles, was sie benutzt, und versuch es nochmal.';
+  }
+
+  @override
+  String errorFileMissing(String name) {
+    return '„$name“ liegt nicht mehr im Mods-Ordner — vielleicht hat ein anderes Programm die Datei verschoben oder gelöscht.';
+  }
 
   @override
   String get eraClassic => 'Klassisch';

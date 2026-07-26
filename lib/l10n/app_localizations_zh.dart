@@ -401,6 +401,12 @@ class LZh extends L {
   String get languageSystem => '跟随系统';
 
   @override
+  String get translatorsTitle => '翻译者';
+
+  @override
+  String get translatorsDesc => '这个应用能有十种语言，全靠这些模拟人生玩家。';
+
+  @override
   String get folderNotFound => '没找到。请选择一个文件夹';
 
   @override
@@ -537,6 +543,61 @@ class LZh extends L {
 
   @override
   String get contentMeshes => '模型';
+
+  @override
+  String errorNoModFiles(String extensions, String name) {
+    return '$name 里没有找到模组文件（$extensions）。';
+  }
+
+  @override
+  String errorUnreadableArchive(String name) {
+    return '$name 不是这个应用能读取的 zip 压缩包。';
+  }
+
+  @override
+  String errorNoUnpacker(String format, String name) {
+    return '这台电脑上没有能解压 $format 压缩包的工具。自己把 $name 解压出来，再安装里面的文件吧。';
+  }
+
+  @override
+  String errorNoUnpackerLinux(String format, String name) {
+    return '这台电脑上没有能解压 $format 压缩包的工具。装上 p7zip 再试一次，或者自己把 $name 解压出来，再安装里面的文件。';
+  }
+
+  @override
+  String errorNoUnpackerLinuxRar(String format, String name) {
+    return '这台电脑上没有能解压 $format 压缩包的工具。装上 p7zip 或 unrar 再试一次，或者自己把 $name 解压出来，再安装里面的文件。';
+  }
+
+  @override
+  String errorUnpackFailed(String name) {
+    return '$name 解压失败。可能有密码、是分卷压缩包的一部分，或者下载损坏了。手动解压后再安装里面的文件吧。';
+  }
+
+  @override
+  String errorInstallFailed(String name, String reason) {
+    return '「$name」安装失败 — $reason。要是一直不行，就手动解压后安装里面的文件。';
+  }
+
+  @override
+  String errorInstallFailedRaw(String name, String reason) {
+    return '「$name」安装失败 — $reason';
+  }
+
+  @override
+  String errorFileInUseDelete(String name) {
+    return '「$name」删除失败 — 文件被别的程序占用了（游戏还开着？），或者是只读的。先关掉占用它的程序，再试一次。';
+  }
+
+  @override
+  String errorFileInUseRename(String name) {
+    return '「$name」重命名失败 — 文件被别的程序占用了（游戏还开着？），或者是只读的。先关掉占用它的程序，再试一次。';
+  }
+
+  @override
+  String errorFileMissing(String name) {
+    return '「$name」已经不在模组文件夹里了 — 可能被别的程序移动或删除了。';
+  }
 
   @override
   String get eraClassic => '经典';

@@ -151,7 +151,8 @@ void main() {
     expect(locked.attempts, 3);
   });
 
-  test('a file that stays locked surfaces a friendly in-use error', () async {
+  test('a file that stays locked gives a friendly in-use error on rename',
+      () async {
     final locked = _LockedAdapter(tempDir, failuresLeft: 99);
     addFile('lamp.package');
     final mod = (await locked.listMods(tempDir)).single;
@@ -209,7 +210,8 @@ void main() {
     expect(await locked.listMods(tempDir), isEmpty);
   });
 
-  test('a file that stays locked surfaces a friendly in-use error', () async {
+  test('a file that stays locked gives a friendly in-use error on delete',
+      () async {
     final locked = _LockedAdapter(tempDir, failuresLeft: 99);
     addFile('old_mod.package');
     final mod = (await locked.listMods(tempDir)).single;

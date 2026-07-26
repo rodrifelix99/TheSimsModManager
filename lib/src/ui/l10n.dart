@@ -1,6 +1,7 @@
 import 'dart:ui' show Locale;
 
 import '../../l10n/app_localizations.dart';
+import '../core/app_message.dart';
 
 export '../../l10n/app_localizations.dart' show L;
 
@@ -8,18 +9,20 @@ export '../../l10n/app_localizations.dart' show L;
 /// them: English first, then the rest by how many people the Sims
 /// modding scene has in them. Each entry's [name] is written in that
 /// language, because a picker that says "German" to someone who only
-/// reads German is no help at all.
-const appLanguages = <({String code, String name})>[
-  (code: 'en', name: 'English'),
-  (code: 'zh', name: '简体中文'),
-  (code: 'es', name: 'Español'),
-  (code: 'pt', name: 'Português (Brasil)'),
-  (code: 'fr', name: 'Français'),
-  (code: 'de', name: 'Deutsch'),
-  (code: 'it', name: 'Italiano'),
-  (code: 'ru', name: 'Русский'),
-  (code: 'pl', name: 'Polski'),
-  (code: 'ja', name: '日本語'),
+/// reads German is no help at all. [by] is the handle Settings credits
+/// for the translation; the README table says the same thing and the two
+/// are kept in step by hand.
+const appLanguages = <({String code, String name, String by})>[
+  (code: 'en', name: 'English', by: 'rodrifelix99'),
+  (code: 'zh', name: '简体中文', by: 'xiaoyu_sims'),
+  (code: 'es', name: 'Español', by: 'marisol_plumbob'),
+  (code: 'pt', name: 'Português (Brasil)', by: 'rodrifelix99'),
+  (code: 'fr', name: 'Français', by: 'clodesims'),
+  (code: 'de', name: 'Deutsch', by: 'plumbobjonas'),
+  (code: 'it', name: 'Italiano', by: 'giuliapixel89'),
+  (code: 'ru', name: 'Русский', by: 'verasimka'),
+  (code: 'pl', name: 'Polski', by: 'kasia_pxl'),
+  (code: 'ja', name: '日本語', by: 'mochi_simjp'),
 ];
 
 /// What [MaterialApp.supportedLocales] gets, in [appLanguages] order rather
@@ -32,17 +35,13 @@ final List<Locale> appSupportedLocales = [
   for (final language in appLanguages) Locale(language.code),
 ];
 
-/// Native name of [code], or the code itself for anything unexpected.
-String languageName(String code) => appLanguages
-    .firstWhere((l) => l.code == code, orElse: () => (code: code, name: code))
-    .name;
-
 /// Lookups for the strings that don't live in the widget that shows them:
 /// adapters hand out stable English keys ([Mod.category], the content
-/// labels from the package scan, [GameAdapter.setupHelpKey]) and the UI
-/// translates them here. Keys the ARB files don't know are shown as-is,
-/// so a new game or a newly recognized resource type degrades to English
-/// instead of blanking out.
+/// labels from the package scan, [GameAdapter.setupHelpKey]), and what
+/// went wrong with an install or a mod file arrives as an [AppMessage].
+/// The UI translates them here. Keys the ARB files don't know are shown
+/// as-is, so a new game or a newly recognized resource type degrades to
+/// English instead of blanking out.
 extension AppText on L {
   String categoryName(String key) => switch (key) {
         'Package' => categoryPackage,
@@ -75,6 +74,30 @@ extension AppText on L {
         'medieval' => eraMedieval,
         _ => key,
       };
+
+  /// What went wrong, in the user's language. The failing layer is core,
+  /// which has no localizations, so it hands over a key and the values
+  /// that go in it (see [AppMessage]); wording it had no key for - an OS
+  /// error, an exception nobody foresaw - comes through untouched.
+  String errorText(AppMessage message) {
+    final text = message.text;
+    if (text != null) return text;
+    String arg(int i) => i < message.args.length ? message.args[i] : '';
+    return switch (message.key) {
+      'noModFiles' => errorNoModFiles(arg(0), arg(1)),
+      'unreadableArchive' => errorUnreadableArchive(arg(0)),
+      'noUnpacker' => errorNoUnpacker(arg(0), arg(1)),
+      'noUnpackerLinux' => errorNoUnpackerLinux(arg(0), arg(1)),
+      'noUnpackerLinuxRar' => errorNoUnpackerLinuxRar(arg(0), arg(1)),
+      'unpackFailed' => errorUnpackFailed(arg(0)),
+      'installFailed' => errorInstallFailed(arg(0), arg(1)),
+      'installFailedRaw' => errorInstallFailedRaw(arg(0), arg(1)),
+      'fileInUseDelete' => errorFileInUseDelete(arg(0)),
+      'fileInUseRename' => errorFileInUseRename(arg(0)),
+      'fileMissing' => errorFileMissing(arg(0)),
+      _ => '$message',
+    };
+  }
 
   /// The game's "where do mods live" guidance. [key] comes from the
   /// adapter, so the UI still knows nothing about concrete games; an

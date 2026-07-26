@@ -440,6 +440,13 @@ class LEs extends L {
   String get languageSystem => 'Sistema';
 
   @override
+  String get translatorsTitle => 'Traducido por';
+
+  @override
+  String get translatorsDesc =>
+      'La app habla diez idiomas gracias a estos simmers.';
+
+  @override
   String get folderNotFound => 'No encontrada. Elige una carpeta';
 
   @override
@@ -593,6 +600,61 @@ class LEs extends L {
 
   @override
   String get contentMeshes => 'mallas';
+
+  @override
+  String errorNoModFiles(String extensions, String name) {
+    return 'No hay archivos de mods ($extensions) dentro de $name.';
+  }
+
+  @override
+  String errorUnreadableArchive(String name) {
+    return '$name no es un zip que esta app pueda leer.';
+  }
+
+  @override
+  String errorNoUnpacker(String format, String name) {
+    return 'Nada en este ordenador puede descomprimir archivos $format. Descomprime $name por tu cuenta e instala los archivos que haya dentro.';
+  }
+
+  @override
+  String errorNoUnpackerLinux(String format, String name) {
+    return 'Nada en este ordenador puede descomprimir archivos $format. Instala p7zip y vuelve a intentarlo, o descomprime $name por tu cuenta e instala los archivos que haya dentro.';
+  }
+
+  @override
+  String errorNoUnpackerLinuxRar(String format, String name) {
+    return 'Nada en este ordenador puede descomprimir archivos $format. Instala p7zip o unrar y vuelve a intentarlo, o descomprime $name por tu cuenta e instala los archivos que haya dentro.';
+  }
+
+  @override
+  String errorUnpackFailed(String name) {
+    return 'No se pudo descomprimir $name. Puede que tenga contraseña, que sea una parte de un archivo dividido o que la descarga esté dañada. Descomprímelo a mano e instala los archivos que haya dentro.';
+  }
+
+  @override
+  String errorInstallFailed(String name, String reason) {
+    return 'No se pudo instalar «$name» — $reason. Si sigue fallando, descomprímelo a mano e instala los archivos que haya dentro.';
+  }
+
+  @override
+  String errorInstallFailedRaw(String name, String reason) {
+    return 'No se pudo instalar «$name» — $reason';
+  }
+
+  @override
+  String errorFileInUseDelete(String name) {
+    return 'No se pudo borrar «$name» — lo está usando otro programa (¿tienes el juego abierto?) o está protegido contra escritura. Cierra lo que lo esté usando y vuelve a intentarlo.';
+  }
+
+  @override
+  String errorFileInUseRename(String name) {
+    return 'No se pudo renombrar «$name» — lo está usando otro programa (¿tienes el juego abierto?) o está protegido contra escritura. Cierra lo que lo esté usando y vuelve a intentarlo.';
+  }
+
+  @override
+  String errorFileMissing(String name) {
+    return '«$name» ya no está en la carpeta de mods — puede que otro programa lo haya movido o borrado.';
+  }
 
   @override
   String get eraClassic => 'Clásico';

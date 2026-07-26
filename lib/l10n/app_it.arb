@@ -128,6 +128,8 @@
   "languageTitle": "Lingua dell’app",
   "languageDesc": "Scegli in che lingua vedere l’app. «Sistema» segue la lingua del tuo computer.",
   "languageSystem": "Sistema",
+  "translatorsTitle": "Tradotto da",
+  "translatorsDesc": "L’app parla dieci lingue grazie a questi simmer.",
 
   "folderNotFound": "Non trovata. Scegli una cartella",
   "folderNotLocated": "Il gioco (o la sua cartella delle mod) non è stato trovato automaticamente",
@@ -176,6 +178,18 @@
   "contentTextTables": "tabelle di testo",
   "contentTextures": "texture",
   "contentMeshes": "mesh",
+
+  "errorNoModFiles": "Nessun file di mod ({extensions}) dentro {name}.",
+  "errorUnreadableArchive": "{name} non è un archivio zip che l’app riesca a leggere.",
+  "errorNoUnpacker": "Su questo computer non c’è niente che sappia aprire gli archivi {format}. Estrai {name} per conto tuo e installa i file che ci sono dentro.",
+  "errorNoUnpackerLinux": "Su questo computer non c’è niente che sappia aprire gli archivi {format}. Installa p7zip e riprova, oppure estrai {name} per conto tuo e installa i file che ci sono dentro.",
+  "errorNoUnpackerLinuxRar": "Su questo computer non c’è niente che sappia aprire gli archivi {format}. Installa p7zip o unrar e riprova, oppure estrai {name} per conto tuo e installa i file che ci sono dentro.",
+  "errorUnpackFailed": "Non è stato possibile estrarre {name}. Potrebbe avere una password, essere una parte di un archivio diviso o un download danneggiato. Estrailo a mano e installa i file che ci sono dentro.",
+  "errorInstallFailed": "Non è stato possibile installare «{name}» — {reason}. Se continua a non funzionare, estrailo a mano e installa i file che ci sono dentro.",
+  "errorInstallFailedRaw": "Non è stato possibile installare «{name}» — {reason}",
+  "errorFileInUseDelete": "Non è stato possibile eliminare «{name}» — lo sta usando un altro programma (il gioco è aperto?) oppure è protetto da scrittura. Chiudi quello che lo sta usando e riprova.",
+  "errorFileInUseRename": "Non è stato possibile rinominare «{name}» — lo sta usando un altro programma (il gioco è aperto?) oppure è protetto da scrittura. Chiudi quello che lo sta usando e riprova.",
+  "errorFileMissing": "«{name}» non è più nella cartella dei mod — forse un altro programma l’ha spostato o eliminato.",
 
   "eraClassic": "Classico",
   "eraNightlife": "Nightlife",

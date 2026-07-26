@@ -4,8 +4,24 @@ import 'mod.dart';
 import 'mod_name.dart';
 import 'package_insight.dart';
 
-/// Paths of enabled mods that look like they clash with another enabled
-/// mod, on two heuristics:
+/// Why the conflict scan flagged a mod. The detail panel words its
+/// warning from this, so what the user reads is always the reason the
+/// scan actually had - it used to re-derive the reason lexically and
+/// could drift out of step with the heuristics below.
+enum ConflictReason {
+  /// Another enabled mod carries the same file name.
+  duplicateName,
+
+  /// Another enabled mod looks like a different version of this one.
+  versionPair,
+
+  /// Another enabled package holds the same resource keys
+  /// ([findResourceOverlaps]).
+  resourceOverlap,
+}
+
+/// Enabled mods that look like they clash with another enabled mod, and
+/// why, on two heuristics:
 ///
 /// 1. Duplicate file names (case-insensitive) - the same mod
 ///    installed twice in different subfolders, or two creators' packages
@@ -17,12 +33,13 @@ import 'package_insight.dart';
 ///    marker; a versioned file next to an unversioned one is too
 ///    ambiguous to flag.
 ///
-/// Cheap and lexical (no package resource parsing), so it's a warning,
-/// not a verdict. [findResourceOverlaps] is the real thing: it compares
-/// the actual resource keys inside each package.
-Set<String> findConflicts(List<Mod> mods) {
+/// A mod both heuristics catch reports the name clash - the more
+/// specific signal. Cheap and lexical (no package resource parsing), so
+/// it's a warning, not a verdict. [findResourceOverlaps] is the real
+/// thing: it compares the actual resource keys inside each package.
+Map<String, ConflictReason> findConflicts(List<Mod> mods) {
   final enabled = mods.where((m) => m.isEnabled).toList();
-  final flagged = <String>{};
+  final flagged = <String, ConflictReason>{};
 
   final byName = <String, List<Mod>>{};
   final byIdentity = <String, List<Mod>>{};
@@ -32,16 +49,24 @@ Set<String> findConflicts(List<Mod> mods) {
     byIdentity.putIfAbsent(infoOf[mod.path]!.identity, () => []).add(mod);
   }
 
-  for (final group in byName.values) {
-    if (group.length > 1) flagged.addAll(group.map((m) => m.path));
-  }
   for (final group in byIdentity.values) {
     if (group.length < 2) continue;
     final versions = {
       for (final mod in group)
         if (infoOf[mod.path]!.version != null) infoOf[mod.path]!.version,
     };
-    if (versions.length > 1) flagged.addAll(group.map((m) => m.path));
+    if (versions.length > 1) {
+      for (final mod in group) {
+        flagged[mod.path] = ConflictReason.versionPair;
+      }
+    }
+  }
+  for (final group in byName.values) {
+    if (group.length > 1) {
+      for (final mod in group) {
+        flagged[mod.path] = ConflictReason.duplicateName;
+      }
+    }
   }
   return flagged;
 }

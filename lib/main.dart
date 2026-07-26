@@ -26,6 +26,13 @@ class _FlushOnClose with WindowListener {
   Future<void> onWindowClose() async {
     if (_closing) return;
     _closing = true;
+    // Hide before flushing, not after: the shutdown event costs a cold TLS
+    // handshake to PostHog, and preventClose keeps the window on screen for
+    // as long as that takes. Hidden, the app reads as closed immediately and
+    // the process goes away a moment later.
+    try {
+      await windowManager.hide();
+    } catch (_) {}
     try {
       await analytics.recordShutdown();
     } catch (_) {}

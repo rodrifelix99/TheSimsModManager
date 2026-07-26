@@ -5,10 +5,21 @@ import 'dart:typed_data';
 import 'package:archive/archive.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
+import 'package:sims_mod_manager/src/core/app_message.dart';
 import 'package:sims_mod_manager/src/core/game.dart';
 import 'package:sims_mod_manager/src/core/game_adapter.dart';
 import 'package:sims_mod_manager/src/core/install_path.dart';
 import 'package:sims_mod_manager/src/core/mod_archive.dart';
+
+/// Where an unpacker was told to extract to: `-o` is 7-Zip's way of
+/// saying it, `-C` tar's, and unrar takes it as the last argument.
+String _destinationIn(List<String> arguments) {
+  for (final argument in arguments) {
+    if (argument.startsWith('-o')) return argument.substring(2);
+  }
+  final flagged = arguments.indexOf('-C');
+  return flagged == -1 ? arguments.last : arguments[flagged + 1];
+}
 
 /// Minimal adapter pointing at a temp directory, to exercise the shared
 /// archive-install behavior that all real adapters inherit.
@@ -218,24 +229,184 @@ void main() {
     expect(scratchFolders(), scratchBefore);
   });
 
+  /// A rar the unpackers are faked around: nothing reads its bytes.
+  File makeRar(String name) =>
+      File(p.join(sourceDir.path, name))..writeAsStringSync('Rar!\x1a\x07');
+
+  /// Answers `--version` probes from [installed] (executable → what it
+  /// prints) and hands every extraction run to [extract], which returns
+  /// the exit code after doing whatever the real tool would have done.
+  void fakeUnpackers(
+    Map<String, String> installed,
+    int Function(String executable, String destination) extract, {
+    List<String>? calls,
+  }) {
+    archiveProcessRunner = (executable, arguments) async {
+      calls?.add(executable);
+      if (arguments.length == 1 && arguments.first == '--version') {
+        final version = installed[executable];
+        if (version == null) {
+          throw ProcessException(executable, arguments, 'not found', 2);
+        }
+        return ProcessResult(0, 0, version, '');
+      }
+      return ProcessResult(
+          0, extract(executable, _destinationIn(arguments)), '', '');
+    };
+    addTearDown(() => archiveProcessRunner = Process.run);
+  }
+
+  test('skips GNU tar and unpacks with the next tool that is installed',
+      () async {
+    final calls = <String>[];
+    fakeUnpackers(
+      {'tar': 'tar (GNU tar) 1.35', '7z': '7-Zip 23.01'},
+      (executable, destination) {
+        File(p.join(destination, 'hair.package')).writeAsStringSync('hair');
+        return 0;
+      },
+      calls: calls,
+    );
+
+    final mods = await adapter.installArchive(modsDir, makeRar('hair.rar'));
+
+    expect(mods.map((m) => m.name), ['hair.package']);
+    // tar was probed and turned down; nothing was handed to it.
+    expect(calls, contains('tar'));
+    expect(calls.last, '7z');
+  });
+
+  test('debris from a tool that gave up halfway is not installed', () async {
+    fakeUnpackers(
+      {'tar': 'bsdtar 3.7.4 - libarchive 3.7.4', '7z': '7-Zip 23.01'},
+      (executable, destination) {
+        if (executable == 'tar') {
+          File(p.join(destination, 'hair.package')).writeAsStringSync('half');
+          return 1;
+        }
+        File(p.join(destination, 'hair.package')).writeAsStringSync('whole');
+        return 0;
+      },
+    );
+
+    final mods = await adapter.installArchive(modsDir, makeRar('hair.rar'));
+
+    expect(mods, hasLength(1));
+    expect(File(mods.single.path).readAsStringSync(), 'whole');
+  });
+
+  test('names what to install when no unpacker is there at all', () async {
+    fakeUnpackers(const {}, (_, __) => 0);
+
+    await expectLater(
+      adapter.installArchive(modsDir, makeRar('hair.rar')),
+      // Which key it is depends on the platform (only Linux is told what
+      // to install), the format named in it does not.
+      throwsA(isA<ArchiveExtractionException>()
+          .having((e) => e.cause, 'cause', ArchiveExtractionFailure.noUnpacker)
+          .having((e) => e.detail.args.first, 'format', 'RAR')),
+    );
+  });
+
+  test('an archive every unpacker refuses blames the file, not the machine',
+      () async {
+    final calls = <String>[];
+    fakeUnpackers(
+      {
+        'tar': 'bsdtar 3.7.4 - libarchive 3.7.4',
+        '7z': '7-Zip 23.01',
+        'unrar': 'UNRAR 6.11',
+      },
+      (_, __) => 1,
+      calls: calls,
+    );
+
+    await expectLater(
+      adapter.installArchive(modsDir, makeRar('locked.rar')),
+      throwsA(isA<ArchiveExtractionException>()
+          .having((e) => e.cause, 'cause', ArchiveExtractionFailure.refused)
+          .having((e) => e.detail.key, 'message key', 'unpackFailed')),
+    );
+    // It gave every one of them a go before giving up.
+    expect(calls.where((c) => c == 'unrar'), hasLength(2));
+  });
+
+  test('a zip the Dart decoder refuses is handed to an unpacker', () async {
+    fakeUnpackers({'tar': 'bsdtar 3.7.4 - libarchive 3.7.4'},
+        (executable, destination) {
+      File(p.join(destination, 'hair.package')).writeAsStringSync('hair');
+      return 0;
+    });
+    // Deflate64 and friends: a real zip the pure-Dart decoder can't open.
+    final zip = File(p.join(sourceDir.path, 'winzip.zip'))
+      ..writeAsStringSync('PK\x03\x04 but not as we know it');
+
+    final mods = await adapter.installArchive(modsDir, zip);
+
+    expect(mods.map((m) => m.name), ['hair.package']);
+  });
+
+  test('a zip nothing can read still fails as a zip', () async {
+    fakeUnpackers({'tar': 'bsdtar 3.7.4 - libarchive 3.7.4'}, (_, __) => 1);
+    final zip = File(p.join(sourceDir.path, 'broken.zip'))
+      ..writeAsStringSync('not a zip at all');
+
+    // The unpackers are a second opinion, never the one the user hears:
+    // a .zip that failed is reported as a zip, not as a missing tool.
+    await expectLater(
+      adapter.installArchive(modsDir, zip),
+      throwsA(isA<ModContentException>()
+          .having((e) => e.detail.args, 'args', contains('broken.zip'))),
+    );
+  });
+
+  test('only unrar-style tools are offered a 7z they cannot read', () async {
+    final calls = <String>[];
+    fakeUnpackers({'unrar': 'UNRAR 6.11'}, (_, __) => 0, calls: calls);
+    final archive = File(p.join(sourceDir.path, 'bundle.7z'))
+      ..writeAsStringSync('7z\xbc\xaf');
+
+    await expectLater(adapter.installArchive(modsDir, archive),
+        throwsA(isA<ArchiveExtractionException>()));
+    expect(calls, isNot(contains('unrar')));
+  });
+
   test('throws a readable error when the zip holds no mod files', () async {
     final zip = makeZip('junk.zip', {'readme.txt': 'nothing here'});
 
     expect(
       () => adapter.installArchive(modsDir, zip),
-      throwsA(isA<FormatException>().having(
-          (e) => e.message, 'message', contains('No mod files'))),
+      throwsA(isA<ModContentException>()
+          .having((e) => e.detail.key, 'message key', 'noModFiles')
+          .having((e) => e.detail.args, 'args', ['.package', 'junk.zip'])),
     );
   });
 
+  // The key matters as much as the throw: the decoder hands back an empty
+  // archive rather than raising on bytes that are no zip at all, and for a
+  // while that reached the user as "no mod files inside" - which reads like
+  // the download was fine and simply held nothing.
   test('throws a readable error on an unreadable archive', () async {
     final broken = File(p.join(sourceDir.path, 'broken.zip'))
       ..writeAsStringSync('this is not a zip');
 
     expect(
       () => adapter.installArchive(modsDir, broken),
-      throwsA(isA<FormatException>()
-          .having((e) => e.message, 'message', contains('broken.zip'))),
+      throwsA(isA<ModContentException>()
+          .having((e) => e.detail.key, 'message key', 'unreadableArchive')
+          .having((e) => e.detail.args, 'args', contains('broken.zip'))),
+    );
+  });
+
+  test('a truncated zip is unreadable, not empty', () async {
+    final whole = makeZip('whole.zip', {'a.package': 'DBPF payload here'});
+    final cut = File(p.join(sourceDir.path, 'cut.zip'))
+      ..writeAsBytesSync(whole.readAsBytesSync().sublist(0, 20));
+
+    expect(
+      () => adapter.installArchive(modsDir, cut),
+      throwsA(isA<ModContentException>()
+          .having((e) => e.detail.key, 'message key', 'unreadableArchive')),
     );
   });
 }

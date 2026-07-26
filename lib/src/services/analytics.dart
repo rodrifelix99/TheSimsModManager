@@ -440,8 +440,6 @@ class Analytics {
   bool isEnabled(String key, {bool fallback = false}) =>
       _flags[key]?.enabled ?? fallback;
 
-  String? variantOf(String key) => _flags[key]?.variant;
-
   /// The flag's JSON payload, decoded; null when off or payload-less.
   Object? payloadOf(String key) {
     final flag = _flags[key];

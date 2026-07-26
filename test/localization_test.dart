@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart' show Directionality, Localizations;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sims_mod_manager/src/core/app_message.dart';
 import 'package:sims_mod_manager/src/core/game.dart';
 import 'package:sims_mod_manager/src/core/game_adapter.dart';
 import 'package:sims_mod_manager/src/core/game_registry.dart';
@@ -94,6 +95,48 @@ void main() {
                 '${adapter.game.name}');
       }
     }
+  });
+
+  // Everything the core layer can raise, with stand-in values. It travels
+  // as a key because core has no localizations of its own, and the
+  // resolver is a switch over strings: a key it never heard of falls
+  // through to the bare `key(args)` form, in every language at once.
+  const errors = <AppMessage>[
+    AppMessage('noModFiles', ['.package', 'peggy_hair.zip']),
+    AppMessage('unreadableArchive', ['peggy_hair.zip']),
+    AppMessage('noUnpacker', ['RAR', 'peggy_hair.rar']),
+    AppMessage('noUnpackerLinux', ['7Z', 'peggy_hair.7z']),
+    AppMessage('noUnpackerLinuxRar', ['RAR', 'peggy_hair.rar']),
+    AppMessage('unpackFailed', ['peggy_hair.rar']),
+    AppMessage('installFailed', ['peggy_hair.package', 'Access is denied']),
+    AppMessage('installFailedRaw', ['peggy_hair.package', 'Bad state']),
+    AppMessage('fileInUseDelete', ['peggy_hair.package']),
+    AppMessage('fileInUseRename', ['peggy_hair.package']),
+    AppMessage('fileMissing', ['peggy_hair.package']),
+  ];
+
+  test('every error message is written in every language', () async {
+    for (final language in appLanguages) {
+      final strings = await L.delegate.load(Locale(language.code));
+      for (final error in errors) {
+        final text = strings.errorText(error);
+        expect(text, isNot(contains(error.key)),
+            reason: '${language.name} has no wording for ${error.key}');
+        // The file name is the whole point of the message; a translation
+        // that drops the placeholder leaves the user guessing.
+        for (final argument in error.args) {
+          expect(text, contains(argument),
+              reason: '${language.name} loses "$argument" '
+                  'from ${error.key}');
+        }
+      }
+    }
+  });
+
+  test('wording the OS already wrote is shown as it came', () async {
+    final strings = await L.delegate.load(const Locale('fr'));
+    expect(strings.errorText(const AppMessage.verbatim('Access is denied')),
+        'Access is denied');
   });
 
   // No saved preference is the default, so this is what almost everyone

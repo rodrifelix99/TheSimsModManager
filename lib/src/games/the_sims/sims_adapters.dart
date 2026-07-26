@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
+import '../../core/app_message.dart';
 import '../../core/game.dart';
 import '../../core/game_adapter.dart';
 import '../../core/install_path.dart';
@@ -9,9 +10,10 @@ import '../../core/mod.dart';
 import '../../core/mod_archive.dart';
 
 /// Adapters for the four mainline Sims games and The Sims Medieval.
-/// They differ only in where the mods folder lives and which file types
-/// the game loads, so each one is a thin subclass of
-/// [FolderBasedGameAdapter].
+/// The Documents games (Sims 2/3/4) share [DocumentsSimsAdapter]; the
+/// install-folder games (The Sims, The Sims Medieval) share
+/// [InstallFolderSimsAdapter], with Sims 1 adding its per-type install
+/// routing on top.
 ///
 /// Folder resolution is a best-effort guess at the default install/user-data
 /// locations, tolerant of localized folder names ("Los Sims 3", "Die Sims 2")
@@ -51,17 +53,13 @@ Future<List<Directory>> winePrefixDocumentsDirs(String home) async {
   Future<void> addChildren(String path) async {
     final dir = Directory(path);
     if (!await dir.exists()) return;
-    await for (final entity in dir.list()) {
+    // An unreadable folder costs its own prefixes, never the detection.
+    await for (final entity in dir.list().handleError((Object _) {})) {
       if (entity is Directory) prefixes.add(entity);
     }
   }
 
-  for (final library in [
-    p.join(home, '.steam', 'steam'),
-    p.join(home, '.local', 'share', 'Steam'),
-    p.join(home, '.var', 'app', 'com.valvesoftware.Steam', '.local', 'share',
-        'Steam'),
-  ]) {
+  for (final library in linuxSteamRoots(home)) {
     await addChildren(p.join(library, 'steamapps', 'compatdata'));
   }
   await addChildren(p.join(home, '.config', 'heroic', 'prefixes'));
@@ -84,7 +82,7 @@ Future<List<Directory>> winePrefixDocumentsDirs(String home) async {
     ]) {
       final users = Directory(p.join(driveC, 'users'));
       if (!await users.exists()) continue;
-      await for (final user in users.list()) {
+      await for (final user in users.list().handleError((Object _) {})) {
         if (user is! Directory) continue;
         final docs = Directory(p.join(user.path, 'Documents'));
         if (!await docs.exists()) continue;
@@ -108,6 +106,17 @@ Future<List<Directory>> winePrefixDocumentsDirs(String home) async {
 /// every re-release picks a new one, and a repack or a hand-moved copy
 /// invents its own.
 typedef InstallSignature = Future<bool> Function(Directory dir);
+
+/// The Steam client roots a Linux machine may have: the classic symlinked
+/// location, the XDG one, and the Flatpak sandbox. One list, because it
+/// feeds the prefix scan, the library scan and the install-folder games
+/// alike - the Flatpak path once lived in only two of the three.
+List<String> linuxSteamRoots(String home) => [
+      p.join(home, '.steam', 'steam'),
+      p.join(home, '.local', 'share', 'Steam'),
+      p.join(home, '.var', 'app', 'com.valvesoftware.Steam', '.local', 'share',
+          'Steam'),
+    ];
 
 /// The Program Files roots to look in, both architectures. The environment
 /// variables come first so a Windows installed on another drive works.
@@ -133,10 +142,7 @@ Future<List<String>> steamLibraries({List<String>? steamRootsOverride}) async {
           p.join(drive, 'SteamLibrary'),
         ],
         if (Platform.environment['HOME'] case final home?) ...[
-          p.join(home, '.steam', 'steam'),
-          p.join(home, '.local', 'share', 'Steam'),
-          p.join(home, '.var', 'app', 'com.valvesoftware.Steam', '.local',
-              'share', 'Steam'),
+          ...linuxSteamRoots(home),
           p.join(home, 'Library', 'Application Support', 'Steam'),
         ],
       ];
@@ -231,11 +237,15 @@ Future<List<Directory>> scanForInstalls(
   List<String>? rootsOverride,
 }) {
   if (rootsOverride != null) return _scanForInstalls(signature, rootsOverride);
-  return _installScans.putIfAbsent(
-      cacheKey,
-      () => _scanRoots()
-          .then((roots) => _scanForInstalls(signature, roots))
-          .timeout(_scanTimeout, onTimeout: () => const []));
+  return _installScans.putIfAbsent(cacheKey, () {
+    // The walk fills [found] as it goes, so hitting the timeout hands
+    // over the installs located so far instead of discarding them. A
+    // snapshot, because the abandoned walk keeps appending behind it.
+    final found = <Directory>[];
+    return _scanRoots()
+        .then((roots) => _scanForInstalls(signature, roots, into: found))
+        .timeout(_scanTimeout, onTimeout: () => List.of(found));
+  });
 }
 
 Future<List<String>> _scanRoots() async => [
@@ -247,8 +257,9 @@ Future<List<String>> _scanRoots() async => [
     ];
 
 Future<List<Directory>> _scanForInstalls(
-    InstallSignature signature, List<String> roots) async {
-  final found = <Directory>[];
+    InstallSignature signature, List<String> roots,
+    {List<Directory>? into}) async {
+  final found = into ?? <Directory>[];
   final seen = <String>{};
 
   Future<void> visit(Directory dir, int depth) async {
@@ -357,7 +368,8 @@ abstract class DocumentsSimsAdapter extends FolderBasedGameAdapter {
       for (final vendor in vendorFolders) {
         final parent = Directory(p.join(docs.path, vendor));
         if (!await parent.exists()) continue;
-        await for (final entity in parent.list()) {
+        // An unreadable vendor folder must not take down the refresh.
+        await for (final entity in parent.list().handleError((Object _) {})) {
           if (entity is Directory &&
               matchesGameFolder(p.basename(entity.path))) {
             found.add(entity);
@@ -549,19 +561,18 @@ class Sims2Adapter extends DocumentsSimsAdapter {
   String get setupHelpKey => 'sims2';
 }
 
-/// The Sims Medieval (2011) forked the Sims 3 engine before EA moved the
-/// mod framework into Documents, so it still uses the old install-folder
-/// framework: mods live in `<install>/Mods/Packages` and a `Resource.cfg`
-/// in the install root tells the game to read them. The Documents folder
-/// (`Documents/Electronic Arts/The Sims Medieval`) only holds saves and
-/// caches; packages placed there do nothing. Pirates & Nobles patches the
-/// same install in place, so one Mods folder serves both.
-class SimsMedievalAdapter extends FolderBasedGameAdapter {
-  const SimsMedievalAdapter(
-      {this.programFilesOverride,
-      this.homeOverride,
-      this.documentsOverride,
-      this.scanRootsOverride});
+/// Shared resolution for the games whose mods live inside the install
+/// folder itself: find the install directories, and the mods folder is a
+/// fixed subpath ([modsSegments]) inside each. The known launcher
+/// locations ([knownInstallLocations]) are checked first; only when all
+/// of them come up empty does the wider signature scan
+/// ([scanForInstalls]) run, because that is the slow path.
+abstract class InstallFolderSimsAdapter extends FolderBasedGameAdapter {
+  const InstallFolderSimsAdapter(
+      {this.installOverride, this.programFilesOverride, this.scanRootsOverride});
+
+  /// Test hook / future settings hook: explicit install folder.
+  final Directory? installOverride;
 
   /// Test hook: pretend these are the Program Files roots to scan.
   final List<String>? programFilesOverride;
@@ -569,6 +580,66 @@ class SimsMedievalAdapter extends FolderBasedGameAdapter {
   /// Test hook: pretend these are the drives to scan for installs (pass an
   /// empty list to keep a test off the real machine's drives).
   final List<String>? scanRootsOverride;
+
+  /// Path of the mods folder inside an install, e.g. `['Downloads']`.
+  List<String> get modsSegments;
+
+  /// Whether [dir] is an install of this game (see [InstallSignature]).
+  Future<bool> looksLikeInstall(Directory dir);
+
+  /// The fixed locations launchers put this game, checked before the
+  /// signature scan is paid for.
+  Future<List<Directory>> knownInstallLocations();
+
+  /// Install directories on this machine, launcher locations first.
+  Future<List<Directory>> installCandidates() async {
+    final override = installOverride;
+    if (override != null) return [override];
+    final found = await knownInstallLocations();
+    if (found.isEmpty) {
+      found.addAll(await scanForInstalls(game.id, looksLikeInstall,
+          rootsOverride: scanRootsOverride));
+    }
+    return found;
+  }
+
+  @override
+  Future<List<Directory>> findModsDirectoryCandidates() async {
+    final result = <Directory>[];
+    for (final install in await installCandidates()) {
+      final mods = Directory(p.joinAll([install.path, ...modsSegments]));
+      if (await mods.exists()) result.add(mods);
+    }
+    return result;
+  }
+
+  @override
+  Future<String?> defaultModsPath() async {
+    final installs = await installCandidates();
+    if (installs.isEmpty) return null; // Not installed: nowhere sensible.
+    return p.joinAll([installs.first.path, ...modsSegments]);
+  }
+
+  @override
+  Future<Directory?> findGameFolder() async {
+    final installs = await installCandidates();
+    return installs.isEmpty ? null : installs.first;
+  }
+}
+
+/// The Sims Medieval (2011) forked the Sims 3 engine before EA moved the
+/// mod framework into Documents, so it still uses the old install-folder
+/// framework: mods live in `<install>/Mods/Packages` and a `Resource.cfg`
+/// in the install root tells the game to read them. The Documents folder
+/// (`Documents/Electronic Arts/The Sims Medieval`) only holds saves and
+/// caches; packages placed there do nothing. Pirates & Nobles patches the
+/// same install in place, so one Mods folder serves both.
+class SimsMedievalAdapter extends InstallFolderSimsAdapter {
+  const SimsMedievalAdapter(
+      {super.programFilesOverride,
+      this.homeOverride,
+      this.documentsOverride,
+      super.scanRootsOverride});
 
   /// Test hook: pretend this is the user's home (for Linux Steam libraries).
   final String? homeOverride;
@@ -590,19 +661,22 @@ class SimsMedievalAdapter extends FolderBasedGameAdapter {
   @override
   String get setupHelpKey => 'simsmedieval';
 
+  @override
+  List<String> get modsSegments => const ['Mods', 'Packages'];
+
   /// Disc installs use localized folder names ("Die Sims Mittelalter"),
   /// so under the Electronic Arts vendor folder we verify candidates by
   /// the game's own signature file instead of the folder name (this also
   /// keeps disc installs of The Sims 3 out).
-  static Future<bool> _looksLikeInstall(Directory dir) =>
+  @override
+  Future<bool> looksLikeInstall(Directory dir) =>
       File(p.join(dir.path, 'Game', 'Bin', 'TSM.exe')).exists();
 
-  /// Install directories on this machine: fixed English-named locations
-  /// (Origin/EA App, Steam on Windows, native Steam libraries on Linux)
-  /// plus a signature-checked scan of `Electronic Arts` for disc installs.
-  /// Nothing found there means the install is somewhere of the user's own
-  /// choosing, which only the wider signature scan can find.
-  Future<List<Directory>> _installCandidates() async {
+  /// Fixed English-named locations (Origin/EA App, Steam on Windows,
+  /// native Steam libraries on Linux) plus a signature-checked scan of
+  /// `Electronic Arts` for disc installs.
+  @override
+  Future<List<Directory>> knownInstallLocations() async {
     final found = <Directory>[];
     final programFiles = programFilesRoots(override: programFilesOverride);
     for (final root in programFiles) {
@@ -615,8 +689,9 @@ class SimsMedievalAdapter extends FolderBasedGameAdapter {
       }
       final vendor = Directory(p.join(root, 'Electronic Arts'));
       if (!await vendor.exists()) continue;
-      await for (final entity in vendor.list()) {
-        if (entity is Directory && await _looksLikeInstall(entity)) {
+      // An unreadable vendor folder must not take down the refresh.
+      await for (final entity in vendor.list().handleError((Object _) {})) {
+        if (entity is Directory && await looksLikeInstall(entity)) {
           found.add(entity);
         }
       }
@@ -625,43 +700,13 @@ class SimsMedievalAdapter extends FolderBasedGameAdapter {
     // Linux Steam library (only the saves live inside the prefix).
     final home = homeOverride ?? Platform.environment['HOME'];
     if (home != null) {
-      for (final library in [
-        p.join(home, '.steam', 'steam'),
-        p.join(home, '.local', 'share', 'Steam'),
-      ]) {
+      for (final library in linuxSteamRoots(home)) {
         final dir = Directory(
             p.join(library, 'steamapps', 'common', 'The Sims Medieval'));
         if (await dir.exists()) found.add(dir);
       }
     }
-    if (found.isEmpty) {
-      found.addAll(await scanForInstalls(game.id, _looksLikeInstall,
-          rootsOverride: scanRootsOverride));
-    }
     return found;
-  }
-
-  @override
-  Future<List<Directory>> findModsDirectoryCandidates() async {
-    final result = <Directory>[];
-    for (final install in await _installCandidates()) {
-      final mods = Directory(p.join(install.path, 'Mods', 'Packages'));
-      if (await mods.exists()) result.add(mods);
-    }
-    return result;
-  }
-
-  @override
-  Future<String?> defaultModsPath() async {
-    final installs = await _installCandidates();
-    if (installs.isEmpty) return null; // Not installed: nowhere sensible.
-    return p.join(installs.first.path, 'Mods', 'Packages');
-  }
-
-  @override
-  Future<Directory?> findGameFolder() async {
-    final installs = await _installCandidates();
-    return installs.isEmpty ? null : installs.first;
   }
 
   /// Caches that must be deleted after CC changes for the new content to
@@ -689,7 +734,7 @@ class SimsMedievalAdapter extends FolderBasedGameAdapter {
     final vendor = Directory(p.join(docs.path, 'Electronic Arts'));
     if (!await vendor.exists()) return const [];
     final found = <File>[];
-    await for (final entity in vendor.list()) {
+    await for (final entity in vendor.list().handleError((Object _) {})) {
       if (entity is! Directory) continue;
       final name = p.basename(entity.path).toLowerCase().replaceAll('™', '');
       if (_numberedSims.hasMatch(name)) continue;
@@ -736,21 +781,11 @@ class SimsMedievalAdapter extends FolderBasedGameAdapter {
 /// pointing anywhere else falls back to plain single-folder behavior.
 /// The stock game keeps its own assets inside .far archives, so loose
 /// files in these folders are custom content and safe to list as mods.
-class Sims1Adapter extends FolderBasedGameAdapter {
+class Sims1Adapter extends InstallFolderSimsAdapter {
   const Sims1Adapter(
-      {this.installOverride,
-      this.programFilesOverride,
-      this.scanRootsOverride});
-
-  /// Test hook / future settings hook: explicit install folder.
-  final Directory? installOverride;
-
-  /// Test hook: pretend these are the Program Files roots to scan.
-  final List<String>? programFilesOverride;
-
-  /// Test hook: pretend these are the drives to scan for installs (pass an
-  /// empty list to keep a test off the real machine's drives).
-  final List<String>? scanRootsOverride;
+      {super.installOverride,
+      super.programFilesOverride,
+      super.scanRootsOverride});
 
   @override
   Game get game =>
@@ -774,24 +809,23 @@ class Sims1Adapter extends FolderBasedGameAdapter {
   @override
   String get setupHelpKey => 'sims1';
 
+  @override
+  List<String> get modsSegments => const ['Downloads'];
+
   /// The game ships its executable next to the GameData folder holding the
   /// stock content - true of every release, from the 2000 discs to the 2025
   /// Legacy Collection, wherever the folder ended up and whatever it's
   /// called. `Downloads` is deliberately not part of the signature: a fresh
   /// install has none, and creating it is the setup screen's job.
-  static Future<bool> _looksLikeInstall(Directory dir) async =>
+  @override
+  Future<bool> looksLikeInstall(Directory dir) async =>
       await File(p.join(dir.path, 'Sims.exe')).exists() &&
       await Directory(p.join(dir.path, 'GameData')).exists();
 
-  /// The Sims 1 lives in the install directory, so look in the usual ones:
-  /// the classic disc/Complete Collection path plus the 2025 Legacy
-  /// Collection's EA App and Steam locations. When none of them exists the
-  /// game is installed somewhere of the user's choosing (another drive, a
-  /// custom Steam library, a folder they moved), which only the signature
-  /// scan can find - it costs enough to be worth skipping otherwise.
-  Future<List<Directory>> _installCandidates() async {
-    final override = installOverride;
-    if (override != null) return [override];
+  /// The classic disc/Complete Collection path plus the 2025 Legacy
+  /// Collection's EA App and Steam locations.
+  @override
+  Future<List<Directory>> knownInstallLocations() async {
     final found = <Directory>[];
     for (final root in programFilesRoots(override: programFilesOverride)) {
       for (final fixed in [
@@ -804,34 +838,7 @@ class Sims1Adapter extends FolderBasedGameAdapter {
         if (await dir.exists()) found.add(dir);
       }
     }
-    if (found.isEmpty) {
-      found.addAll(await scanForInstalls(game.id, _looksLikeInstall,
-          rootsOverride: scanRootsOverride));
-    }
     return found;
-  }
-
-  @override
-  Future<List<Directory>> findModsDirectoryCandidates() async {
-    final result = <Directory>[];
-    for (final install in await _installCandidates()) {
-      final downloads = Directory(p.join(install.path, 'Downloads'));
-      if (await downloads.exists()) result.add(downloads);
-    }
-    return result;
-  }
-
-  @override
-  Future<String?> defaultModsPath() async {
-    final installs = await _installCandidates();
-    if (installs.isEmpty) return null; // Not installed: nowhere sensible.
-    return p.join(installs.first.path, 'Downloads');
-  }
-
-  @override
-  Future<Directory?> findGameFolder() async {
-    final installs = await _installCandidates();
-    return installs.isEmpty ? null : installs.first;
   }
 
   /// File types that belong in a skins folder. A skin is a trio: the
@@ -931,9 +938,8 @@ class Sims1Adapter extends FolderBasedGameAdapter {
     if (root == null) return super.installFolder(modsDir, source);
     final files = await modFilesIn(source);
     if (files.isEmpty) {
-      final wanted = modFileExtensions.join(', ');
-      throw FormatException(
-          'No mod files ($wanted) found inside ${p.basename(source.path)}.');
+      throw ModContentException.noModFiles(
+          modFileExtensions, p.basename(source.path));
     }
     // Relative to the folder's parent so the folder name itself is kept
     // for the files that stay in Downloads.

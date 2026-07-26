@@ -128,6 +128,8 @@
   "languageTitle": "Język aplikacji",
   "languageDesc": "Wybierz, w jakim języku ma być aplikacja. „Systemowy” idzie za językiem komputera.",
   "languageSystem": "Systemowy",
+  "translatorsTitle": "Tłumaczenie",
+  "translatorsDesc": "Aplikacja mówi w dziesięciu językach dzięki tym simmerom.",
 
   "folderNotFound": "Nie znaleziono. Wybierz folder",
   "folderNotLocated": "Nie udało się automatycznie znaleźć gry (ani jej folderu modów)",
@@ -176,6 +178,18 @@
   "contentTextTables": "tabele tekstu",
   "contentTextures": "tekstury",
   "contentMeshes": "siatki",
+
+  "errorNoModFiles": "W {name} nie ma żadnych plików modów ({extensions}).",
+  "errorUnreadableArchive": "{name} to nie jest archiwum zip, które aplikacja potrafi odczytać.",
+  "errorNoUnpacker": "Nic na tym komputerze nie potrafi rozpakować archiwów {format}. Rozpakuj {name} ręcznie i zainstaluj pliki ze środka.",
+  "errorNoUnpackerLinux": "Nic na tym komputerze nie potrafi rozpakować archiwów {format}. Zainstaluj p7zip i spróbuj ponownie albo rozpakuj {name} ręcznie i zainstaluj pliki ze środka.",
+  "errorNoUnpackerLinuxRar": "Nic na tym komputerze nie potrafi rozpakować archiwów {format}. Zainstaluj p7zip lub unrar i spróbuj ponownie albo rozpakuj {name} ręcznie i zainstaluj pliki ze środka.",
+  "errorUnpackFailed": "Nie udało się rozpakować {name}. Archiwum może być zabezpieczone hasłem, być częścią archiwum wieloczęściowego albo uszkodzonym pobraniem. Rozpakuj je ręcznie i zainstaluj pliki ze środka.",
+  "errorInstallFailed": "Nie udało się zainstalować „{name}” — {reason}. Jeśli będzie się powtarzać, rozpakuj ręcznie i zainstaluj pliki ze środka.",
+  "errorInstallFailedRaw": "Nie udało się zainstalować „{name}” — {reason}",
+  "errorFileInUseDelete": "Nie udało się usunąć „{name}” — plik jest używany przez inny program (gra jest włączona?) albo chroniony przed zapisem. Zamknij wszystko, co go używa, i spróbuj ponownie.",
+  "errorFileInUseRename": "Nie udało się zmienić nazwy „{name}” — plik jest używany przez inny program (gra jest włączona?) albo chroniony przed zapisem. Zamknij wszystko, co go używa, i spróbuj ponownie.",
+  "errorFileMissing": "„{name}” nie ma już w folderze modów — możliwe, że inny program go przeniósł albo usunął.",
 
   "eraClassic": "Klasyka",
   "eraNightlife": "Nocne życie",

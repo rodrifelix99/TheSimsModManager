@@ -168,7 +168,7 @@ const _maxIndexBytes = 32 << 20;
 /// instance half all hoisted out as constants still carries four words.
 const _minIndexEntryBytes = 16;
 
-/// Once a found image reaches this many pixels (512×512), stop probing
+/// Once a found image reaches this many pixels (512x512), stop probing
 /// the generic pool; it's sharp enough for any thumbnail slot.
 const _goodEnoughArea = 512 * 512;
 
@@ -509,7 +509,7 @@ bool _isPng(Uint8List b) =>
 bool _isJpeg(Uint8List b) =>
     b.length >= 3 && b[0] == 0xFF && b[1] == 0xD8 && b[2] == 0xFF;
 
-/// Pixel area (width × height) of a PNG or JPEG, read from its headers
+/// Pixel area (width x height) of a PNG or JPEG, read from its headers
 /// without decoding. 0 when the dimensions can't be determined; such an
 /// image still counts, it just loses to anything measurable.
 int _imageArea(Uint8List b) {
@@ -523,7 +523,7 @@ int _imageArea(Uint8List b) {
     return d.getUint32(16) * d.getUint32(20);
   }
   if (_isJpeg(b)) {
-    // Walk segments to a start-of-frame marker (0xC0–0xCF minus the
+    // Walk segments to a start-of-frame marker (0xC0-0xCF minus the
     // huffman/arithmetic ones), which holds height/width big-endian.
     var pos = 2;
     while (pos + 9 < b.length) {

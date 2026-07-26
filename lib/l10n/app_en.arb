@@ -218,6 +218,8 @@
   "languageTitle": "App language",
   "languageDesc": "Choose the language the app is shown in. “System” follows your computer's language.",
   "languageSystem": "System",
+  "translatorsTitle": "Translated by",
+  "translatorsDesc": "The app speaks ten languages thanks to these simmers.",
 
   "folderNotFound": "Not found. Choose a folder",
   "folderNotLocated": "The game (or its mods folder) was not located automatically",
@@ -290,6 +292,69 @@
   "contentTextTables": "text tables",
   "contentTextures": "textures",
   "contentMeshes": "meshes",
+
+  "errorNoModFiles": "No mod files ({extensions}) found inside {name}.",
+  "@errorNoModFiles": {
+    "placeholders": {
+      "extensions": { "type": "String" },
+      "name": { "type": "String" }
+    }
+  },
+  "errorUnreadableArchive": "{name} isn’t a zip archive this app can read.",
+  "@errorUnreadableArchive": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "errorNoUnpacker": "Nothing on this computer can unpack {format} archives. Unpack {name} yourself and install the files inside.",
+  "@errorNoUnpacker": {
+    "placeholders": {
+      "format": { "type": "String" },
+      "name": { "type": "String" }
+    }
+  },
+  "errorNoUnpackerLinux": "Nothing on this computer can unpack {format} archives. Install p7zip and try again, or unpack {name} yourself and install the files inside.",
+  "@errorNoUnpackerLinux": {
+    "placeholders": {
+      "format": { "type": "String" },
+      "name": { "type": "String" }
+    }
+  },
+  "errorNoUnpackerLinuxRar": "Nothing on this computer can unpack {format} archives. Install p7zip or unrar and try again, or unpack {name} yourself and install the files inside.",
+  "@errorNoUnpackerLinuxRar": {
+    "placeholders": {
+      "format": { "type": "String" },
+      "name": { "type": "String" }
+    }
+  },
+  "errorUnpackFailed": "Couldn’t unpack {name}. It may be password-protected, one part of a split archive, or a damaged download. Unpack it manually and install the files inside.",
+  "@errorUnpackFailed": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "errorInstallFailed": "“{name}” couldn’t be installed — {reason}. Unpack it manually and install the files inside if it keeps failing.",
+  "@errorInstallFailed": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "reason": { "type": "String" }
+    }
+  },
+  "errorInstallFailedRaw": "“{name}” couldn’t be installed — {reason}",
+  "@errorInstallFailedRaw": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "reason": { "type": "String" }
+    }
+  },
+  "errorFileInUseDelete": "“{name}” couldn’t be deleted — it’s in use by another program (is the game running?) or write-protected. Close anything using it and try again.",
+  "@errorFileInUseDelete": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "errorFileInUseRename": "“{name}” couldn’t be renamed — it’s in use by another program (is the game running?) or write-protected. Close anything using it and try again.",
+  "@errorFileInUseRename": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "errorFileMissing": "“{name}” is no longer in the mods folder — it may have been moved or deleted by another program.",
+  "@errorFileMissing": {
+    "placeholders": { "name": { "type": "String" } }
+  },
 
   "eraClassic": "Classic",
   "eraNightlife": "Nightlife",

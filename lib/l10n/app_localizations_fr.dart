@@ -38,6 +38,7 @@ class LFr extends L {
       locale: localeName,
       other: '$count mods',
       one: '1 mod',
+      zero: '0 mod',
     );
     return '$_temp0 · $detail';
   }
@@ -91,6 +92,7 @@ class LFr extends L {
       locale: localeName,
       other: '$count mods affichés',
       one: '1 mod affiché',
+      zero: '0 mod affiché',
     );
     return '$_temp0 · $era';
   }
@@ -439,6 +441,13 @@ class LFr extends L {
   String get languageSystem => 'Système';
 
   @override
+  String get translatorsTitle => 'Traduit par';
+
+  @override
+  String get translatorsDesc =>
+      'L’appli parle dix langues grâce à ces simmers.';
+
+  @override
   String get folderNotFound => 'Introuvable. Choisis un dossier';
 
   @override
@@ -452,6 +461,7 @@ class LFr extends L {
       locale: localeName,
       other: '$count mods',
       one: '1 mod',
+      zero: '0 mod',
     );
     return '$_temp0 · $size sur le disque';
   }
@@ -591,6 +601,61 @@ class LFr extends L {
 
   @override
   String get contentMeshes => 'maillages';
+
+  @override
+  String errorNoModFiles(String extensions, String name) {
+    return 'Aucun fichier de mod ($extensions) dans $name.';
+  }
+
+  @override
+  String errorUnreadableArchive(String name) {
+    return '$name n’est pas une archive zip que l’app sait lire.';
+  }
+
+  @override
+  String errorNoUnpacker(String format, String name) {
+    return 'Rien sur cet ordinateur ne sait décompresser les archives $format. Décompresse $name toi-même et installe les fichiers qu’elle contient.';
+  }
+
+  @override
+  String errorNoUnpackerLinux(String format, String name) {
+    return 'Rien sur cet ordinateur ne sait décompresser les archives $format. Installe p7zip et réessaie, ou décompresse $name toi-même et installe les fichiers qu’elle contient.';
+  }
+
+  @override
+  String errorNoUnpackerLinuxRar(String format, String name) {
+    return 'Rien sur cet ordinateur ne sait décompresser les archives $format. Installe p7zip ou unrar et réessaie, ou décompresse $name toi-même et installe les fichiers qu’elle contient.';
+  }
+
+  @override
+  String errorUnpackFailed(String name) {
+    return 'Impossible de décompresser $name. Elle est peut-être protégée par un mot de passe, c’est peut-être une partie d’une archive découpée ou un téléchargement abîmé. Décompresse-la à la main et installe les fichiers qu’elle contient.';
+  }
+
+  @override
+  String errorInstallFailed(String name, String reason) {
+    return '« $name » n’a pas pu être installé — $reason. Si ça continue, décompresse-le à la main et installe les fichiers qu’il contient.';
+  }
+
+  @override
+  String errorInstallFailedRaw(String name, String reason) {
+    return '« $name » n’a pas pu être installé — $reason';
+  }
+
+  @override
+  String errorFileInUseDelete(String name) {
+    return '« $name » n’a pas pu être supprimé — un autre programme l’utilise (le jeu est lancé ?) ou il est protégé en écriture. Ferme ce qui l’utilise et réessaie.';
+  }
+
+  @override
+  String errorFileInUseRename(String name) {
+    return '« $name » n’a pas pu être renommé — un autre programme l’utilise (le jeu est lancé ?) ou il est protégé en écriture. Ferme ce qui l’utilise et réessaie.';
+  }
+
+  @override
+  String errorFileMissing(String name) {
+    return '« $name » n’est plus dans le dossier de mods — un autre programme l’a peut-être déplacé ou supprimé.';
+  }
 
   @override
   String get eraClassic => 'Classique';

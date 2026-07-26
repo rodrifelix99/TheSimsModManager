@@ -10,7 +10,7 @@
   "navSettings": "Réglages",
   "sidebarGames": "JEUX",
   "sidebarNotInstalled": "pas installé · {detail}",
-  "sidebarModCount": "{count, plural, one{1 mod} other{{count} mods}} · {detail}",
+  "sidebarModCount": "{count, plural, =0{0 mod} =1{1 mod} other{{count} mods}} · {detail}",
 
   "updateAvailable": "Mise à jour dispo",
   "updateClickToDownload": "v{version} : clique pour télécharger",
@@ -26,7 +26,7 @@
   "skip": "Passer",
 
   "libraryTitle": "Bibliothèque {game}",
-  "modsShown": "{count, plural, one{1 mod affiché} other{{count} mods affichés}} · {era}",
+  "modsShown": "{count, plural, =0{0 mod affiché} =1{1 mod affiché} other{{count} mods affichés}} · {era}",
 
   "learnMore": "En savoir plus",
   "dismiss": "Masquer",
@@ -128,10 +128,12 @@
   "languageTitle": "Langue de l’appli",
   "languageDesc": "Choisis la langue dans laquelle l’appli s’affiche. « Système » suit la langue de ton ordinateur.",
   "languageSystem": "Système",
+  "translatorsTitle": "Traduit par",
+  "translatorsDesc": "L’appli parle dix langues grâce à ces simmers.",
 
   "folderNotFound": "Introuvable. Choisis un dossier",
   "folderNotLocated": "Le jeu (ou son dossier de mods) n’a pas été trouvé automatiquement",
-  "folderSummary": "{count, plural, one{1 mod} other{{count} mods}} · {size} sur le disque",
+  "folderSummary": "{count, plural, =0{0 mod} =1{1 mod} other{{count} mods}} · {size} sur le disque",
   "customFolder": "dossier personnalisé",
   "change": "Changer…",
   "resetToAuto": "Revenir à l’auto",
@@ -176,6 +178,18 @@
   "contentTextTables": "tables de texte",
   "contentTextures": "textures",
   "contentMeshes": "maillages",
+
+  "errorNoModFiles": "Aucun fichier de mod ({extensions}) dans {name}.",
+  "errorUnreadableArchive": "{name} n’est pas une archive zip que l’app sait lire.",
+  "errorNoUnpacker": "Rien sur cet ordinateur ne sait décompresser les archives {format}. Décompresse {name} toi-même et installe les fichiers qu’elle contient.",
+  "errorNoUnpackerLinux": "Rien sur cet ordinateur ne sait décompresser les archives {format}. Installe p7zip et réessaie, ou décompresse {name} toi-même et installe les fichiers qu’elle contient.",
+  "errorNoUnpackerLinuxRar": "Rien sur cet ordinateur ne sait décompresser les archives {format}. Installe p7zip ou unrar et réessaie, ou décompresse {name} toi-même et installe les fichiers qu’elle contient.",
+  "errorUnpackFailed": "Impossible de décompresser {name}. Elle est peut-être protégée par un mot de passe, c’est peut-être une partie d’une archive découpée ou un téléchargement abîmé. Décompresse-la à la main et installe les fichiers qu’elle contient.",
+  "errorInstallFailed": "« {name} » n’a pas pu être installé — {reason}. Si ça continue, décompresse-le à la main et installe les fichiers qu’il contient.",
+  "errorInstallFailedRaw": "« {name} » n’a pas pu être installé — {reason}",
+  "errorFileInUseDelete": "« {name} » n’a pas pu être supprimé — un autre programme l’utilise (le jeu est lancé ?) ou il est protégé en écriture. Ferme ce qui l’utilise et réessaie.",
+  "errorFileInUseRename": "« {name} » n’a pas pu être renommé — un autre programme l’utilise (le jeu est lancé ?) ou il est protégé en écriture. Ferme ce qui l’utilise et réessaie.",
+  "errorFileMissing": "« {name} » n’est plus dans le dossier de mods — un autre programme l’a peut-être déplacé ou supprimé.",
 
   "eraClassic": "Classique",
   "eraNightlife": "Nuits de folie",

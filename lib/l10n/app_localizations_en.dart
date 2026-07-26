@@ -439,6 +439,13 @@ class LEn extends L {
   String get languageSystem => 'System';
 
   @override
+  String get translatorsTitle => 'Translated by';
+
+  @override
+  String get translatorsDesc =>
+      'The app speaks ten languages thanks to these simmers.';
+
+  @override
   String get folderNotFound => 'Not found. Choose a folder';
 
   @override
@@ -591,6 +598,61 @@ class LEn extends L {
 
   @override
   String get contentMeshes => 'meshes';
+
+  @override
+  String errorNoModFiles(String extensions, String name) {
+    return 'No mod files ($extensions) found inside $name.';
+  }
+
+  @override
+  String errorUnreadableArchive(String name) {
+    return '$name isn’t a zip archive this app can read.';
+  }
+
+  @override
+  String errorNoUnpacker(String format, String name) {
+    return 'Nothing on this computer can unpack $format archives. Unpack $name yourself and install the files inside.';
+  }
+
+  @override
+  String errorNoUnpackerLinux(String format, String name) {
+    return 'Nothing on this computer can unpack $format archives. Install p7zip and try again, or unpack $name yourself and install the files inside.';
+  }
+
+  @override
+  String errorNoUnpackerLinuxRar(String format, String name) {
+    return 'Nothing on this computer can unpack $format archives. Install p7zip or unrar and try again, or unpack $name yourself and install the files inside.';
+  }
+
+  @override
+  String errorUnpackFailed(String name) {
+    return 'Couldn’t unpack $name. It may be password-protected, one part of a split archive, or a damaged download. Unpack it manually and install the files inside.';
+  }
+
+  @override
+  String errorInstallFailed(String name, String reason) {
+    return '“$name” couldn’t be installed — $reason. Unpack it manually and install the files inside if it keeps failing.';
+  }
+
+  @override
+  String errorInstallFailedRaw(String name, String reason) {
+    return '“$name” couldn’t be installed — $reason';
+  }
+
+  @override
+  String errorFileInUseDelete(String name) {
+    return '“$name” couldn’t be deleted — it’s in use by another program (is the game running?) or write-protected. Close anything using it and try again.';
+  }
+
+  @override
+  String errorFileInUseRename(String name) {
+    return '“$name” couldn’t be renamed — it’s in use by another program (is the game running?) or write-protected. Close anything using it and try again.';
+  }
+
+  @override
+  String errorFileMissing(String name) {
+    return '“$name” is no longer in the mods folder — it may have been moved or deleted by another program.';
+  }
 
   @override
   String get eraClassic => 'Classic';

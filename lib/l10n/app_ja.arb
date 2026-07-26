@@ -128,6 +128,8 @@
   "languageTitle": "アプリの言語",
   "languageDesc": "アプリを表示する言語を選べます。「システム」はパソコンの言語に合わせます。",
   "languageSystem": "システム",
+  "translatorsTitle": "翻訳",
+  "translatorsDesc": "アプリが10か国語で使えるのは、訳してくれたシマーたちのおかげです。",
 
   "folderNotFound": "見つかりません。フォルダを選んでください",
   "folderNotLocated": "ゲーム（またはその MOD フォルダ）を自動で見つけられませんでした",
@@ -176,6 +178,18 @@
   "contentTextTables": "テキストテーブル",
   "contentTextures": "テクスチャ",
   "contentMeshes": "メッシュ",
+
+  "errorNoModFiles": "{name} の中にMODファイル（{extensions}）が見つかりませんでした。",
+  "errorUnreadableArchive": "{name} はこのアプリで読めるZIPアーカイブではありません。",
+  "errorNoUnpacker": "このパソコンには{format}アーカイブを展開できるものがありません。{name} を自分で展開して、中のファイルをインストールしてね。",
+  "errorNoUnpackerLinux": "このパソコンには{format}アーカイブを展開できるものがありません。p7zip をインストールしてもう一度試すか、{name} を自分で展開して中のファイルをインストールしてね。",
+  "errorNoUnpackerLinuxRar": "このパソコンには{format}アーカイブを展開できるものがありません。p7zip か unrar をインストールしてもう一度試すか、{name} を自分で展開して中のファイルをインストールしてね。",
+  "errorUnpackFailed": "{name} を展開できませんでした。パスワード付き、分割アーカイブの一部、またはダウンロードが壊れているのかもしれません。手動で展開して、中のファイルをインストールしてね。",
+  "errorInstallFailed": "「{name}」をインストールできませんでした — {reason}。うまくいかないままなら、手動で展開して中のファイルをインストールしてね。",
+  "errorInstallFailedRaw": "「{name}」をインストールできませんでした — {reason}",
+  "errorFileInUseDelete": "「{name}」を削除できませんでした — 別のプログラムが使用中（ゲームは起動中？）か、書き込み禁止になっています。使っているものを閉じて、もう一度試してね。",
+  "errorFileInUseRename": "「{name}」の名前を変更できませんでした — 別のプログラムが使用中（ゲームは起動中？）か、書き込み禁止になっています。使っているものを閉じて、もう一度試してね。",
+  "errorFileMissing": "「{name}」はもうMODフォルダーにありません — 別のプログラムが移動したか削除したのかもしれません。",
 
   "eraClassic": "クラシック",
   "eraNightlife": "ナイトライフ",

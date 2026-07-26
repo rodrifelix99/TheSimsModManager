@@ -10,7 +10,7 @@
   "navSettings": "Configurações",
   "sidebarGames": "JOGOS",
   "sidebarNotInstalled": "não instalado · {detail}",
-  "sidebarModCount": "{count, plural, one{1 mod} other{{count} mods}} · {detail}",
+  "sidebarModCount": "{count, plural, =0{0 mods} =1{1 mod} other{{count} mods}} · {detail}",
 
   "updateAvailable": "Atualização disponível",
   "updateClickToDownload": "v{version}: clique para baixar",
@@ -26,7 +26,7 @@
   "skip": "Pular",
 
   "libraryTitle": "Biblioteca de {game}",
-  "modsShown": "{count, plural, one{1 mod à mostra} other{{count} mods à mostra}} · {era}",
+  "modsShown": "{count, plural, =0{0 mods à mostra} =1{1 mod à mostra} other{{count} mods à mostra}} · {era}",
 
   "learnMore": "Saiba mais",
   "dismiss": "Dispensar",
@@ -128,10 +128,12 @@
   "languageTitle": "Idioma do app",
   "languageDesc": "Escolha em que idioma o app aparece. “Sistema” segue o idioma do seu computador.",
   "languageSystem": "Sistema",
+  "translatorsTitle": "Traduzido por",
+  "translatorsDesc": "O app fala dez idiomas graças a estes simmers.",
 
   "folderNotFound": "Não encontrada. Escolha uma pasta",
   "folderNotLocated": "O jogo (ou a pasta de mods dele) não foi localizado automaticamente",
-  "folderSummary": "{count, plural, one{1 mod} other{{count} mods}} · {size} no disco",
+  "folderSummary": "{count, plural, =0{0 mods} =1{1 mod} other{{count} mods}} · {size} no disco",
   "customFolder": "pasta personalizada",
   "change": "Mudar…",
   "resetToAuto": "Voltar ao automático",
@@ -176,6 +178,18 @@
   "contentTextTables": "tabelas de texto",
   "contentTextures": "texturas",
   "contentMeshes": "malhas",
+
+  "errorNoModFiles": "Nenhum arquivo de mod ({extensions}) dentro de {name}.",
+  "errorUnreadableArchive": "{name} não é um zip que este app consiga ler.",
+  "errorNoUnpacker": "Nada neste computador consegue descompactar arquivos {format}. Descompacte {name} por conta própria e instale os arquivos de dentro.",
+  "errorNoUnpackerLinux": "Nada neste computador consegue descompactar arquivos {format}. Instale p7zip e tente de novo, ou descompacte {name} por conta própria e instale os arquivos de dentro.",
+  "errorNoUnpackerLinuxRar": "Nada neste computador consegue descompactar arquivos {format}. Instale p7zip ou unrar e tente de novo, ou descompacte {name} por conta própria e instale os arquivos de dentro.",
+  "errorUnpackFailed": "Não deu para descompactar {name}. Ele pode estar protegido por senha, ser parte de um arquivo dividido ou ser um download corrompido. Descompacte na mão e instale os arquivos de dentro.",
+  "errorInstallFailed": "Não deu para instalar “{name}” — {reason}. Se continuar falhando, descompacte na mão e instale os arquivos de dentro.",
+  "errorInstallFailedRaw": "Não deu para instalar “{name}” — {reason}",
+  "errorFileInUseDelete": "Não deu para excluir “{name}” — outro programa está usando o arquivo (o jogo está aberto?) ou ele está protegido contra gravação. Feche o que estiver usando e tente de novo.",
+  "errorFileInUseRename": "Não deu para renomear “{name}” — outro programa está usando o arquivo (o jogo está aberto?) ou ele está protegido contra gravação. Feche o que estiver usando e tente de novo.",
+  "errorFileMissing": "“{name}” não está mais na pasta de mods — outro programa pode ter movido ou excluído o arquivo.",
 
   "eraClassic": "Clássico",
   "eraNightlife": "Vida Noturna",

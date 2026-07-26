@@ -3,6 +3,7 @@ import 'dart:isolate';
 
 import 'package:path/path.dart' as p;
 
+import 'app_message.dart';
 import 'game.dart';
 import 'install_path.dart';
 import 'mod.dart';
@@ -12,21 +13,28 @@ import 'package_insight.dart';
 /// Suffix appended to a mod file to hide it from the game without deleting it.
 const disabledSuffix = '.disabled';
 
+/// [path] without the [disabledSuffix] (unchanged when it isn't there),
+/// so a mod keeps one identity across toggles.
+String enabledPathOf(String path) =>
+    path.toLowerCase().endsWith(disabledSuffix)
+        ? path.substring(0, path.length - disabledSuffix.length)
+        : path;
+
 /// Why an action on a mod file failed for a reason that isn't an app bug:
 /// the user's environment got in the way (game running, file moved). Lets
 /// the UI show a helpful message and keeps these out of error tracking.
 enum ModActionFailure { fileInUse, fileMissing }
 
 /// An enable/disable/remove that failed for a known environmental
-/// [reason]. [message] is user-readable and safe to show as-is.
+/// [reason]. [detail] is what to tell the user about it.
 class ModActionException implements Exception {
-  const ModActionException(this.reason, this.message);
+  const ModActionException(this.reason, this.detail);
 
   final ModActionFailure reason;
-  final String message;
+  final AppMessage detail;
 
   @override
-  String toString() => message;
+  String toString() => '$detail';
 }
 
 /// Everything the manager needs to know to handle mods for one game.
@@ -87,17 +95,17 @@ abstract class GameAdapter {
 
   /// Unpacks [archive] (any format in [archiveFileExtensions]) into
   /// [modsDir] and returns the mod files it contained; everything else
-  /// in the archive (readmes, screenshots) is skipped. Throws with a
-  /// user-readable message when the archive can't be read or holds no
-  /// mod files.
+  /// in the archive (readmes, screenshots) is skipped. Throws an
+  /// [AppMessage]-carrying exception when the archive can't be read or
+  /// holds no mod files.
   Future<List<Mod>> installArchive(Directory modsDir, File archive);
 
   /// Installs every mod file found anywhere under [source] (a folder the
   /// user dropped or picked) into [modsDir]. The folder itself becomes a
   /// subfolder of [modsDir] with its internal structure preserved - so in
   /// the library it shows up as a filter chip named after the folder.
-  /// Everything that isn't a mod file is skipped. Throws with a
-  /// user-readable message when the folder holds no mod files.
+  /// Everything that isn't a mod file is skipped. Throws an
+  /// [AppMessage]-carrying exception when the folder holds no mod files.
   Future<List<Mod>> installFolder(Directory modsDir, Directory source);
 
   Future<void> removeMod(Mod mod);
@@ -132,7 +140,7 @@ abstract class GameAdapter {
 /// which is every Sims game. Disabling works by appending [disabledSuffix]
 /// to the file name so the game's loader skips it.
 ///
-/// Subclasses supply [game], [modFileExtensions], [setupHelp], and
+/// Subclasses supply [game], [modFileExtensions], [setupHelpKey], and
 /// [defaultModsPath]; everything else has a sensible default. Override
 /// [findModsDirectoryCandidates] when the game can live in several places,
 /// and [scaffoldModsDirectory] when the game needs extra files (like a
@@ -225,9 +233,8 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
   Future<List<Mod>> installFolder(Directory modsDir, Directory source) async {
     final files = await modFilesIn(source);
     if (files.isEmpty) {
-      final wanted = modFileExtensions.join(', ');
-      throw FormatException(
-          'No mod files ($wanted) found inside ${p.basename(source.path)}.');
+      throw ModContentException.noModFiles(
+          modFileExtensions, p.basename(source.path));
     }
     final mods = <Mod>[];
     final taken = <String>{};
@@ -262,27 +269,31 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
   @override
   Future<void> removeMod(Mod mod) async {
     final name = p.basename(mod.path);
-    for (var attempt = 1; ; attempt++) {
+    try {
+      await _retryWhileLocked(() => deleteModFile(File(mod.path)),
+          giveUp: () => AppMessage('fileInUseDelete', [name]));
+    } on PathNotFoundException {
+      // Already off the disk (a second window, the user's own file
+      // manager). That is what the caller asked for; nothing to report.
+    }
+  }
+
+  /// Runs [action], retrying with a growing pause while the OS reports
+  /// the file as locked: Windows refuses to delete or rename a file the
+  /// game or an antivirus scan still has open (sharing violation), and
+  /// those locks usually clear within a moment. After the last attempt
+  /// the failure is worded by [giveUp].
+  Future<T> _retryWhileLocked<T>(Future<T> Function() action,
+      {required AppMessage Function() giveUp}) async {
+    for (var attempt = 1;; attempt++) {
       try {
-        await deleteModFile(File(mod.path));
-        return;
-      } on PathNotFoundException {
-        // Already off the disk (a second window, the user's own file
-        // manager). That is what the caller asked for; nothing to report.
-        return;
+        return await action();
       } on PathAccessException {
-        // Windows won't delete a file the game or an antivirus scan
-        // still has open; those locks usually clear within a moment.
         if (attempt < _lockedFileAttempts) {
           await Future<void>.delayed(lockedFileRetryDelay * attempt);
           continue;
         }
-        throw ModActionException(
-          ModActionFailure.fileInUse,
-          '"$name" couldn\'t be deleted — it\'s in use by another program '
-          '(is the game running?) or write-protected. Close anything '
-          'using it and try again.',
-        );
+        throw ModActionException(ModActionFailure.fileInUse, giveUp());
       }
     }
   }
@@ -302,14 +313,13 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
   @override
   Future<Mod> setEnabled(Mod mod, {required bool enabled}) async {
     if (mod.isEnabled == enabled) return mod;
-    final newPath = enabled
-        ? mod.path.substring(0, mod.path.length - disabledSuffix.length)
-        : '${mod.path}$disabledSuffix';
+    final newPath =
+        enabled ? enabledPathOf(mod.path) : '${mod.path}$disabledSuffix';
     final name = p.basename(enabled ? newPath : mod.path);
-    for (var attempt = 1; ; attempt++) {
+    return _retryWhileLocked(() async {
       try {
         return toMod(await renameModFile(File(mod.path), newPath))!;
-      } on FileSystemException catch (e) {
+      } on FileSystemException {
         if (!File(mod.path).existsSync()) {
           // Already carrying the target name (double toggle, an external
           // rename): the work is done, report the new state as success.
@@ -317,28 +327,12 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
           if (already.existsSync()) return toMod(already)!;
           throw ModActionException(
             ModActionFailure.fileMissing,
-            '"$name" is no longer in the mods folder — it may have been '
-            'moved or deleted by another program.',
-          );
-        }
-        if (e is PathAccessException) {
-          // Windows refuses to rename open files (sharing violation) and
-          // write-protected ones; the former is usually the game or an
-          // antivirus scan and often clears within a moment.
-          if (attempt < _lockedFileAttempts) {
-            await Future<void>.delayed(lockedFileRetryDelay * attempt);
-            continue;
-          }
-          throw ModActionException(
-            ModActionFailure.fileInUse,
-            '"$name" couldn\'t be renamed — it\'s in use by another program '
-            '(is the game running?) or write-protected. Close anything '
-            'using it and try again.',
+            AppMessage('fileMissing', [name]),
           );
         }
         rethrow;
       }
-    }
+    }, giveUp: () => AppMessage('fileInUseRename', [name]));
   }
 
   /// The on-disk rename behind [setEnabled]; a seam for tests to simulate
@@ -444,12 +438,9 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
   /// Protected: exposed so subclasses that route files into game-specific
   /// folders (Sims 1) can build [Mod]s for what they install.
   Mod? toMod(File file) {
-    var name = p.basename(file.path);
-    var status = ModStatus.enabled;
-    if (name.toLowerCase().endsWith(disabledSuffix)) {
-      name = name.substring(0, name.length - disabledSuffix.length);
-      status = ModStatus.disabled;
-    }
+    final marked = p.basename(file.path);
+    final name = enabledPathOf(marked);
+    final status = name == marked ? ModStatus.enabled : ModStatus.disabled;
     final extension = p.extension(name).toLowerCase();
     if (!modFileExtensions.contains(extension)) {
       return null;
