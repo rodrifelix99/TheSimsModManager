@@ -804,6 +804,21 @@ class LEs extends L {
   }
 
   @override
+  String errorSims3PackUnreadable(String name) {
+    return '$name no es un paquete de Los Sims 3 que esta app pueda leer.';
+  }
+
+  @override
+  String errorSims3PackWorld(String name) {
+    return '$name es un mundo, no contenido personalizado. Instálalo con el Launcher de Los Sims 3 — el juego guarda los mundos fuera de la carpeta de mods.';
+  }
+
+  @override
+  String errorSims3PackLibrary(String name) {
+    return '$name es un solar o una familia, no contenido personalizado. Instálalo con el Launcher de Los Sims 3 — acaba en tu Biblioteca dentro del juego.';
+  }
+
+  @override
   String errorInstallFailed(String name, String reason) {
     return 'No se pudo instalar «$name» — $reason. Si sigue fallando, descomprímelo a mano e instala los archivos que haya dentro.';
   }
@@ -827,6 +842,44 @@ class LEs extends L {
   String errorFileMissing(String name) {
     return '«$name» ya no está en la carpeta de mods — puede que otro programa lo haya movido o borrado.';
   }
+
+  @override
+  String get requirementMedievalModLoader =>
+      'Los Sims Medieval no puede ejecutar mods de script ni de núcleo sin el archivo cargador de la comunidad en la carpeta Game\\Bin del juego. El contenido personalizado sí funciona; lo demás no.';
+
+  @override
+  String get requirementSims4ModsOff =>
+      'El juego tiene el contenido personalizado y los mods desactivados en sus propias Opciones de juego, así que no se está cargando nada. Vuelve a activarlo en Opciones → Opciones de juego → Otros y reinicia el juego.';
+
+  @override
+  String get requirementSims4ScriptModsOff =>
+      'Tienes mods de script aquí, pero el juego tiene «Permitir mods de script» desactivado en sus Opciones de juego. Las actualizaciones lo reinician.';
+
+  @override
+  String get requirementGetFile => 'Dónde conseguirlo';
+
+  @override
+  String tooDeepBanner(int count, int levels) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Hay $count mods',
+      one: 'Hay un mod',
+    );
+    return '$_temp0 en una subcarpeta que el juego no lee. Solo mira $levels carpetas hacia dentro — súbelos y funcionarán.';
+  }
+
+  @override
+  String get tooDeepShow => 'Enséñamelos';
+
+  @override
+  String errorNoWriteAccess(String folder) {
+    return 'La app no tiene permiso para escribir en «$folder». Tu sistema protege esa carpeta — dale permiso de escritura a tu cuenta, o elige otra carpeta en Ajustes.';
+  }
+
+  @override
+  String get folderReadOnlyBanner =>
+      'Esta carpeta de mods es de solo lectura, así que instalar y quitar mods no va a funcionar hasta que tu cuenta pueda escribir en ella.';
 
   @override
   String errorShopDownload(String name) {

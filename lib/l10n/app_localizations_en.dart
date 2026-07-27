@@ -801,6 +801,21 @@ class LEn extends L {
   }
 
   @override
+  String errorSims3PackUnreadable(String name) {
+    return '$name isn’t a Sims 3 package this app can read.';
+  }
+
+  @override
+  String errorSims3PackWorld(String name) {
+    return '$name is a world, not custom content. Install it with The Sims 3 Launcher — the game keeps worlds outside the mods folder.';
+  }
+
+  @override
+  String errorSims3PackLibrary(String name) {
+    return '$name is a lot or a household, not custom content. Install it with The Sims 3 Launcher — it lands in your in-game Library.';
+  }
+
+  @override
   String errorInstallFailed(String name, String reason) {
     return '“$name” couldn’t be installed — $reason. Unpack it manually and install the files inside if it keeps failing.';
   }
@@ -824,6 +839,44 @@ class LEn extends L {
   String errorFileMissing(String name) {
     return '“$name” is no longer in the mods folder — it may have been moved or deleted by another program.';
   }
+
+  @override
+  String get requirementMedievalModLoader =>
+      'The Sims Medieval can’t run script or core mods without the community’s loader file in the game’s Game\\Bin folder. Custom content works without it; everything else doesn’t.';
+
+  @override
+  String get requirementSims4ModsOff =>
+      'The game has custom content and mods switched off in its own Game Options, so none of this is loading. Turn it back on under Options → Game Options → Other, then restart the game.';
+
+  @override
+  String get requirementSims4ScriptModsOff =>
+      'You have script mods here, but the game has “Script Mods Allowed” switched off in its own Game Options. Game updates reset that.';
+
+  @override
+  String get requirementGetFile => 'Where to get it';
+
+  @override
+  String tooDeepBanner(int count, int levels) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mods are',
+      one: 'One mod is',
+    );
+    return '$_temp0 in a subfolder the game doesn’t read. It only looks $levels folders deep inside the mods folder — move them higher up and they’ll load.';
+  }
+
+  @override
+  String get tooDeepShow => 'Show them';
+
+  @override
+  String errorNoWriteAccess(String folder) {
+    return 'The app isn’t allowed to write to “$folder”. Your system protects that folder — give your account write access to it, or point the app somewhere else in Settings.';
+  }
+
+  @override
+  String get folderReadOnlyBanner =>
+      'This mods folder is read-only, so installing and removing mods won’t work until your account can write to it.';
 
   @override
   String errorShopDownload(String name) {

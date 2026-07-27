@@ -9,6 +9,7 @@ import 'install_path.dart';
 import 'mod.dart';
 import 'mod_archive.dart';
 import 'package_insight.dart';
+import 'resource_cfg.dart';
 
 /// Suffix appended to a mod file to hide it from the game without deleting it.
 const disabledSuffix = '.disabled';
@@ -49,6 +50,14 @@ abstract class GameAdapter {
   /// File extensions this game accepts as mods (lowercase, with dot),
   /// e.g. `{'.package', '.ts4script'}`.
   Set<String> get modFileExtensions;
+
+  /// File extensions that hold mods inside them and are unpacked on
+  /// install rather than copied ([installArchive]). Every game takes the
+  /// compressed formats mods are shared in ([archiveFileExtensions]); a
+  /// game whose publisher had a container of its own adds it here, which
+  /// is what keeps the file picker, the drop overlay and the install
+  /// routing agreeing about what that game accepts.
+  Set<String> get containerFileExtensions;
 
   /// Which piece of "where do mods live" guidance the UI should show when
   /// the mods folder can't be found: where the folder normally lives and
@@ -119,6 +128,23 @@ abstract class GameAdapter {
   /// games without such caches return an empty list.
   Future<List<File>> findCacheFiles();
 
+  /// How many levels of subfolders inside the mods folder this game will
+  /// actually read, or `null` when it reads however deep you go. The
+  /// Sims 3 engine reads a `Resource.cfg` listing every depth it will
+  /// look at, so anything below the deepest line is on disk and invisible
+  /// to the game.
+  Future<int?> modDepthLimit(Directory modsDir);
+
+  /// What this game still needs before it will run the mods in [modsDir],
+  /// as stable keys the UI translates ([AppText.requirement]) - the same
+  /// bargain as [setupHelpKey], since core has no localizations.
+  ///
+  /// This is for the things that live outside the mods folder and leave
+  /// a perfectly good library completely inert: a loader DLL that isn't
+  /// there, a switch inside the game turned off. Empty when the game is
+  /// ready, which is every game most of the time.
+  Future<List<String>> unmetRequirements(Directory modsDir);
+
   /// Safe to call: the game regenerates these on its next launch.
   Future<List<File>> clearCaches();
 
@@ -149,6 +175,11 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
   const FolderBasedGameAdapter();
 
   Map<String, String> get categoryByExtension => const {};
+
+  /// The shared compressed formats. Games with a container of their own
+  /// (The Sims 3's `.sims3pack`) add it to this.
+  @override
+  Set<String> get containerFileExtensions => archiveFileExtensions;
 
   @override
   String categoryForExtension(String extension) =>
@@ -182,6 +213,31 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
 
   /// Hook for game-specific setup files the loader needs. Default: none.
   Future<void> scaffoldModsDirectory(Directory modsDir) async {}
+
+  /// The game's `Resource.cfg` for a library rooted at [modsDir], for the
+  /// games that read one. Every game that writes one in
+  /// [scaffoldModsDirectory] should say where it put it.
+  File? resourceCfgFile(Directory modsDir) => null;
+
+  /// Most games are ready once their mods folder exists.
+  @override
+  Future<List<String>> unmetRequirements(Directory modsDir) async => const [];
+
+  /// Read out of the cfg on disk rather than assumed from the one we
+  /// would have written: people add a level to these by hand, and an
+  /// older framework may have fewer than the current one.
+  @override
+  Future<int?> modDepthLimit(Directory modsDir) async {
+    final cfg = resourceCfgFile(modsDir);
+    if (cfg == null) return null;
+    try {
+      if (!await cfg.exists()) return null;
+      return maxPackedFileDepth(await cfg.readAsString());
+    } catch (_) {
+      // An unreadable cfg is not worth a warning about depth.
+      return null;
+    }
+  }
 
   /// Most games have no stale-cache problem; the ones that do (Sims 3,
   /// The Sims Medieval) override this with the well-known cache files.

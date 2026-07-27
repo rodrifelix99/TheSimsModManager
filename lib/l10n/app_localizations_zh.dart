@@ -739,6 +739,21 @@ class LZh extends L {
   }
 
   @override
+  String errorSims3PackUnreadable(String name) {
+    return '$name 不是这个应用能读取的《模拟人生3》包。';
+  }
+
+  @override
+  String errorSims3PackWorld(String name) {
+    return '$name 是一个世界，不是自定义内容。用《模拟人生3》启动器安装吧 — 游戏把世界放在 Mods 文件夹之外。';
+  }
+
+  @override
+  String errorSims3PackLibrary(String name) {
+    return '$name 是一块地块或一户家庭，不是自定义内容。用《模拟人生3》启动器安装吧 — 它会进到游戏里的收藏库。';
+  }
+
+  @override
   String errorInstallFailed(String name, String reason) {
     return '「$name」安装失败 — $reason。要是一直不行，就手动解压后安装里面的文件。';
   }
@@ -762,6 +777,42 @@ class LZh extends L {
   String errorFileMissing(String name) {
     return '「$name」已经不在模组文件夹里了 — 可能被别的程序移动或删除了。';
   }
+
+  @override
+  String get requirementMedievalModLoader =>
+      '《模拟人生中世纪》没有社区的加载器文件（放在游戏的 Game\\Bin 文件夹里）就跑不了脚本模组和核心模组。自定义内容不受影响，其他的都不行。';
+
+  @override
+  String get requirementSims4ModsOff =>
+      '游戏自己的「游戏选项」里把自定义内容和模组关掉了，所以这些统统没加载。到 选项 → 游戏选项 → 其他 里重新打开，然后重启游戏。';
+
+  @override
+  String get requirementSims4ScriptModsOff =>
+      '你这里有脚本模组，但游戏的「游戏选项」里关掉了「允许脚本模组」。每次游戏更新都会把它重置。';
+
+  @override
+  String get requirementGetFile => '去哪儿下载';
+
+  @override
+  String tooDeepBanner(int count, int levels) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '有 $count 个模组',
+    );
+    return '$_temp0放在游戏读不到的子文件夹里。游戏只会往模组文件夹里找 $levels 层 — 把它们往上挪一挪就能加载了。';
+  }
+
+  @override
+  String get tooDeepShow => '看看是哪些';
+
+  @override
+  String errorNoWriteAccess(String folder) {
+    return '应用没有权限写入「$folder」。这个文件夹被系统保护着 — 给你的账户加上写入权限，或者在设置里换一个文件夹。';
+  }
+
+  @override
+  String get folderReadOnlyBanner => '这个模组文件夹是只读的，在账户拿到写入权限之前，安装和删除模组都做不了。';
 
   @override
   String errorShopDownload(String name) {

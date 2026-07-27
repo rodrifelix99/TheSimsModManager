@@ -802,6 +802,21 @@ class LIt extends L {
   }
 
   @override
+  String errorSims3PackUnreadable(String name) {
+    return '$name non è un pacchetto di The Sims 3 che questa app riesca a leggere.';
+  }
+
+  @override
+  String errorSims3PackWorld(String name) {
+    return '$name è un mondo, non contenuto personalizzato. Installalo con il Launcher di The Sims 3 — il gioco tiene i mondi fuori dalla cartella delle mod.';
+  }
+
+  @override
+  String errorSims3PackLibrary(String name) {
+    return '$name è un lotto o una famiglia, non contenuto personalizzato. Installalo con il Launcher di The Sims 3 — finisce nella tua Libreria nel gioco.';
+  }
+
+  @override
   String errorInstallFailed(String name, String reason) {
     return 'Non è stato possibile installare «$name» — $reason. Se continua a non funzionare, estrailo a mano e installa i file che ci sono dentro.';
   }
@@ -825,6 +840,44 @@ class LIt extends L {
   String errorFileMissing(String name) {
     return '«$name» non è più nella cartella dei mod — forse un altro programma l’ha spostato o eliminato.';
   }
+
+  @override
+  String get requirementMedievalModLoader =>
+      'The Sims Medieval non può eseguire mod di script o core senza il file loader della community nella cartella Game\\Bin del gioco. I contenuti personalizzati funzionano lo stesso, il resto no.';
+
+  @override
+  String get requirementSims4ModsOff =>
+      'Il gioco ha contenuti personalizzati e mod disattivati nelle sue Opzioni di gioco, quindi non sta caricando niente. Riattivali da Opzioni → Opzioni di gioco → Altro e riavvia il gioco.';
+
+  @override
+  String get requirementSims4ScriptModsOff =>
+      'Qui hai delle mod di script, ma il gioco ha «Consenti mod di script» disattivato nelle Opzioni di gioco. Gli aggiornamenti lo resettano.';
+
+  @override
+  String get requirementGetFile => 'Dove trovarlo';
+
+  @override
+  String tooDeepBanner(int count, int levels) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ci sono $count mod',
+      one: 'C’è una mod',
+    );
+    return '$_temp0 in una sottocartella che il gioco non legge. Scende solo di $levels cartelle — spostale più in alto e funzioneranno.';
+  }
+
+  @override
+  String get tooDeepShow => 'Fammi vedere';
+
+  @override
+  String errorNoWriteAccess(String folder) {
+    return 'L’app non ha il permesso di scrivere in «$folder». Il sistema protegge quella cartella — dai al tuo account l’accesso in scrittura, o scegli un’altra cartella nelle Impostazioni.';
+  }
+
+  @override
+  String get folderReadOnlyBanner =>
+      'Questa cartella dei mod è di sola lettura, quindi installare e rimuovere mod non funzionerà finché il tuo account non potrà scriverci.';
 
   @override
   String errorShopDownload(String name) {

@@ -400,6 +400,18 @@
   "@errorUnpackFailed": {
     "placeholders": { "name": { "type": "String" } }
   },
+  "errorSims3PackUnreadable": "{name} isn’t a Sims 3 package this app can read.",
+  "@errorSims3PackUnreadable": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "errorSims3PackWorld": "{name} is a world, not custom content. Install it with The Sims 3 Launcher — the game keeps worlds outside the mods folder.",
+  "@errorSims3PackWorld": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "errorSims3PackLibrary": "{name} is a lot or a household, not custom content. Install it with The Sims 3 Launcher — it lands in your in-game Library.",
+  "@errorSims3PackLibrary": {
+    "placeholders": { "name": { "type": "String" } }
+  },
   "errorInstallFailed": "“{name}” couldn’t be installed — {reason}. Unpack it manually and install the files inside if it keeps failing.",
   "@errorInstallFailed": {
     "placeholders": {
@@ -426,6 +438,23 @@
   "@errorFileMissing": {
     "placeholders": { "name": { "type": "String" } }
   },
+  "requirementMedievalModLoader": "The Sims Medieval can’t run script or core mods without the community’s loader file in the game’s Game\\Bin folder. Custom content works without it; everything else doesn’t.",
+  "requirementSims4ModsOff": "The game has custom content and mods switched off in its own Game Options, so none of this is loading. Turn it back on under Options → Game Options → Other, then restart the game.",
+  "requirementSims4ScriptModsOff": "You have script mods here, but the game has “Script Mods Allowed” switched off in its own Game Options. Game updates reset that.",
+  "requirementGetFile": "Where to get it",
+  "tooDeepBanner": "{count, plural, =1{One mod is} other{{count} mods are}} in a subfolder the game doesn’t read. It only looks {levels} folders deep inside the mods folder — move them higher up and they’ll load.",
+  "@tooDeepBanner": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "levels": { "type": "int" }
+    }
+  },
+  "tooDeepShow": "Show them",
+  "errorNoWriteAccess": "The app isn’t allowed to write to “{folder}”. Your system protects that folder — give your account write access to it, or point the app somewhere else in Settings.",
+  "@errorNoWriteAccess": {
+    "placeholders": { "folder": { "type": "String" } }
+  },
+  "folderReadOnlyBanner": "This mods folder is read-only, so installing and removing mods won’t work until your account can write to it.",
   "errorShopDownload": "“{name}” couldn’t be downloaded from The Exchange. Check your connection and try again.",
   "@errorShopDownload": {
     "placeholders": { "name": { "type": "String" } }

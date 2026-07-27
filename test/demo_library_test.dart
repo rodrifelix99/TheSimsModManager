@@ -58,6 +58,26 @@ String? _folderOf(Mod mod) {
   return parts.length > 1 ? parts.first : null;
 }
 
+/// Waits for the interface to say something rather than for a round number
+/// of milliseconds, the same way the folder-chip test does. Booting the
+/// shell reads a real folder off a real disk and then invents ninety mods
+/// on top of it: a fixed wait that is generous on an idle machine is a coin
+/// toss when the rest of the suite runs beside it, and the library arrives
+/// a frame after the assertion.
+///
+/// Alternates real time (runAsync, where the work actually progresses) with
+/// frames (pump, where the result of it is drawn), so it returns as soon as
+/// the machine is done and only gives up when the load really did fail.
+Future<void> _until(WidgetTester tester, Finder finder) async {
+  final deadline = DateTime.now().add(const Duration(seconds: 20));
+  while (DateTime.now().isBefore(deadline)) {
+    if (finder.evaluate().isNotEmpty) return;
+    await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 25)));
+    await tester.pump(const Duration(milliseconds: 25));
+  }
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -217,9 +237,11 @@ void main() {
       await tester.runAsync(() async {
         await tester.pumpWidget(
             ModManagerApp(registry: registry, settings: settings));
-        await Future<void>.delayed(const Duration(milliseconds: 200));
       });
-      await tester.pump();
+      // The title only exists once the folder has been read and the demo
+      // library built on top of it, so wait for the title itself rather
+      // than for a duration.
+      await _until(tester, find.text('Fake Game Library'));
       await tester.pump(const Duration(milliseconds: 400));
 
       expect(find.text('Fake Game Library'), findsOneWidget);

@@ -1307,6 +1307,24 @@ abstract class L {
   /// **'Couldn’t unpack {name}. It may be password-protected, one part of a split archive, or a damaged download. Unpack it manually and install the files inside.'**
   String errorUnpackFailed(String name);
 
+  /// No description provided for @errorSims3PackUnreadable.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} isn’t a Sims 3 package this app can read.'**
+  String errorSims3PackUnreadable(String name);
+
+  /// No description provided for @errorSims3PackWorld.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is a world, not custom content. Install it with The Sims 3 Launcher — the game keeps worlds outside the mods folder.'**
+  String errorSims3PackWorld(String name);
+
+  /// No description provided for @errorSims3PackLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is a lot or a household, not custom content. Install it with The Sims 3 Launcher — it lands in your in-game Library.'**
+  String errorSims3PackLibrary(String name);
+
   /// No description provided for @errorInstallFailed.
   ///
   /// In en, this message translates to:
@@ -1336,6 +1354,54 @@ abstract class L {
   /// In en, this message translates to:
   /// **'“{name}” is no longer in the mods folder — it may have been moved or deleted by another program.'**
   String errorFileMissing(String name);
+
+  /// No description provided for @requirementMedievalModLoader.
+  ///
+  /// In en, this message translates to:
+  /// **'The Sims Medieval can’t run script or core mods without the community’s loader file in the game’s Game\\Bin folder. Custom content works without it; everything else doesn’t.'**
+  String get requirementMedievalModLoader;
+
+  /// No description provided for @requirementSims4ModsOff.
+  ///
+  /// In en, this message translates to:
+  /// **'The game has custom content and mods switched off in its own Game Options, so none of this is loading. Turn it back on under Options → Game Options → Other, then restart the game.'**
+  String get requirementSims4ModsOff;
+
+  /// No description provided for @requirementSims4ScriptModsOff.
+  ///
+  /// In en, this message translates to:
+  /// **'You have script mods here, but the game has “Script Mods Allowed” switched off in its own Game Options. Game updates reset that.'**
+  String get requirementSims4ScriptModsOff;
+
+  /// No description provided for @requirementGetFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Where to get it'**
+  String get requirementGetFile;
+
+  /// No description provided for @tooDeepBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{One mod is} other{{count} mods are}} in a subfolder the game doesn’t read. It only looks {levels} folders deep inside the mods folder — move them higher up and they’ll load.'**
+  String tooDeepBanner(int count, int levels);
+
+  /// No description provided for @tooDeepShow.
+  ///
+  /// In en, this message translates to:
+  /// **'Show them'**
+  String get tooDeepShow;
+
+  /// No description provided for @errorNoWriteAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'The app isn’t allowed to write to “{folder}”. Your system protects that folder — give your account write access to it, or point the app somewhere else in Settings.'**
+  String errorNoWriteAccess(String folder);
+
+  /// No description provided for @folderReadOnlyBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'This mods folder is read-only, so installing and removing mods won’t work until your account can write to it.'**
+  String get folderReadOnlyBanner;
 
   /// No description provided for @errorShopDownload.
   ///

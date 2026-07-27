@@ -828,6 +828,21 @@ class LPl extends L {
   }
 
   @override
+  String errorSims3PackUnreadable(String name) {
+    return '$name to nie jest paczka The Sims 3, którą ta aplikacja potrafi odczytać.';
+  }
+
+  @override
+  String errorSims3PackWorld(String name) {
+    return '$name to świat, a nie zawartość niestandardowa. Zainstaluj go Launcherem The Sims 3 — gra trzyma światy poza folderem modów.';
+  }
+
+  @override
+  String errorSims3PackLibrary(String name) {
+    return '$name to działka albo rodzina, a nie zawartość niestandardowa. Zainstaluj to Launcherem The Sims 3 — trafi do twojej Biblioteki w grze.';
+  }
+
+  @override
   String errorInstallFailed(String name, String reason) {
     return 'Nie udało się zainstalować „$name” — $reason. Jeśli będzie się powtarzać, rozpakuj ręcznie i zainstaluj pliki ze środka.';
   }
@@ -851,6 +866,43 @@ class LPl extends L {
   String errorFileMissing(String name) {
     return '„$name” nie ma już w folderze modów — możliwe, że inny program go przeniósł albo usunął.';
   }
+
+  @override
+  String get requirementMedievalModLoader =>
+      'The Sims Medieval nie uruchomi modów skryptowych ani core bez pliku ładującego od społeczności w folderze Game\\Bin gry. Zwykła zawartość działa, reszta nie.';
+
+  @override
+  String get requirementSims4ModsOff =>
+      'Gra ma wyłączoną własną obsługę zawartości i modów w Opcjach gry, więc nic się z tego nie ładuje. Włącz to z powrotem w Opcje → Opcje gry → Inne i uruchom grę ponownie.';
+
+  @override
+  String get requirementSims4ScriptModsOff =>
+      'Masz tu mody skryptowe, ale gra ma wyłączone „Zezwalaj na mody skryptowe” w Opcjach gry. Aktualizacje to resetują.';
+
+  @override
+  String get requirementGetFile => 'Skąd go wziąć';
+
+  @override
+  String tooDeepBanner(int count, int levels) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count modów',
+    );
+    return '$_temp0 siedzi w podfolderze, którego gra nie czyta. Schodzi tylko $levels foldery w głąb — przenieś je wyżej, to się wczytają.';
+  }
+
+  @override
+  String get tooDeepShow => 'Pokaż je';
+
+  @override
+  String errorNoWriteAccess(String folder) {
+    return 'Apka nie ma uprawnień do zapisu w „$folder”. System chroni ten folder — nadaj swojemu kontu prawo zapisu albo wskaż inny folder w Ustawieniach.';
+  }
+
+  @override
+  String get folderReadOnlyBanner =>
+      'Ten folder modów jest tylko do odczytu, więc instalowanie i usuwanie modów nie zadziała, dopóki twoje konto nie będzie mogło w nim zapisywać.';
 
   @override
   String errorShopDownload(String name) {

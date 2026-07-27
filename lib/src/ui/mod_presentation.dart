@@ -3,6 +3,7 @@ import 'package:path/path.dart' as p;
 
 import '../core/game.dart';
 import '../core/mod.dart';
+import '../core/mod_folder.dart';
 import '../core/mod_name.dart';
 import 'app_controller.dart';
 import 'game_theme.dart';
@@ -28,6 +29,11 @@ String eraLabel(L l, GameTheme t, Game game) {
 /// so they are only translated at the moment they are drawn.
 String categoryChipLabel(L l, String category) =>
     category == 'All' ? l.filterAll : l.categoryName(category);
+
+/// Label for a folder filter chip. Folders travel as '/'-joined keys
+/// ('cc/defaults'); spaced out, a nested one reads as the one place it
+/// is rather than as a path the user has to parse.
+String folderChipLabel(String folder) => folderSegments(folder).join(' / ');
 
 /// Human-friendly display title: extension and version token stripped,
 /// creator naming conventions cleaned up

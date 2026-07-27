@@ -4,6 +4,32 @@
 
 #include "flutter/generated_plugin_registrant.h"
 
+namespace {
+
+// Windows refuses messages sent from a lower integrity level to a higher
+// one (UIPI). Explorer runs at medium, an elevated app at high, so when
+// the app is started as administrator - which the games that keep their
+// mods inside Program Files push people into - a drag from a folder
+// window never reaches us and dropping files does nothing at all, with
+// no error anywhere to explain it. desktop_drop's RegisterDragDrop is
+// fine; the messages OLE drag and drop rides on are what get dropped.
+//
+// Letting those three through is the documented way out. It changes
+// nothing when the app is not elevated (there is nothing to filter),
+// so it is unconditional.
+void AllowDropsFromLowerIntegrity(HWND window) {
+  if (window == nullptr) {
+    return;
+  }
+  ::ChangeWindowMessageFilterEx(window, WM_DROPFILES, MSGFLT_ALLOW, nullptr);
+  ::ChangeWindowMessageFilterEx(window, WM_COPYDATA, MSGFLT_ALLOW, nullptr);
+  // WM_COPYGLOBALDATA carries the dragged file names and has no name of
+  // its own in the headers.
+  ::ChangeWindowMessageFilterEx(window, 0x0049, MSGFLT_ALLOW, nullptr);
+}
+
+}  // namespace
+
 FlutterWindow::FlutterWindow(const flutter::DartProject& project)
     : project_(project) {}
 
@@ -24,6 +50,11 @@ bool FlutterWindow::OnCreate() {
   if (!flutter_controller_->engine() || !flutter_controller_->view()) {
     return false;
   }
+  // Both windows: desktop_drop registers its drop target on the Flutter
+  // view, which is a child of ours, and the filter is per window.
+  AllowDropsFromLowerIntegrity(GetHandle());
+  AllowDropsFromLowerIntegrity(flutter_controller_->view()->GetNativeWindow());
+
   RegisterPlugins(flutter_controller_->engine());
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
 

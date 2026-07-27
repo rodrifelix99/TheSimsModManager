@@ -378,11 +378,16 @@ void main() {
     SharedPreferences.setMockInitialValues({'soundEffects': false});
     final tempDir = Directory.systemTemp.createTempSync('mod_manager_ui');
     addTearDown(() => tempDir.deleteSync(recursive: true));
-    // At 1280 with the Ahem test font, one folder chip fits on the line
-    // and the other two overflow into the "…" menu.
-    for (final name in ['Alpha', 'Beta', 'Gamma']) {
+    // Names this long so the line can only hold one of them whatever
+    // else is on it: with the Ahem test font every glyph is full width,
+    // and the other two are pushed into the "…" menu, which is what this
+    // test is about.
+    const alpha = 'Alpha custom content';
+    const beta = 'Beta custom content';
+    const gamma = 'Gamma custom content';
+    for (final name in [alpha, beta, gamma]) {
       final dir = Directory(p.join(tempDir.path, name))..createSync();
-      File(p.join(dir.path, '${name.toLowerCase()}_mod.package'))
+      File(p.join(dir.path, '${name.split(' ').first.toLowerCase()}.package'))
           .writeAsStringSync('x');
     }
 
@@ -404,21 +409,24 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 200));
     // Menu rows show the bare label; the line chips carry '  <count>'.
-    expect(find.text('Beta'), findsOneWidget);
-    expect(find.text('Gamma'), findsOneWidget);
+    // Which is also how the layout this test needs is pinned: Alpha on
+    // the line, the other two in the menu.
+    expect(find.text(beta), findsOneWidget);
+    expect(find.text(gamma), findsOneWidget);
+    expect(find.text(alpha), findsNothing);
 
     // Reorder inside the menu: drop Gamma onto Beta.
-    var gesture = await tester.startGesture(tester.getCenter(find.text('Gamma')));
+    var gesture = await tester.startGesture(tester.getCenter(find.text(gamma)));
     await tester.pump(const Duration(milliseconds: 100));
-    await gesture.moveTo(tester.getCenter(find.text('Beta')));
+    await gesture.moveTo(tester.getCenter(find.text(beta)));
     await tester.pump(const Duration(milliseconds: 100));
     await gesture.up();
     await tester.pump(const Duration(milliseconds: 200));
-    expect(settings.folderOrder('fake'), ['Alpha', 'Gamma', 'Beta']);
+    expect(settings.folderOrder('fake'), [alpha, gamma, beta]);
 
     // Drag Gamma out of the (still open) menu onto the line's Alpha chip.
-    final lineAlpha = tester.getCenter(find.text('Alpha  1'));
-    gesture = await tester.startGesture(tester.getCenter(find.text('Gamma')));
+    final lineAlpha = tester.getCenter(find.text('$alpha  1'));
+    gesture = await tester.startGesture(tester.getCenter(find.text(gamma)));
     await tester.pump(const Duration(milliseconds: 100));
     await gesture.moveTo(lineAlpha);
     // Extra nudge: the dismiss barrier turns hit-test-transparent on the
@@ -430,11 +438,11 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
 
-    expect(settings.folderOrder('fake'), ['Gamma', 'Alpha', 'Beta']);
+    expect(settings.folderOrder('fake'), [gamma, alpha, beta]);
     // Gamma is now the folder chip on the line; the menu lists the rest.
-    expect(find.text('Gamma  1'), findsOneWidget);
-    expect(find.text('Gamma'), findsNothing);
-    expect(find.text('Alpha'), findsOneWidget);
+    expect(find.text('$gamma  1'), findsOneWidget);
+    expect(find.text(gamma), findsNothing);
+    expect(find.text(alpha), findsOneWidget);
   });
 
   testWidgets('setup view recheck button finds a newly created folder',

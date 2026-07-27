@@ -746,6 +746,21 @@ class LJa extends L {
   }
 
   @override
+  String errorSims3PackUnreadable(String name) {
+    return '$name はこのアプリが読める The Sims 3 のパッケージじゃないみたい。';
+  }
+
+  @override
+  String errorSims3PackWorld(String name) {
+    return '$name はワールドで、カスタムコンテンツじゃないよ。The Sims 3 ランチャーからインストールしてね — ワールドは Mods フォルダの外に置かれるんだ。';
+  }
+
+  @override
+  String errorSims3PackLibrary(String name) {
+    return '$name は区画か世帯で、カスタムコンテンツじゃないよ。The Sims 3 ランチャーからインストールしてね — ゲーム内のライブラリに入るよ。';
+  }
+
+  @override
   String errorInstallFailed(String name, String reason) {
     return '「$name」をインストールできませんでした — $reason。うまくいかないままなら、手動で展開して中のファイルをインストールしてね。';
   }
@@ -769,6 +784,43 @@ class LJa extends L {
   String errorFileMissing(String name) {
     return '「$name」はもうMODフォルダーにありません — 別のプログラムが移動したか削除したのかもしれません。';
   }
+
+  @override
+  String get requirementMedievalModLoader =>
+      'The Sims Medieval は、コミュニティ製のローダーファイルがゲームの Game\\Bin フォルダーにないと、スクリプトMODやコアMODを動かせません。カスタムコンテンツは動きますが、それ以外は動きません。';
+
+  @override
+  String get requirementSims4ModsOff =>
+      'ゲーム側の「ゲームオプション」でカスタムコンテンツとMODがオフになっているので、どれも読み込まれていません。オプション → ゲームオプション → その他 でオンに戻して、ゲームを再起動してください。';
+
+  @override
+  String get requirementSims4ScriptModsOff =>
+      'ここにスクリプトMODがありますが、ゲーム側の「ゲームオプション」で「スクリプトMODを許可」がオフです。ゲームのアップデートでリセットされます。';
+
+  @override
+  String get requirementGetFile => '入手先';
+
+  @override
+  String tooDeepBanner(int count, int levels) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count個のMOD',
+    );
+    return '$_temp0が、ゲームの読まないサブフォルダーに入っています。MODフォルダーの中は$levels階層までしか見てくれません — 上の階層に移せば読み込まれます。';
+  }
+
+  @override
+  String get tooDeepShow => 'どれか見る';
+
+  @override
+  String errorNoWriteAccess(String folder) {
+    return 'アプリに「$folder」への書き込み権限がありません。このフォルダーはシステムに保護されています — アカウントに書き込み権限を付けるか、設定で別のフォルダーを選んでください。';
+  }
+
+  @override
+  String get folderReadOnlyBanner =>
+      'このMODフォルダーは読み取り専用なので、アカウントが書き込めるようになるまでMODのインストールと削除はできません。';
 
   @override
   String errorShopDownload(String name) {

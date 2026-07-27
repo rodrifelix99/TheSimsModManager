@@ -807,6 +807,21 @@ class LDe extends L {
   }
 
   @override
+  String errorSims3PackUnreadable(String name) {
+    return '$name ist kein Die-Sims-3-Paket, das diese App lesen kann.';
+  }
+
+  @override
+  String errorSims3PackWorld(String name) {
+    return '$name ist eine Welt, kein Custom Content. Installier sie über den Die Sims 3 Launcher — Welten legt das Spiel außerhalb des Mods-Ordners ab.';
+  }
+
+  @override
+  String errorSims3PackLibrary(String name) {
+    return '$name ist ein Grundstück oder ein Haushalt, kein Custom Content. Installier es über den Die Sims 3 Launcher — es landet in deiner Bibliothek im Spiel.';
+  }
+
+  @override
   String errorInstallFailed(String name, String reason) {
     return '„$name“ konnte nicht installiert werden — $reason. Wenn es weiter schiefgeht, entpack es von Hand und installier die Dateien daraus.';
   }
@@ -830,6 +845,44 @@ class LDe extends L {
   String errorFileMissing(String name) {
     return '„$name“ liegt nicht mehr im Mods-Ordner — vielleicht hat ein anderes Programm die Datei verschoben oder gelöscht.';
   }
+
+  @override
+  String get requirementMedievalModLoader =>
+      'Die Sims Mittelalter kann ohne die Loader-Datei der Community im Ordner Game\\Bin des Spiels keine Script- oder Core-Mods ausführen. Custom Content läuft trotzdem, alles andere nicht.';
+
+  @override
+  String get requirementSims4ModsOff =>
+      'Im Spiel selbst sind Custom Content und Mods in den Spieloptionen ausgeschaltet, deshalb lädt hiervon nichts. Schalt es unter Optionen → Spieloptionen → Sonstiges wieder ein und starte das Spiel neu.';
+
+  @override
+  String get requirementSims4ScriptModsOff =>
+      'Du hast hier Script-Mods, aber im Spiel ist „Script-Mods zulassen“ in den Spieloptionen aus. Spiel-Updates setzen das zurück.';
+
+  @override
+  String get requirementGetFile => 'Wo es das gibt';
+
+  @override
+  String tooDeepBanner(int count, int levels) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Mods liegen',
+      one: 'Ein Mod liegt',
+    );
+    return '$_temp0 in einem Unterordner, den das Spiel nicht liest. Es schaut nur $levels Ordner tief — schieb sie weiter nach oben, dann laden sie.';
+  }
+
+  @override
+  String get tooDeepShow => 'Zeig sie mir';
+
+  @override
+  String errorNoWriteAccess(String folder) {
+    return 'Die App darf nicht in „$folder“ schreiben. Dein System schützt diesen Ordner — gib deinem Konto Schreibrechte darauf, oder wähl in den Einstellungen einen anderen Ordner.';
+  }
+
+  @override
+  String get folderReadOnlyBanner =>
+      'Dieser Mods-Ordner ist schreibgeschützt: Installieren und Entfernen klappt erst, wenn dein Konto darin schreiben darf.';
 
   @override
   String errorShopDownload(String name) {

@@ -9,11 +9,13 @@ import '../core/app_message.dart';
 import '../core/conflicts.dart';
 import '../core/deep_link.dart';
 import '../core/demo_library.dart';
+import '../core/folder_access.dart';
 import '../core/game_adapter.dart';
 import '../core/game_registry.dart';
 import '../core/mod.dart';
 import '../core/mod_advisories.dart';
 import '../core/mod_archive.dart';
+import '../core/mod_folder.dart';
 import '../core/mod_name.dart';
 import '../core/package_insight.dart';
 import '../services/analytics.dart';
@@ -31,9 +33,14 @@ enum AppScreen { library, detail, settings, shop }
 /// [ArchiveExtractionException] already carrying the message; everything
 /// else is an OS failure, whose own wording (in the user's language,
 /// because the OS wrote it) says more about it than we could.
-AppMessage installFailureMessage(Object error, String? sourcePath) {
+AppMessage installFailureMessage(Object error, String? sourcePath,
+    {String? destination}) {
   if (error is ModContentException) return error.detail;
   if (error is ArchiveExtractionException) return error.detail;
+  // [destination], because a refused copy reports the file it was
+  // reading, not the folder that turned it away.
+  final denied = noWriteAccessMessage(error, folder: destination);
+  if (denied != null) return denied;
   final String reason = error is FileSystemException
       ? error.osError?.message ?? error.message
       : '$error';
@@ -53,9 +60,34 @@ AppMessage installFailureMessage(Object error, String? sourcePath) {
 AppMessage errorMessage(Object error) => switch (error) {
       ModContentException(:final detail) => detail,
       ArchiveExtractionException(:final detail) => detail,
+      // Before the permission check below: a rename the game itself is
+      // blocking is a PathAccessException too, and the adapter has
+      // already worded that one properly.
       ModActionException(:final detail) => detail,
-      _ => AppMessage.verbatim('$error'),
+      _ => noWriteAccessMessage(error) ?? AppMessage.verbatim('$error'),
     };
+
+/// The message for a write the system refused, or `null` when [error] is
+/// something else. Worth its own wording rather than the OS text: "Access
+/// is denied" with a path after it tells a user nothing about what to do,
+/// and the games whose mods live in their own install folder (The Sims 1,
+/// The Sims Medieval) hit this on a stock Windows setup.
+AppMessage? noWriteAccessMessage(Object error, {String? folder}) {
+  if (error is! PathAccessException) return null;
+  if (folder != null) return noWriteAccessTo(folder);
+  final path = error.path;
+  if (path == null || path.isEmpty) return null;
+  // Name the folder that needs the permission, which is the failing path
+  // itself when the refused write was into a folder, and its parent when
+  // it was a file (or a folder that could not be created there).
+  return noWriteAccessTo(
+      Directory(path).existsSync() ? path : p.dirname(path));
+}
+
+/// The same message for a folder that is already known to be the problem,
+/// so a check made before the write reads exactly like the failure would.
+AppMessage noWriteAccessTo(String folder) =>
+    AppMessage('errorNoWriteAccess', [folder]);
 
 /// Coarse cause of an install failure, for the `mod_install_failed`
 /// event: enough to tell a rejected archive from a filesystem problem
@@ -65,8 +97,14 @@ String installFailureReason(Object error) => switch (error) {
       // verdict on the file (see ModContentException), but in the tally
       // it belongs with the failed unpacks: it is a broken download, not
       // an archive that held nothing useful.
-      ModContentException(detail: AppMessage(key: 'unreadableArchive')) =>
+      ModContentException(detail: AppMessage(key: 'unreadableArchive')) ||
+      ModContentException(detail: AppMessage(key: 'sims3PackUnreadable')) =>
         'unpack_failed',
+      // A world or a lot is a perfectly good file that belongs somewhere
+      // else, which is neither a broken download nor an empty archive.
+      ModContentException(detail: AppMessage(key: 'sims3PackWorld')) ||
+      ModContentException(detail: AppMessage(key: 'sims3PackLibrary')) =>
+        'wrong_content',
       ModContentException() => 'no_mod_files',
       ArchiveExtractionException(cause: ArchiveExtractionFailure.noUnpacker) =>
         'no_unpacker',
@@ -152,6 +190,27 @@ class AppController extends ChangeNotifier {
   /// when the game/folder couldn't be located.
   Directory? modsDir;
 
+  /// Whether [modsDir] will take a file at all. False on a stock Windows
+  /// setup for the games that keep their mods inside the game's install
+  /// folder, where every install and removal is going to be refused; the
+  /// library says so rather than letting the user find out one failure at
+  /// a time. True whenever there is no folder to judge.
+  bool modsDirWritable = true;
+
+  /// Answers cached per folder: the probe writes a file, and refresh runs
+  /// after every toggle. Permissions do change (that is the whole point
+  /// of telling the user about them), so the folder just told off is
+  /// asked again on the next refresh.
+  final Map<String, bool> _writableByPath = {};
+
+  Future<bool> _isWritable(Directory dir) async {
+    final cached = _writableByPath[dir.path];
+    if (cached == true) return true;
+    final writable = await canWriteInto(dir);
+    _writableByPath[dir.path] = writable;
+    return writable;
+  }
+
   bool usingOverride = false;
 
   List<Mod> _mods = const [];
@@ -188,6 +247,10 @@ class AppController extends ChangeNotifier {
   /// Narrows [filteredMods] to the mods an advisory names, the way
   /// [conflictsOnly] does. Toggled from the library banner.
   bool advisoriesOnly = false;
+
+  /// Narrows [filteredMods] to the mods buried below what the game
+  /// reads, the way [advisoriesOnly] does. Toggled from the banner.
+  bool tooDeepOnly = false;
 
   /// Alternate mods folders found on this machine (multiple installs,
   /// localized names), shown when the default guess fails or as choices.
@@ -275,6 +338,12 @@ class AppController extends ChangeNotifier {
   final Map<String, Mod> _byPath = {};
   final Map<String, String?> _folderOfPath = {};
   final Map<String, int> _folderCounts = {};
+
+  /// Folder chips whose mods live outside the mods directory (Sims 1
+  /// routes skins and walls into sibling game folders). They are grouped
+  /// and filtered like the others, but nothing installs into them by
+  /// name: the adapter decides where those files go.
+  final Set<String> _externalFolders = {};
   final Map<String, int> _categoryCounts = {};
   List<String> _sortedFolders = const [];
   List<String> _sortedCategories = const [];
@@ -294,6 +363,7 @@ class AppController extends ChangeNotifier {
     _byPath.clear();
     _folderOfPath.clear();
     _folderCounts.clear();
+    _externalFolders.clear();
     _categoryCounts.clear();
     _enabledCount = 0;
     _totalSizeBytes = 0;
@@ -303,15 +373,29 @@ class AppController extends ChangeNotifier {
       final folder = root == null ? null : _resolveFolder(root, mod.path);
       _folderOfPath[mod.path] = folder;
       if (folder != null) {
-        _folderCounts[folder] = (_folderCounts[folder] ?? 0) + 1;
+        if (root != null && !p.isWithin(root, mod.path)) {
+          _externalFolders.add(folder);
+          _folderCounts[folder] = (_folderCounts[folder] ?? 0) + 1;
+        } else {
+          // A folder counts everything below it too, and earns a chip
+          // even when it holds no mod files of its own: a user who put
+          // everything in cc/defaults still thinks of cc as a folder.
+          for (final key in folderAncestry(folder)) {
+            _folderCounts[key] = (_folderCounts[key] ?? 0) + 1;
+          }
+        }
       }
       _categoryCounts[mod.category] = (_categoryCounts[mod.category] ?? 0) + 1;
       if (mod.isEnabled) _enabledCount++;
       _totalSizeBytes += mod.sizeBytes ?? 0;
     }
+    // Sorting the paths puts each folder straight above its own children.
     _sortedFolders = _folderCounts.keys.toList()
       ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
     _sortedCategories = _categoryCounts.keys.toList()..sort();
+    // The chips these filters point at may have just gone away.
+    if (!categories.contains(category)) category = 'All';
+    if (folder != 'All' && !_folderCounts.containsKey(folder)) folder = 'All';
     _libraryStamp++;
   }
 
@@ -323,15 +407,16 @@ class AppController extends ChangeNotifier {
   List<Mod> get filteredMods {
     final q = query.trim().toLowerCase();
     final key = '$_libraryStamp|$category|$folder|$conflictsOnly'
-        '|$advisoriesOnly|${settings.showDisabled}|$q';
+        '|$advisoriesOnly|$tooDeepOnly|${settings.showDisabled}|$q';
     final cached = _filtered;
     if (cached != null && _filteredKey == key) return cached;
     final result = [
       for (final mod in mods)
         if ((category == 'All' || mod.category == category) &&
-            (folder == 'All' || folderOf(mod) == folder) &&
+            (folder == 'All' || _inFolder(folderOf(mod), folder)) &&
             (!conflictsOnly || conflictPaths.contains(mod.path)) &&
             (!advisoriesOnly || advisories.containsKey(mod.path)) &&
+            (!tooDeepOnly || tooDeepPaths.contains(mod.path)) &&
             (settings.showDisabled || mod.isEnabled) &&
             (q.isEmpty ||
                 mod.name.toLowerCase().contains(q) ||
@@ -343,16 +428,22 @@ class AppController extends ChangeNotifier {
     return result;
   }
 
-  /// Category labels present in the current library, 'All' first.
-  List<String> get categories => ['All', ..._sortedCategories];
+  /// Category labels present in the current library, 'All' first. A game
+  /// with one mod file extension (The Sims Medieval has only `.package`)
+  /// gives every mod the same category, and a chip counting the whole
+  /// library next to 'All' counting the whole library only invites the
+  /// question of what it means - so it isn't offered.
+  List<String> get categories =>
+      _sortedCategories.length < 2 ? const ['All'] : ['All', ..._sortedCategories];
 
   int categoryCount(String cat) =>
       cat == 'All' ? mods.length : _categoryCounts[cat] ?? 0;
 
-  /// Top-level subfolder of the mods directory holding [mod], or `null`
-  /// when the file sits directly in the mods folder. Mods living outside
-  /// the mods directory (Sims 1 routes skins/walls/floors into sibling
-  /// game folders) group under their own folder's name instead.
+  /// Subfolder of the mods directory holding [mod], at whatever depth it
+  /// sits, as a '/'-joined path ('cc', 'cc/defaults'); `null` when the
+  /// file sits directly in the mods folder. Mods living outside the mods
+  /// directory (Sims 1 routes skins/walls/floors into sibling game
+  /// folders) group under their own folder's name instead.
   String? folderOf(Mod mod) {
     // containsKey, not a null check: sitting directly in the mods folder is
     // a cached answer of its own.
@@ -364,13 +455,23 @@ class AppController extends ChangeNotifier {
   String? _resolveFolder(String root, String path) {
     if (!p.isWithin(root, path)) return p.basename(p.dirname(path));
     final parts = p.split(p.relative(path, from: root));
-    return parts.length > 1 ? parts.first : null;
+    // Always '/', on Windows too: this is a key the app compares and
+    // saves, not a path it hands back to the filesystem.
+    return parts.length > 1
+        ? parts.sublist(0, parts.length - 1).join('/')
+        : null;
   }
 
-  /// Top-level subfolder names present in the current library, for the
-  /// folder filter chips. Empty when every mod sits directly in the root.
-  /// Follows the user's drag-and-drop arrangement when one is saved;
-  /// folders it doesn't mention (new on disk) append alphabetically.
+  /// Whether a mod in [actual] belongs under the chip for [selected]:
+  /// its own folder, or any folder below it.
+  bool _inFolder(String? actual, String selected) =>
+      actual != null && folderIsWithin(actual, selected);
+
+  /// Subfolder paths present in the current library, for the folder
+  /// filter chips, parents included. Empty when every mod sits directly
+  /// in the root. Follows the user's drag-and-drop arrangement when one
+  /// is saved; folders it doesn't mention (new on disk) append
+  /// alphabetically.
   List<String> get folders {
     final saved = settings.folderOrder(_adapter.game.id);
     if (saved == null) return _sortedFolders;
@@ -491,6 +592,63 @@ class AppController extends ChangeNotifier {
   }
 
   int get advisoryCount => advisories.length;
+
+  /// How deep this game reads inside the mods folder, or null when it
+  /// reads however deep you go. See [GameAdapter.modDepthLimit].
+  int? modDepthLimit;
+
+  /// What the game still needs before it will run any of this, as the
+  /// adapter's own keys. See [GameAdapter.unmetRequirements].
+  List<String> unmetRequirements = const [];
+
+  /// Mods sitting below [modDepthLimit]: on disk, listed here, and never
+  /// loaded by the game. Rebuilt with the library.
+  Set<String> tooDeepPaths = const {};
+
+  int get tooDeepCount => tooDeepPaths.length;
+
+  bool isTooDeep(Mod mod) => tooDeepPaths.contains(mod.path);
+
+  void _findTooDeepMods() {
+    final limit = modDepthLimit;
+    if (limit == null) {
+      tooDeepPaths = const {};
+      tooDeepOnly = false;
+      return;
+    }
+    tooDeepPaths = {
+      for (final mod in mods)
+        if (_depthOf(mod) > limit) mod.path,
+    };
+    if (tooDeepPaths.isEmpty) tooDeepOnly = false;
+  }
+
+  /// Levels of subfolder between the mods folder and [mod]. A file
+  /// sitting straight in the mods folder is 0. Mods outside the mods
+  /// folder entirely (Sims 1's routed skins) are the adapter's business,
+  /// not the cfg's.
+  int _depthOf(Mod mod) {
+    final root = modsDir?.path;
+    if (root == null || !p.isWithin(root, mod.path)) return 0;
+    final folder = folderOf(mod);
+    return folder == null ? 0 : folderSegments(folder).length;
+  }
+
+  /// Narrows the library to the mods the game is too shallow to read, or
+  /// back to all of them; the same shape as [toggleAdvisoriesOnly].
+  void toggleTooDeepOnly() {
+    if (!tooDeepOnly && tooDeepCount == 0) return;
+    playSound(UiSound.cycle);
+    tooDeepOnly = !tooDeepOnly;
+    if (tooDeepOnly) {
+      analytics.capture('too_deep_filter_opened', {
+        'game': _adapter.game.id,
+        'mods': tooDeepCount,
+        'limit': modDepthLimit ?? -1,
+      });
+    }
+    notifyListeners();
+  }
 
   /// What the published list says about [mod], or null when it says
   /// nothing about it.
@@ -872,6 +1030,7 @@ class AppController extends ChangeNotifier {
     folder = 'All';
     conflictsOnly = false;
     advisoriesOnly = false;
+    tooDeepOnly = false;
     _selectedModPath = null;
     // The Exchange is deliberately left alone: its shelves span every
     // game, so switching the library doesn't re-shelve them.
@@ -1007,10 +1166,13 @@ class AppController extends ChangeNotifier {
         if (fallback != null) dir = Directory(fallback);
       }
       modsDir = dir;
+      modsDirWritable = dir == null || await _isWritable(dir);
+      modDepthLimit = dir == null ? null : await _adapter.modDepthLimit(dir);
+      unmetRequirements =
+          dir == null ? const [] : await _adapter.unmetRequirements(dir);
       _setMods(_withDemoMods(
           dir == null ? const [] : await _adapter.listMods(dir)));
-      // The filtered folder may have been renamed/emptied on disk.
-      if (folder != 'All' && !folders.contains(folder)) folder = 'All';
+      _findTooDeepMods();
       // Artwork/content scan happens here, under the loading screen,
       // so the library renders instantly from cache afterwards. It must
       // land before the conflict scan: resource-overlap detection reads
@@ -1254,14 +1416,27 @@ class AppController extends ChangeNotifier {
     return adapter.resolveModsDirectory();
   }
 
+  /// Where an install lands: the selected folder chip, so that what you
+  /// are looking at is what you install into, and the mods folder itself
+  /// when the filter is off. Only for the game on screen (no other game
+  /// has a chip selected) and only for folders that really are
+  /// subfolders of it - Sims 1's routed skins and walls are chips too,
+  /// and the adapter decides what goes in those.
+  Directory _installDestination(GameAdapter adapter, Directory modsFolder) {
+    if (adapter.game.id != _adapter.game.id) return modsFolder;
+    if (folder == 'All' || _externalFolders.contains(folder)) return modsFolder;
+    return Directory(p.joinAll([modsFolder.path, ...folderSegments(folder)]));
+  }
+
   /// Installs [sources] into [into]'s mods folder, the game on screen
   /// unless a caller says otherwise ([target] is that game's folder, so
   /// the resolution isn't done twice).
   Future<void> installFiles(List<FileSystemEntity> sources,
       {String method = 'picker', GameAdapter? into, Directory? target}) async {
     final adapter = into ?? _adapter;
-    final dir = target ?? modsDir;
-    if (dir == null) return;
+    final modsFolder = target ?? modsDir;
+    if (modsFolder == null) return;
+    final dir = _installDestination(adapter, modsFolder);
     AppMessage? error;
     var folders = 0, archives = 0, files = 0;
     FileSystemEntity? failing;
@@ -1271,7 +1446,8 @@ class AppController extends ChangeNotifier {
         if (source is Directory) {
           folders++;
           await adapter.installFolder(dir, source);
-        } else if (isArchivePath(source.path)) {
+        } else if (adapter.containerFileExtensions
+            .contains(p.extension(source.path).toLowerCase())) {
           archives++;
           await adapter.installArchive(dir, File(source.path));
         } else {
@@ -1288,7 +1464,7 @@ class AppController extends ChangeNotifier {
         'folders': folders,
       });
     } catch (e, stack) {
-      error = installFailureMessage(e, failing?.path);
+      error = installFailureMessage(e, failing?.path, destination: dir.path);
       // A ModContentException is the adapter reporting that the archive or
       // folder held nothing this game can use, an ArchiveExtractionException
       // that the archive wouldn't open at all - verdicts on the file, not
@@ -1318,7 +1494,7 @@ class AppController extends ChangeNotifier {
   Future<void> installDroppedPaths(List<String> paths) async {
     final accepted = {
       ..._adapter.modFileExtensions,
-      ...archiveFileExtensions,
+      ..._adapter.containerFileExtensions,
     };
     final sources = <FileSystemEntity>[];
     for (final path in paths) {
@@ -1401,6 +1577,17 @@ class AppController extends ChangeNotifier {
   Future<void> createDefaultFolder() async {
     final path = defaultPath;
     if (path == null) return;
+    // Asked before the attempt rather than after it: creating this folder
+    // is recursive, so a run that gets halfway up a protected path leaves
+    // folders behind and still fails.
+    if (!await canWriteInto(Directory(path))) {
+      lastError = noWriteAccessTo(path);
+      analytics.capture(
+          'mods_folder_create_denied', {'game': _adapter.game.id});
+      playSound(UiSound.error);
+      notifyListeners();
+      return;
+    }
     try {
       await _adapter.createModsDirectory(path);
       playSound(UiSound.install);
@@ -1458,6 +1645,27 @@ class AppController extends ChangeNotifier {
         .capture('announcement_dismissed', {'announcement': current['id']});
     await settings.addDismissedAnnouncement(current['id'].toString());
     notifyListeners();
+  }
+
+  /// Where a user gets what the game is missing, for the requirements
+  /// that are a file somebody else distributes. Null for the ones that
+  /// are a switch inside the game: those are fixed where they are.
+  ///
+  /// The app links to it and does not fetch it. A loader DLL goes next
+  /// to the game's own executable, and downloading and installing one of
+  /// those on someone's behalf is not the app's business.
+  static String? requirementHelpUrl(String key) => switch (key) {
+        'medievalModLoader' => 'https://modthesims.info/showthread.php?t=438344',
+        _ => null,
+      };
+
+  void openRequirementHelp(String key) {
+    final url = requirementHelpUrl(key);
+    if (url == null) return;
+    playSound(UiSound.click);
+    analytics.capture('requirement_help_opened',
+        {'game': _adapter.game.id, 'requirement': key});
+    openUrl(Uri.parse(url));
   }
 
   void openAnnouncementUrl() {

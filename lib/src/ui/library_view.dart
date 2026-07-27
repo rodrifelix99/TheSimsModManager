@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 
 import '../core/mod.dart';
-import '../core/mod_archive.dart';
 import '../services/sfx.dart';
 import 'app_controller.dart';
 import 'game_theme.dart';
@@ -132,6 +131,11 @@ class LibraryView extends StatelessWidget {
           ),
         ),
         if (c.announcement != null) _announcementBanner(t, c, l),
+        if (!c.modsDirWritable) _readOnlyBanner(t, l),
+        for (final key in c.unmetRequirements)
+          if (l.requirement(key) case final text?)
+            _requirementBanner(t, c, l, key, text),
+        if (c.tooDeepCount > 0) _tooDeepBanner(t, c, l),
         if (c.advisoryCount > 0) _advisoryBanner(t, c, l),
         Padding(
           padding: const EdgeInsets.fromLTRB(28, 16, 28, 14),
@@ -208,6 +212,132 @@ class LibraryView extends StatelessWidget {
               iconSize: 17,
               color: t.muted,
               icon: const Icon(Icons.close_rounded),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// The mods folder won't take a file. Said here, once, rather than
+  /// leaving the user to discover it one refused install at a time -
+  /// which is how it read before, since the OS wording behind the failure
+  /// ("Access is denied") never mentions permissions at all.
+  Widget _readOnlyBanner(GameTheme t, L l) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(28, 14, 28, 0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: t.warning.withValues(alpha: .1),
+          border: Border.all(color: t.warning, width: 1.5),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.lock_outline_rounded, size: 20, color: t.warning),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                l.folderReadOnlyBanner,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: t.onWarningTint,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Something outside the mods folder that stops the game running any
+  /// of this: Medieval's loader file missing, or The Sims 4 set to
+  /// ignore mods. The library looks perfectly healthy in both cases,
+  /// which is exactly why it has to be said here.
+  Widget _requirementBanner(
+      GameTheme t, AppController c, L l, String key, String text) {
+    final help = AppController.requirementHelpUrl(key);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(28, 14, 28, 0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: t.warning.withValues(alpha: .1),
+          border: Border.all(color: t.warning, width: 1.5),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.extension_off_rounded, size: 20, color: t.warning),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                text,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: t.onWarningTint,
+                ),
+              ),
+            ),
+            if (help != null) ...[
+              const SizedBox(width: 12),
+              TextButton(
+                onPressed: () => c.openRequirementHelp(key),
+                style: TextButton.styleFrom(
+                  foregroundColor: t.warning,
+                  textStyle: const TextStyle(
+                      fontWeight: FontWeight.w800, fontSize: 13),
+                ),
+                child: Text(l.requirementGetFile),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Mods nested deeper than the game's own Resource.cfg reaches. They
+  /// are installed, enabled and completely inert, and nothing else in
+  /// the app or the game would ever say so.
+  Widget _tooDeepBanner(GameTheme t, AppController c, L l) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(28, 14, 28, 0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: t.warning.withValues(alpha: .1),
+          border: Border.all(color: t.warning, width: 1.5),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.folder_off_rounded, size: 20, color: t.warning),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                l.tooDeepBanner(c.tooDeepCount, c.modDepthLimit ?? 0),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: t.onWarningTint,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            TextButton(
+              onPressed: c.toggleTooDeepOnly,
+              style: TextButton.styleFrom(
+                foregroundColor: t.warning,
+                textStyle:
+                    const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+              ),
+              child:
+                  Text(c.tooDeepOnly ? l.advisoryShowAll : l.tooDeepShow),
             ),
           ],
         ),
@@ -385,7 +515,8 @@ class LibraryView extends StatelessWidget {
     // unpacks them and installs the mod files they contain.
     final extensions = [
       for (final e in c.adapter.modFileExtensions) e.replaceFirst('.', ''),
-      for (final e in archiveFileExtensions) e.replaceFirst('.', ''),
+      for (final e in c.adapter.containerFileExtensions)
+        e.replaceFirst('.', ''),
     ];
     final files = await openFiles(acceptedTypeGroups: [
       XTypeGroup(
@@ -587,6 +718,10 @@ class _FilterChipsState extends State<_FilterChips> {
         count: c.categoryCount(cat),
         active: cat == c.category,
         onTap: () => c.setCategory(cat),
+        // 'All' is neither axis, so it stays bare; the rest say what
+        // they filter on, since a file type and a folder of the user's
+        // own sit side by side on this line.
+        icon: cat == 'All' ? null : Icons.description_rounded,
       );
 
   /// A folder chip is also a drag source and a drop target: dropping
@@ -595,7 +730,7 @@ class _FilterChipsState extends State<_FilterChips> {
   Widget _folderChip(GameTheme t, AppController c, String f) {
     final chip = _chip(
       t,
-      f,
+      folderChipLabel(f),
       count: c.folderCount(f),
       active: f == c.folder,
       onTap: () => c.setFolder(f == c.folder ? 'All' : f),
@@ -783,9 +918,9 @@ class _FilterChipsState extends State<_FilterChips> {
           color: hovered ? t.tint : Colors.transparent,
           child: Row(
             children: [
-              if (e.isFolder) ...[
+              if (e.isFolder || e.label != 'All') ...[
                 Icon(
-                  Icons.folder_rounded,
+                  e.isFolder ? Icons.folder_rounded : Icons.description_rounded,
                   size: 14,
                   color: active ? t.accent : t.muted,
                 ),
@@ -793,7 +928,9 @@ class _FilterChipsState extends State<_FilterChips> {
               ],
               Flexible(
                 child: Text(
-                  e.isFolder ? e.label : categoryChipLabel(l, e.label),
+                  e.isFolder
+                      ? folderChipLabel(e.label)
+                      : categoryChipLabel(l, e.label),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -832,7 +969,7 @@ class _FilterChipsState extends State<_FilterChips> {
         type: MaterialType.transparency,
         child: _chip(
           t,
-          e.label,
+          folderChipLabel(e.label),
           count: count,
           active: active,
           onTap: () {},

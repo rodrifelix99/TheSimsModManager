@@ -8,6 +8,8 @@ import '../../core/game_adapter.dart';
 import '../../core/install_path.dart';
 import '../../core/mod.dart';
 import '../../core/mod_archive.dart';
+import '../../core/resource_cfg.dart';
+import 'sims3pack.dart';
 
 /// Adapters for the four mainline Sims games and The Sims Medieval.
 /// The Documents games (Sims 2/3/4) share [DocumentsSimsAdapter]; the
@@ -466,6 +468,44 @@ class Sims4Adapter extends DocumentsSimsAdapter {
         'PackedFile */*/*/*/*.package\n'
         'DirectoryFiles unpackedmod autoupdate\n');
   }
+
+  @override
+  File? resourceCfgFile(Directory modsDir) =>
+      File(p.join(modsDir.path, 'Resource.cfg'));
+
+  /// The game has its own two switches for this, in Game Options, and a
+  /// patch resets them: mods off is the most common reason a Sims 4
+  /// library does nothing. Both live in Options.ini next to the Mods
+  /// folder, so the app can read what the game is set to.
+  @override
+  Future<List<String>> unmetRequirements(Directory modsDir) async {
+    final options = File(p.join(modsDir.parent.path, 'Options.ini'));
+    final settings = await readIniSettings(options);
+    // No file yet means the game has not been run since the folder was
+    // made; it writes its defaults (mods on) on first launch.
+    if (settings == null) return const [];
+    return [
+      if (settings['modsdisabled'] == '1') 'sims4ModsOff',
+      // Only worth raising when there are script mods to run.
+      if (settings['scriptmodsenabled'] == '0' &&
+          await _hasScriptMods(modsDir))
+        'sims4ScriptModsOff',
+    ];
+  }
+
+  Future<bool> _hasScriptMods(Directory modsDir) async {
+    try {
+      await for (final entity in modsDir.list(recursive: true).handleError(
+        (Object _) {},
+      )) {
+        if (entity is File &&
+            p.extension(entity.path).toLowerCase() == '.ts4script') {
+          return true;
+        }
+      }
+    } catch (_) {}
+    return false;
+  }
 }
 
 class Sims3Adapter extends DocumentsSimsAdapter {
@@ -477,6 +517,11 @@ class Sims3Adapter extends DocumentsSimsAdapter {
 
   @override
   Set<String> get modFileExtensions => const {'.package'};
+
+  /// The game's own container, alongside the formats every game takes.
+  @override
+  Set<String> get containerFileExtensions =>
+      const {...archiveFileExtensions, sims3PackExtension};
 
   @override
   List<String> get vendorFolders => const ['Electronic Arts', 'EA Games'];
@@ -518,6 +563,22 @@ class Sims3Adapter extends DocumentsSimsAdapter {
         'PackedFile Packages/*/*/*.package\n'
         'PackedFile Packages/*/*/*/*.package\n'
         'PackedFile Packages/*/*/*/*/*.package\n');
+  }
+
+  @override
+  File? resourceCfgFile(Directory modsDir) =>
+      File(p.join(modsDir.parent.path, 'Resource.cfg'));
+
+  /// A sims3pack is unpacked by its own reader; everything else is one of
+  /// the shared archive formats and goes the usual way.
+  @override
+  Future<List<Mod>> installArchive(Directory modsDir, File archive) async {
+    if (!isSims3PackPath(archive.path)) {
+      return super.installArchive(modsDir, archive);
+    }
+    await modsDir.create(recursive: true);
+    final files = await extractSims3Pack(archive, modsDir, modFileExtensions);
+    return [for (final file in files) toMod(file)!];
   }
 }
 
@@ -762,6 +823,26 @@ class SimsMedievalAdapter extends InstallFolderSimsAdapter {
         'PackedFile Mods/Packages/*/*/*.package\n'
         'PackedFile Mods/Packages/*/*/*/*.package\n'
         'PackedFile Mods/Packages/*/*/*/*/*.package\n');
+  }
+
+  @override
+  File? resourceCfgFile(Directory modsDir) =>
+      File(p.join(modsDir.parent.parent.path, 'Resource.cfg'));
+
+  /// The game was never built to load mods. The community's way in is a
+  /// proxy DLL next to the executable, and without it custom content
+  /// still works while script and core mods quietly do nothing - so a
+  /// library that looks perfectly healthy is half inert. Only checked
+  /// against a real install: a custom mods folder somewhere else has no
+  /// Game/Bin to look in.
+  @override
+  Future<List<String>> unmetRequirements(Directory modsDir) async {
+    final root = modsDir.parent.parent;
+    if (!await File(p.join(root.path, 'Game', 'Bin', 'TSM.exe')).exists()) {
+      return const [];
+    }
+    final loader = File(p.join(root.path, 'Game', 'Bin', 'd3dx9_31.dll'));
+    return await loader.exists() ? const [] : const ['medievalModLoader'];
   }
 }
 

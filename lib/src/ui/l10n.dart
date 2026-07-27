@@ -66,6 +66,16 @@ extension AppText on L {
         _ => key,
       };
 
+  /// What the game still needs before it runs any of this. The adapter
+  /// names the requirement, not the wording; a key with no translation
+  /// yet is not worth a banner, so it draws nothing.
+  String? requirement(String key) => switch (key) {
+        'medievalModLoader' => requirementMedievalModLoader,
+        'sims4ModsOff' => requirementSims4ModsOff,
+        'sims4ScriptModsOff' => requirementSims4ScriptModsOff,
+        _ => null,
+      };
+
   String eraName(String key) => switch (key) {
         'classic' => eraClassic,
         'nightlife' => eraNightlife,
@@ -90,11 +100,15 @@ extension AppText on L {
       'noUnpackerLinux' => errorNoUnpackerLinux(arg(0), arg(1)),
       'noUnpackerLinuxRar' => errorNoUnpackerLinuxRar(arg(0), arg(1)),
       'unpackFailed' => errorUnpackFailed(arg(0)),
+      'sims3PackUnreadable' => errorSims3PackUnreadable(arg(0)),
+      'sims3PackWorld' => errorSims3PackWorld(arg(0)),
+      'sims3PackLibrary' => errorSims3PackLibrary(arg(0)),
       'installFailed' => errorInstallFailed(arg(0), arg(1)),
       'installFailedRaw' => errorInstallFailedRaw(arg(0), arg(1)),
       'fileInUseDelete' => errorFileInUseDelete(arg(0)),
       'fileInUseRename' => errorFileInUseRename(arg(0)),
       'fileMissing' => errorFileMissing(arg(0)),
+      'errorNoWriteAccess' => errorNoWriteAccess(arg(0)),
       'shopDownloadFailed' => errorShopDownload(arg(0)),
       'shopNeedsFolder' => shopNeedsFolder(arg(0)),
       'shopListingNotFound' => errorShopListingNotFound,

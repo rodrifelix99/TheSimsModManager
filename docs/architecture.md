@@ -19,7 +19,7 @@ lib/src/
 | --- | --- |
 | `Game` | Pure metadata (id, name, series, year). Never gains game-specific behavior. |
 | `Mod` | Immutable snapshot of a mod file on disk (incl. `category`, `modifiedAt`). Mutations go through the adapter and return new instances. |
-| `GameAdapter` | The extension point: mod file extensions, `setupHelp` text, folder resolution (`resolveModsDirectory`, `defaultModsPath`, `findModsDirectoryCandidates`), `createModsDirectory` (with game-specific scaffolding), categorization, list/install/remove/enable/disable. |
+| `GameAdapter` | The extension point: mod file extensions, the containers unpacked on install (`containerFileExtensions`), `setupHelp` text, folder resolution (`resolveModsDirectory`, `defaultModsPath`, `findModsDirectoryCandidates`), `createModsDirectory` (with game-specific scaffolding), categorization, list/install/remove/enable/disable. |
 | `FolderBasedGameAdapter` | Shared base for games whose mods are plain files in a folder (all Sims games). Disable = rename with a `.disabled` suffix; the game's loader then skips the file. |
 | `conflicts.dart` | `findConflicts`: lexical heuristics over enabled mods (duplicate file names, two versions of the same mod). `findResourceOverlaps`: the real signal, packages sharing DBPF resource keys. |
 | `mod_name.dart` | `humanizeModName` for display titles, `parseModName` for a best-effort version token and a version-independent identity key. Package files carry no version metadata, so the file name is the only signal. |
@@ -37,6 +37,17 @@ Medieval are install-folder games instead: they scan Program Files / Steam
 locations (Medieval verifies disc installs by their `Game/Bin/TSM.exe`
 signature, since disc folder names are localized). Adapters are registered
 in `main.dart`.
+
+The Sims 3 also takes EA's own container, `.sims3pack`
+(`the_sims/sims3pack.dart`): a length-prefixed `TS3Pack` magic, two version
+bytes, an XML manifest, then every file it carries, each at an `<Offset>`
+counted from the end of that manifest. The packages inside install into a
+subfolder named after the pack, so they enable and remove like any other
+mod and the library gets a chip for them. Worlds, lots and households ship
+in the same container and belong to the game's Launcher rather than the
+mods folder, so a pack carrying one is refused whole - decided per entry
+on `<ContentType>`, never on the root `Type` attribute, which says
+`"object"` on most of the store worlds.
 
 Mods-folder resolution is a best-effort guess and returns `null` when the
 game isn't found; the UI handles `null` with a setup screen (manual folder

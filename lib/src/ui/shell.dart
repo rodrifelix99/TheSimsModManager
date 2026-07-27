@@ -7,7 +7,6 @@ import 'package:window_manager/window_manager.dart';
 
 import '../core/game.dart';
 import '../core/game_adapter.dart';
-import '../core/mod_archive.dart';
 import 'app_controller.dart';
 import 'detail_view.dart';
 import 'game_theme.dart';
@@ -230,7 +229,7 @@ class _DropOverlay extends StatelessWidget {
     final l = L.of(context);
     final accepted = [
       ...controller.adapter.modFileExtensions,
-      ...archiveFileExtensions,
+      ...controller.adapter.containerFileExtensions,
     ]..sort();
     return Container(
       color: t.bg.withValues(alpha: .8),

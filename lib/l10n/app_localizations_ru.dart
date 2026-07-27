@@ -827,6 +827,21 @@ class LRu extends L {
   }
 
   @override
+  String errorSims3PackUnreadable(String name) {
+    return '$name — это не пакет The Sims 3, который приложение может прочитать.';
+  }
+
+  @override
+  String errorSims3PackWorld(String name) {
+    return '$name — это мир, а не пользовательский контент. Установи его через лаунчер The Sims 3 — игра хранит миры вне папки модов.';
+  }
+
+  @override
+  String errorSims3PackLibrary(String name) {
+    return '$name — это участок или семья, а не пользовательский контент. Установи его через лаунчер The Sims 3 — он попадёт в твою Библиотеку в игре.';
+  }
+
+  @override
   String errorInstallFailed(String name, String reason) {
     return 'Не удалось установить «$name» — $reason. Если так и продолжится, распакуй вручную и установи файлы из него.';
   }
@@ -850,6 +865,43 @@ class LRu extends L {
   String errorFileMissing(String name) {
     return '«$name» больше нет в папке модов — возможно, другая программа переместила или удалила файл.';
   }
+
+  @override
+  String get requirementMedievalModLoader =>
+      'The Sims Medieval не запускает скриптовые и core-моды без загрузчика от сообщества в папке Game\\Bin. Обычный контент работает и так, всё остальное — нет.';
+
+  @override
+  String get requirementSims4ModsOff =>
+      'В самой игре в настройках выключены пользовательский контент и моды, поэтому ничего из этого не грузится. Включи обратно в Настройки → Настройки игры → Другое и перезапусти игру.';
+
+  @override
+  String get requirementSims4ScriptModsOff =>
+      'У тебя тут есть скриптовые моды, но в настройках игры выключено «Разрешить скриптовые моды». Обновления игры сбрасывают этот пункт.';
+
+  @override
+  String get requirementGetFile => 'Где взять';
+
+  @override
+  String tooDeepBanner(int count, int levels) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count модов',
+    );
+    return '$_temp0 лежат в подпапке, которую игра не читает. Она заглядывает только на $levels папки вглубь — подними их повыше, и они загрузятся.';
+  }
+
+  @override
+  String get tooDeepShow => 'Показать их';
+
+  @override
+  String errorNoWriteAccess(String folder) {
+    return 'У приложения нет прав на запись в «$folder». Система защищает эту папку — выдай своей учётной записи доступ на запись или выбери другую папку в настройках.';
+  }
+
+  @override
+  String get folderReadOnlyBanner =>
+      'Эта папка модов только для чтения, так что установка и удаление модов не сработают, пока у твоей учётной записи не будет прав на запись.';
 
   @override
   String errorShopDownload(String name) {

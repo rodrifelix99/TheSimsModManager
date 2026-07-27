@@ -804,6 +804,21 @@ class LPt extends L {
   }
 
   @override
+  String errorSims3PackUnreadable(String name) {
+    return '$name não é um pacote do The Sims 3 que este app consiga ler.';
+  }
+
+  @override
+  String errorSims3PackWorld(String name) {
+    return '$name é um mundo, não conteúdo personalizado. Instale pelo Launcher do The Sims 3 — o jogo guarda os mundos fora da pasta de mods.';
+  }
+
+  @override
+  String errorSims3PackLibrary(String name) {
+    return '$name é um terreno ou uma família, não conteúdo personalizado. Instale pelo Launcher do The Sims 3 — ele vai parar na sua Biblioteca dentro do jogo.';
+  }
+
+  @override
   String errorInstallFailed(String name, String reason) {
     return 'Não deu para instalar “$name” — $reason. Se continuar falhando, descompacte na mão e instale os arquivos de dentro.';
   }
@@ -827,6 +842,44 @@ class LPt extends L {
   String errorFileMissing(String name) {
     return '“$name” não está mais na pasta de mods — outro programa pode ter movido ou excluído o arquivo.';
   }
+
+  @override
+  String get requirementMedievalModLoader =>
+      'The Sims Medieval não roda mods de script nem de núcleo sem o arquivo carregador da comunidade na pasta Game\\Bin do jogo. Conteúdo personalizado funciona; o resto não.';
+
+  @override
+  String get requirementSims4ModsOff =>
+      'O jogo está com conteúdo personalizado e mods desligados nas Opções de jogo dele, então nada disso está carregando. Liga de novo em Opções → Opções de jogo → Outros e reinicia o jogo.';
+
+  @override
+  String get requirementSims4ScriptModsOff =>
+      'Você tem mods de script aqui, mas o jogo está com “Permitir mods de script” desligado nas Opções de jogo. As atualizações resetam isso.';
+
+  @override
+  String get requirementGetFile => 'Onde baixar';
+
+  @override
+  String tooDeepBanner(int count, int levels) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Tem $count mods',
+      one: 'Tem um mod',
+    );
+    return '$_temp0 numa subpasta que o jogo não lê. Ele só olha $levels pastas pra dentro — sobe eles um pouco e vão carregar.';
+  }
+
+  @override
+  String get tooDeepShow => 'Mostra quais';
+
+  @override
+  String errorNoWriteAccess(String folder) {
+    return 'O app não tem permissão para escrever em “$folder”. O sistema protege essa pasta — dá permissão de escrita pra sua conta, ou escolhe outra pasta nas Configurações.';
+  }
+
+  @override
+  String get folderReadOnlyBanner =>
+      'Esta pasta de mods é somente leitura, então instalar e remover mods não vai funcionar até sua conta poder escrever nela.';
 
   @override
   String errorShopDownload(String name) {
