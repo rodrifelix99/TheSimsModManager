@@ -1,0 +1,66 @@
+rules_version = '2';
+
+// The Exchange: creators publish mod listings, the app reads them
+// anonymously. Writes only ever touch your own listings, and a listing
+// has to look like one - the portal is the intended client, but the
+// rules are the actual contract.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Anonymous sign-in is enabled on the project for future use; it
+    // must not be enough to publish.
+    function creator() {
+      return request.auth != null
+          && request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+
+    function validMod(data) {
+      return data.keys().hasAll(['name', 'gameId', 'version', 'description',
+              'authorUid', 'authorName', 'file', 'images', 'published',
+              'createdAt', 'updatedAt'])
+          && data.keys().hasOnly(['name', 'gameId', 'version', 'description',
+              'instructions', 'authorUid', 'authorName', 'file', 'images',
+              'published', 'createdAt', 'updatedAt'])
+          && data.name is string
+          && data.name.size() >= 1 && data.name.size() <= 100
+          && data.gameId in ['sims1', 'sims2', 'sims3', 'sims4', 'simsmedieval']
+          && data.version is string && data.version.size() <= 40
+          && data.description is string && data.description.size() <= 6000
+          && (!('instructions' in data)
+              || (data.instructions is string
+                  && data.instructions.size() <= 6000))
+          && data.authorName is string
+          && data.authorName.size() >= 1 && data.authorName.size() <= 60
+          && data.file is map
+          && data.file.keys().hasAll(['path', 'name', 'size'])
+          && data.file.keys().hasOnly(['path', 'name', 'size'])
+          && data.file.path is string
+          // The listed download must live in the author's own folder; a
+          // listing can never point at another creator's file.
+          && data.file.path.matches('mods/' + request.auth.uid + '/.*')
+          && data.file.name is string
+          && data.file.name.size() >= 1 && data.file.name.size() <= 200
+          && data.file.size is int && data.file.size > 0
+          && data.images is list && data.images.size() <= 10
+          && data.published is bool
+          && data.createdAt is timestamp
+          && data.updatedAt is timestamp;
+    }
+
+    match /mods/{modId} {
+      // The app reads published listings with no account at all;
+      // creators additionally see their own drafts.
+      allow read: if resource.data.published == true
+          || (request.auth != null
+              && request.auth.uid == resource.data.authorUid);
+      allow create: if creator()
+          && request.resource.data.authorUid == request.auth.uid
+          && validMod(request.resource.data);
+      allow update: if creator()
+          && resource.data.authorUid == request.auth.uid
+          && request.resource.data.authorUid == request.auth.uid
+          && validMod(request.resource.data);
+      allow delete: if creator()
+          && resource.data.authorUid == request.auth.uid;
+    }
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "runtime": "nodejs22",
+      "ignore": ["node_modules", ".git", "*.local"]
+    }
+  ],
+  "hosting": {
+    "public": "web/dist",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "redirects": [
+      {
+        "source": "/m",
+        "destination": "/#exchange",
+        "type": 302
+      },
+      {
+        "source": "/m/",
+        "destination": "/#exchange",
+        "type": 302
+      },
+      {
+        "source": "/:lang/m",
+        "destination": "/:lang/#exchange",
+        "type": 302
+      },
+      {
+        "source": "/:lang/m/",
+        "destination": "/:lang/#exchange",
+        "type": 302
+      }
+    ],
+    "rewrites": [
+      {
+        "source": "/m/**",
+        "function": { "functionId": "modPage", "region": "us-central1" }
+      },
+      {
+        "source": "/*/m/**",
+        "function": { "functionId": "modPage", "region": "us-central1" }
+      }
+    ],
+    "headers": [
+      {
+        "source": "/_astro/**",
+        "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+      },
+      {
+        "source": "/images/**",
+        "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400" }]
+      },
+      {
+        "source": "/data/**",
+        "headers": [{ "key": "Cache-Control", "value": "public, max-age=1800" }]
+      }
+    ]
+  }
+}

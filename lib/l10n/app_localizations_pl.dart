@@ -21,7 +21,131 @@ class LPl extends L {
   String get navLibrary => 'Biblioteka';
 
   @override
+  String get navShop => 'The Exchange';
+
+  @override
   String get navSettings => 'Ustawienia';
+
+  @override
+  String get shopAlphaBadge => 'ALFA';
+
+  @override
+  String get shopTagline =>
+      'Mody od społeczności, instalowane jednym kliknięciem.';
+
+  @override
+  String shopListingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count moda na półkach',
+      many: '$count modów na półkach',
+      few: '$count mody na półkach',
+      one: '1 mod na półkach',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get shopRefresh => 'Odśwież';
+
+  @override
+  String get shopPublish => 'Opublikuj swoje mody';
+
+  @override
+  String get shopLoadFailedTitle => 'The Exchange nie odpowiada';
+
+  @override
+  String get shopLoadFailedBody =>
+      'Nie udało się załadować półek. Sprawdź połączenie i spróbuj jeszcze raz.';
+
+  @override
+  String get shopRetry => 'Spróbuj jeszcze raz';
+
+  @override
+  String get shopEmptyTitle => 'Półki wciąż są puste';
+
+  @override
+  String get shopEmptyBody =>
+      'The Exchange dopiero co otworzył podwoje i nikt jeszcze niczego nie opublikował. Aż tak tu świeżo. Robisz mody? Zajmij półkę jako pierwsza osoba!';
+
+  @override
+  String get shopAllGames => 'Wszystkie gry';
+
+  @override
+  String get shopShowAllGames => 'Pokaż wszystkie gry';
+
+  @override
+  String shopEmptyGameTitle(String game) {
+    return 'Jeszcze nic do $game';
+  }
+
+  @override
+  String shopEmptyGameBody(String game) {
+    return 'Na półkach są już mody do innych gier, ale do $game nikt jeszcze niczego nie opublikował. Masz takiego moda? Zajmij tę półkę jako pierwsza osoba!';
+  }
+
+  @override
+  String shopBy(String author) {
+    return 'od $author';
+  }
+
+  @override
+  String get shopInstalled => 'Zainstalowano';
+
+  @override
+  String get shopUpdate => 'Aktualizuj';
+
+  @override
+  String get shopUpdateBadge => 'aktualizacja';
+
+  @override
+  String shopUpdatesWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count z twoich modów ma nowe wersje na The Exchange',
+      many: '$count z twoich modów ma nowe wersje na The Exchange',
+      few: '$count z twoich modów mają nowe wersje na The Exchange',
+      one: '1 z twoich modów ma nową wersję na The Exchange',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get shopUpdateHeading => 'Jest nowa wersja tego moda';
+
+  @override
+  String shopUpdateBody(String version, String author) {
+    return '$author opublikował(a) v$version na The Exchange. Aktualizacja zastąpi pliki, które masz teraz.';
+  }
+
+  @override
+  String get shopUpdateSeeListing => 'Zobacz wpis';
+
+  @override
+  String get shopInstalling => 'Instalowanie…';
+
+  @override
+  String get shopInstallNotes => 'Wskazówki instalacji';
+
+  @override
+  String get shopCreatorNudge =>
+      'Robisz mody? Publikowanie na The Exchange jest darmowe, a gracze instalują twoje prace jednym kliknięciem.';
+
+  @override
+  String shopNeedsFolder(String game) {
+    return 'Najpierw ustaw folder modów dla $game. Zakładka Biblioteka przeprowadzi cię przez to.';
+  }
+
+  @override
+  String get shopBack => 'Wróć do półek';
+
+  @override
+  String get shopCopyLink => 'Kopiuj link';
+
+  @override
+  String get shopLinkCopied => 'Skopiowano link';
 
   @override
   String get sidebarGames => 'GRY';
@@ -304,6 +428,60 @@ class LPl extends L {
   @override
   String get conflictResourcesBody =>
       'Te paczki zawierają zasoby o tych samych identyfikatorach, więc gra zostawi tylko tę kopię, którą wczyta na końcu. Czasem tak ma być — mody-łatki i override celowo przykrywają zasoby innego moda — ale przy modach, które nie mają ze sobą nic wspólnego, oznacza to, że jeden po cichu przestaje działać: zostaw ten, na którym ci zależy, a resztę wyłącz.';
+
+  @override
+  String advisoryBanner(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count twoich modów ma znane problemy',
+      many: '$count twoich modów ma znane problemy',
+      few: '$count twoje mody mają znane problemy',
+      one: 'Jeden z twoich modów ma znany problem',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get advisoryShow => 'Zobacz';
+
+  @override
+  String get advisoryShowAll => 'Pokaż wszystkie mody';
+
+  @override
+  String get advisoryBadge => 'problem';
+
+  @override
+  String get advisoryBrokenHeading => 'Ten mod jest zgłaszany jako zepsuty';
+
+  @override
+  String get advisoryBrokenBody =>
+      'Inni gracze zgłaszają, że przez ten mod gra przestaje działać. Wyłączenie go to najszybszy sposób, żeby sprawdzić, czy to on.';
+
+  @override
+  String get advisoryOutdatedHeading => 'Jest nowsza wersja tego moda';
+
+  @override
+  String get advisoryOutdatedBody =>
+      'Masz dokładnie tę wersję, na którą ludzie narzekają. Pobranie najnowszej od twórcy powinno załatwić sprawę.';
+
+  @override
+  String get advisoryCautionHeading => 'Warto mieć go na oku';
+
+  @override
+  String get advisoryCautionBody =>
+      'U większości działa, ale wiadomo, że potrafi narozrabiać. Warto go wyłączyć, jeśli szukasz źródła problemu.';
+
+  @override
+  String advisorySince(String since) {
+    return 'Od $since';
+  }
+
+  @override
+  String get advisoryOpenLink => 'Otwórz stronę twórcy';
+
+  @override
+  String get advisorySource => 'Zgłoszone przez innych graczy, nie przez grę.';
 
   @override
   String modInDirectory(String dir) {
@@ -673,6 +851,19 @@ class LPl extends L {
   String errorFileMissing(String name) {
     return '„$name” nie ma już w folderze modów — możliwe, że inny program go przeniósł albo usunął.';
   }
+
+  @override
+  String errorShopDownload(String name) {
+    return '„$name” nie dał się pobrać z The Exchange. Sprawdź połączenie i spróbuj jeszcze raz.';
+  }
+
+  @override
+  String get errorShopListingNotFound =>
+      'Tego moda już nie ma na The Exchange. Mógł zostać zdjęty.';
+
+  @override
+  String get errorShopListingUnknownGame =>
+      'Ten mod jest do gry, której ta wersja apki jeszcze nie zna. Spróbuj zaktualizować.';
 
   @override
   String get eraClassic => 'Klasyka';

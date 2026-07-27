@@ -302,16 +302,32 @@ class TagChip extends StatelessWidget {
 
 /// The little "conflict" badge with the white exclamation dot.
 class ConflictBadge extends StatelessWidget {
-  const ConflictBadge({super.key, required this.theme});
+  const ConflictBadge(
+      {super.key, required this.theme, this.label, this.color, this.icon});
 
   final GameTheme theme;
 
+  /// Wording for the badge; defaults to the conflict one. The advisory
+  /// badge borrows the same marker with its own word, so a card carries
+  /// one "something's up with this mod" flag rather than two identical
+  /// ones stacked next to each other.
+  final String? label;
+
+  /// Fill color; the warning orange unless a caller says otherwise. The
+  /// shop's update badge is the one piece of good news that wears this
+  /// shape, so it comes through in the accent instead.
+  final Color? color;
+
+  /// Marker inside the white dot, "!" unless replaced.
+  final String? icon;
+
   @override
   Widget build(BuildContext context) {
+    final fill = color ?? theme.warning;
     return Container(
       padding: const EdgeInsets.fromLTRB(6, 3, 8, 3),
       decoration: BoxDecoration(
-        color: theme.warning,
+        color: fill,
         borderRadius: BorderRadius.circular(7),
       ),
       child: Row(
@@ -326,9 +342,9 @@ class ConflictBadge extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             child: Text(
-              '!',
+              icon ?? '!',
               style: TextStyle(
-                color: theme.warning,
+                color: fill,
                 fontSize: 10,
                 fontWeight: FontWeight.w800,
                 height: 1,
@@ -337,7 +353,7 @@ class ConflictBadge extends StatelessWidget {
           ),
           const SizedBox(width: 5),
           Text(
-            L.of(context).conflictBadge,
+            label ?? L.of(context).conflictBadge,
             style: const TextStyle(
               color: Colors.white,
               fontSize: 10.5,

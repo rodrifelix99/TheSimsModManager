@@ -1,0 +1,34 @@
+name: Deploy the website
+
+# The site goes live on push, the way GitHub Pages used to serve docs/: a
+# wording fix or a new advisory does not wait for a release.
+on:
+  push:
+    branches: [dev]
+    paths:
+      - 'web/**'
+      - 'firebase.json'
+      - '.github/workflows/deploy-site.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Build and deploy to Firebase Hosting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+        working-directory: web
+      - run: npm run build
+        working-directory: web
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: thesimsmodmanager
+          channelId: live

@@ -1,0 +1,47 @@
+---
+// The landing page, whichever language it is in.
+import Base from './Base.astro';
+import Header from '../components/Header.astro';
+import Hero from '../components/Hero.astro';
+import ThemeStrip from '../components/ThemeStrip.astro';
+import Features from '../components/Features.astro';
+import Exchange from '../components/Exchange.astro';
+import Download from '../components/Download.astro';
+import Games from '../components/Games.astro';
+import Faq from '../components/Faq.astro';
+import Footer from '../components/Footer.astro';
+import JsonLd from '../components/JsonLd.astro';
+import { useTranslations, type Locale } from '../i18n';
+import '../styles/motion.css';
+import '../styles/landing.css';
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+---
+
+<Base
+  locale={locale}
+  title={t.plain('meta.title')}
+  description={t.plain('meta.description')}
+  social={t.plain('meta.social')}
+  ogImageAlt={t.plain('meta.ogImageAlt')}
+>
+  <JsonLd slot="head" locale={locale} />
+  <Header locale={locale} />
+  <Hero locale={locale} />
+  <ThemeStrip locale={locale} />
+  <Features locale={locale} />
+  <Exchange locale={locale} />
+  <Download locale={locale} />
+  <Games locale={locale} />
+  <Faq locale={locale} />
+  <Footer locale={locale} />
+
+  <script>
+    import { revealOnScroll } from '../scripts/reveal';
+    revealOnScroll();
+  </script>
+</Base>

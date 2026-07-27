@@ -132,6 +132,7 @@ class LibraryView extends StatelessWidget {
           ),
         ),
         if (c.announcement != null) _announcementBanner(t, c, l),
+        if (c.advisoryCount > 0) _advisoryBanner(t, c, l),
         Padding(
           padding: const EdgeInsets.fromLTRB(28, 16, 28, 14),
           child: Row(
@@ -207,6 +208,51 @@ class LibraryView extends StatelessWidget {
               iconSize: 17,
               color: t.muted,
               icon: const Icon(Icons.close_rounded),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Mods the published advisory list names (see mod_advisories.dart).
+  /// Deliberately not dismissible, unlike the announcement above it: this
+  /// one describes the library as it is right now and leaves on its own
+  /// as soon as the mods behind it are disabled or updated.
+  Widget _advisoryBanner(GameTheme t, AppController c, L l) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(28, 14, 28, 0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: t.warning.withValues(alpha: .1),
+          border: Border.all(color: t.warning, width: 1.5),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.error_outline_rounded, size: 20, color: t.warning),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                l.advisoryBanner(c.advisoryCount),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: t.onWarningTint,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            TextButton(
+              onPressed: c.toggleAdvisoriesOnly,
+              style: TextButton.styleFrom(
+                foregroundColor: t.warning,
+                textStyle:
+                    const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+              ),
+              child:
+                  Text(c.advisoriesOnly ? l.advisoryShowAll : l.advisoryShow),
             ),
           ],
         ),
@@ -940,9 +986,32 @@ class _GridCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    if (c.isConflicted(mod))
+                    if (c.isConflicted(mod) ||
+                        c.advisoryOf(mod) != null ||
+                        c.shopUpdateForMod(mod) != null)
                       Positioned(
-                          left: 10, top: 10, child: ConflictBadge(theme: t)),
+                        left: 10,
+                        top: 10,
+                        // An advisory outranks a conflict here: somebody
+                        // has confirmed this one is broken, where a
+                        // conflict is only two files that look alike. A
+                        // waiting update is the mildest of the three and
+                        // only speaks when the others have nothing to say.
+                        child: switch ((
+                          c.advisoryOf(mod) != null,
+                          c.isConflicted(mod)
+                        )) {
+                          (true, _) =>
+                            ConflictBadge(theme: t, label: l.advisoryBadge),
+                          (false, true) => ConflictBadge(theme: t),
+                          _ => ConflictBadge(
+                              theme: t,
+                              label: l.shopUpdateBadge,
+                              color: t.accent,
+                              icon: '↓',
+                            ),
+                        },
+                      ),
                     Positioned(
                       right: 9,
                       top: 9,
@@ -1131,11 +1200,27 @@ class _ListRow extends StatelessWidget {
                   ],
                 ),
               ),
+              if (c.advisoryOf(mod) != null) ...[
+                TagChip(
+                  label: l.advisoryBadge,
+                  color: t.warning,
+                  background: t.warning.withValues(alpha: .12),
+                ),
+                const SizedBox(width: 8),
+              ],
               if (c.isConflicted(mod)) ...[
                 TagChip(
                   label: l.conflictBadge,
                   color: t.warning,
                   background: t.warning.withValues(alpha: .12),
+                ),
+                const SizedBox(width: 8),
+              ],
+              if (c.shopUpdateForMod(mod) != null) ...[
+                TagChip(
+                  label: l.shopUpdateBadge,
+                  color: t.accent,
+                  background: t.tint,
                 ),
                 const SizedBox(width: 8),
               ],

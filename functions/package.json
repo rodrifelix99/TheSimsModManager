@@ -1,0 +1,12 @@
+{
+  "name": "thesimsmodmanager-functions",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "22"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "firebase-functions": "^7.3.0"
+  }
+}

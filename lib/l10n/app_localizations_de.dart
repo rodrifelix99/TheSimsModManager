@@ -21,7 +21,127 @@ class LDe extends L {
   String get navLibrary => 'Bibliothek';
 
   @override
+  String get navShop => 'The Exchange';
+
+  @override
   String get navSettings => 'Einstellungen';
+
+  @override
+  String get shopAlphaBadge => 'ALPHA';
+
+  @override
+  String get shopTagline =>
+      'Mods aus der Community, mit einem Klick installiert.';
+
+  @override
+  String shopListingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Mods im Regal',
+      one: '1 Mod im Regal',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get shopRefresh => 'Aktualisieren';
+
+  @override
+  String get shopPublish => 'Deine Mods veröffentlichen';
+
+  @override
+  String get shopLoadFailedTitle => 'The Exchange meldet sich nicht';
+
+  @override
+  String get shopLoadFailedBody =>
+      'Die Regale ließen sich nicht laden. Prüf deine Verbindung und versuch es nochmal.';
+
+  @override
+  String get shopRetry => 'Nochmal versuchen';
+
+  @override
+  String get shopEmptyTitle => 'Die Regale sind noch leer';
+
+  @override
+  String get shopEmptyBody =>
+      'The Exchange hat gerade erst eröffnet und noch hat niemand etwas veröffentlicht. So neu ist das hier. Du baust selbst Mods? Deine könnte die erste im Regal sein!';
+
+  @override
+  String get shopAllGames => 'Alle Spiele';
+
+  @override
+  String get shopShowAllGames => 'Alle Spiele zeigen';
+
+  @override
+  String shopEmptyGameTitle(String game) {
+    return 'Noch nichts für $game';
+  }
+
+  @override
+  String shopEmptyGameBody(String game) {
+    return 'Für andere Spiele liegt schon was im Regal, für $game hat aber noch niemand etwas veröffentlicht. Du hast eine Mod? Dann mach den Anfang!';
+  }
+
+  @override
+  String shopBy(String author) {
+    return 'von $author';
+  }
+
+  @override
+  String get shopInstalled => 'Installiert';
+
+  @override
+  String get shopUpdate => 'Aktualisieren';
+
+  @override
+  String get shopUpdateBadge => 'Update';
+
+  @override
+  String shopUpdatesWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Für $count deiner Mods gibt es neue Versionen auf The Exchange',
+      one: 'Für 1 deiner Mods gibt es eine neue Version auf The Exchange',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get shopUpdateHeading => 'Von diesem Mod gibt es eine neue Version';
+
+  @override
+  String shopUpdateBody(String version, String author) {
+    return '$author hat v$version auf The Exchange veröffentlicht. Beim Aktualisieren werden deine jetzigen Dateien ersetzt.';
+  }
+
+  @override
+  String get shopUpdateSeeListing => 'Zum Eintrag';
+
+  @override
+  String get shopInstalling => 'Wird installiert…';
+
+  @override
+  String get shopInstallNotes => 'Installationshinweise';
+
+  @override
+  String get shopCreatorNudge =>
+      'Du baust selbst Mods? Auf The Exchange zu veröffentlichen ist kostenlos, und Spieler installieren deine Sachen mit einem Klick.';
+
+  @override
+  String shopNeedsFolder(String game) {
+    return 'Richte zuerst den Mods-Ordner für $game ein. Der Bibliothek-Tab führt dich durch.';
+  }
+
+  @override
+  String get shopBack => 'Zurück zu den Regalen';
+
+  @override
+  String get shopCopyLink => 'Link kopieren';
+
+  @override
+  String get shopLinkCopied => 'Link kopiert';
 
   @override
   String get sidebarGames => 'SPIELE';
@@ -291,6 +411,60 @@ class LDe extends L {
   @override
   String get conflictResourcesBody =>
       'Diese Pakete enthalten Ressourcen mit denselben Kennungen, also behält das Spiel nur die zuletzt geladene Kopie. Das kann Absicht sein — Patch- und Override-Mods überdecken die Ressourcen anderer Mods bewusst —, aber bei Mods, die nichts miteinander zu tun haben, hört einer davon einfach still auf zu funktionieren: behalte den, den du willst, und deaktiviere die anderen.';
+
+  @override
+  String advisoryBanner(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count deiner Mods haben bekannte Probleme',
+      one: 'Einer deiner Mods hat ein bekanntes Problem',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get advisoryShow => 'Mal ansehen';
+
+  @override
+  String get advisoryShowAll => 'Alle Mods anzeigen';
+
+  @override
+  String get advisoryBadge => 'Problem';
+
+  @override
+  String get advisoryBrokenHeading => 'Dieser Mod gilt als kaputt';
+
+  @override
+  String get advisoryBrokenBody =>
+      'Andere Spieler melden, dass dieser hier das Spiel lahmlegt. Ihn zu deaktivieren ist der schnellste Weg herauszufinden, ob er schuld ist.';
+
+  @override
+  String get advisoryOutdatedHeading =>
+      'Es gibt eine neuere Version von diesem Mod';
+
+  @override
+  String get advisoryOutdatedBody =>
+      'Genau die Version, die du hast, macht Ärger. Die neueste vom Creator zu holen sollte reichen.';
+
+  @override
+  String get advisoryCautionHeading => 'Behalt den mal im Auge';
+
+  @override
+  String get advisoryCautionBody =>
+      'Bei den meisten läuft er, aber er ist dafür bekannt, sich manchmal danebenzubenehmen. Zum Deaktivieren, wenn du einen Fehler suchst.';
+
+  @override
+  String advisorySince(String since) {
+    return 'Seit $since';
+  }
+
+  @override
+  String get advisoryOpenLink => 'Seite des Creators öffnen';
+
+  @override
+  String get advisorySource =>
+      'Von anderen Spielern gemeldet, nicht vom Spiel.';
 
   @override
   String modInDirectory(String dir) {
@@ -656,6 +830,19 @@ class LDe extends L {
   String errorFileMissing(String name) {
     return '„$name“ liegt nicht mehr im Mods-Ordner — vielleicht hat ein anderes Programm die Datei verschoben oder gelöscht.';
   }
+
+  @override
+  String errorShopDownload(String name) {
+    return '„$name“ ließ sich nicht von The Exchange herunterladen. Prüf deine Verbindung und versuch es nochmal.';
+  }
+
+  @override
+  String get errorShopListingNotFound =>
+      'Diesen Mod gibt es auf The Exchange nicht mehr. Vielleicht wurde er zurückgezogen.';
+
+  @override
+  String get errorShopListingUnknownGame =>
+      'Dieser Mod ist für ein Spiel, das diese Version der App noch nicht kennt. Probier mal ein Update.';
 
   @override
   String get eraClassic => 'Klassisch';

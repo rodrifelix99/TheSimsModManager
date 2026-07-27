@@ -1,0 +1,122 @@
+---
+// One listing's public page: the address a creator pastes on Tumblr, Discord
+// or a forum. Everything the page says about the mod arrives at request time,
+// because listings are Firestore documents and this site is static: the
+// modPage function in functions/ fetches the listing, swaps the __MOD_*__
+// sentinels below for its own title, description and cover, and drops the
+// listing itself into #mod-data. The script then paints from that block
+// without a round trip. Hit in `astro dev`, where no function stands in front
+// of the page, the sentinels survive and the script falls back to fetching.
+import Base from './Base.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { localePath, modStrings, useTranslations, type Locale } from '../i18n';
+import '../styles/motion.css';
+import '../styles/landing.css';
+import '../styles/mod.css';
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const home = localePath(locale);
+// The id sentinel rides inside `base`, so one substitution fixes the canonical,
+// og:url, all ten hreflang alternates and the language picker's target at once.
+const base = 'm/__MOD_ID__';
+---
+
+<Base
+  locale={locale}
+  base={base}
+  title="__MOD_TITLE__"
+  description="__MOD_DESC__"
+  ogTitle="__MOD_OGTITLE__"
+  ogImage="__MOD_IMAGE__"
+>
+  <Header locale={locale} away />
+
+  <main class="mod-page">
+    <div class="wrap">
+      <p class="mod-state" id="mod-loading" set:html={t('mod.loading')} />
+
+      <article class="mod-shell" id="mod-card" hidden>
+        <div class="mod-gallery">
+          <img class="mod-cover" id="mod-cover" alt="" hidden />
+          <div class="mod-cover empty" id="mod-cover-empty" hidden></div>
+          <div class="mod-thumbs" id="mod-thumbs"></div>
+        </div>
+
+        <div class="mod-info">
+          <span class="eyebrow" set:html={t('mod.eyebrow')} />
+          <h1 id="mod-name"></h1>
+          <p class="mod-by" id="mod-by"></p>
+
+          <dl class="mod-facts">
+            <div>
+              <dt set:html={t('mod.game')} />
+              <dd id="mod-game"></dd>
+            </div>
+            <div>
+              <dt set:html={t('mod.version')} />
+              <dd id="mod-version"></dd>
+            </div>
+            <div>
+              <dt set:html={t('mod.fileSize')} />
+              <dd id="mod-size"></dd>
+            </div>
+            <div id="mod-updated-fact" hidden>
+              <dt set:html={t('mod.updated')} />
+              <dd id="mod-updated"></dd>
+            </div>
+          </dl>
+
+          <div class="mod-cta">
+            <a class="btn-primary" id="mod-install" href="#">
+              <span class="gleam"></span>
+              <span set:html={t('mod.installWith')} />
+            </a>
+            <a class="btn-ghost" id="mod-download" href="#" download></a>
+          </div>
+
+          <p class="mod-hint" set:html={t('mod.installHint')} />
+          <p class="mod-alt">
+            <a href={`${home}#download`} set:html={t('mod.getApp')} />
+          </p>
+        </div>
+      </article>
+
+      <section class="mod-body" id="mod-about" hidden>
+        <h2 set:html={t('mod.about')} />
+        <div class="prose" id="mod-description"></div>
+      </section>
+
+      <section class="mod-body mod-howto" id="mod-howto" hidden>
+        <h2 set:html={t('mod.instructions')} />
+        <div class="prose" id="mod-instructions"></div>
+      </section>
+
+      <section class="mod-missing" id="mod-missing" hidden>
+        <h1 set:html={t('mod.notFoundTitle')} />
+        <p set:html={t('mod.notFoundBody')} />
+        <a class="btn-primary" href={`${home}#exchange`}>
+          <span class="gleam"></span>
+          <span set:html={t('mod.browse')} />
+        </a>
+      </section>
+
+      <p class="mod-publish">
+        <a href={localePath(locale, 'portal/')} set:html={t('mod.publish')} />
+      </p>
+    </div>
+  </main>
+
+  <Footer locale={locale} away />
+
+  <script type="application/json" id="mod-strings" set:html={JSON.stringify(modStrings(locale))} />
+  <script type="application/json" id="mod-data">__MOD_DATA__</script>
+  <script>
+    import { startModPage } from '../scripts/mod-page';
+    startModPage();
+  </script>
+</Base>

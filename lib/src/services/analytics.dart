@@ -6,6 +6,7 @@ import 'dart:math';
 import 'package:path/path.dart' as p;
 
 import '../app_version.dart';
+import 'debug_log.dart';
 import 'settings_store.dart';
 
 /// PostHog analytics, feature flags and error tracking over the plain
@@ -50,9 +51,14 @@ Future<String?> _httpPost(Uri url, Map<String, Object?> body) async {
         .transform(utf8.decoder)
         .join()
         .timeout(const Duration(seconds: 15));
-    if (response.statusCode < 200 || response.statusCode >= 300) return null;
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      debugLog('analytics',
+          'HTTP ${response.statusCode} from ${url.path}: ${debugHead(text)}');
+      return null;
+    }
     return text;
-  } catch (_) {
+  } catch (e) {
+    debugLog('analytics', '${url.path} failed: ${e.runtimeType}: $e');
     return null;
   } finally {
     client.close(force: true);
@@ -119,7 +125,12 @@ class Analytics {
     _sessionId = _uuid(version: 7);
     _sessionStart = DateTime.now();
     _loadCachedFlags();
-    if (!enabled) return;
+    if (!enabled) {
+      // The one "failure" that is a setting, and indistinguishable from a
+      // broken send if you are watching PostHog for events that never come.
+      debugLog('analytics', 'switched off in Settings: nothing will be sent');
+      return;
+    }
 
     final previous = settings.lastRunVersion;
     final launches = settings.launchCount + 1;
@@ -157,7 +168,9 @@ class Analytics {
     }
     try {
       await flush().timeout(const Duration(seconds: 3));
-    } catch (_) {}
+    } catch (e) {
+      debugLog('analytics', 'the closing flush did not finish: $e');
+    }
   }
 
   /// Flips the user's opt-in. Opting out announces itself first (so the
@@ -170,7 +183,9 @@ class Analytics {
       capture('analytics_opt_out');
       try {
         await flush().timeout(const Duration(seconds: 3));
-      } catch (_) {}
+      } catch (e) {
+        debugLog('analytics', 'the opt-out event did not get out: $e');
+      }
     }
     await settings.setAnalyticsEnabled(value);
     if (value) capture('analytics_opt_in');
@@ -221,7 +236,12 @@ class Analytics {
     );
     if (response == null) {
       _queue.insertAll(0, batch);
-      if (_queue.length > 500) _queue.removeRange(500, _queue.length);
+      final dropped = _queue.length > 500 ? _queue.length - 500 : 0;
+      if (dropped > 0) _queue.removeRange(500, _queue.length);
+      debugLog(
+          'analytics',
+          'held ${batch.length} event(s) back for the next attempt'
+              '${dropped > 0 ? ', dropped $dropped past the 500 cap' : ''}');
     }
   }
 
@@ -400,8 +420,17 @@ class Analytics {
     );
     if (response == null) return;
     final parsed = _parseFlags(response);
-    if (parsed == null) return;
+    if (parsed == null) {
+      debugLog('analytics', 'the flags answer did not parse, keeping the cache');
+      return;
+    }
     _flags = parsed;
+    final on = [
+      for (final entry in parsed.entries)
+        if (entry.value.enabled) entry.key,
+    ];
+    debugLog('analytics',
+        '${parsed.length} flag(s) fetched, on: ${on.isEmpty ? 'none' : on.join(', ')}');
     await settings.setCachedFlagsJson(response);
     onFlagsChanged?.call();
   }
@@ -428,7 +457,8 @@ class Analytics {
                       as String?,
             ),
       };
-    } catch (_) {
+    } catch (e) {
+      debugLog('analytics', 'flags unreadable: ${e.runtimeType}: $e');
       return null;
     }
   }

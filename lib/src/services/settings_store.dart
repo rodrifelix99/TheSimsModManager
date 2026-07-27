@@ -121,6 +121,31 @@ class SettingsStore {
   Future<void> setCachedFlagsJson(String value) =>
       _prefs.setString('analytics.flagsCache', value);
 
+  /// Raw JSON of the last successful advisory download, so the warnings
+  /// are there on the first frame and survive a launch with no network.
+  String? get advisoriesJson => _prefs.getString('advisories.cache');
+  Future<void> setAdvisoriesJson(String value) =>
+      _prefs.setString('advisories.cache', value);
+
+  /// When that download happened, so launches don't each re-fetch a file
+  /// that changes a few times a month.
+  DateTime? get advisoriesFetchedAt {
+    final millis = _prefs.getInt('advisories.fetchedAt');
+    return millis == null ? null : DateTime.fromMillisecondsSinceEpoch(millis);
+  }
+
+  Future<void> setAdvisoriesFetchedAt(DateTime when) =>
+      _prefs.setInt('advisories.fetchedAt', when.millisecondsSinceEpoch);
+
+  /// What The Exchange has installed on this machine, as JSON: listing id
+  /// -> the version installed and the files it put in the mods folder.
+  /// Persisted because it is the only record connecting a file on disk to
+  /// the listing it came from; without it a restart forgets that a mod
+  /// came from the shop at all, and no update could ever be offered.
+  String? get shopInstallsJson => _prefs.getString('shop.installs');
+  Future<void> setShopInstallsJson(String value) =>
+      _prefs.setString('shop.installs', value);
+
   List<String> get dismissedAnnouncements =>
       _prefs.getStringList('dismissedAnnouncements') ?? const [];
   Future<void> addDismissedAnnouncement(String id) =>

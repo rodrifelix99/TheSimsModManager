@@ -21,7 +21,126 @@ class LEn extends L {
   String get navLibrary => 'Library';
 
   @override
+  String get navShop => 'The Exchange';
+
+  @override
   String get navSettings => 'Settings';
+
+  @override
+  String get shopAlphaBadge => 'ALPHA';
+
+  @override
+  String get shopTagline => 'Mods from the community, installed in one click.';
+
+  @override
+  String shopListingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mods on the shelves',
+      one: '1 mod on the shelves',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get shopRefresh => 'Refresh';
+
+  @override
+  String get shopPublish => 'Publish your mods';
+
+  @override
+  String get shopLoadFailedTitle => 'The Exchange isn’t answering';
+
+  @override
+  String get shopLoadFailedBody =>
+      'Couldn’t load the shelves. Check your connection and give it another try.';
+
+  @override
+  String get shopRetry => 'Try again';
+
+  @override
+  String get shopEmptyTitle => 'The shelves are still empty';
+
+  @override
+  String get shopEmptyBody =>
+      'The Exchange just opened its doors and nobody has published anything yet. That’s how new this is. Made a mod yourself? Be the first on the shelves!';
+
+  @override
+  String get shopAllGames => 'All games';
+
+  @override
+  String get shopShowAllGames => 'Show every game';
+
+  @override
+  String shopEmptyGameTitle(String game) {
+    return 'Nothing for $game yet';
+  }
+
+  @override
+  String shopEmptyGameBody(String game) {
+    return 'Other games have mods on the shelves, but nobody has published a $game one yet. Made one? Be the first!';
+  }
+
+  @override
+  String shopBy(String author) {
+    return 'by $author';
+  }
+
+  @override
+  String get shopInstalled => 'Installed';
+
+  @override
+  String get shopUpdate => 'Update';
+
+  @override
+  String get shopUpdateBadge => 'update';
+
+  @override
+  String shopUpdatesWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count of your mods have new versions on The Exchange',
+      one: '1 of your mods has a new version on The Exchange',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get shopUpdateHeading => 'There’s a new version of this one';
+
+  @override
+  String shopUpdateBody(String version, String author) {
+    return '$author has published v$version on The Exchange. Updating replaces the files you have now.';
+  }
+
+  @override
+  String get shopUpdateSeeListing => 'See the listing';
+
+  @override
+  String get shopInstalling => 'Installing…';
+
+  @override
+  String get shopInstallNotes => 'Install notes';
+
+  @override
+  String get shopCreatorNudge =>
+      'Made mods yourself? Publishing on The Exchange is free, and players install your work in one click.';
+
+  @override
+  String shopNeedsFolder(String game) {
+    return 'Set up $game’s mods folder first. The Library tab walks you through it.';
+  }
+
+  @override
+  String get shopBack => 'Back to the shelves';
+
+  @override
+  String get shopCopyLink => 'Copy link';
+
+  @override
+  String get shopLinkCopied => 'Link copied';
 
   @override
   String get sidebarGames => 'GAMES';
@@ -289,6 +408,58 @@ class LEn extends L {
   @override
   String get conflictResourcesBody =>
       'These packages contain resources with the same identifiers, so the game only keeps the copy it loads last. That can be intentional — patch and override mods shadow another mod\'s resources on purpose — but for unrelated mods it means one of them silently stops working: keep the one you want and disable the rest.';
+
+  @override
+  String advisoryBanner(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count of your mods have known issues',
+      one: 'One of your mods has a known issue',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get advisoryShow => 'Take a look';
+
+  @override
+  String get advisoryShowAll => 'Show all mods';
+
+  @override
+  String get advisoryBadge => 'issue';
+
+  @override
+  String get advisoryBrokenHeading => 'This mod is reported broken';
+
+  @override
+  String get advisoryBrokenBody =>
+      'Other players are reporting that this one stops the game working. Disabling it is the quickest way to find out if it\'s behind your problem.';
+
+  @override
+  String get advisoryOutdatedHeading => 'There\'s a newer version of this mod';
+
+  @override
+  String get advisoryOutdatedBody =>
+      'The version you\'ve got is the one people are having trouble with. Grabbing the creator\'s latest should sort it.';
+
+  @override
+  String get advisoryCautionHeading => 'Worth keeping an eye on';
+
+  @override
+  String get advisoryCautionBody =>
+      'This one works for most people, but it\'s been known to misbehave. Worth disabling if you\'re hunting down a problem.';
+
+  @override
+  String advisorySince(String since) {
+    return 'Since $since';
+  }
+
+  @override
+  String get advisoryOpenLink => 'Open the creator\'s page';
+
+  @override
+  String get advisorySource => 'Reported by other players, not by the game.';
 
   @override
   String modInDirectory(String dir) {
@@ -653,6 +824,19 @@ class LEn extends L {
   String errorFileMissing(String name) {
     return '“$name” is no longer in the mods folder — it may have been moved or deleted by another program.';
   }
+
+  @override
+  String errorShopDownload(String name) {
+    return '“$name” couldn’t be downloaded from The Exchange. Check your connection and try again.';
+  }
+
+  @override
+  String get errorShopListingNotFound =>
+      'That mod isn’t on The Exchange any more. It may have been taken down.';
+
+  @override
+  String get errorShopListingUnknownGame =>
+      'That mod is for a game this version of the app doesn’t know yet. Try updating.';
 
   @override
   String get eraClassic => 'Classic';

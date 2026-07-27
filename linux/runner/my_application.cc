@@ -22,6 +22,17 @@ static void first_frame_cb(MyApplication* self, FlView* view) {
 // Implements GApplication::activate.
 static void my_application_activate(GApplication* application) {
   MyApplication* self = MY_APPLICATION(application);
+
+  // A second launch - a simsmodmanager:// link clicked while the app is
+  // open - hands its address to this process and activates it again.
+  // Raise the window we already have instead of building another one on
+  // top of the same settings file.
+  GList* windows = gtk_application_get_windows(GTK_APPLICATION(application));
+  if (windows) {
+    gtk_window_present(GTK_WINDOW(windows->data));
+    return;
+  }
+
   GtkWindow* window =
       GTK_WINDOW(gtk_application_window_new(GTK_APPLICATION(application)));
 
@@ -106,7 +117,9 @@ static gboolean my_application_local_command_line(GApplication* application,
   g_application_activate(application);
   *exit_status = 0;
 
-  return TRUE;
+  // FALSE, not TRUE: GApplication still has to run its own command-line
+  // and open dispatch, which is how a link reaches the running instance.
+  return FALSE;
 }
 
 // Implements GApplication::startup.
@@ -152,7 +165,13 @@ MyApplication* my_application_new() {
   // the application to be recognized beyond its binary name.
   g_set_prgname(APPLICATION_ID);
 
-  return MY_APPLICATION(g_object_new(my_application_get_type(),
-                                     "application-id", APPLICATION_ID, "flags",
-                                     G_APPLICATION_NON_UNIQUE, nullptr));
+  // Single-instance from here on, which is what lets a simsmodmanager://
+  // link reach the copy that is already running instead of starting a
+  // second one. It used to be G_APPLICATION_NON_UNIQUE: two windows at
+  // once are no longer possible, and they never worked properly anyway
+  // (both halves write the same settings file).
+  return MY_APPLICATION(g_object_new(
+      my_application_get_type(), "application-id", APPLICATION_ID, "flags",
+      G_APPLICATION_HANDLES_COMMAND_LINE | G_APPLICATION_HANDLES_OPEN,
+      nullptr));
 }

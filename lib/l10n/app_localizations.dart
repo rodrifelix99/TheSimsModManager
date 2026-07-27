@@ -137,11 +137,191 @@ abstract class L {
   /// **'Library'**
   String get navLibrary;
 
+  /// No description provided for @navShop.
+  ///
+  /// In en, this message translates to:
+  /// **'The Exchange'**
+  String get navShop;
+
   /// No description provided for @navSettings.
   ///
   /// In en, this message translates to:
   /// **'Settings'**
   String get navSettings;
+
+  /// No description provided for @shopAlphaBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'ALPHA'**
+  String get shopAlphaBadge;
+
+  /// No description provided for @shopTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'Mods from the community, installed in one click.'**
+  String get shopTagline;
+
+  /// No description provided for @shopListingCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 mod on the shelves} other{{count} mods on the shelves}}'**
+  String shopListingCount(int count);
+
+  /// No description provided for @shopRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get shopRefresh;
+
+  /// No description provided for @shopPublish.
+  ///
+  /// In en, this message translates to:
+  /// **'Publish your mods'**
+  String get shopPublish;
+
+  /// No description provided for @shopLoadFailedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The Exchange isn’t answering'**
+  String get shopLoadFailedTitle;
+
+  /// No description provided for @shopLoadFailedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t load the shelves. Check your connection and give it another try.'**
+  String get shopLoadFailedBody;
+
+  /// No description provided for @shopRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get shopRetry;
+
+  /// No description provided for @shopEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The shelves are still empty'**
+  String get shopEmptyTitle;
+
+  /// No description provided for @shopEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The Exchange just opened its doors and nobody has published anything yet. That’s how new this is. Made a mod yourself? Be the first on the shelves!'**
+  String get shopEmptyBody;
+
+  /// No description provided for @shopAllGames.
+  ///
+  /// In en, this message translates to:
+  /// **'All games'**
+  String get shopAllGames;
+
+  /// No description provided for @shopShowAllGames.
+  ///
+  /// In en, this message translates to:
+  /// **'Show every game'**
+  String get shopShowAllGames;
+
+  /// No description provided for @shopEmptyGameTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing for {game} yet'**
+  String shopEmptyGameTitle(String game);
+
+  /// No description provided for @shopEmptyGameBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Other games have mods on the shelves, but nobody has published a {game} one yet. Made one? Be the first!'**
+  String shopEmptyGameBody(String game);
+
+  /// No description provided for @shopBy.
+  ///
+  /// In en, this message translates to:
+  /// **'by {author}'**
+  String shopBy(String author);
+
+  /// No description provided for @shopInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed'**
+  String get shopInstalled;
+
+  /// No description provided for @shopUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Update'**
+  String get shopUpdate;
+
+  /// No description provided for @shopUpdateBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'update'**
+  String get shopUpdateBadge;
+
+  /// No description provided for @shopUpdatesWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 of your mods has a new version on The Exchange} other{{count} of your mods have new versions on The Exchange}}'**
+  String shopUpdatesWaiting(int count);
+
+  /// No description provided for @shopUpdateHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'There’s a new version of this one'**
+  String get shopUpdateHeading;
+
+  /// No description provided for @shopUpdateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{author} has published v{version} on The Exchange. Updating replaces the files you have now.'**
+  String shopUpdateBody(String version, String author);
+
+  /// No description provided for @shopUpdateSeeListing.
+  ///
+  /// In en, this message translates to:
+  /// **'See the listing'**
+  String get shopUpdateSeeListing;
+
+  /// No description provided for @shopInstalling.
+  ///
+  /// In en, this message translates to:
+  /// **'Installing…'**
+  String get shopInstalling;
+
+  /// No description provided for @shopInstallNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Install notes'**
+  String get shopInstallNotes;
+
+  /// No description provided for @shopCreatorNudge.
+  ///
+  /// In en, this message translates to:
+  /// **'Made mods yourself? Publishing on The Exchange is free, and players install your work in one click.'**
+  String get shopCreatorNudge;
+
+  /// No description provided for @shopNeedsFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up {game}’s mods folder first. The Library tab walks you through it.'**
+  String shopNeedsFolder(String game);
+
+  /// No description provided for @shopBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to the shelves'**
+  String get shopBack;
+
+  /// No description provided for @shopCopyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get shopCopyLink;
+
+  /// No description provided for @shopLinkCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied'**
+  String get shopLinkCopied;
 
   /// No description provided for @sidebarGames.
   ///
@@ -502,6 +682,84 @@ abstract class L {
   /// In en, this message translates to:
   /// **'These packages contain resources with the same identifiers, so the game only keeps the copy it loads last. That can be intentional — patch and override mods shadow another mod\'s resources on purpose — but for unrelated mods it means one of them silently stops working: keep the one you want and disable the rest.'**
   String get conflictResourcesBody;
+
+  /// No description provided for @advisoryBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{One of your mods has a known issue} other{{count} of your mods have known issues}}'**
+  String advisoryBanner(int count);
+
+  /// No description provided for @advisoryShow.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a look'**
+  String get advisoryShow;
+
+  /// No description provided for @advisoryShowAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all mods'**
+  String get advisoryShowAll;
+
+  /// No description provided for @advisoryBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'issue'**
+  String get advisoryBadge;
+
+  /// No description provided for @advisoryBrokenHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'This mod is reported broken'**
+  String get advisoryBrokenHeading;
+
+  /// No description provided for @advisoryBrokenBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Other players are reporting that this one stops the game working. Disabling it is the quickest way to find out if it\'s behind your problem.'**
+  String get advisoryBrokenBody;
+
+  /// No description provided for @advisoryOutdatedHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'There\'s a newer version of this mod'**
+  String get advisoryOutdatedHeading;
+
+  /// No description provided for @advisoryOutdatedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The version you\'ve got is the one people are having trouble with. Grabbing the creator\'s latest should sort it.'**
+  String get advisoryOutdatedBody;
+
+  /// No description provided for @advisoryCautionHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Worth keeping an eye on'**
+  String get advisoryCautionHeading;
+
+  /// No description provided for @advisoryCautionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This one works for most people, but it\'s been known to misbehave. Worth disabling if you\'re hunting down a problem.'**
+  String get advisoryCautionBody;
+
+  /// No description provided for @advisorySince.
+  ///
+  /// In en, this message translates to:
+  /// **'Since {since}'**
+  String advisorySince(String since);
+
+  /// No description provided for @advisoryOpenLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the creator\'s page'**
+  String get advisoryOpenLink;
+
+  /// No description provided for @advisorySource.
+  ///
+  /// In en, this message translates to:
+  /// **'Reported by other players, not by the game.'**
+  String get advisorySource;
 
   /// No description provided for @modInDirectory.
   ///
@@ -1078,6 +1336,24 @@ abstract class L {
   /// In en, this message translates to:
   /// **'“{name}” is no longer in the mods folder — it may have been moved or deleted by another program.'**
   String errorFileMissing(String name);
+
+  /// No description provided for @errorShopDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” couldn’t be downloaded from The Exchange. Check your connection and try again.'**
+  String errorShopDownload(String name);
+
+  /// No description provided for @errorShopListingNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'That mod isn’t on The Exchange any more. It may have been taken down.'**
+  String get errorShopListingNotFound;
+
+  /// No description provided for @errorShopListingUnknownGame.
+  ///
+  /// In en, this message translates to:
+  /// **'That mod is for a game this version of the app doesn’t know yet. Try updating.'**
+  String get errorShopListingUnknownGame;
 
   /// No description provided for @eraClassic.
   ///

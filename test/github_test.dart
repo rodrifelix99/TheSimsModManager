@@ -108,4 +108,65 @@ void main() {
     expect(controller.updateCheckDone, isTrue);
     expect(controller.availableUpdate, isNull);
   });
+
+  const advisoryBody = '{"version": 1, "games": {"stub": [{"id": "a", '
+      '"title": "A", "status": "broken", "identities": ["a.package"]}]}}';
+
+  // init() fires the advisory download without awaiting it, the way it
+  // does the update check, so the tests below let the event loop turn
+  // before looking at what it left behind.
+  Future<void> settle() => Future<void>.delayed(const Duration(milliseconds: 20));
+
+  test('the advisory list is downloaded once and then left alone', () async {
+    SharedPreferences.setMockInitialValues({'soundEffects': false});
+    var calls = 0;
+    final settings = SettingsStore(await SharedPreferences.getInstance());
+    AppController build() => AppController(
+          registry: GameRegistry(const [_StubAdapter()]),
+          settings: settings,
+          checkUpdates: () async => null,
+          loadAdvisories: () async {
+            calls++;
+            return advisoryBody;
+          },
+        );
+
+    await build().init();
+    await settle();
+    expect(calls, 1);
+    expect(settings.advisoriesJson, advisoryBody);
+    expect(settings.advisoriesFetchedAt, isNotNull);
+
+    // A second launch inside the freshness window reads the cache instead.
+    await build().init();
+    await settle();
+    expect(calls, 1);
+  });
+
+  test('a failed advisory download keeps the list already cached', () async {
+    SharedPreferences.setMockInitialValues({
+      'soundEffects': false,
+      'advisories.cache': advisoryBody,
+      // Old enough that a fresh download is due.
+      'advisories.fetchedAt': DateTime.now()
+          .subtract(const Duration(days: 3))
+          .millisecondsSinceEpoch,
+    });
+    var calls = 0;
+    final settings = SettingsStore(await SharedPreferences.getInstance());
+    final controller = AppController(
+      registry: GameRegistry(const [_StubAdapter()]),
+      settings: settings,
+      checkUpdates: () async => null,
+      loadAdvisories: () async {
+        calls++;
+        return null;
+      },
+    );
+
+    await controller.init();
+    await settle();
+    expect(calls, 1);
+    expect(settings.advisoriesJson, advisoryBody);
+  });
 }

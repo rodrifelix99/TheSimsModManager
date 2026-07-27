@@ -95,6 +95,10 @@ extension AppText on L {
       'fileInUseDelete' => errorFileInUseDelete(arg(0)),
       'fileInUseRename' => errorFileInUseRename(arg(0)),
       'fileMissing' => errorFileMissing(arg(0)),
+      'shopDownloadFailed' => errorShopDownload(arg(0)),
+      'shopNeedsFolder' => shopNeedsFolder(arg(0)),
+      'shopListingNotFound' => errorShopListingNotFound,
+      'shopListingUnknownGame' => errorShopListingUnknownGame,
       _ => '$message',
     };
   }

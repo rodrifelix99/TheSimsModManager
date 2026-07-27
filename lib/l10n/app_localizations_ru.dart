@@ -21,7 +21,130 @@ class LRu extends L {
   String get navLibrary => 'Библиотека';
 
   @override
+  String get navShop => 'The Exchange';
+
+  @override
   String get navSettings => 'Настройки';
+
+  @override
+  String get shopAlphaBadge => 'АЛЬФА';
+
+  @override
+  String get shopTagline => 'Моды от сообщества: ставятся в один клик.';
+
+  @override
+  String shopListingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count мода на полках',
+      many: '$count модов на полках',
+      few: '$count мода на полках',
+      one: '$count мод на полках',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get shopRefresh => 'Обновить';
+
+  @override
+  String get shopPublish => 'Опубликуй свои моды';
+
+  @override
+  String get shopLoadFailedTitle => 'The Exchange не отвечает';
+
+  @override
+  String get shopLoadFailedBody =>
+      'Не получилось загрузить полки. Проверь соединение и попробуй ещё раз.';
+
+  @override
+  String get shopRetry => 'Попробовать ещё раз';
+
+  @override
+  String get shopEmptyTitle => 'Полки пока пустые';
+
+  @override
+  String get shopEmptyBody =>
+      'The Exchange только-только открылся, и ещё никто ничего не опубликовал. Вот настолько тут всё свежее. Делаешь моды? Займи полку первым!';
+
+  @override
+  String get shopAllGames => 'Все игры';
+
+  @override
+  String get shopShowAllGames => 'Показать все игры';
+
+  @override
+  String shopEmptyGameTitle(String game) {
+    return 'Для $game пока пусто';
+  }
+
+  @override
+  String shopEmptyGameBody(String game) {
+    return 'На полках уже есть моды для других игр, а для $game ещё никто ничего не выложил. Есть свой? Займи полку первым!';
+  }
+
+  @override
+  String shopBy(String author) {
+    return 'от $author';
+  }
+
+  @override
+  String get shopInstalled => 'Установлен';
+
+  @override
+  String get shopUpdate => 'Обновить';
+
+  @override
+  String get shopUpdateBadge => 'обновление';
+
+  @override
+  String shopUpdatesWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'У $count твоих модов вышли новые версии на The Exchange',
+      many: 'У $count твоих модов вышли новые версии на The Exchange',
+      few: 'У $count твоих модов вышли новые версии на The Exchange',
+      one: 'У $count твоего мода вышла новая версия на The Exchange',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get shopUpdateHeading => 'У этого мода вышла новая версия';
+
+  @override
+  String shopUpdateBody(String version, String author) {
+    return '$author опубликовал(а) v$version на The Exchange. Обновление заменит файлы, которые у тебя сейчас.';
+  }
+
+  @override
+  String get shopUpdateSeeListing => 'Открыть карточку';
+
+  @override
+  String get shopInstalling => 'Устанавливаем…';
+
+  @override
+  String get shopInstallNotes => 'Заметки по установке';
+
+  @override
+  String get shopCreatorNudge =>
+      'Делаешь моды? Публиковать на The Exchange бесплатно, а игроки ставят твои работы в один клик.';
+
+  @override
+  String shopNeedsFolder(String game) {
+    return 'Сначала настрой папку модов для $game. Вкладка «Библиотека» всё подскажет.';
+  }
+
+  @override
+  String get shopBack => 'Назад к полкам';
+
+  @override
+  String get shopCopyLink => 'Копировать ссылку';
+
+  @override
+  String get shopLinkCopied => 'Ссылка скопирована';
 
   @override
   String get sidebarGames => 'ИГРЫ';
@@ -303,6 +426,60 @@ class LRu extends L {
   @override
   String get conflictResourcesBody =>
       'В этих пакетах есть ресурсы с одинаковыми идентификаторами, поэтому игра оставит только ту копию, что загрузилась последней. Иногда так и задумано — моды-патчи и override-моды намеренно перекрывают ресурсы другого мода, — но для не связанных между собой модов это значит, что один из них молча перестаёт работать: оставь тот, который нужен, а остальные выключи.';
+
+  @override
+  String advisoryBanner(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'У $count твоих модов есть известные проблемы',
+      many: 'У $count твоих модов есть известные проблемы',
+      few: 'У $count твоих модов есть известные проблемы',
+      one: 'У одного из твоих модов есть известная проблема',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get advisoryShow => 'Посмотреть';
+
+  @override
+  String get advisoryShowAll => 'Показать все моды';
+
+  @override
+  String get advisoryBadge => 'проблема';
+
+  @override
+  String get advisoryBrokenHeading => 'Этот мод считают сломанным';
+
+  @override
+  String get advisoryBrokenBody =>
+      'Другие игроки сообщают, что из-за него игра перестаёт работать. Отключить его — самый быстрый способ проверить, в нём ли дело.';
+
+  @override
+  String get advisoryOutdatedHeading => 'У этого мода есть версия поновее';
+
+  @override
+  String get advisoryOutdatedBody =>
+      'У тебя стоит как раз та версия, на которую жалуются. Скачай свежую у автора — этого должно хватить.';
+
+  @override
+  String get advisoryCautionHeading => 'За ним стоит присмотреть';
+
+  @override
+  String get advisoryCautionBody =>
+      'У большинства он работает, но иногда чудит. Если ищешь причину проблемы, попробуй его отключить.';
+
+  @override
+  String advisorySince(String since) {
+    return 'С $since';
+  }
+
+  @override
+  String get advisoryOpenLink => 'Открыть страницу автора';
+
+  @override
+  String get advisorySource => 'Об этом сообщили другие игроки, а не игра.';
 
   @override
   String modInDirectory(String dir) {
@@ -673,6 +850,19 @@ class LRu extends L {
   String errorFileMissing(String name) {
     return '«$name» больше нет в папке модов — возможно, другая программа переместила или удалила файл.';
   }
+
+  @override
+  String errorShopDownload(String name) {
+    return '«$name» не скачался с The Exchange. Проверь соединение и попробуй ещё раз.';
+  }
+
+  @override
+  String get errorShopListingNotFound =>
+      'Этого мода больше нет на The Exchange. Возможно, его убрали.';
+
+  @override
+  String get errorShopListingUnknownGame =>
+      'Этот мод для игры, которую эта версия приложения ещё не знает. Попробуй обновиться.';
 
   @override
   String get eraClassic => 'Классика';

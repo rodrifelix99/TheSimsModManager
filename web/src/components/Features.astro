@@ -1,0 +1,96 @@
+---
+import { useTranslations, type Locale } from '../i18n';
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+
+// Each card opens with a small drawing of the thing it describes, built from
+// the palette rather than an image: `size` is how much of the row it takes,
+// `art` picks which drawing, and `delay` staggers the reveal down the column.
+const features = [
+  { key: 'thumbs', size: 'wide', art: 'swatches', delay: '0' },
+  { key: 'toggle', size: '', art: 'toggle', delay: '0.06' },
+  { key: 'conflicts', size: '', art: 'alert', delay: '0' },
+  { key: 'drop', size: 'wide', art: 'drop', delay: '0.06' },
+  { key: 'folders', size: 'small', art: 'tags', delay: '0' },
+  { key: 'setup', size: 'small', art: 'steps', delay: '0.06' },
+  { key: 'search', size: 'small', art: 'search', delay: '0.12' },
+];
+---
+
+<section id="features" class="tinted">
+  <div class="wrap">
+    <div class="head">
+      <h2 data-reveal="0" set:html={t('features.h2')} />
+      <p class="lead" data-reveal="0.05" set:html={t('features.lead')} />
+    </div>
+
+    <div class="bento">
+      {
+        features.map((feature) => (
+          <div class:list={['card', feature.size]} data-reveal={feature.delay}>
+            {feature.art === 'swatches' && (
+              <div class="art art-swatches">
+                <span />
+                <span />
+                <span />
+                <span />
+              </div>
+            )}
+            {feature.art === 'toggle' && (
+              <div class="art art-toggle">
+                <span />
+              </div>
+            )}
+            {feature.art === 'alert' && (
+              <div class="art art-alert" set:html={t('features.conflicts.art')} />
+            )}
+            {feature.art === 'drop' && (
+              <div class="art art-drop">
+                <span>mod.zip</span>
+                <span>cc.rar</span>
+                <span>pack.7z</span>
+              </div>
+            )}
+            {feature.art === 'tags' && (
+              <div class="art art-tags">
+                <span>Los Sims 3</span>
+                <span>Die Sims 2</span>
+                <span>OneDrive</span>
+              </div>
+            )}
+            {feature.art === 'steps' && (
+              <div class="art art-steps">
+                <span set:html={t('features.setup.art1')} />
+                <span set:html={t('features.setup.art2')} />
+                <span set:html={t('features.setup.art3')} />
+              </div>
+            )}
+            {feature.art === 'search' && (
+              <div class="art art-search">
+                <Fragment set:html={t('features.search.art')} />
+                <span class="caret" />
+                <span class="count">24</span>
+              </div>
+            )}
+            <h3 set:html={t(`features.${feature.key}.h3`)} />
+            <p set:html={t(`features.${feature.key}.p`)} />
+          </div>
+        ))
+      }
+    </div>
+
+    <figure class="shot" data-reveal="0">
+      <img
+        src="/images/mod-details-conflict.png"
+        alt={t.plain('features.shotAlt')}
+        width="1600"
+        loading="lazy"
+      />
+      <figcaption set:html={t('features.caption')} />
+    </figure>
+  </div>
+</section>

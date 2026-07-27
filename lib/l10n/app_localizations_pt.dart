@@ -21,7 +21,126 @@ class LPt extends L {
   String get navLibrary => 'Biblioteca';
 
   @override
+  String get navShop => 'The Exchange';
+
+  @override
   String get navSettings => 'Configurações';
+
+  @override
+  String get shopAlphaBadge => 'ALFA';
+
+  @override
+  String get shopTagline => 'Mods da comunidade, instalados com um clique.';
+
+  @override
+  String shopListingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mods nas prateleiras',
+      one: '1 mod nas prateleiras',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get shopRefresh => 'Atualizar';
+
+  @override
+  String get shopPublish => 'Publique seus mods';
+
+  @override
+  String get shopLoadFailedTitle => 'The Exchange não está respondendo';
+
+  @override
+  String get shopLoadFailedBody =>
+      'Não deu para carregar as prateleiras. Confira sua conexão e tente de novo.';
+
+  @override
+  String get shopRetry => 'Tentar de novo';
+
+  @override
+  String get shopEmptyTitle => 'As prateleiras ainda estão vazias';
+
+  @override
+  String get shopEmptyBody =>
+      'The Exchange acabou de abrir as portas e ninguém publicou nada ainda. É novo assim mesmo. Você cria mods? Inaugure as prateleiras!';
+
+  @override
+  String get shopAllGames => 'Todos os jogos';
+
+  @override
+  String get shopShowAllGames => 'Ver todos os jogos';
+
+  @override
+  String shopEmptyGameTitle(String game) {
+    return 'Ainda não tem nada de $game';
+  }
+
+  @override
+  String shopEmptyGameBody(String game) {
+    return 'Outros jogos já têm mods nas prateleiras, mas de $game ninguém publicou ainda. Você fez um? Inaugure essa prateleira!';
+  }
+
+  @override
+  String shopBy(String author) {
+    return 'por $author';
+  }
+
+  @override
+  String get shopInstalled => 'Instalado';
+
+  @override
+  String get shopUpdate => 'Atualizar';
+
+  @override
+  String get shopUpdateBadge => 'atualização';
+
+  @override
+  String shopUpdatesWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dos seus mods têm versões novas no The Exchange',
+      one: '1 dos seus mods tem versão nova no The Exchange',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get shopUpdateHeading => 'Tem uma versão nova deste mod';
+
+  @override
+  String shopUpdateBody(String version, String author) {
+    return '$author publicou a v$version no The Exchange. Atualizar substitui os arquivos que você tem agora.';
+  }
+
+  @override
+  String get shopUpdateSeeListing => 'Ver o anúncio';
+
+  @override
+  String get shopInstalling => 'Instalando…';
+
+  @override
+  String get shopInstallNotes => 'Notas de instalação';
+
+  @override
+  String get shopCreatorNudge =>
+      'Você cria mods? Publicar no The Exchange é de graça, e os jogadores instalam seu trabalho com um clique.';
+
+  @override
+  String shopNeedsFolder(String game) {
+    return 'Configure primeiro a pasta de mods de $game. A aba Biblioteca mostra o caminho.';
+  }
+
+  @override
+  String get shopBack => 'Voltar às prateleiras';
+
+  @override
+  String get shopCopyLink => 'Copiar link';
+
+  @override
+  String get shopLinkCopied => 'Link copiado';
 
   @override
   String get sidebarGames => 'JOGOS';
@@ -291,6 +410,58 @@ class LPt extends L {
   @override
   String get conflictResourcesBody =>
       'Estes pacotes têm recursos com os mesmos identificadores, então o jogo só fica com a cópia que carrega por último. Isso pode ser de propósito — mods de patch e de override cobrem os recursos de outro mod intencionalmente —, mas entre mods sem relação significa que um deles simplesmente para de funcionar sem avisar: fique com o que você quer e desative os outros.';
+
+  @override
+  String advisoryBanner(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dos seus mods têm problemas conhecidos',
+      one: 'Um dos seus mods tem um problema conhecido',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get advisoryShow => 'Dar uma olhada';
+
+  @override
+  String get advisoryShowAll => 'Mostrar todos os mods';
+
+  @override
+  String get advisoryBadge => 'problema';
+
+  @override
+  String get advisoryBrokenHeading => 'Este mod está quebrado';
+
+  @override
+  String get advisoryBrokenBody =>
+      'Outros jogadores estão relatando que esse aí trava o jogo. Desativar é o jeito mais rápido de saber se o problema é ele.';
+
+  @override
+  String get advisoryOutdatedHeading => 'Existe uma versão mais nova deste mod';
+
+  @override
+  String get advisoryOutdatedBody =>
+      'A versão que você tem é justamente a que está dando problema. Baixar a mais recente do criador deve resolver.';
+
+  @override
+  String get advisoryCautionHeading => 'Vale ficar de olho';
+
+  @override
+  String get advisoryCautionBody =>
+      'Funciona para a maioria, mas já deu problema para alguns. Vale desativar se você estiver caçando um bug.';
+
+  @override
+  String advisorySince(String since) {
+    return 'Desde $since';
+  }
+
+  @override
+  String get advisoryOpenLink => 'Abrir a página do criador';
+
+  @override
+  String get advisorySource => 'Relatado por outros jogadores, não pelo jogo.';
 
   @override
   String modInDirectory(String dir) {
@@ -656,6 +827,19 @@ class LPt extends L {
   String errorFileMissing(String name) {
     return '“$name” não está mais na pasta de mods — outro programa pode ter movido ou excluído o arquivo.';
   }
+
+  @override
+  String errorShopDownload(String name) {
+    return '“$name” não pôde ser baixado do The Exchange. Confira sua conexão e tente de novo.';
+  }
+
+  @override
+  String get errorShopListingNotFound =>
+      'Esse mod não está mais na The Exchange. Pode ter sido tirado do ar.';
+
+  @override
+  String get errorShopListingUnknownGame =>
+      'Esse mod é de um jogo que esta versão do app ainda não conhece. Tenta atualizar.';
 
   @override
   String get eraClassic => 'Clássico';

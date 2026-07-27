@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# The mod pages themselves (/m/<id>) are welcome. This is the template Astro
+# builds them from, which the modPage function reads and fills in; on its own it
+# is a page of placeholders.
+Disallow: /m/index.html
+Disallow: /*/m/index.html
+
+Sitemap: https://thesimsmodmanager.web.app/sitemap.xml

@@ -1,0 +1,29 @@
+/* The palette every page starts from: The Sims 4 theme, which is also the app's
+   own. The landing page swaps these live from the theme switcher. */
+:root {
+  --accent:  #1FBF8F;
+  --accent2: #12B0D6;
+  --bg:      #EAF6F2;
+  --surface: #FFFFFF;
+  --surface-alt: #F2FAF7;
+  --text:    #0F2E28;
+  --muted:   #5F827A;
+  --border:  #D9ECE5;
+  --tint:    #DCF5EC;
+  --danger:  #D6551F;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+img { max-width: 100%; display: block; }
+
+/* The rule above is an author rule, so on an <img hidden> it beats the browser's
+   own display:none and the image shows anyway. Put hidden back on top. */
+[hidden] { display: none !important; }

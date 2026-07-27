@@ -7,7 +7,62 @@
   "brandSubtitle": "for The Sims",
 
   "navLibrary": "Library",
+  "navShop": "The Exchange",
   "navSettings": "Settings",
+
+  "shopAlphaBadge": "ALPHA",
+  "shopTagline": "Mods from the community, installed in one click.",
+  "shopListingCount": "{count, plural, =1{1 mod on the shelves} other{{count} mods on the shelves}}",
+  "@shopListingCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "shopRefresh": "Refresh",
+  "shopPublish": "Publish your mods",
+  "shopLoadFailedTitle": "The Exchange isn’t answering",
+  "shopLoadFailedBody": "Couldn’t load the shelves. Check your connection and give it another try.",
+  "shopRetry": "Try again",
+  "shopEmptyTitle": "The shelves are still empty",
+  "shopEmptyBody": "The Exchange just opened its doors and nobody has published anything yet. That’s how new this is. Made a mod yourself? Be the first on the shelves!",
+  "shopAllGames": "All games",
+  "shopShowAllGames": "Show every game",
+  "shopEmptyGameTitle": "Nothing for {game} yet",
+  "@shopEmptyGameTitle": {
+    "placeholders": { "game": { "type": "String" } }
+  },
+  "shopEmptyGameBody": "Other games have mods on the shelves, but nobody has published a {game} one yet. Made one? Be the first!",
+  "@shopEmptyGameBody": {
+    "placeholders": { "game": { "type": "String" } }
+  },
+  "shopBy": "by {author}",
+  "@shopBy": {
+    "placeholders": { "author": { "type": "String" } }
+  },
+  "shopInstalled": "Installed",
+  "shopUpdate": "Update",
+  "shopUpdateBadge": "update",
+  "shopUpdatesWaiting": "{count, plural, =1{1 of your mods has a new version on The Exchange} other{{count} of your mods have new versions on The Exchange}}",
+  "@shopUpdatesWaiting": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "shopUpdateHeading": "There’s a new version of this one",
+  "shopUpdateBody": "{author} has published v{version} on The Exchange. Updating replaces the files you have now.",
+  "@shopUpdateBody": {
+    "placeholders": {
+      "version": { "type": "String" },
+      "author": { "type": "String" }
+    }
+  },
+  "shopUpdateSeeListing": "See the listing",
+  "shopInstalling": "Installing…",
+  "shopInstallNotes": "Install notes",
+  "shopCreatorNudge": "Made mods yourself? Publishing on The Exchange is free, and players install your work in one click.",
+  "shopNeedsFolder": "Set up {game}’s mods folder first. The Library tab walks you through it.",
+  "@shopNeedsFolder": {
+    "placeholders": { "game": { "type": "String" } }
+  },
+  "shopBack": "Back to the shelves",
+  "shopCopyLink": "Copy link",
+  "shopLinkCopied": "Link copied",
   "sidebarGames": "GAMES",
   "sidebarNotInstalled": "not installed · {detail}",
   "@sidebarNotInstalled": {
@@ -156,6 +211,22 @@
   "conflictSameNameBody": "Identical names usually mean the same mod is installed twice, or two creators' packages clash. The game loads their overlapping resources in an unpredictable order: keep one and disable or remove the rest.",
   "conflictVersionBody": "Having several versions of a mod installed means the game loads their overlapping resources in an unpredictable order: keep the newest and disable or remove the rest.",
   "conflictResourcesBody": "These packages contain resources with the same identifiers, so the game only keeps the copy it loads last. That can be intentional — patch and override mods shadow another mod's resources on purpose — but for unrelated mods it means one of them silently stops working: keep the one you want and disable the rest.",
+
+  "advisoryBanner": "{count, plural, =1{One of your mods has a known issue} other{{count} of your mods have known issues}}",
+  "@advisoryBanner": {"placeholders": {"count": {"type": "int"}}},
+  "advisoryShow": "Take a look",
+  "advisoryShowAll": "Show all mods",
+  "advisoryBadge": "issue",
+  "advisoryBrokenHeading": "This mod is reported broken",
+  "advisoryBrokenBody": "Other players are reporting that this one stops the game working. Disabling it is the quickest way to find out if it's behind your problem.",
+  "advisoryOutdatedHeading": "There's a newer version of this mod",
+  "advisoryOutdatedBody": "The version you've got is the one people are having trouble with. Grabbing the creator's latest should sort it.",
+  "advisoryCautionHeading": "Worth keeping an eye on",
+  "advisoryCautionBody": "This one works for most people, but it's been known to misbehave. Worth disabling if you're hunting down a problem.",
+  "advisorySince": "Since {since}",
+  "@advisorySince": {"placeholders": {"since": {"type": "String"}}},
+  "advisoryOpenLink": "Open the creator's page",
+  "advisorySource": "Reported by other players, not by the game.",
 
   "modInDirectory": "in {dir}",
   "@modInDirectory": {
@@ -355,6 +426,12 @@
   "@errorFileMissing": {
     "placeholders": { "name": { "type": "String" } }
   },
+  "errorShopDownload": "“{name}” couldn’t be downloaded from The Exchange. Check your connection and try again.",
+  "@errorShopDownload": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "errorShopListingNotFound": "That mod isn’t on The Exchange any more. It may have been taken down.",
+  "errorShopListingUnknownGame": "That mod is for a game this version of the app doesn’t know yet. Try updating.",
 
   "eraClassic": "Classic",
   "eraNightlife": "Nightlife",

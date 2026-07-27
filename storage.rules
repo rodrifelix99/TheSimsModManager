@@ -1,0 +1,30 @@
+rules_version = '2';
+
+// Uploads live under mods/{uid}/{modId}/: the download itself in the
+// listing folder, screenshots under images/. Everything is world-readable
+// (the app downloads with no account); writing stays inside your own
+// folder. Size caps are the alpha's guardrail, not a promise.
+service firebase.storage {
+  match /b/{bucket}/o {
+    function owner(uid) {
+      return request.auth != null
+          && request.auth.uid == uid
+          && request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+
+    match /mods/{uid}/{modId}/images/{file} {
+      allow read: if true;
+      allow create, update: if owner(uid)
+          && request.resource.size <= 10 * 1024 * 1024
+          && request.resource.contentType.matches('image/.*');
+      allow delete: if owner(uid);
+    }
+
+    match /mods/{uid}/{modId}/{file} {
+      allow read: if true;
+      allow create, update: if owner(uid)
+          && request.resource.size <= 500 * 1024 * 1024;
+      allow delete: if owner(uid);
+    }
+  }
+}

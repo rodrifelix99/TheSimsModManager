@@ -1,9 +1,11 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 
+import '../core/game.dart';
 import '../core/game_adapter.dart';
 import '../core/mod_archive.dart';
 import 'app_controller.dart';
@@ -12,6 +14,7 @@ import 'game_theme.dart';
 import 'l10n.dart';
 import 'library_view.dart';
 import 'settings_view.dart';
+import 'shop_view.dart';
 import 'widgets.dart';
 
 /// Window chrome: title bar, sidebar, and the active screen.
@@ -118,6 +121,8 @@ class _AppShellState extends State<AppShell> {
                                       DetailView(theme: t, controller: c),
                                     AppScreen.settings =>
                                       SettingsView(theme: t, controller: c),
+                                    AppScreen.shop =>
+                                      ShopView(theme: t, controller: c),
                                   },
                                 ),
                               ),
@@ -339,6 +344,15 @@ class _WindowButtonsState extends State<_WindowButtons> with WindowListener {
   }
 }
 
+/// Luminance matrix: a game's icon goes gray when that game has nothing
+/// to offer (not installed, or no listings on The Exchange).
+const _grayscale = ColorFilter.matrix(<double>[
+  0.2126, 0.7152, 0.0722, 0, 0, //
+  0.2126, 0.7152, 0.0722, 0, 0, //
+  0.2126, 0.7152, 0.0722, 0, 0, //
+  0, 0, 0, 1, 0, //
+]);
+
 class _Sidebar extends StatefulWidget {
   const _Sidebar({
     required this.theme,
@@ -385,7 +399,26 @@ class _SidebarState extends State<_Sidebar>
         color: widget.glass ? t.surface.withValues(alpha: .55) : t.surface,
         border: Border(right: BorderSide(color: t.border)),
       ),
-      child: Column(
+      // The column's height grows with the number of games and with what
+      // the bottom cluster is carrying (the update banner, the disk bar),
+      // and kMinWindowSize can't chase all of it - a short window scrolls
+      // the sidebar instead of overflowing it. IntrinsicHeight + the
+      // minHeight below is what keeps the Spacer working when there *is*
+      // room: without them the scroll view's unbounded height would make
+      // the flexible child meaningless.
+      child: LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: IntrinsicHeight(child: _column(t, c, l)),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _column(GameTheme t, AppController c, L l) {
+    return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _logo(t, l),
@@ -404,7 +437,8 @@ class _SidebarState extends State<_Sidebar>
           _navButton(
             t,
             label: l.navLibrary,
-            active: c.screen != AppScreen.settings,
+            active: c.screen == AppScreen.library ||
+                c.screen == AppScreen.detail,
             iconBuilder: (color) => Container(
               width: 18,
               height: 18,
@@ -435,10 +469,10 @@ class _SidebarState extends State<_Sidebar>
             _updateCard(t, c, l),
             const SizedBox(height: 10),
           ],
+          _exchangeCard(t, c, l),
+          const SizedBox(height: 10),
           _storageCard(t, c, l),
-        ],
-      ),
-    );
+        ]);
   }
 
   /// Accent-tinted banner shown once a newer GitHub release is known;
@@ -506,6 +540,202 @@ class _SidebarState extends State<_Sidebar>
     );
   }
 
+  /// The Exchange, sitting under the games rather than among them: its
+  /// shelves carry every game at once. The row of game icons underneath
+  /// is both the statement of that and a shortcut - tap one to open the
+  /// shop already narrowed to it, tap it again to see everything.
+  Widget _exchangeCard(GameTheme t, AppController c, L l) {
+    final active = c.screen == AppScreen.shop;
+    final counts = c.shopCountsByGame;
+    return HoverBuilder(
+      cursor: SystemMouseCursors.click,
+      builder: (context, hovered) => GestureDetector(
+        onTap: c.openShop,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.fromLTRB(12, 11, 12, 11),
+          decoration: BoxDecoration(
+            color: active || hovered ? t.tint : t.surfaceAlt,
+            border: Border.all(
+              color: active ? t.accent : t.border,
+              width: active ? 1.5 : 1,
+            ),
+            borderRadius: BorderRadius.circular(13),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  // The plumbob diamond: a rotated square, same outline
+                  // weight as the nav icons above.
+                  SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: Center(
+                      child: Transform.rotate(
+                        angle: math.pi / 4,
+                        child: Container(
+                          width: 13,
+                          height: 13,
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                                color: active ? t.accent : t.text, width: 2.5),
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 11),
+                  Flexible(
+                    child: Text(
+                      l.navShop,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w800,
+                        color: active ? t.accent : t.text,
+                      ),
+                    ),
+                  ),
+                  // Mods waiting for a new version, counted here so the
+                  // answer is on screen from any tab rather than only for
+                  // whoever thinks to go and look.
+                  if (c.shopUpdateCount > 0) ...[
+                    const SizedBox(width: 8),
+                    Tooltip(
+                      message: l.shopUpdatesWaiting(c.shopUpdateCount),
+                      child: Container(
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                        decoration: BoxDecoration(
+                          gradient: t.accentGradient,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          '${c.shopUpdateCount}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                            height: 1.3,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 9),
+              Wrap(
+                spacing: 7,
+                runSpacing: 7,
+                children: [
+                  for (final adapter in c.registry.adapters)
+                    _exchangeGameShortcut(t, c, adapter.game,
+                        // Before the first load nothing is known, and a
+                        // row of gray icons would be a claim we can't
+                        // make yet.
+                        c.shopMods == null
+                            ? null
+                            : counts[adapter.game.id] ?? 0),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// One game's icon under The Exchange: lit when it has listings, dimmed
+  /// when its shelf is empty, ringed while it's the filter in effect.
+  /// [count] is null until the shelves have ever loaded.
+  Widget _exchangeGameShortcut(
+      GameTheme t, AppController c, Game game, int? count) {
+    final selected = c.screen == AppScreen.shop && c.shopGameFilter == game.id;
+    final empty = count == 0 && !selected;
+    return Tooltip(
+      message: count == null || count == 0
+          ? game.name
+          : '${game.name}  ·  $count',
+      waitDuration: const Duration(milliseconds: 400),
+      child: HoverBuilder(
+        cursor: SystemMouseCursors.click,
+        builder: (context, hovered) => GestureDetector(
+          onTap: () => c.openShop(gameId: game.id),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            padding: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              color: selected || hovered ? t.surface : Colors.transparent,
+              border: Border.all(
+                color: selected ? t.accent : Colors.transparent,
+                width: 1.5,
+              ),
+              borderRadius: BorderRadius.circular(9),
+            ),
+            child: Opacity(
+              opacity: empty ? .5 : 1,
+              child: _gameGlyph(t, game, size: 20, dim: empty),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// A game's icon at [size], falling back to the lettered badge for a
+  /// game we ship no artwork for. [dim] drains the color out of it - the
+  /// sidebar's way of saying "nothing here". Fading is the caller's job:
+  /// the game rows already sit inside an [Opacity].
+  Widget _gameGlyph(GameTheme t, Game game,
+      {required double size, required bool dim}) {
+    final asset = GameTheme.iconAsset(game);
+    if (asset == null) {
+      final badgeColor = dim
+          ? t.muted.withValues(alpha: .5)
+          : GameTheme.badgeColor(game, Theme.of(context).brightness);
+      final trailing = game.name.replaceAll(RegExp(r'[^0-9]'), '');
+      return Container(
+        width: size,
+        height: size,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: badgeColor,
+          borderRadius: BorderRadius.circular(size * .3),
+          boxShadow: dim
+              ? null
+              : [
+                  BoxShadow(
+                    color: badgeColor.withValues(alpha: .45),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+        ),
+        child: Text(
+          trailing.isEmpty ? game.name.substring(0, 1) : trailing,
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w900,
+            fontSize: size * .48,
+          ),
+        ),
+      );
+    }
+    final image = Image.asset(asset, fit: BoxFit.contain);
+    return SizedBox(
+      width: size,
+      height: size,
+      child: dim
+          ? ColorFiltered(colorFilter: _grayscale, child: image)
+          : image,
+    );
+  }
+
   Widget _logo(GameTheme t, L l) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -562,12 +792,6 @@ class _SidebarState extends State<_Sidebar>
     final active = game.id == c.adapter.game.id;
     final count = c.modCounts[game.id];
     final installed = count != null;
-    final badgeColor = installed
-        ? GameTheme.badgeColor(game, Theme.of(context).brightness)
-        : t.muted.withValues(alpha: .5);
-    final iconAsset = GameTheme.iconAsset(game);
-    final trailing = game.name.replaceAll(RegExp(r'[^0-9]'), '');
-    final badge = trailing.isEmpty ? game.name.substring(0, 1) : trailing;
     final opacity = installed ? 1.0 : 0.45;
     return HoverBuilder(
       cursor: SystemMouseCursors.click,
@@ -584,65 +808,7 @@ class _SidebarState extends State<_Sidebar>
             opacity: opacity,
             child: Row(
               children: [
-                if (iconAsset != null)
-                  SizedBox(
-                    width: 27,
-                    height: 27,
-                    child: installed
-                        ? Image.asset(iconAsset, fit: BoxFit.contain)
-                        : ColorFiltered(
-                            colorFilter: const ColorFilter.matrix(<double>[
-                              0.2126,
-                              0.7152,
-                              0.0722,
-                              0,
-                              0,
-                              0.2126,
-                              0.7152,
-                              0.0722,
-                              0,
-                              0,
-                              0.2126,
-                              0.7152,
-                              0.0722,
-                              0,
-                              0,
-                              0,
-                              0,
-                              0,
-                              1,
-                              0,
-                            ]),
-                            child: Image.asset(iconAsset, fit: BoxFit.contain),
-                          ),
-                  )
-                else
-                  Container(
-                    width: 27,
-                    height: 27,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: badgeColor,
-                      borderRadius: BorderRadius.circular(8),
-                      boxShadow: installed
-                          ? [
-                              BoxShadow(
-                                color: badgeColor.withValues(alpha: .45),
-                                blurRadius: 8,
-                                offset: const Offset(0, 3),
-                              ),
-                            ]
-                          : null,
-                    ),
-                    child: Text(
-                      badge,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
+                _gameGlyph(t, game, size: 27, dim: !installed),
                 const SizedBox(width: 11),
                 Expanded(
                   child: Column(

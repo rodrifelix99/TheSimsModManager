@@ -1,0 +1,39 @@
+---
+import { localePath, useTranslations, type Locale } from '../i18n';
+import { releasesUrl } from '../data/links';
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+---
+
+<div class="hero">
+  <div class="glow"></div>
+  <div class="wrap inner">
+    <div class="eyebrow" data-reveal="0" set:html={t('hero.eyebrow')} />
+    <h1 data-reveal="0.06" set:html={t('hero.h1')} />
+    <p class="sub" data-reveal="0.12" set:html={t('hero.sub')} />
+    <div class="hero-cta" data-reveal="0.18">
+      <a class="btn-primary" id="hero-download" href={releasesUrl}>
+        <span class="gleam"></span>
+        <span id="hero-download-label" set:html={t('hero.download')} />
+      </a>
+      <a class="btn-ghost" href={localePath(locale, 'portal/')} set:html={t('hero.publish')} />
+    </div>
+    <p class="alt" data-reveal="0.24">
+      <Fragment set:html={t('hero.otherPlatforms')} /><span id="hero-version"></span>
+    </p>
+
+    <div class="hero-shot" data-reveal="0.3">
+      <div class="glow"></div>
+      <img
+        id="hero-shot"
+        src="/images/library-grid.png"
+        alt={t.plain('hero.shotAlt')}
+        width="1600"
+      />
+    </div>
+  </div>
+</div>

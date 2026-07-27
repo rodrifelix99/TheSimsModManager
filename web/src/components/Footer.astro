@@ -1,0 +1,30 @@
+---
+import { localePath, useTranslations, type Locale } from '../i18n';
+import { donateUrl, tumblrUrl } from '../data/links';
+
+interface Props {
+  locale: Locale;
+  /// True on a page that is not the landing one, so the section anchors point
+  /// back at it instead of nowhere.
+  away?: boolean;
+}
+const { locale, away = false } = Astro.props;
+const t = useTranslations(locale);
+const to = (anchor: string) => (away ? localePath(locale) + anchor : anchor);
+---
+
+<footer>
+  <div class="wrap">
+    <div class="foot-links">
+      <a href={to('#features')} set:html={t('nav.features')} />
+      <a href={to('#games')} set:html={t('nav.games')} />
+      <a href={to('#download')} set:html={t('nav.download')} />
+      <a href={to('#faq')} set:html={t('nav.faq')} />
+      <a href={localePath(locale, 'portal/')} set:html={t('nav.publish')} />
+      <a href={tumblrUrl}>Tumblr</a>
+      <a class="donate" href={donateUrl} set:html={t('footer.donate')} />
+    </div>
+    <p class="credit" set:html={t('footer.credit')} />
+    <p class="disclaimer" set:html={t('footer.disclaimer')} />
+  </div>
+</footer>

@@ -21,7 +21,123 @@ class LJa extends L {
   String get navLibrary => 'ライブラリ';
 
   @override
+  String get navShop => 'The Exchange';
+
+  @override
   String get navSettings => '設定';
+
+  @override
+  String get shopAlphaBadge => 'アルファ版';
+
+  @override
+  String get shopTagline => 'コミュニティのMODをワンクリックでインストール。';
+
+  @override
+  String shopListingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '棚にMOD $count 個',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get shopRefresh => '更新';
+
+  @override
+  String get shopPublish => 'MODを公開する';
+
+  @override
+  String get shopLoadFailedTitle => 'The Exchangeにつながりません';
+
+  @override
+  String get shopLoadFailedBody => '棚を読み込めませんでした。接続を確認して、もう一度試してみてください。';
+
+  @override
+  String get shopRetry => 'もう一度試す';
+
+  @override
+  String get shopEmptyTitle => '棚はまだ空っぽ';
+
+  @override
+  String get shopEmptyBody =>
+      'The Exchangeはオープンしたばかりで、まだ誰も何も公開していません。それくらい新しい場所です。MODを作っているなら、棚の一番乗りになりませんか？';
+
+  @override
+  String get shopAllGames => 'すべてのゲーム';
+
+  @override
+  String get shopShowAllGames => 'すべてのゲームを表示';
+
+  @override
+  String shopEmptyGameTitle(String game) {
+    return '$game向けはまだありません';
+  }
+
+  @override
+  String shopEmptyGameBody(String game) {
+    return 'ほかのゲームの棚にはMODが並んでいますが、$game向けはまだ誰も公開していません。作っているなら、一番乗りになりませんか？';
+  }
+
+  @override
+  String shopBy(String author) {
+    return '作者: $author';
+  }
+
+  @override
+  String get shopInstalled => 'インストール済み';
+
+  @override
+  String get shopUpdate => 'アップデート';
+
+  @override
+  String get shopUpdateBadge => '更新あり';
+
+  @override
+  String shopUpdatesWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'あなたのMOD $count 個にThe Exchangeで新しいバージョンが出ています',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get shopUpdateHeading => 'このMODの新しいバージョンがあります';
+
+  @override
+  String shopUpdateBody(String version, String author) {
+    return '$author さんがThe Exchangeで v$version を公開しました。アップデートすると今のファイルが置き換わります。';
+  }
+
+  @override
+  String get shopUpdateSeeListing => 'ページを見る';
+
+  @override
+  String get shopInstalling => 'インストール中…';
+
+  @override
+  String get shopInstallNotes => 'インストールメモ';
+
+  @override
+  String get shopCreatorNudge =>
+      'MODを作っていますか？The Exchangeへの公開は無料。プレイヤーはワンクリックであなたの作品をインストールできます。';
+
+  @override
+  String shopNeedsFolder(String game) {
+    return 'まず$gameのMODフォルダーを設定してください。ライブラリタブが案内します。';
+  }
+
+  @override
+  String get shopBack => '棚に戻る';
+
+  @override
+  String get shopCopyLink => 'リンクをコピー';
+
+  @override
+  String get shopLinkCopied => 'コピーしました';
 
   @override
   String get sidebarGames => 'ゲーム';
@@ -265,6 +381,57 @@ class LJa extends L {
   @override
   String get conflictResourcesBody =>
       'これらのパッケージには同じ識別子のリソースが入っているため、ゲームは最後に読み込んだものだけを残します。パッチ系や上書き系の MOD はわざと他の MOD のリソースを隠すので意図的なこともありますが、無関係な MOD 同士だと片方が黙って効かなくなります。使いたいほうを残して、他は無効にしてください。';
+
+  @override
+  String advisoryBanner(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'MOD が $count 個、既知の問題を抱えています',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get advisoryShow => '見てみる';
+
+  @override
+  String get advisoryShowAll => 'すべての MOD を表示';
+
+  @override
+  String get advisoryBadge => '問題';
+
+  @override
+  String get advisoryBrokenHeading => 'この MOD は壊れていると報告されています';
+
+  @override
+  String get advisoryBrokenBody =>
+      'この MOD でゲームが動かなくなるという報告が出ています。原因かどうかを確かめるには、まず無効にしてみるのが一番早いです。';
+
+  @override
+  String get advisoryOutdatedHeading => 'この MOD には新しいバージョンがあります';
+
+  @override
+  String get advisoryOutdatedBody =>
+      '入っているのは、まさに問題が報告されているバージョンです。作者さんの最新版を入れ直せば直るはずです。';
+
+  @override
+  String get advisoryCautionHeading => '様子を見ておきたい MOD です';
+
+  @override
+  String get advisoryCautionBody =>
+      'ほとんどの人は問題なく使えていますが、たまに調子を崩すことで知られています。不具合を探しているなら、無効にしてみる価値はあります。';
+
+  @override
+  String advisorySince(String since) {
+    return '$since から';
+  }
+
+  @override
+  String get advisoryOpenLink => '作者のページを開く';
+
+  @override
+  String get advisorySource => 'ゲームではなく、他のプレイヤーからの報告です。';
 
   @override
   String modInDirectory(String dir) {
@@ -602,6 +769,19 @@ class LJa extends L {
   String errorFileMissing(String name) {
     return '「$name」はもうMODフォルダーにありません — 別のプログラムが移動したか削除したのかもしれません。';
   }
+
+  @override
+  String errorShopDownload(String name) {
+    return '「$name」をThe Exchangeからダウンロードできませんでした。接続を確認して、もう一度試してみてください。';
+  }
+
+  @override
+  String get errorShopListingNotFound =>
+      'このMODはもう The Exchange にないみたい。取り下げられたのかも。';
+
+  @override
+  String get errorShopListingUnknownGame =>
+      'このMODは、今のバージョンのアプリがまだ知らないゲーム向けだよ。アップデートしてみて。';
 
   @override
   String get eraClassic => 'クラシック';

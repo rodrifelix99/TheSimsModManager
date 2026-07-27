@@ -218,8 +218,22 @@ void main() {
       tester.view.physicalSize = kMinWindowSize;
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
-      SharedPreferences.setMockInitialValues(
-          {'soundEffects': false, 'localeCode': language.code});
+      // Seeded so the advisory banner and the detail panel are both on
+      // screen while the layout is measured: they are the wordiest thing
+      // the library draws, and a translation that doesn't fit here is
+      // exactly what this test exists to catch. fetchedAt is now, so the
+      // controller doesn't reach for the network on top of it.
+      SharedPreferences.setMockInitialValues({
+        'soundEffects': false,
+        'localeCode': language.code,
+        'advisories.cache': '{"version": 1, "games": {"fake": [{'
+            '"id": "cozy-sofa", "title": "Cozy Sofa", "status": "broken", '
+            '"since": "the 24 July 2026 patch", '
+            '"note": "Started right after the patch landed.", '
+            '"url": "https://example.com", '
+            '"identities": ["cozy sofa.package"]}]}}',
+        'advisories.fetchedAt': DateTime.now().millisecondsSinceEpoch,
+      });
       final tempDir = Directory.systemTemp.createTempSync('mod_manager_size');
       addTearDown(() => tempDir.deleteSync(recursive: true));
       File('${tempDir.path}/cozy_sofa.package').writeAsStringSync('x');
@@ -239,8 +253,12 @@ void main() {
       final registry = GameRegistry([_FakeAdapter(tempDir)]);
       final settings = await SettingsStore.load();
       await tester.runAsync(() async {
-        await tester.pumpWidget(
-            ModManagerApp(registry: registry, settings: settings));
+        await tester.pumpWidget(ModManagerApp(
+            registry: registry,
+            settings: settings,
+            // Empty shelves on purpose: the shop's alpha empty state is
+            // its wordiest layout.
+            fetchShop: () async => const []));
         await Future<void>.delayed(const Duration(milliseconds: 200));
       });
       await tester.pump();
@@ -257,6 +275,11 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
       expect(overflows, isEmpty, reason: 'settings in ${language.name}');
+
+      await tester.tap(find.text(strings.navShop).last);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(overflows, isEmpty, reason: 'shop in ${language.name}');
     });
   }
 }

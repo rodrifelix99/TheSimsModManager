@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 
 import '../core/conflicts.dart' show ConflictReason;
+import '../core/mod_advisories.dart' show AdvisoryStatus, ModAdvisory;
 import '../core/game_adapter.dart' show disabledSuffix;
 import '../core/mod.dart';
+import '../services/mod_shop.dart' show ShopMod;
 import '../services/sfx.dart';
 import 'app_controller.dart';
 import 'game_theme.dart';
@@ -282,6 +284,126 @@ class DetailView extends StatelessWidget {
     if (confirmed) await c.removeMod(mod);
   }
 
+  /// What the published advisory list says about this mod: the wording
+  /// for its status, whatever the entry itself carries (its title, when
+  /// it started, a note, a link to the fix), and a reminder that this is
+  /// other players talking rather than anything the app worked out.
+  Widget _advisoryPanel(GameTheme t, AppController c, L l, ModAdvisory a) {
+    final heading = switch (a.status) {
+      AdvisoryStatus.broken => l.advisoryBrokenHeading,
+      AdvisoryStatus.outdated => l.advisoryOutdatedHeading,
+      AdvisoryStatus.caution => l.advisoryCautionHeading,
+    };
+    final body = switch (a.status) {
+      AdvisoryStatus.broken => l.advisoryBrokenBody,
+      AdvisoryStatus.outdated => l.advisoryOutdatedBody,
+      AdvisoryStatus.caution => l.advisoryCautionBody,
+    };
+    final since = a.since;
+    final note = a.note;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: t.warning.withValues(alpha: .1),
+        border: Border.all(color: t.warning, width: 1.5),
+        borderRadius: BorderRadius.circular(11),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 18,
+                height: 18,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: t.warning,
+                  shape: BoxShape.circle,
+                ),
+                child: const Text(
+                  '!',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 12,
+                    height: 1,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  heading,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w800,
+                    color: t.onWarningTint,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          // The name the list knows it by, which is worth showing because
+          // it needn't be the name of the file on this machine: a mod
+          // matched on its contents may have been renamed by anyone.
+          Padding(
+            padding: const EdgeInsets.only(left: 26),
+            child: Text(
+              since == null ? a.title : '${a.title} · ${l.advisorySince(since)}',
+              style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+                color: t.onWarningTint,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            note == null ? body : '$body\n\n$note',
+            style: TextStyle(
+              fontSize: 12,
+              height: 1.5,
+              fontWeight: FontWeight.w600,
+              color: t.onWarningTint,
+            ),
+          ),
+          if (a.url != null) ...[
+            const SizedBox(height: 8),
+            HoverBuilder(
+              cursor: SystemMouseCursors.click,
+              builder: (context, hovered) => GestureDetector(
+                onTap: () => c.openAdvisoryUrl(a),
+                child: Text(
+                  l.advisoryOpenLink,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w800,
+                    color: t.warning,
+                    decoration: hovered
+                        ? TextDecoration.underline
+                        : TextDecoration.none,
+                    decorationColor: t.warning,
+                  ),
+                ),
+              ),
+            ),
+          ],
+          const SizedBox(height: 8),
+          Text(
+            l.advisorySource,
+            style: TextStyle(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w600,
+              color: t.onWarningTint.withValues(alpha: .75),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// The conflict warning: what we noticed, why it matters, and the
   /// actual mods this one clashes with; each row jumps to that mod.
   Widget _conflictPanel(GameTheme t, AppController c, L l, Mod mod) {
@@ -387,12 +509,99 @@ class DetailView extends StatelessWidget {
     );
   }
 
+  /// "The creator published a new version": the accent-tinted twin of the
+  /// advisory panel, for a mod that came from The Exchange and has a
+  /// newer version waiting there. The button installs it on the spot,
+  /// the same one click the shelves offer.
+  Widget _shopUpdatePanel(
+      GameTheme t, AppController c, L l, ShopMod listing) {
+    final installing = c.shopProgress.containsKey(listing.id);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 15),
+      decoration: BoxDecoration(
+        color: t.tint,
+        border: Border.all(color: t.accent, width: 1.5),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.arrow_circle_down_rounded, size: 19, color: t.accent),
+              const SizedBox(width: 9),
+              Expanded(
+                child: Text(
+                  l.shopUpdateHeading,
+                  style: TextStyle(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w900,
+                    color: t.text,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 7),
+          Text(
+            l.shopUpdateBody(listing.version, listing.authorName),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              height: 1.5,
+              color: t.text,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              FilledButton(
+                onPressed:
+                    installing ? null : () => c.installShopMod(listing),
+                style: FilledButton.styleFrom(
+                  backgroundColor: t.accent,
+                  foregroundColor: Colors.white,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                  textStyle: const TextStyle(
+                      fontWeight: FontWeight.w800, fontSize: 13),
+                ),
+                child: Text(installing ? l.shopInstalling : l.shopUpdate),
+              ),
+              const SizedBox(width: 10),
+              TextButton(
+                onPressed: () => c.openShop(gameId: listing.gameId),
+                style: TextButton.styleFrom(
+                  foregroundColor: t.muted,
+                  textStyle: const TextStyle(
+                      fontWeight: FontWeight.w800, fontSize: 13),
+                ),
+                child: Text(l.shopUpdateSeeListing),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _rightColumn(GameTheme t, AppController c, L l, Mod mod) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (c.advisoryOf(mod) case final advisory?) ...[
+          _advisoryPanel(t, c, l, advisory),
+          const SizedBox(height: 16),
+        ],
         if (c.isConflicted(mod)) ...[
           _conflictPanel(t, c, l, mod),
+          const SizedBox(height: 16),
+        ],
+        if (c.shopUpdateForMod(mod) case final listing?) ...[
+          _shopUpdatePanel(t, c, l, listing),
           const SizedBox(height: 16),
         ],
         TagChip(

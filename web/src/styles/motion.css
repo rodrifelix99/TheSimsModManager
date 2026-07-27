@@ -1,0 +1,86 @@
+/* The animations the redesigned pages share. Everything here is decoration:
+   with reduced motion asked for, the keyframes stop and the revealed blocks
+   simply start visible. */
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(26px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes floaty {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+@keyframes shine {
+  0%        { transform: translateX(-170%) skewX(-18deg); }
+  55%, 100% { transform: translateX(340%) skewX(-18deg); }
+}
+@keyframes glow {
+  0%, 100% { opacity: .5; transform: scale(1); }
+  50%      { opacity: .85; transform: scale(1.07); }
+}
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+@keyframes dash {
+  to { background-position: -40px 0; }
+}
+@keyframes toggleKnob {
+  0%, 42%   { transform: translateX(0); }
+  58%, 100% { transform: translateX(28px); }
+}
+@keyframes toggleTrack {
+  0%, 42%   { background: var(--border); }
+  58%, 100% { background: var(--accent); }
+}
+@keyframes pulseDot {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--danger) 50%, transparent); }
+  50%      { box-shadow: 0 0 0 9px color-mix(in srgb, var(--danger) 0%, transparent); }
+}
+@keyframes caret {
+  0%, 49%   { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+@keyframes dropIn {
+  0%        { transform: translateY(-16px); opacity: 0; }
+  22%, 72%  { transform: translateY(0); opacity: 1; }
+  100%      { transform: translateY(10px); opacity: 0; }
+}
+@keyframes packet {
+  0%   { left: 0%; opacity: 0; }
+  8%   { opacity: 1; }
+  92%  { opacity: 1; }
+  100% { left: 100%; opacity: 0; }
+}
+@keyframes stepGlow {
+  0%, 12%   { border-color: var(--border); }
+  20%, 34%  { border-color: var(--accent); }
+  46%, 100% { border-color: var(--border); }
+}
+
+/* Blocks start invisible and are animated in by scripts/reveal.ts once they
+   scroll into view. The no-JS fallback is the :not() rule below: without the
+   script nothing ever gets marked, so nothing would ever show. */
+[data-reveal] { opacity: 0; }
+[data-reveal][data-revealed] {
+  animation: rise .8s cubic-bezier(.22, 1, .36, 1) var(--reveal-delay, 0s) both;
+}
+html:not(.js) [data-reveal] { opacity: 1; }
+
+/* The soft colored clouds behind the hero and the portal. */
+.glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(46px);
+  pointer-events: none;
+  animation: glow 12s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+  [data-reveal] { opacity: 1; }
+}

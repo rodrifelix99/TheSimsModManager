@@ -1,0 +1,91 @@
+---
+import { useTranslations, type Locale } from '../i18n';
+import { releasesUrl } from '../data/links';
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+
+const cards = [
+  {
+    platform: 'windows-setup',
+    os: 'Windows',
+    image: 'systems/windows.webp',
+    tag: 'download.winSetup.tag',
+    body: 'download.winSetup.p',
+    get: 'download.getExe',
+  },
+  {
+    platform: 'windows-portable',
+    os: 'Windows',
+    image: 'systems/windows.webp',
+    tag: 'download.winPortable.tag',
+    body: 'download.winPortable.p',
+    get: 'download.getZip',
+  },
+  {
+    platform: 'macos',
+    os: 'macOS',
+    image: 'systems/apple.png',
+    body: 'download.macos.p',
+    get: 'download.getZip',
+  },
+  {
+    platform: 'linux',
+    os: 'Linux',
+    image: 'systems/linux.png',
+    body: 'download.linux.p',
+    get: 'download.getTarGz',
+  },
+];
+---
+
+<section id="download" class="tinted">
+  <div class="wrap">
+    <div class="head">
+      <h2 data-reveal="0" set:html={t('download.h2')} />
+      <p class="lead" data-reveal="0.05" set:html={t('download.lead')} />
+      <span
+        class="version-pill"
+        id="version-pill"
+        data-reveal="0.1"
+        set:html={t('download.latestRelease')}
+      />
+    </div>
+    <div class="dl-grid">
+      {
+        cards.map((card, index) => (
+          <div class="dl-card" data-platform={card.platform} data-reveal={(index * 0.05).toFixed(2)}>
+            <img src={`/images/${card.image}`} alt={card.os} />
+            <h3>
+              {card.os}
+              {card.tag && <Fragment> <small set:html={t(card.tag)} /></Fragment>}
+            </h3>
+            <p set:html={t(card.body)} />
+            <a class="get" href={releasesUrl} set:html={t(card.get)} />
+          </div>
+        ))
+      }
+    </div>
+    <p class="dl-note" data-reveal="0" set:html={t('download.note')} />
+  </div>
+</section>
+
+<script
+  type="application/json"
+  id="page-strings"
+  set:html={JSON.stringify({
+    osWindows: t('js.osWindows'),
+    osMacos: t('js.osMacos'),
+    osLinux: t('js.osLinux'),
+    download: t('js.download'),
+    latest: t('js.latest'),
+  })}
+/>
+
+<script>
+  import { fillDownloads } from '../scripts/download';
+  fillDownloads();
+</script>

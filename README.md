@@ -11,21 +11,21 @@
 [![License](https://img.shields.io/badge/license-source--available-lightgrey)](LICENSE.md)
 [![Donate](https://img.shields.io/badge/donate-PayPal-00457C?logo=paypal&logoColor=white)](https://www.paypal.com/donate/?hosted_button_id=UFSLDMGKB9R6A)
 
-**[Visit the website →](https://rodrifelix99.github.io/TheSimsModManager/)** · **[Follow on Tumblr](https://thesimsmodmanager.tumblr.com/)**
+**[Visit the website →](https://thesimsmodmanager.web.app/)** · **[Follow on Tumblr](https://thesimsmodmanager.tumblr.com/)**
 
 Browse, install, enable/disable, and clean up your mods and custom content
 for every mainline Sims game (and The Sims Medieval), in one app, with a UI
 that re-themes itself to match the game you're managing.
 
-<img src="docs/images/library-grid.png" alt="Library view (The Sims 4)" width="800">
+<img src="web/public/images/library-grid.png" alt="Library view (The Sims 4)" width="800">
 
 <sub>The UI re-themes per game. Here's the same library managing The Sims 2:</sub>
 
-<img src="docs/images/library-grid-ts2.png" alt="Library view (The Sims 2, warm cream theme)" width="800">
+<img src="web/public/images/library-grid-ts2.png" alt="Library view (The Sims 2, warm cream theme)" width="800">
 
 <sub>Every palette comes in a dark version too, following your system or your own pick:</sub>
 
-<img src="docs/images/dark-mode.png" alt="Library view in dark mode" width="800">
+<img src="web/public/images/dark-mode.png" alt="Library view in dark mode" width="800">
 
 </div>
 
@@ -56,12 +56,33 @@ that re-themes itself to match the game you're managing.
   or drop files and folders straight onto the window; `.zip`, `.rar` and
   `.7z` archives are unpacked for you, keeping their folder structure and
   skipping readmes and screenshots.
+- **The Exchange**: a mod shop inside the app. Browse the whole catalog,
+  filter by game, install in one click, and get an Update button when a
+  creator ships a new version of something you already have.
 
 <div align="center">
 
-<img src="docs/images/mod-details-conflict.png" alt="Mod detail view with a duplicate file name warning" width="800">
+<img src="web/public/images/mod-details-conflict.png" alt="Mod detail view with a duplicate file name warning" width="800">
 
 <sub>A mod's detail view: what's inside the package, where the file lives, and why it got flagged.</sub>
+
+</div>
+
+## The Exchange
+
+The app has its own mod shop, currently in alpha. Publishing is free at the
+**[creator portal](https://thesimsmodmanager.web.app/portal/)**, and what you
+publish shows up on everyone's shelves.
+
+<div align="center">
+
+<img src="web/public/images/mod-shop.png" alt="The Exchange inside the app: game filters and mod cards with cover art, creator, size and an Install button" width="800">
+
+<sub>The shelves, filtered by game. Installing puts the file in the folder of the game the listing names, whichever game you're currently looking at.</sub>
+
+<img src="web/public/images/mod-shop-mod-detail-and-update-page.png" alt="A listing inside the app with screenshots, version, size, install notes and an Update button" width="800">
+
+<sub>A listing brings its screenshots and install notes along, and turns into an Update button once the creator publishes a newer version.</sub>
 
 </div>
 
@@ -130,7 +151,7 @@ translation:
 
 Spotted something that reads wrong in your language, or want to add one that
 isn't here? The strings live in [lib/l10n](lib/l10n) (app) and
-[docs/i18n](docs/i18n) (website) - open an issue or a PR, credit included.
+[web/src/i18n](web/src/i18n) (website) - open an issue or a PR, credit included.
 
 ## Contributing
 

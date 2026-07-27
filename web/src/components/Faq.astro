@@ -1,0 +1,27 @@
+---
+import { useTranslations, type Locale } from '../i18n';
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+
+const questions = ['free', 'safe', 'smartscreen', 'localized', 'report'];
+---
+
+<section id="faq" class="tinted">
+  <div class="wrap">
+    <div class="head"><h2 data-reveal="0" set:html={t('faq.h2')} /></div>
+    <div class="faq">
+      {
+        questions.map((key, index) => (
+          <details data-reveal={(index * 0.04).toFixed(2)}>
+            <summary set:html={t(`faq.${key}.q`)} />
+            <p set:html={t(`faq.${key}.a`)} />
+          </details>
+        ))
+      }
+    </div>
+  </div>
+</section>

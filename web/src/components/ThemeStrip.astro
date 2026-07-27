@@ -1,0 +1,74 @@
+---
+import { useTranslations, type Locale } from '../i18n';
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+
+// Game titles stay English everywhere, the way the app itself shows them. The
+// last chip is not a game: it is the app's dark mode, which every game has.
+const chips = [
+  { id: 'sims1', name: 'The Sims', era: '2000', icon: 'the_sims_1_icon.png' },
+  { id: 'sims2', name: 'The Sims 2', era: '2004', icon: 'the_sims_2_icon.png' },
+  { id: 'sims3', name: 'The Sims 3', era: '2009', icon: 'the_sims_3_icon.png' },
+  {
+    id: 'simsmedieval',
+    name: 'The Sims Medieval',
+    era: '2011',
+    icon: 'the_sims_medieval_icon.webp',
+  },
+  { id: 'sims4', name: 'The Sims 4', era: '2014', icon: 'the_sims_4_icon.png' },
+  { id: 'dark', name: t.plain('themes.dark'), era: t.plain('themes.darkEra') },
+];
+
+// Which screenshot each palette shows off. Only three exist, so the games
+// without one of their own keep the Sims 4 shot and the caption says what
+// actually changed: the page.
+const shots: Record<string, [string, string]> = {
+  sims1: ['library-grid.png', t.plain('hero.shotAlt')],
+  sims2: ['library-grid-ts2.png', t.plain('themes.shotAlt')],
+  sims3: ['library-grid.png', t.plain('hero.shotAlt')],
+  simsmedieval: ['library-grid.png', t.plain('hero.shotAlt')],
+  sims4: ['library-grid.png', t.plain('hero.shotAlt')],
+  dark: ['dark-mode.png', t.plain('themes.darkAlt')],
+};
+
+const themeStrings = Object.fromEntries(
+  chips.map(({ id }) => [
+    id,
+    { src: `/images/${shots[id][0]}`, alt: shots[id][1], caption: t(`themes.cap.${id}`) },
+  ]),
+);
+---
+
+<div class="themes wrap">
+  <h2 data-reveal="0" set:html={t('themes.h2')} />
+  <p class="lead" data-reveal="0.05" set:html={t('themes.lead')} />
+  <div class="theme-chips" id="theme-chips" data-reveal="0.1">
+    {
+      chips.map((chip) => (
+        <button class:list={['chip', { active: chip.id === 'sims4' }]} data-theme={chip.id}>
+          {chip.icon ? (
+            <img src={`/images/games/${chip.icon}`} alt="" />
+          ) : (
+            <span class="swatch" />
+          )}
+          <span>
+            {chip.name}
+            <small>{chip.era}</small>
+          </span>
+        </button>
+      ))
+    }
+  </div>
+  <p class="shot-caption" id="shot-caption" data-reveal="0.14" set:html={t('themes.cap.sims4')} />
+</div>
+
+<script type="application/json" id="theme-strings" set:html={JSON.stringify(themeStrings)} />
+
+<script>
+  import { wireThemeSwitcher } from '../scripts/theme-switcher';
+  wireThemeSwitcher();
+</script>

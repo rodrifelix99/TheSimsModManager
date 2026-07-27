@@ -13,9 +13,10 @@
 //      force-pushed after the fold. Other checkouts recover with
 //      `git fetch && git checkout dev && git reset --hard origin/dev`.
 //
-// A release refuses to start unless dev's HEAD has a green "Analyze & test"
-// run on GitHub, so a red or still-building push cannot ship; --skip-ci
-// overrides that in an emergency.
+// A release refuses to start unless dev's HEAD has green CI runs on GitHub -
+// the analyze/test matrix, the per-platform builds and the website - so a
+// red or still-building push cannot ship; --skip-ci overrides that in an
+// emergency.
 //
 // Usage:
 //   dart tool/release.dart patch          # 1.0.0 -> 1.0.1
@@ -151,9 +152,16 @@ Future<void> main(List<String> args) async {
       'https://github.com/rodrifelix99/TheSimsModManager/actions');
 }
 
-/// Refuses to release unless every "Analyze & test" check run for HEAD
-/// finished green. No runs at all means the commit was never pushed (or CI
-/// has not started): push dev and let it finish first.
+/// The jobs in .github/workflows/ci.yml, by the name they report as. A job
+/// renamed there and not here would silently stop gating releases.
+const _ciChecks = ['Analyze & test', 'Build the app', 'Build the website'];
+
+/// Refuses to release unless every CI check run for HEAD finished green -
+/// the analyze/test matrix and the per-platform builds both, because a
+/// runner that no longer compiles is exactly the failure a release would
+/// otherwise be the first to find. No runs at all means the commit was
+/// never pushed (or CI has not started): push dev and let it finish
+/// first.
 Future<void> _requireGreenCi() async {
   final sha = _git(['rev-parse', 'HEAD']).trim();
   final short = sha.substring(0, 7);
@@ -181,10 +189,11 @@ Future<void> _requireGreenCi() async {
     client.close();
   }
   final ci = runs
-      .where((r) => (r['name'] as String).startsWith('Analyze & test'))
+      .where((r) => _ciChecks.any((name) =>
+          (r['name'] as String).startsWith(name)))
       .toList();
   if (ci.isEmpty) {
-    stderr.writeln('No "Analyze & test" runs for $short. Push dev, let CI '
+    stderr.writeln('No CI runs for $short. Push dev, let CI '
         'finish, then release (or use --skip-ci).');
     exit(1);
   }

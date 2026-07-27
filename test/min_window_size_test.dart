@@ -6,6 +6,7 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,13 +15,19 @@ import 'package:sims_mod_manager/src/core/game_adapter.dart';
 import 'package:sims_mod_manager/src/core/game_registry.dart';
 import 'package:sims_mod_manager/src/core/mod.dart';
 import 'package:sims_mod_manager/src/core/package_insight.dart';
+import 'package:sims_mod_manager/src/services/github.dart';
 import 'package:sims_mod_manager/src/services/settings_store.dart';
 import 'package:sims_mod_manager/src/ui/app.dart';
+import 'package:sims_mod_manager/src/ui/app_controller.dart';
+import 'package:sims_mod_manager/src/ui/l10n.dart';
+import 'package:sims_mod_manager/src/ui/shell.dart';
 
 class _FakeAdapter extends FolderBasedGameAdapter {
-  _FakeAdapter(this.dir);
+  _FakeAdapter(this.dir, {this.id = 'fake', this.title = 'Fake Game'});
 
   final Directory dir;
+  final String id;
+  final String title;
 
   /// Real isolates can't finish inside the fake-async test zone.
   @override
@@ -33,8 +40,7 @@ class _FakeAdapter extends FolderBasedGameAdapter {
       const {};
 
   @override
-  Game get game =>
-      const Game(id: 'fake', name: 'Fake Game', series: 'Test', year: 2024);
+  Game get game => Game(id: id, name: title, series: 'Test', year: 2024);
 
   @override
   Set<String> get modFileExtensions => const {'.package'};
@@ -126,5 +132,56 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
     expect(overflows, isEmpty,
         reason: 'settings overflowed at $kMinWindowSize');
+  });
+
+  // The sidebar's height is the number of games plus whatever the bottom
+  // cluster is carrying, and the test above ships one game - which is how
+  // a five-game sidebar came to overflow by 83px at the old minimum. This
+  // one runs the shipped shape: every game, the update banner up, the
+  // disk bar filled in.
+  testWidgets('the full sidebar fits the minimum window size',
+      (tester) async {
+    tester.view.physicalSize = kMinWindowSize;
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final registry = GameRegistry([
+      for (final (i, name) in [
+        'The Sims',
+        'The Sims 2',
+        'The Sims 3',
+        'The Sims Medieval',
+        'The Sims 4',
+      ].indexed)
+        _FakeAdapter(tempDir, id: 'game$i', title: name),
+    ]);
+    final settings = await SettingsStore.load();
+    // AppShell rather than ModManagerApp: the update banner is the
+    // tallest thing the sidebar ever holds, and only the controller can
+    // be told there is an update.
+    final controller = AppController(
+      registry: registry,
+      settings: settings,
+      checkUpdates: () async =>
+          UpdateInfo(version: '99.0.0', url: 'https://example.invalid'),
+      fetchShop: () async => const [],
+    );
+    await tester.runAsync(() async {
+      await tester.pumpWidget(MaterialApp(
+        localizationsDelegates: L.localizationsDelegates,
+        supportedLocales: appSupportedLocales,
+        home: AppShell(controller: controller),
+      ));
+    });
+    await pumpUntil(tester, find.text('The Sims 4'));
+    // The banner and the disk bar arrive over their own async round
+    // trips; the sidebar is only at full height once both have landed.
+    await pumpUntil(tester, find.text('Update available'));
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(controller.availableUpdate, isNotNull);
+    expect(find.text('The Exchange'), findsOneWidget);
+    expect(overflows, isEmpty,
+        reason: 'the five-game sidebar overflowed at $kMinWindowSize');
   });
 }

@@ -21,7 +21,126 @@ class LEs extends L {
   String get navLibrary => 'Biblioteca';
 
   @override
+  String get navShop => 'The Exchange';
+
+  @override
   String get navSettings => 'Ajustes';
+
+  @override
+  String get shopAlphaBadge => 'ALFA';
+
+  @override
+  String get shopTagline => 'Mods de la comunidad, instalados con un clic.';
+
+  @override
+  String shopListingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mods en las estanterías',
+      one: '1 mod en las estanterías',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get shopRefresh => 'Actualizar';
+
+  @override
+  String get shopPublish => 'Publica tus mods';
+
+  @override
+  String get shopLoadFailedTitle => 'The Exchange no responde';
+
+  @override
+  String get shopLoadFailedBody =>
+      'No se pudieron cargar las estanterías. Revisa tu conexión e inténtalo otra vez.';
+
+  @override
+  String get shopRetry => 'Reintentar';
+
+  @override
+  String get shopEmptyTitle => 'Las estanterías siguen vacías';
+
+  @override
+  String get shopEmptyBody =>
+      'The Exchange acaba de abrir sus puertas y nadie ha publicado nada todavía. Así de nuevo es esto. ¿Haces mods? ¡Estrena tú las estanterías!';
+
+  @override
+  String get shopAllGames => 'Todos los juegos';
+
+  @override
+  String get shopShowAllGames => 'Ver todos los juegos';
+
+  @override
+  String shopEmptyGameTitle(String game) {
+    return 'Aún no hay nada de $game';
+  }
+
+  @override
+  String shopEmptyGameBody(String game) {
+    return 'Otros juegos ya tienen mods en las estanterías, pero de $game todavía no hay ninguno. ¿Tienes uno? ¡Estrena tú esa estantería!';
+  }
+
+  @override
+  String shopBy(String author) {
+    return 'por $author';
+  }
+
+  @override
+  String get shopInstalled => 'Instalado';
+
+  @override
+  String get shopUpdate => 'Actualizar';
+
+  @override
+  String get shopUpdateBadge => 'actualización';
+
+  @override
+  String shopUpdatesWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count de tus mods tienen versiones nuevas en The Exchange',
+      one: '1 de tus mods tiene una versión nueva en The Exchange',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get shopUpdateHeading => 'Hay una versión nueva de este mod';
+
+  @override
+  String shopUpdateBody(String version, String author) {
+    return '$author publicó la v$version en The Exchange. Al actualizar se reemplazan los archivos que tienes ahora.';
+  }
+
+  @override
+  String get shopUpdateSeeListing => 'Ver la ficha';
+
+  @override
+  String get shopInstalling => 'Instalando…';
+
+  @override
+  String get shopInstallNotes => 'Notas de instalación';
+
+  @override
+  String get shopCreatorNudge =>
+      '¿Haces mods? Publicar en The Exchange es gratis, y los jugadores instalan tu trabajo con un clic.';
+
+  @override
+  String shopNeedsFolder(String game) {
+    return 'Configura primero la carpeta de mods de $game. La pestaña Biblioteca te guía paso a paso.';
+  }
+
+  @override
+  String get shopBack => 'Volver a las estanterías';
+
+  @override
+  String get shopCopyLink => 'Copiar enlace';
+
+  @override
+  String get shopLinkCopied => 'Enlace copiado';
 
   @override
   String get sidebarGames => 'JUEGOS';
@@ -290,6 +409,59 @@ class LEs extends L {
   @override
   String get conflictResourcesBody =>
       'Estos paquetes contienen recursos con los mismos identificadores, así que el juego solo conserva la copia que carga en último lugar. Puede ser a propósito (los mods de parche y de sobrescritura tapan los recursos de otro mod aposta), pero entre mods que no tienen nada que ver significa que uno de ellos deja de funcionar sin avisar: quédate con el que quieras y desactiva el resto.';
+
+  @override
+  String advisoryBanner(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count de tus mods tienen problemas conocidos',
+      one: 'Uno de tus mods tiene un problema conocido',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get advisoryShow => 'Echar un vistazo';
+
+  @override
+  String get advisoryShowAll => 'Mostrar todos los mods';
+
+  @override
+  String get advisoryBadge => 'problema';
+
+  @override
+  String get advisoryBrokenHeading => 'Este mod está roto';
+
+  @override
+  String get advisoryBrokenBody =>
+      'Otros jugadores están reportando que este rompe el juego. Desactivarlo es la forma más rápida de saber si es el culpable.';
+
+  @override
+  String get advisoryOutdatedHeading => 'Hay una versión más nueva de este mod';
+
+  @override
+  String get advisoryOutdatedBody =>
+      'La versión que tienes es justo la que está dando problemas. Bajarte la última del creador debería arreglarlo.';
+
+  @override
+  String get advisoryCautionHeading => 'Conviene no perderlo de vista';
+
+  @override
+  String get advisoryCautionBody =>
+      'A la mayoría le funciona, pero se sabe que a veces falla. Merece la pena desactivarlo si andas buscando un problema.';
+
+  @override
+  String advisorySince(String since) {
+    return 'Desde $since';
+  }
+
+  @override
+  String get advisoryOpenLink => 'Abrir la página del creador';
+
+  @override
+  String get advisorySource =>
+      'Reportado por otros jugadores, no por el juego.';
 
   @override
   String modInDirectory(String dir) {
@@ -655,6 +827,19 @@ class LEs extends L {
   String errorFileMissing(String name) {
     return '«$name» ya no está en la carpeta de mods — puede que otro programa lo haya movido o borrado.';
   }
+
+  @override
+  String errorShopDownload(String name) {
+    return '«$name» no se pudo descargar de The Exchange. Revisa tu conexión e inténtalo otra vez.';
+  }
+
+  @override
+  String get errorShopListingNotFound =>
+      'Ese mod ya no está en The Exchange. Puede que lo hayan retirado.';
+
+  @override
+  String get errorShopListingUnknownGame =>
+      'Ese mod es para un juego que esta versión de la app todavía no conoce. Prueba a actualizar.';
 
   @override
   String get eraClassic => 'Clásico';

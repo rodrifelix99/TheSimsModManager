@@ -16,5 +16,15 @@ windows/flutter/ephemeral/
 macos/Flutter/ephemeral/
 linux/flutter/ephemeral/
 
+# Website (web/, Astro)
+web/node_modules/
+web/dist/
+web/.astro/
+
+# Cloud Functions (functions/, Node)
+functions/node_modules/
+
 # FVM Version Cache
 .fvm/
+# Firebase CLI deploy cache
+.firebase/

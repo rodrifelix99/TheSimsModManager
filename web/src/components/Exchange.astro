@@ -1,0 +1,42 @@
+---
+import { localePath, useTranslations, type Locale } from '../i18n';
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+---
+
+<section id="exchange">
+  <div class="wrap">
+    <div class="exchange-banner" data-reveal="0">
+      <div class="copy">
+        <h3 set:html={t('exchange.h3')} />
+        <p set:html={t('exchange.p')} />
+      </div>
+      <a class="go" href={localePath(locale, 'portal/')} set:html={t('exchange.cta')} />
+    </div>
+
+    <div class="exchange-shots">
+      <figure data-reveal="0">
+        <img
+          src="/images/mod-shop.png"
+          alt={t.plain('exchange.shelvesAlt')}
+          width="1600"
+          loading="lazy"
+        />
+        <figcaption set:html={t('exchange.shelvesCap')} />
+      </figure>
+      <figure data-reveal="0.06">
+        <img
+          src="/images/mod-shop-mod-detail-and-update-page.png"
+          alt={t.plain('exchange.detailAlt')}
+          width="1600"
+          loading="lazy"
+        />
+        <figcaption set:html={t('exchange.detailCap')} />
+      </figure>
+    </div>
+  </div>
+</section>

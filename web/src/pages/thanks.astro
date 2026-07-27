@@ -1,0 +1,65 @@
+---
+// Where PayPal sends people after a donation. English only, and kept out of
+// the index: nobody should arrive here from a search.
+import Base from '../layouts/Base.astro';
+import Diamond from '../components/Diamond.astro';
+import { tumblrUrl } from '../data/links';
+import '../styles/motion.css';
+import '../styles/thanks.css';
+---
+
+<Base
+  locale="en"
+  base="thanks/"
+  title="Thank you! | The Sims Mod Manager"
+  description="Your support keeps The Sims Mod Manager free for everyone. Thank you!"
+  localized={false}
+  noindex
+>
+  <header>
+    <div class="nav">
+      <a class="brand" href="/">
+        <span class="mark"><Diamond /><span class="gleam"></span></span>
+        The Sims Mod Manager
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <div class="glow"></div>
+    <div class="stage">
+      <img
+        class="sims"
+        data-reveal="0"
+        src="/images/sims_happy.png"
+        alt="A group of joyful Sims cheering"
+        width="600"
+        height="337"
+      />
+      <div class="card" data-reveal="0.08">
+        <h1>Sul sul, <span class="grad">thank you!</span></h1>
+        <p>
+          Your support means the world. The Sims Mod Manager is free for everyone, and it's
+          sponsors like you who keep it that way: every donation goes toward making the app better.
+        </p>
+        <div class="actions">
+          <a class="btn primary" href="/">Back to the website</a>
+          <a class="btn ghost" href={tumblrUrl}>Follow on Tumblr ★</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p class="disclaimer">
+      The Sims Mod Manager is an unofficial fan project, not affiliated with, endorsed by, or
+      sponsored by Electronic Arts Inc. or Maxis. <i>The Sims</i> and related artwork are trademarks
+      or copyrighted material of Electronic Arts Inc., used for identification only.
+    </p>
+  </footer>
+
+  <script>
+    import { revealOnScroll } from '../scripts/reveal';
+    revealOnScroll();
+  </script>
+</Base>

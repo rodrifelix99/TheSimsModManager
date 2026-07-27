@@ -1,0 +1,37 @@
+---
+import Diamond from './Diamond.astro';
+import LangPicker from './LangPicker.astro';
+import { localePath, useTranslations, type Locale } from '../i18n';
+
+interface Props {
+  locale: Locale;
+  /// Left empty on the landing page, where the section anchors are on the page
+  /// already. A page that only borrows the header passes the landing page's
+  /// address so they still lead somewhere.
+  away?: boolean;
+}
+const { locale, away = false } = Astro.props;
+const t = useTranslations(locale);
+const home = localePath(locale);
+const to = (anchor: string) => (away ? home + anchor : anchor);
+---
+
+<header>
+  <div class="wrap nav">
+    <a class="brand" href={home}>
+      <span class="mark"><Diamond /><span class="gleam"></span></span>
+      <span class="brand-name">The Sims Mod Manager</span>
+    </a>
+    <nav class="nav-links">
+      <a href={to('#features')} set:html={t('nav.features')} />
+      <a href={to('#games')} set:html={t('nav.games')} />
+      <a href={to('#faq')} set:html={t('nav.faq')} />
+      <a href={localePath(locale, 'portal/')} set:html={t('nav.publish')} />
+      <LangPicker locale={locale} />
+      <a class="cta" href={to('#download')}>
+        <span class="gleam"></span>
+        <span set:html={t('nav.download')} />
+      </a>
+    </nav>
+  </div>
+</header>

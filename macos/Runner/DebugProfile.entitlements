@@ -2,10 +2,18 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- Sandbox off, same as Release.entitlements. Sandboxed, a debug run
+	     is a different app than the one we ship: $HOME points at the
+	     app's own container, so it never sees the real mods folders under
+	     Documents, and outgoing connections are refused without
+	     network.client - which The Exchange, the update check, the
+	     advisory feed and analytics all swallow by design, so they look
+	     broken for a reason the shipped build never has. -->
 	<key>com.apple.security.app-sandbox</key>
-	<true/>
+	<false/>
 	<key>com.apple.security.cs.allow-jit</key>
 	<true/>
+	<!-- The Dart VM service (hot reload, DevTools) listens on localhost. -->
 	<key>com.apple.security.network.server</key>
 	<true/>
 </dict>

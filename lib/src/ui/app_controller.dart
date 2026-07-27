@@ -7,20 +7,24 @@ import 'package:path/path.dart' as p;
 
 import '../core/app_message.dart';
 import '../core/conflicts.dart';
+import '../core/deep_link.dart';
 import '../core/demo_library.dart';
 import '../core/game_adapter.dart';
 import '../core/game_registry.dart';
 import '../core/mod.dart';
+import '../core/mod_advisories.dart';
 import '../core/mod_archive.dart';
 import '../core/mod_name.dart';
 import '../core/package_insight.dart';
 import '../services/analytics.dart';
+import '../services/demo_shop.dart';
 import '../services/disk_space.dart';
 import '../services/github.dart';
+import '../services/mod_shop.dart';
 import '../services/settings_store.dart';
 import '../services/sfx.dart';
 
-enum AppScreen { library, detail, settings }
+enum AppScreen { library, detail, settings, shop }
 
 /// What to tell the user when installing [error] failed on the file or
 /// folder at [sourcePath]. Adapters raise [ModContentException] and
@@ -83,11 +87,21 @@ class AppController extends ChangeNotifier {
     Sfx? sfx,
     Analytics? analytics,
     Future<UpdateInfo?> Function()? checkUpdates,
+    Future<String?> Function()? loadAdvisories,
+    Future<List<ShopMod>?> Function()? fetchShop,
+    Future<ShopMod?> Function(String id)? fetchListing,
+    Future<void> Function(ShopMod mod, File destination,
+            {void Function(int received, int total)? onProgress})?
+        downloadShop,
     int artworkBudgetBytes = defaultArtworkBudgetBytes,
   })  : _artworkBudgetBytes = artworkBudgetBytes,
         _sfx = sfx ?? Sfx(),
         analytics = analytics ?? Analytics.disabled(),
         _checkUpdates = checkUpdates ?? fetchAvailableUpdate,
+        _loadAdvisories = loadAdvisories ?? fetchAdvisories,
+        _fetchShop = fetchShop ?? fetchShopListings,
+        _fetchListing = fetchListing ?? fetchShopListing,
+        _downloadShop = downloadShop ?? downloadShopFile,
         _adapter = registry.byGameId('sims4') ?? registry.adapters.first {
     // Remote flags may land after the first frame (announcement banner,
     // kill switches); repaint when they do.
@@ -106,6 +120,23 @@ class AppController extends ChangeNotifier {
   /// Asks GitHub for a newer release; injectable so tests never touch
   /// the network.
   final Future<UpdateInfo?> Function() _checkUpdates;
+
+  /// Downloads the published advisory list; injectable for the same
+  /// reason as [_checkUpdates].
+  final Future<String?> Function() _loadAdvisories;
+
+  /// Fetches The Exchange's listings, every game at once; injectable for
+  /// the same reason as [_checkUpdates].
+  final Future<List<ShopMod>?> Function() _fetchShop;
+
+  /// Fetches one listing by id, for a deep link naming a mod the catalog
+  /// page didn't carry; injectable for the same reason as [_fetchShop].
+  final Future<ShopMod?> Function(String id) _fetchListing;
+
+  /// Downloads one listing's file; injectable so tests install from a
+  /// local byte source instead of the network.
+  final Future<void> Function(ShopMod mod, File destination,
+      {void Function(int received, int total)? onProgress}) _downloadShop;
 
   GameAdapter _adapter;
   GameAdapter get adapter => _adapter;
@@ -144,6 +175,19 @@ class AppController extends ChangeNotifier {
   /// When set, [filteredMods] narrows to the mods flagged by the conflict
   /// scan. Toggled by tapping the Conflicts stat in the library header.
   bool conflictsOnly = false;
+
+  /// Enabled mods the published advisory list has something to say about:
+  /// path -> the advisory covering it. See [matchAdvisories].
+  Map<String, ModAdvisory> advisories = const {};
+
+  /// Every advisory that was downloaded, by game id. Kept whole rather
+  /// than narrowed to the current game so switching games doesn't need
+  /// another download.
+  Map<String, List<ModAdvisory>> _publishedAdvisories = const {};
+
+  /// Narrows [filteredMods] to the mods an advisory names, the way
+  /// [conflictsOnly] does. Toggled from the library banner.
+  bool advisoriesOnly = false;
 
   /// Alternate mods folders found on this machine (multiple installs,
   /// localized names), shown when the default guess fails or as choices.
@@ -279,7 +323,7 @@ class AppController extends ChangeNotifier {
   List<Mod> get filteredMods {
     final q = query.trim().toLowerCase();
     final key = '$_libraryStamp|$category|$folder|$conflictsOnly'
-        '|${settings.showDisabled}|$q';
+        '|$advisoriesOnly|${settings.showDisabled}|$q';
     final cached = _filtered;
     if (cached != null && _filteredKey == key) return cached;
     final result = [
@@ -287,6 +331,7 @@ class AppController extends ChangeNotifier {
         if ((category == 'All' || mod.category == category) &&
             (folder == 'All' || folderOf(mod) == folder) &&
             (!conflictsOnly || conflictPaths.contains(mod.path)) &&
+            (!advisoriesOnly || advisories.containsKey(mod.path)) &&
             (settings.showDisabled || mod.isEnabled) &&
             (q.isEmpty ||
                 mod.name.toLowerCase().contains(q) ||
@@ -433,6 +478,88 @@ class AppController extends ChangeNotifier {
   /// Why the scan flagged [mod], or null when it didn't.
   ConflictReason? conflictReasonOf(Mod mod) => conflictReasons[mod.path];
 
+  /// Re-derives every per-mod warning from the library as it stands now.
+  ///
+  /// The conflict scan and the advisory match read the same two things -
+  /// [mods] and the insight cache - so anything that disturbs either has
+  /// to run both. Running only one leaves them disagreeing: disabling a
+  /// flagged mod used to drop it out of the filtered list (its path had
+  /// changed) while the banner went on counting it.
+  void _rescanWarnings() {
+    _rescanConflicts();
+    _rematchAdvisories();
+  }
+
+  int get advisoryCount => advisories.length;
+
+  /// What the published list says about [mod], or null when it says
+  /// nothing about it.
+  ModAdvisory? advisoryOf(Mod mod) => advisories[mod.path];
+
+  /// Narrows the library to the mods an advisory names, or back to all of
+  /// them; the mirror of [toggleConflictsOnly], driven by the banner.
+  void toggleAdvisoriesOnly() {
+    if (!advisoriesOnly && advisoryCount == 0) return;
+    playSound(UiSound.cycle);
+    advisoriesOnly = !advisoriesOnly;
+    if (advisoriesOnly) {
+      analytics
+          .capture('advisories_filter_opened', {'advisories': advisoryCount});
+    }
+    notifyListeners();
+  }
+
+  /// Re-matches the downloaded advisories against the library. Local and
+  /// cheap - the download is a separate, best-effort thing that may never
+  /// have happened. Runs after the package scan for the same reason the
+  /// conflict scan does: fingerprints come out of the insight cache.
+  void _rematchAdvisories() {
+    final on = analytics.isEnabled('mod-signal', fallback: true);
+    advisories = !on
+        ? const {}
+        : matchAdvisories(mods,
+            _publishedAdvisories[_adapter.game.id] ?? const [], insightFor);
+    if (advisories.isEmpty) advisoriesOnly = false;
+    _libraryStamp++;
+  }
+
+  /// How long a downloaded advisory list is considered current. The file
+  /// changes a few times a month; every launch re-fetching it would be
+  /// traffic for nothing.
+  static const _advisoryMaxAge = Duration(hours: 6);
+
+  /// Parses the advisory list saved by the last successful download, so
+  /// warnings are on screen from the first frame and a launch with no
+  /// network still has them.
+  void _loadCachedAdvisories() {
+    final cached = settings.advisoriesJson;
+    if (cached != null) _publishedAdvisories = parseAdvisories(cached);
+  }
+
+  /// Downloads a fresh advisory list unless the cached one is still
+  /// young. Best-effort throughout: a failure leaves the cache alone.
+  ///
+  /// Whatever arrives is cached, even when it parses to nothing. A
+  /// captive portal answering with its own page would cost one quiet
+  /// six-hour window on a machine that had no real network anyway, and
+  /// "the list is empty now" is a state the file reaches legitimately
+  /// every time the mods it named get fixed.
+  Future<void> _refreshAdvisories() async {
+    if (!analytics.isEnabled('mod-signal', fallback: true)) return;
+    final fetchedAt = settings.advisoriesFetchedAt;
+    if (fetchedAt != null &&
+        DateTime.now().difference(fetchedAt) < _advisoryMaxAge) {
+      return;
+    }
+    final body = await _loadAdvisories();
+    if (body == null) return;
+    await settings.setAdvisoriesJson(body);
+    await settings.setAdvisoriesFetchedAt(DateTime.now());
+    _publishedAdvisories = parseAdvisories(body);
+    _rematchAdvisories();
+    notifyListeners();
+  }
+
   /// Per-file scan results (embedded artwork + content summary). Keyed by
   /// enabled-name path + size + mtime so a replaced file is re-scanned,
   /// while a plain enable/disable rename keeps its cached entry. A null
@@ -516,8 +643,10 @@ class AppController extends ChangeNotifier {
       _insights.clear();
       _artworkBytes = 0;
       // Resource-overlap conflicts came from the cache that just went
-      // away; keep only what the lexical heuristics can still see.
-      _rescanConflicts();
+      // away; keep only what the lexical heuristics can still see. The
+      // advisory match loses its fingerprints to the same clearing and
+      // falls back to matching on names.
+      _rescanWarnings();
       notifyListeners();
     }
   }
@@ -680,6 +809,15 @@ class AppController extends ChangeNotifier {
     openUrl(Uri.parse(update.url));
   }
 
+  /// Opens the fix link an advisory carries. The event records the kind
+  /// of advisory, never which one - see [advisoryCount].
+  void openAdvisoryUrl(ModAdvisory advisory) {
+    final url = advisory.url;
+    if (url == null) return;
+    analytics.capture('advisory_link_clicked', {'status': advisory.status.name});
+    openUrl(Uri.parse(url));
+  }
+
   void reportBug() {
     analytics.capture('feedback_opened', {'type': 'bug_report'});
     openUrl(bugReportUrl(gameName: _adapter.game.name));
@@ -696,14 +834,29 @@ class AppController extends ChangeNotifier {
   }
 
   Future<void> init() async {
+    // Before the first refresh, so the library's very first frame already
+    // carries whatever the last download knew.
+    _loadCachedAdvisories();
+    // Same reason: the update badges are drawn from these records, and
+    // the first library frame should already have them.
+    _shopInstalls = parseShopInstalls(settings.shopInstallsJson);
     await refresh();
     _captureLibraryOpened();
+    // Not awaited, like the update check below it.
+    _refreshAdvisories();
     // Not awaited: a network round-trip the library shouldn't wait on;
     // the Settings card and sidebar fill in when the answer arrives.
     // Remote kill switch: skip the check entirely if a release's check
     // ever needs to be silenced (e.g. a bad tag confusing everyone).
     if (analytics.isEnabled('update-check', fallback: true)) {
       checkForUpdates();
+    }
+    // Mod updates, the same way: only worth a fetch when something was
+    // installed from the shop, and killable remotely if the catalog ever
+    // needs to stop being polled on launch.
+    if (_shopInstalls.isNotEmpty &&
+        analytics.isEnabled('shop-update-check', fallback: true)) {
+      refreshShop();
     }
     await _refreshCounts();
   }
@@ -718,7 +871,10 @@ class AppController extends ChangeNotifier {
     category = 'All';
     folder = 'All';
     conflictsOnly = false;
+    advisoriesOnly = false;
     _selectedModPath = null;
+    // The Exchange is deliberately left alone: its shelves span every
+    // game, so switching the library doesn't re-shelve them.
     await refresh();
     _captureLibraryOpened();
   }
@@ -734,6 +890,10 @@ class AppController extends ChangeNotifier {
       'mods': mods.length,
       'enabled_mods': enabledCount,
       'conflicts': conflictCount,
+      // How many mods the advisory list names, never which ones: an
+      // advisory id next to a distinct id would say that this user has
+      // that mod.
+      'advisories': advisoryCount,
       'folders': folders.length,
       'total_size_mb': (totalSizeBytes / (1024 * 1024)).round(),
     });
@@ -806,7 +966,7 @@ class AppController extends ChangeNotifier {
     playSound(enabled ? UiSound.toggleOn : UiSound.toggleOff);
     _setMods([for (final m in mods) m.path == mod.path ? updated : m]);
     if (_selectedModPath == mod.path) _selectedModPath = updated.path;
-    _rescanConflicts();
+    _rescanWarnings();
     notifyListeners();
   }
 
@@ -818,7 +978,7 @@ class AppController extends ChangeNotifier {
       _selectedModPath = null;
       screen = AppScreen.library;
     }
-    _rescanConflicts();
+    _rescanWarnings();
     modCounts[_adapter.game.id] = mods.length;
     modSizes[_adapter.game.id] = totalSizeBytes;
     notifyListeners();
@@ -856,11 +1016,25 @@ class AppController extends ChangeNotifier {
       // land before the conflict scan: resource-overlap detection reads
       // the packages' resource keys out of the insight cache.
       await _scanNewMods();
-      _rescanConflicts();
+      _rescanWarnings();
       candidateDirs = await _adapter.findModsDirectoryCandidates();
       defaultPath = await _adapter.defaultModsPath();
       gameFolder = await _adapter.findGameFolder();
       await _refreshCacheFiles();
+      // Demo mode fills the shelves here rather than on first visit, so
+      // the sidebar's update count is in the shot before anyone opens
+      // The Exchange. It also has to run after the library is built: the
+      // pretend records point at one of its files.
+      if (settings.demoLibrary) {
+        _loadDemoShop();
+      } else if (_demoShopInstalls.isNotEmpty) {
+        // Demo mode was just switched off.
+        _demoShopInstalls = const {};
+        shopMods = null;
+      }
+      // The library just changed under the update badges, and the mods
+      // folder may be a different game's than last time.
+      _rebuildShopUpdates();
       modCounts[_adapter.game.id] = dir == null ? null : mods.length;
       modSizes[_adapter.game.id] = totalSizeBytes;
       // Not awaited: shells out to the OS, and the library shouldn't
@@ -904,32 +1078,36 @@ class AppController extends ChangeNotifier {
   Future<void> _refreshCounts() async {
     for (final other in registry.adapters) {
       if (other.game.id == _adapter.game.id) continue;
-      try {
-        final override = settings.modsPathOverride(other.game.id);
-        final dir = override != null && await Directory(override).exists()
-            ? Directory(override)
-            : await other.resolveModsDirectory();
-        final otherMods = dir == null ? null : await other.listMods(dir);
-        modCounts[other.game.id] = otherMods?.length;
-        modSizes[other.game.id] =
-            otherMods?.fold(0, (sum, m) => sum! + (m.sizeBytes ?? 0)) ?? 0;
-        // The sidebar counts every game, so demo mode has to reach them
-        // all - a screenshot with one full game and four empty ones is
-        // the shot nobody wanted.
-        if (settings.demoLibrary) {
-          final root = dir?.path ?? await other.defaultModsPath() ?? 'Mods';
-          final demo = buildDemoLibrary(other, root, today: _demoAnchor());
-          modCounts[other.game.id] =
-              (modCounts[other.game.id] ?? 0) + demo.mods.length;
-          modSizes[other.game.id] = modSizes[other.game.id]! +
-              demo.mods.fold(0, (sum, m) => sum + (m.sizeBytes ?? 0));
-        }
-      } catch (_) {
-        modCounts[other.game.id] = null;
-        modSizes[other.game.id] = 0;
-      }
+      await _refreshCountFor(other, notify: false);
     }
     notifyListeners();
+  }
+
+  /// Re-reads one other game's folder for the sidebar's count and size.
+  /// The game on screen keeps its numbers from [refresh] instead.
+  Future<void> _refreshCountFor(GameAdapter other, {bool notify = true}) async {
+    try {
+      final dir = await modsDirFor(other);
+      final otherMods = dir == null ? null : await other.listMods(dir);
+      modCounts[other.game.id] = otherMods?.length;
+      modSizes[other.game.id] =
+          otherMods?.fold(0, (sum, m) => sum! + (m.sizeBytes ?? 0)) ?? 0;
+      // The sidebar counts every game, so demo mode has to reach them
+      // all - a screenshot with one full game and four empty ones is
+      // the shot nobody wanted.
+      if (settings.demoLibrary) {
+        final root = dir?.path ?? await other.defaultModsPath() ?? 'Mods';
+        final demo = buildDemoLibrary(other, root, today: _demoAnchor());
+        modCounts[other.game.id] =
+            (modCounts[other.game.id] ?? 0) + demo.mods.length;
+        modSizes[other.game.id] = modSizes[other.game.id]! +
+            demo.mods.fold(0, (sum, m) => sum + (m.sizeBytes ?? 0));
+      }
+    } catch (_) {
+      modCounts[other.game.id] = null;
+      modSizes[other.game.id] = 0;
+    }
+    if (notify) notifyListeners();
   }
 
   void openMod(Mod mod) {
@@ -1009,7 +1187,7 @@ class AppController extends ChangeNotifier {
           {'game': _adapter.game.id, 'category': mod.category});
       _setMods([for (final m in mods) m.path == mod.path ? updated : m]);
       if (_selectedModPath == mod.path) _selectedModPath = updated.path;
-      _rescanConflicts();
+      _rescanWarnings();
       modCounts[_adapter.game.id] = mods.length;
       notifyListeners();
     } catch (e, stack) {
@@ -1058,12 +1236,31 @@ class AppController extends ChangeNotifier {
       _selectedModPath = null;
       screen = AppScreen.library;
     }
+    // Whatever the shop thought it had installed, this file is no longer
+    // part of it.
+    if (error == null) await _forgetShopFile(mod);
     await _refreshKeepingError(error);
   }
 
+  /// Where [adapter]'s mods live right now: the folder already loaded for
+  /// the game on screen, resolved from scratch for any other (The
+  /// Exchange installs for games the sidebar isn't pointing at).
+  Future<Directory?> modsDirFor(GameAdapter adapter) async {
+    if (adapter.game.id == _adapter.game.id) return modsDir;
+    final override = settings.modsPathOverride(adapter.game.id);
+    if (override != null && await Directory(override).exists()) {
+      return Directory(override);
+    }
+    return adapter.resolveModsDirectory();
+  }
+
+  /// Installs [sources] into [into]'s mods folder, the game on screen
+  /// unless a caller says otherwise ([target] is that game's folder, so
+  /// the resolution isn't done twice).
   Future<void> installFiles(List<FileSystemEntity> sources,
-      {String method = 'picker'}) async {
-    final dir = modsDir;
+      {String method = 'picker', GameAdapter? into, Directory? target}) async {
+    final adapter = into ?? _adapter;
+    final dir = target ?? modsDir;
     if (dir == null) return;
     AppMessage? error;
     var folders = 0, archives = 0, files = 0;
@@ -1073,18 +1270,18 @@ class AppController extends ChangeNotifier {
         failing = source;
         if (source is Directory) {
           folders++;
-          await _adapter.installFolder(dir, source);
+          await adapter.installFolder(dir, source);
         } else if (isArchivePath(source.path)) {
           archives++;
-          await _adapter.installArchive(dir, File(source.path));
+          await adapter.installArchive(dir, File(source.path));
         } else {
           files++;
-          await _adapter.installMod(dir, File(source.path));
+          await adapter.installMod(dir, File(source.path));
         }
       }
       playSound(UiSound.install);
       analytics.capture('mod_installed', {
-        'game': _adapter.game.id,
+        'game': adapter.game.id,
         'method': method,
         'files': files,
         'archives': archives,
@@ -1100,13 +1297,20 @@ class AppController extends ChangeNotifier {
         analytics.captureException(e, stack, mechanism: 'installFiles');
       }
       analytics.capture('mod_install_failed', {
-        'game': _adapter.game.id,
+        'game': adapter.game.id,
         'method': method,
         'reason': installFailureReason(e),
       });
       playSound(UiSound.error);
     }
-    await _refreshKeepingError(error);
+    // Another game's library isn't on screen to reload - only its sidebar
+    // count moved, and the error (if any) still has to reach the banner.
+    if (adapter.game.id == _adapter.game.id) {
+      await _refreshKeepingError(error);
+    } else {
+      lastError = error;
+      await _refreshCountFor(adapter);
+    }
   }
 
   /// Installs files and folders dropped onto the window, ignoring
@@ -1220,7 +1424,7 @@ class AppController extends ChangeNotifier {
     // switching sounds on confirms audibly, switching off is silent.
     if (sound != null) playSound(sound);
     // Conflict scanning and visibility react immediately.
-    _rescanConflicts();
+    _rescanWarnings();
     notifyListeners();
   }
 
@@ -1262,6 +1466,528 @@ class AppController extends ChangeNotifier {
     analytics.capture(
         'announcement_clicked', {'announcement': announcement?['id']});
     openUrl(Uri.parse(url));
+  }
+
+  /// Every game's listings, as of the last [refreshShop]. Null before the
+  /// first successful load. The Exchange is not tied to the game in the
+  /// sidebar: the whole catalog is fetched once and narrowed here.
+  List<ShopMod>? shopMods;
+
+  bool shopLoading = false;
+
+  /// True when a load failed and there's nothing cached to show instead;
+  /// the shop screen offers a retry.
+  bool shopLoadFailed = false;
+
+  /// Which game's shelf the user is looking at, or null for all of them
+  /// (the default - the shop opens on everything).
+  String? shopGameFilter;
+
+  /// Listings this build can actually do something with: a game the
+  /// registry doesn't know has no folder to install into and no name to
+  /// caption, so it stays off the shelves rather than showing as a dead
+  /// card.
+  List<ShopMod> get shopKnownMods => [
+        for (final mod in shopMods ?? const <ShopMod>[])
+          if (registry.byGameId(mod.gameId) != null) mod,
+      ];
+
+  /// What the shelves draw: [shopKnownMods] narrowed by [shopGameFilter].
+  List<ShopMod> get visibleShopMods {
+    final filter = shopGameFilter;
+    final known = shopKnownMods;
+    if (filter == null) return known;
+    return [
+      for (final mod in known)
+        if (mod.gameId == filter) mod,
+    ];
+  }
+
+  /// How many listings each game has, for the shop's filter chips.
+  Map<String, int> get shopCountsByGame {
+    final counts = <String, int>{};
+    for (final mod in shopKnownMods) {
+      counts[mod.gameId] = (counts[mod.gameId] ?? 0) + 1;
+    }
+    return counts;
+  }
+
+  void setShopGameFilter(String? gameId) {
+    if (shopGameFilter == gameId) return;
+    playSound(UiSound.click);
+    shopGameFilter = gameId;
+    analytics.capture('shop_filtered', {'game': gameId ?? 'all'});
+    notifyListeners();
+  }
+
+  /// Download progress per listing id, 0..1, or null while the size is
+  /// still unknown. A listing appears here only while installing.
+  final Map<String, double?> shopProgress = {};
+
+  /// What The Exchange has installed on this machine, by listing id.
+  /// Survives restarts (see [SettingsStore.shopInstallsJson]) - it is
+  /// what makes "you have v1.2, the creator published v1.3" a question
+  /// the app can answer at all.
+  Map<String, ShopInstall> _shopInstalls = {};
+
+  /// Pretend install records for the invented shelves, so demo mode can
+  /// photograph the Installed and Update states as well as the plain
+  /// one. Kept apart from [_shopInstalls] because nothing about the demo
+  /// library is ever written to disk.
+  Map<String, ShopInstall> _demoShopInstalls = const {};
+
+  /// The records everything reads: what was really installed, plus
+  /// whatever demo mode is pretending.
+  Map<String, ShopInstall> get _installRecords =>
+      _demoShopInstalls.isEmpty
+          ? _shopInstalls
+          : {..._shopInstalls, ..._demoShopInstalls};
+
+  /// Which listing each installed file belongs to, for the files whose
+  /// listing has a newer version on the shelves. Keyed by enabled-name
+  /// path so a disabled mod still matches. Current game only: the other
+  /// games' libraries aren't in memory to badge.
+  Map<String, ShopMod> _shopUpdateByPath = const {};
+
+  /// A newer version than the installed one, or null when the listing is
+  /// unknown, unchanged, or was never installed from here. Version
+  /// strings are compared for difference rather than order: creators
+  /// write them freely ("1.2", "2026-05-01", "final"), and the honest
+  /// claim is "this isn't what you installed", not "this is higher".
+  ShopMod? shopUpdateFor(ShopMod mod) {
+    final install = _installRecords[mod.id];
+    if (install == null || install.version == mod.version) return null;
+    return mod;
+  }
+
+  /// The listing offering a newer version of [mod], or null. Drives the
+  /// library's update badge.
+  ShopMod? shopUpdateForMod(Mod mod) =>
+      _shopUpdateByPath[enabledPathOf(mod.path)];
+
+  /// How many installed listings have a newer version waiting, across
+  /// every game. The sidebar badges The Exchange with this, so nobody has
+  /// to open the shop to find out.
+  int get shopUpdateCount {
+    final byId = {for (final mod in shopKnownMods) mod.id: mod};
+    var count = 0;
+    for (final install in _installRecords.values) {
+      final listing = byId[install.listingId];
+      if (listing != null && listing.version != install.version) count++;
+    }
+    return count;
+  }
+
+  /// Re-derives [_shopUpdateByPath] from the records and the catalog.
+  /// Cheap (there are as many records as the user has installed from the
+  /// shop), but it runs on library and catalog changes rather than per
+  /// card: the grid asks about every mod it draws.
+  void _rebuildShopUpdates() {
+    final root = modsDir?.path;
+    if (root == null) {
+      _shopUpdateByPath = const {};
+      return;
+    }
+    final byId = {for (final mod in shopKnownMods) mod.id: mod};
+    final result = <String, ShopMod>{};
+    for (final install in _installRecords.values) {
+      if (install.gameId != _adapter.game.id) continue;
+      final listing = byId[install.listingId];
+      if (listing == null || listing.version == install.version) continue;
+      for (final file in install.files) {
+        result[p.normalize(p.join(root, file))] = listing;
+      }
+    }
+    _shopUpdateByPath = result;
+  }
+
+  Future<void> _rememberShopInstall(ShopInstall install) async {
+    _shopInstalls = {..._shopInstalls, install.listingId: install};
+    await settings.setShopInstallsJson(encodeShopInstalls(_shopInstalls));
+    _rebuildShopUpdates();
+  }
+
+  /// Drops [mod]'s file from whichever install record claims it, so a mod
+  /// the user uninstalled stops reading as "Installed" on the shelves. A
+  /// record left with no files at all goes too.
+  Future<void> _forgetShopFile(Mod mod) async {
+    final root = modsDir?.path;
+    if (root == null || _shopInstalls.isEmpty) return;
+    final gone = enabledPathOf(mod.path);
+    final updated = <String, ShopInstall>{};
+    var changed = false;
+    for (final entry in _shopInstalls.entries) {
+      final install = entry.value;
+      if (install.gameId != _adapter.game.id) {
+        updated[entry.key] = install;
+        continue;
+      }
+      final kept = [
+        for (final file in install.files)
+          if (p.normalize(p.join(root, file)) != gone) file,
+      ];
+      if (kept.length == install.files.length) {
+        updated[entry.key] = install;
+        continue;
+      }
+      changed = true;
+      // Files it no longer has any of: the mod is gone from this machine.
+      if (kept.isNotEmpty) updated[entry.key] = install.copyWith(files: kept);
+    }
+    if (!changed) return;
+    _shopInstalls = updated;
+    await settings.setShopInstallsJson(encodeShopInstalls(_shopInstalls));
+    _rebuildShopUpdates();
+  }
+
+  /// Whether [mod]'s download already sits in the library: installed from
+  /// the shop before, or a file with the same name (a plain .package
+  /// published under its own name; archives can only be recognized from
+  /// the install records).
+  bool isShopModInstalled(ShopMod mod) {
+    if (_installRecords.containsKey(mod.id)) return true;
+    // The name check can only speak for the library that's loaded -
+    // another game's files were never read into memory.
+    if (mod.gameId != _adapter.game.id) return false;
+    final name = mod.fileName.toLowerCase();
+    return mods
+        .any((m) => p.basename(enabledPathOf(m.path)).toLowerCase() == name);
+  }
+
+  /// Whether [gameId]'s mods folder is known, so a listing for it has
+  /// somewhere to land. [modCounts] holds null for a game whose folder
+  /// never resolved, which is the same question asked once already.
+  bool hasModsFolder(String gameId) =>
+      gameId == _adapter.game.id ? modsDir != null : modCounts[gameId] != null;
+
+  /// Switches to The Exchange, loading the shelves on first visit.
+  /// [gameId] narrows them to one game (the sidebar's per-game shortcuts);
+  /// passing nothing leaves whichever filter was last chosen.
+  void openShop({String? gameId}) {
+    if (screen != AppScreen.shop) {
+      playSound(UiSound.open);
+      analytics.capture('shop_opened', {'game': _adapter.game.id});
+    }
+    if (gameId != null) {
+      shopGameFilter = shopGameFilter == gameId ? null : gameId;
+    }
+    screen = AppScreen.shop;
+    notifyListeners();
+    if (shopMods == null && !shopLoading) refreshShop();
+  }
+
+  /// Which listing the shop is showing the detail of, or null for the
+  /// shelves. It lives here rather than inside the shop screen for the
+  /// same reason [selectedMod] does, and one more: a deep link can name a
+  /// listing while the user is somewhere else entirely, and the screen
+  /// that would have held the selection has not been built yet.
+  String? _shopSelectedId;
+
+  /// A listing a deep link named that the catalog page didn't carry - it
+  /// is capped at 300, and a link can outlive a listing's place on the
+  /// front page. Kept beside [shopMods] rather than merged into it: the
+  /// shelves, the per-game counts and the update badges are all derived
+  /// from the catalog as fetched, and slipping in a row the query never
+  /// returned would make them disagree with it.
+  ShopMod? _shopSelectedFetched;
+
+  /// True while a deep-linked listing is being looked up.
+  bool shopOpeningListing = false;
+
+  /// The listing on screen, or null when the shelves are. Resolved by id
+  /// on every read, so a listing that vanished from a refresh mid-visit
+  /// puts the user back on the shelves instead of drawing a stale copy.
+  ShopMod? get selectedShopListing {
+    final id = _shopSelectedId;
+    if (id == null) return null;
+    for (final mod in shopMods ?? const <ShopMod>[]) {
+      if (mod.id == id) return mod;
+    }
+    return _shopSelectedFetched?.id == id ? _shopSelectedFetched : null;
+  }
+
+  /// Opens a listing the user picked off the shelves.
+  void openShopListing(ShopMod mod) {
+    playSound(UiSound.open);
+    analytics.capture('shop_listing_opened',
+        {'game': mod.gameId, 'listing': mod.id, 'source': 'shelf'});
+    _shopSelectedId = mod.id;
+    notifyListeners();
+  }
+
+  /// Back to the shelves.
+  void closeShopListing() {
+    if (_shopSelectedId == null) return;
+    playSound(UiSound.back);
+    _shopSelectedId = null;
+    _shopSelectedFetched = null;
+    notifyListeners();
+  }
+
+  /// Opens a listing named by nothing but its id - what a
+  /// `simsmodmanager://mod/<id>` link from the website resolves to. It
+  /// shows the listing; installing stays a button the user presses.
+  Future<void> openShopListingById(String id) async {
+    // The kill switch. On a cold start the flags may not have landed yet
+    // and the fallback lets the first link through, which is the right
+    // default (a machine that never reaches PostHog keeps its features)
+    // but does mean this takes hold from the second link on.
+    if (!analytics.isEnabled('deep-links', fallback: true)) return;
+    if (!isShopListingId(id)) {
+      analytics.capture('deep_link_failed', {'reason': 'invalid'});
+      return;
+    }
+
+    if (screen != AppScreen.shop) playSound(UiSound.open);
+    screen = AppScreen.shop;
+    _shopSelectedId = null;
+    _shopSelectedFetched = null;
+    shopOpeningListing = true;
+    lastError = null;
+    notifyListeners();
+
+    var resolved = 'catalog';
+    var mod = _listingById(id);
+    if (mod == null && shopMods == null) {
+      await refreshShop();
+      mod = _listingById(id);
+    }
+    if (mod == null) {
+      // Not on the shelves we hold, which is not the same as gone: the
+      // catalog is one page deep and this link may be older than it.
+      mod = await _fetchListing(id);
+      resolved = 'fetched';
+    }
+
+    shopOpeningListing = false;
+    if (mod == null) {
+      lastError = const AppMessage('shopListingNotFound');
+      playSound(UiSound.error);
+      analytics.capture('deep_link_failed', {'reason': 'not_found'});
+      notifyListeners();
+      return;
+    }
+    if (registry.byGameId(mod.gameId) == null) {
+      // A listing for a game this build has never heard of has no folder
+      // to install into and no name to caption, so the shelves already
+      // keep it off. Saying so beats a detail page that can do nothing.
+      lastError = const AppMessage('shopListingUnknownGame');
+      playSound(UiSound.error);
+      analytics.capture('deep_link_failed', {'reason': 'unknown_game'});
+      notifyListeners();
+      return;
+    }
+
+    _shopSelectedFetched = mod;
+    _shopSelectedId = mod.id;
+    // Back has to land on shelves that could have held this listing.
+    if (shopGameFilter != null && shopGameFilter != mod.gameId) {
+      shopGameFilter = null;
+    }
+    analytics.capture('shop_listing_opened',
+        {'game': mod.gameId, 'listing': mod.id, 'source': 'deep_link'});
+    analytics.capture('deep_link_opened',
+        {'game': mod.gameId, 'listing': mod.id, 'resolved': resolved});
+    notifyListeners();
+  }
+
+  ShopMod? _listingById(String id) {
+    for (final mod in shopMods ?? const <ShopMod>[]) {
+      if (mod.id == id) return mod;
+    }
+    return null;
+  }
+
+  /// Fills the shelves with the invented catalog and pretends a couple
+  /// of its listings are already installed - one at its current version
+  /// ("Installed") and one at an older one ("Update"), the second
+  /// pointing at a file the demo library actually shows so the library
+  /// badge and the detail panel have something to sit on.
+  void _loadDemoShop() {
+    final games = [
+      for (final adapter in registry.adapters)
+        (
+          id: adapter.game.id,
+          fileExtension: adapter.modFileExtensions.contains('.package')
+              ? '.package'
+              : (adapter.modFileExtensions.toList()..sort()).firstOrNull ??
+                  '.package',
+        ),
+    ];
+    final listings = buildDemoShop(games, today: _demoAnchor());
+    shopMods = listings;
+    shopLoadFailed = false;
+    final mine = [
+      for (final listing in listings)
+        if (listing.gameId == _adapter.game.id) listing,
+    ];
+    // The mod the "update" listing claims to have installed: a real file
+    // from the invented library, and deliberately not one of the planted
+    // conflicts - the card shows the most serious badge it has, and a
+    // conflict would hide the update.
+    final root = modsDir?.path;
+    final host = mods.where((mod) {
+      return mod.isEnabled &&
+          !conflictPaths.contains(mod.path) &&
+          advisories[mod.path] == null &&
+          isDemoMod(mod);
+    }).firstOrNull;
+    _demoShopInstalls = {
+      if (mine.length > 1)
+        mine[1].id: ShopInstall(
+          listingId: mine[1].id,
+          gameId: mine[1].gameId,
+          version: mine[1].version,
+          name: mine[1].name,
+          files: const [],
+        ),
+      if (mine.isNotEmpty && host != null && root != null)
+        mine.first.id: ShopInstall(
+          listingId: mine.first.id,
+          gameId: mine.first.gameId,
+          // Anything but the listing's own version reads as an update.
+          version: 'demo-older',
+          name: mine.first.name,
+          files: [p.relative(enabledPathOf(host.path), from: root)],
+        ),
+    };
+    _rebuildShopUpdates();
+  }
+
+  /// Re-fetches the catalog. Best-effort: a failure keeps whatever was
+  /// already on screen, or flips the shop to its retry state when there
+  /// was nothing.
+  Future<void> refreshShop() {
+    // Handing back the load already running, rather than dropping the
+    // caller on the floor: a deep link arriving during the launch fetch
+    // has to be able to wait for the catalog it needs.
+    final running = _shopLoad;
+    if (running != null) return running;
+    // Demo mode never reaches the network: the invented shelves are the
+    // whole point, and a real (empty) catalog would replace them.
+    if (settings.demoLibrary) {
+      _loadDemoShop();
+      notifyListeners();
+      return Future<void>.value();
+    }
+    final load = _loadShop();
+    _shopLoad = load;
+    return load.whenComplete(() => _shopLoad = null);
+  }
+
+  /// The load [refreshShop] hands out and waits on.
+  Future<void>? _shopLoad;
+
+  Future<void> _loadShop() async {
+    shopLoading = true;
+    shopLoadFailed = false;
+    notifyListeners();
+    final fetched = await _fetchShop();
+    shopLoading = false;
+    if (fetched != null) {
+      shopMods = fetched;
+      _rebuildShopUpdates();
+      analytics.capture('shop_loaded', {
+        'listings': fetched.length,
+        'updates': shopUpdateCount,
+      });
+    } else {
+      shopLoadFailed = shopMods == null;
+    }
+    notifyListeners();
+  }
+
+  /// Downloads [mod] from The Exchange and installs it through the same
+  /// pipeline as a picked file, so archives unpack and files land where
+  /// the adapter routes them. The listing names its own game, which need
+  /// not be the one in the sidebar: the file goes to that game's folder
+  /// either way. One listing at a time per id; the button shows
+  /// [shopProgress] while this runs.
+  Future<void> installShopMod(ShopMod mod) async {
+    final into = registry.byGameId(mod.gameId);
+    if (into == null || shopProgress.containsKey(mod.id)) return;
+    playSound(UiSound.click);
+    shopProgress[mod.id] = null;
+    notifyListeners();
+    Directory? scratch;
+    try {
+      final dir = await modsDirFor(into);
+      if (dir == null) {
+        lastError = AppMessage('shopNeedsFolder', [into.game.name]);
+        playSound(UiSound.error);
+        return;
+      }
+      scratch = await Directory.systemTemp.createTemp('exchange_');
+      // The stored name is the security rules' problem; the local path is
+      // ours. basename strips anything path-like that slipped through.
+      final file = File(p.join(scratch.path, p.basename(mod.fileName)));
+      await _downloadShop(mod, file, onProgress: (received, total) {
+        shopProgress[mod.id] = total > 0
+            ? (received / total).clamp(0.0, 1.0)
+            : null;
+        notifyListeners();
+      });
+      shopProgress.remove(mod.id);
+      final previous = _shopInstalls[mod.id];
+      // What the folder held before, so the files this install adds can
+      // be told apart from everything already there. Best-effort: a
+      // listing whose files can't be identified still installs, it just
+      // can't badge its mods in the library later.
+      final before = await _modPathsIn(into, dir);
+      await installFiles([file], method: 'shop', into: into, target: dir);
+      // installFiles reports its own failures through lastError rather
+      // than throwing; only a clean run counts as installed.
+      if (lastError == null) {
+        final added = [
+          for (final path in await _modPathsIn(into, dir))
+            if (!before.contains(path)) p.relative(path, from: dir.path),
+        ];
+        await _rememberShopInstall(ShopInstall(
+          listingId: mod.id,
+          gameId: mod.gameId,
+          version: mod.version,
+          name: mod.name,
+          // An update overwrites the files it replaces, so nothing looks
+          // new; the ones recorded last time are still the right answer.
+          files: added.isEmpty ? previous?.files ?? const [] : added,
+        ));
+        analytics.capture(previous == null ? 'shop_mod_installed'
+            : 'shop_mod_updated', {
+          'game': mod.gameId,
+          'listing': mod.id,
+          'size_kb': (mod.fileSizeBytes / 1024).round(),
+        });
+      }
+    } catch (e) {
+      // Only the download can throw here; installs report themselves.
+      lastError = AppMessage('shopDownloadFailed', [mod.name]);
+      analytics.capture(
+          'shop_install_failed', {'game': mod.gameId, 'reason': 'download'});
+      playSound(UiSound.error);
+    } finally {
+      shopProgress.remove(mod.id);
+      try {
+        await scratch?.delete(recursive: true);
+      } catch (_) {}
+      notifyListeners();
+    }
+  }
+
+  /// Enabled-name paths of every mod [adapter] can see in [dir]. Used
+  /// either side of a shop install to work out what it added.
+  Future<Set<String>> _modPathsIn(GameAdapter adapter, Directory dir) async {
+    try {
+      return {for (final mod in await adapter.listMods(dir)) enabledPathOf(mod.path)};
+    } catch (_) {
+      return const {};
+    }
+  }
+
+  /// Opens the creator portal in the browser - the "publish your mods"
+  /// nudge on the shop screen.
+  void openShopPortal() {
+    analytics.capture('shop_publish_clicked', {'game': _adapter.game.id});
+    openUrl(Uri.parse(shopPortalUrl));
   }
 
   /// Opens the system file manager at [path] (selecting it when it's a

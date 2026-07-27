@@ -1,0 +1,71 @@
+body { min-height: 100vh; display: flex; flex-direction: column; -webkit-font-smoothing: antialiased; }
+a { color: inherit; text-decoration: none; }
+
+header { border-bottom: 1px solid var(--border); }
+.nav { max-width: 1140px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; height: 64px; }
+.brand { display: flex; align-items: center; gap: 11px; font-weight: 900; font-size: 16.5px; letter-spacing: -.01em; }
+.mark {
+  position: relative; display: block; width: 27px; height: 27px; flex: none;
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}
+.mark svg { width: 100%; height: 100%; }
+.gleam {
+  position: absolute; top: 0; bottom: 0; width: 38%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .55), transparent);
+  animation: shine 4.6s ease-in-out infinite; pointer-events: none;
+}
+
+main {
+  position: relative; flex: 1; display: grid; place-items: center; overflow: hidden;
+  padding: clamp(48px, 7vw, 90px) 24px;
+}
+main .glow {
+  top: 8%; left: 50%; width: 820px; height: 520px; margin-left: -410px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 32%, transparent), transparent 68%);
+  animation-duration: 11s;
+}
+.stage { position: relative; width: 100%; max-width: 640px; text-align: center; }
+
+/* The artwork is cropped at the bottom; sit it over the card so the Sims look
+   like they're popping out from behind it. */
+.stage .sims {
+  position: relative; z-index: 2;
+  width: min(440px, 86%); height: auto; margin: 0 auto -34px;
+  filter: drop-shadow(0 12px 24px color-mix(in srgb, var(--text) 18%, transparent));
+}
+
+.card {
+  position: relative;
+  padding: clamp(34px, 5vw, 52px) clamp(26px, 4vw, 44px);
+  border: 1px solid var(--border); border-radius: 26px; background: var(--surface);
+  box-shadow: 0 40px 80px -50px color-mix(in srgb, var(--text) 85%, transparent);
+}
+.card h1 { font-size: clamp(30px, 4.6vw, 44px); font-weight: 900; line-height: 1.12; letter-spacing: -.03em; }
+.card h1 .grad {
+  background: linear-gradient(102deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.card p {
+  max-width: 480px; margin: 14px auto 0; text-wrap: pretty;
+  font-size: clamp(15px, 2.2vw, 16.5px); font-weight: 600; color: var(--muted);
+}
+.actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 28px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 14px 28px; border-radius: 16px; font-size: 15.5px; font-weight: 900;
+  transition: transform .16s ease, border-color .2s ease, filter .15s ease;
+}
+.btn:hover { transform: translateY(-2px); }
+.btn.primary {
+  color: #fff; background: linear-gradient(120deg, var(--accent), var(--accent2));
+  box-shadow: 0 16px 32px -18px color-mix(in srgb, var(--accent) 100%, transparent);
+}
+.btn.primary:hover { filter: brightness(1.05); }
+.btn.ghost { border: 2px solid var(--border); font-weight: 800; }
+.btn.ghost:hover { border-color: var(--accent); }
+
+footer { padding: 28px 24px 44px; border-top: 1px solid var(--border); }
+.disclaimer {
+  max-width: 760px; margin: 0 auto; text-align: center;
+  font-size: 12px; font-weight: 600; line-height: 1.7; color: var(--muted);
+}

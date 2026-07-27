@@ -1,0 +1,123 @@
+---
+// The shell every page shares: the head, the fonts, the palette, and (for the
+// pages that exist in ten languages) the alternates and the language banner.
+import { languageOffers, locales, localePath, type Locale } from '../i18n';
+import '../styles/tokens.css';
+import '../styles/lang-offer.css';
+
+interface Props {
+  locale: Locale;
+  /// Where this page lives within the site, trailing slash included: '' is the
+  /// landing page, 'portal/' the creator portal. Drives canonical, alternates,
+  /// the language picker and the banner.
+  base?: string;
+  title: string;
+  description: string;
+  /// The shorter wording social cards use; falls back to the description.
+  social?: string;
+  ogTitle?: string;
+  ogImageAlt?: string;
+  /// The social card, when a page has a better one than the library shot: an
+  /// absolute URL, and its size, because the tags carry both.
+  ogImage?: string;
+  ogImageWidth?: string;
+  ogImageHeight?: string;
+  /// False for pages that only exist in English, like the donation thank-you.
+  localized?: boolean;
+  noindex?: boolean;
+  bodyClass?: string;
+}
+
+const {
+  locale,
+  base = '',
+  title,
+  description,
+  social,
+  ogTitle = 'The Sims Mod Manager',
+  ogImageAlt,
+  ogImage: ogImageOverride,
+  ogImageWidth = '2228',
+  ogImageHeight = '1436',
+  localized = true,
+  noindex = false,
+  bodyClass,
+} = Astro.props;
+
+const url = (path: string) => new URL(path, Astro.site).href;
+const canonical = url(localePath(locale, base));
+const ogImage = ogImageOverride ?? url('/images/library-grid.png');
+const favicon =
+  'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">' +
+  '<path d="M50 4 L88 50 L50 96 L12 50 Z" fill="%231FBF8F"/>' +
+  '<path d="M50 4 L88 50 L50 50 Z" fill="%2312B0D6" opacity="0.65"/></svg>';
+---
+
+<!doctype html>
+<html lang={locale} data-base={base}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <meta property="og:title" content={ogTitle} />
+    <meta property="og:description" content={social ?? description} />
+    <meta property="og:image" content={ogImage} />
+    {
+      /* Only the site's own shot has known dimensions; a mod's cover art is
+         whatever its creator uploaded, and a wrong size is worse than none. */
+      !ogImageOverride && (
+        <>
+          <meta property="og:image:width" content={ogImageWidth} />
+          <meta property="og:image:height" content={ogImageHeight} />
+        </>
+      )
+    }
+    {ogImageAlt && <meta property="og:image:alt" content={ogImageAlt} />}
+    <meta property="og:url" content={canonical} />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={ogTitle} />
+    <meta name="twitter:description" content={social ?? description} />
+    <meta name="twitter:image" content={ogImage} />
+    <link rel="canonical" href={canonical} />
+    {
+      localized && (
+        <>
+          {locales.map((code) => (
+            <link rel="alternate" hreflang={code} href={url(localePath(code, base))} />
+          ))}
+          <link rel="alternate" hreflang="x-default" href={url(localePath('en', base))} />
+        </>
+      )
+    }
+    <link rel="icon" type="image/svg+xml" href={favicon} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <slot name="head" />
+  </head>
+  <body class={bodyClass}>
+    <slot />
+    {
+      localized && (
+        <>
+          <script
+            type="application/json"
+            id="lang-offers"
+            set:html={JSON.stringify(languageOffers)}
+          />
+          <script>
+            import { wireLanguagePicker, offerLanguage } from '../scripts/language';
+            wireLanguagePicker();
+            offerLanguage();
+          </script>
+        </>
+      )
+    }
+  </body>
+</html>

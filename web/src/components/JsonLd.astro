@@ -1,0 +1,30 @@
+---
+// The structured data Google reads for the app listing. The description follows
+// the page's own language; everything else is the same on all ten.
+import { localePath, useTranslations, type Locale } from '../i18n';
+import { tumblrUrl } from '../data/links';
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const url = (path: string) => new URL(path, Astro.site).href;
+
+const data = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'The Sims Mod Manager',
+  description: t('meta.description').replace(/<[^>]+>/g, '').replace(/&amp;/g, '&'),
+  url: url(localePath(locale)),
+  applicationCategory: 'UtilitiesApplication',
+  operatingSystem: 'Windows, macOS, Linux',
+  screenshot: url('/images/library-grid.png'),
+  downloadUrl: url(localePath(locale)) + '#download',
+  sameAs: [tumblrUrl],
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+  author: { '@type': 'Person', name: 'Felix' },
+};
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(data, null, 2)} />

@@ -67,6 +67,25 @@ class _FakeAdapter extends FolderBasedGameAdapter {
   Future<String?> defaultModsPath() async => dir.path;
 }
 
+/// Waits for the interface to say something rather than for a round number
+/// of milliseconds. Loading a library is real IO on a real disk: a fixed
+/// wait that is generous when this test runs alone is a coin toss when the
+/// rest of the suite is running beside it, and the library then arrives a
+/// frame after the assertion.
+///
+/// Alternates real time (runAsync, where the IO actually progresses) with
+/// frames (pump, where the result of it is drawn), so it returns as soon as
+/// the machine is done and only gives up when the load really did fail.
+Future<void> _until(WidgetTester tester, Finder finder) async {
+  final deadline = DateTime.now().add(const Duration(seconds: 20));
+  while (DateTime.now().isBefore(deadline)) {
+    if (finder.evaluate().isNotEmpty) return;
+    await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 25)));
+    await tester.pump(const Duration(milliseconds: 25));
+  }
+}
+
 void main() {
   testWidgets('shell renders mods from disk and toggles them',
       (tester) async {
@@ -373,9 +392,11 @@ void main() {
     await tester.runAsync(() async {
       await tester.pumpWidget(
           ModManagerApp(registry: registry, settings: settings));
-      await Future<void>.delayed(const Duration(milliseconds: 200));
     });
-    await tester.pump();
+    // The overflow button only exists once the three folders have been
+    // read off the disk and the row has measured what fits, so wait for
+    // the button itself rather than for a duration.
+    await _until(tester, find.text('…'));
     await tester.pump(const Duration(milliseconds: 400));
 
     expect(find.text('…'), findsOneWidget);
@@ -481,5 +502,75 @@ void main() {
     expect(find.text('Fake Game mods folder not found'), findsNothing);
     // The detected game folder is shown so the user can trust the guess.
     expect(find.text(tempDir.path), findsOneWidget);
+  });
+
+  testWidgets('an advisory banners the library, filters it and explains itself',
+      (tester) async {
+    tester.view.physicalSize = const Size(1280, 824);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    // The cache stands in for a download that already happened; fetchedAt
+    // is now so the controller doesn't go looking for a fresher one.
+    SharedPreferences.setMockInitialValues({
+      'soundEffects': false,
+      'advisories.cache': '{"version": 1, "games": {"fake": [{'
+          '"id": "cozy-sofa", "title": "Cozy Sofa", "status": "broken", '
+          '"since": "the 24 July 2026 patch", '
+          '"identities": ["cozy sofa.package"]}]}}',
+      'advisories.fetchedAt': DateTime.now().millisecondsSinceEpoch,
+    });
+    final tempDir = Directory.systemTemp.createTempSync('mod_manager_advice');
+    addTearDown(() => tempDir.deleteSync(recursive: true));
+    File(p.join(tempDir.path, 'cozy_sofa.package')).writeAsStringSync('sofa');
+    File(p.join(tempDir.path, 'tidy_lamp.package')).writeAsStringSync('lamp');
+
+    final registry = GameRegistry([_FakeAdapter(tempDir)]);
+    final settings = await SettingsStore.load();
+
+    await tester.runAsync(() async {
+      await tester.pumpWidget(
+          ModManagerApp(registry: registry, settings: settings));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.text('One of your mods has a known issue'), findsOneWidget);
+    expect(find.text('tidy lamp'), findsOneWidget);
+
+    // The banner's button is the filter: only the flagged mod survives it.
+    await tester.tap(find.text('Take a look'));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('cozy sofa'), findsOneWidget);
+    expect(find.text('tidy lamp'), findsNothing);
+    expect(find.text('Show all mods'), findsOneWidget);
+
+    await tester.tap(find.text('cozy sofa'));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('This mod is reported broken'), findsOneWidget);
+    // The published title and date, and the reminder of where it came from.
+    expect(find.text('Cozy Sofa · Since the 24 July 2026 patch'),
+        findsOneWidget);
+    expect(find.text('Reported by other players, not by the game.'),
+        findsOneWidget);
+
+    // Disabling the culprit is the way out of the warning, and the count
+    // has to follow. Toggling updates the library in place rather than
+    // reloading it, which is exactly where the banner used to go on
+    // counting a mod that had already dropped out of the list.
+    // The detail's switch is inside an IgnorePointer; the row around it
+    // is what carries the tap.
+    await tester.runAsync(() async {
+      await tester.tap(find.text('Enabled'));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.text('This mod is reported broken'), findsNothing);
+    // Both the sidebar nav and the detail's back button say "Library".
+    await tester.tap(find.text('Library').last);
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('One of your mods has a known issue'), findsNothing);
+    expect(find.text('tidy lamp'), findsOneWidget);
   });
 }

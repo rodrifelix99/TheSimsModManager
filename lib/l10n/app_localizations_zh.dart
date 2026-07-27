@@ -21,7 +21,122 @@ class LZh extends L {
   String get navLibrary => '库';
 
   @override
+  String get navShop => 'The Exchange';
+
+  @override
   String get navSettings => '设置';
+
+  @override
+  String get shopAlphaBadge => '内测版';
+
+  @override
+  String get shopTagline => '来自社区的 MOD，一键安装。';
+
+  @override
+  String shopListingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '货架上有 $count 个 MOD',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get shopRefresh => '刷新';
+
+  @override
+  String get shopPublish => '发布你的 MOD';
+
+  @override
+  String get shopLoadFailedTitle => 'The Exchange 没有回应';
+
+  @override
+  String get shopLoadFailedBody => '货架加载失败。检查一下网络连接，再试一次吧。';
+
+  @override
+  String get shopRetry => '再试一次';
+
+  @override
+  String get shopEmptyTitle => '货架还空着';
+
+  @override
+  String get shopEmptyBody =>
+      'The Exchange 刚刚开张，还没有人发布过任何 MOD，就是这么新。你也做 MOD？来当第一个上架的人吧！';
+
+  @override
+  String get shopAllGames => '全部游戏';
+
+  @override
+  String get shopShowAllGames => '显示全部游戏';
+
+  @override
+  String shopEmptyGameTitle(String game) {
+    return '还没有$game的 MOD';
+  }
+
+  @override
+  String shopEmptyGameBody(String game) {
+    return '其他游戏的货架上已经有 MOD 了，但$game的还没有人发布过。你做了一个？来当第一个上架的人吧！';
+  }
+
+  @override
+  String shopBy(String author) {
+    return '作者：$author';
+  }
+
+  @override
+  String get shopInstalled => '已安装';
+
+  @override
+  String get shopUpdate => '更新';
+
+  @override
+  String get shopUpdateBadge => '有更新';
+
+  @override
+  String shopUpdatesWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '你有 $count 个 MOD 在 The Exchange 上出了新版本',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get shopUpdateHeading => '这个 MOD 有新版本了';
+
+  @override
+  String shopUpdateBody(String version, String author) {
+    return '$author 在 The Exchange 上发布了 v$version。更新会替换你现在的文件。';
+  }
+
+  @override
+  String get shopUpdateSeeListing => '查看详情';
+
+  @override
+  String get shopInstalling => '安装中…';
+
+  @override
+  String get shopInstallNotes => '安装说明';
+
+  @override
+  String get shopCreatorNudge => '你也做 MOD？在 The Exchange 发布完全免费，玩家一键就能安装你的作品。';
+
+  @override
+  String shopNeedsFolder(String game) {
+    return '先设置好$game的模组文件夹，库标签页会一步步教你。';
+  }
+
+  @override
+  String get shopBack => '返回货架';
+
+  @override
+  String get shopCopyLink => '复制链接';
+
+  @override
+  String get shopLinkCopied => '链接已复制';
 
   @override
   String get sidebarGames => '游戏';
@@ -264,6 +379,55 @@ class LZh extends L {
   @override
   String get conflictResourcesBody =>
       '这些包里有标识符相同的资源，所以游戏只会保留最后加载的那一份。这有时是故意的——补丁类和覆盖类 MOD 本来就是要盖住别的 MOD 的资源——但如果两个 MOD 毫不相干，那就意味着其中一个悄悄失效了：留下你想要的那个，把其余的停用。';
+
+  @override
+  String advisoryBanner(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '你有 $count 个 MOD 存在已知问题',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get advisoryShow => '去看看';
+
+  @override
+  String get advisoryShowAll => '显示全部 MOD';
+
+  @override
+  String get advisoryBadge => '问题';
+
+  @override
+  String get advisoryBrokenHeading => '这个 MOD 被反馈已损坏';
+
+  @override
+  String get advisoryBrokenBody =>
+      '其他玩家反馈这个 MOD 会让游戏无法正常运行。想确认是不是它捣的鬼，最快的办法就是先停用它。';
+
+  @override
+  String get advisoryOutdatedHeading => '这个 MOD 有更新的版本了';
+
+  @override
+  String get advisoryOutdatedBody => '你装的正好是出问题的那个版本。去作者那里下最新版应该就好了。';
+
+  @override
+  String get advisoryCautionHeading => '建议多留意一下';
+
+  @override
+  String get advisoryCautionBody => '大多数人用着没事，但它偶尔会闹脾气。如果你正在排查问题，可以先停用试试。';
+
+  @override
+  String advisorySince(String since) {
+    return '自 $since 起';
+  }
+
+  @override
+  String get advisoryOpenLink => '打开作者页面';
+
+  @override
+  String get advisorySource => '来自其他玩家的反馈，不是游戏的检测结果。';
 
   @override
   String modInDirectory(String dir) {
@@ -598,6 +762,17 @@ class LZh extends L {
   String errorFileMissing(String name) {
     return '「$name」已经不在模组文件夹里了 — 可能被别的程序移动或删除了。';
   }
+
+  @override
+  String errorShopDownload(String name) {
+    return '「$name」无法从 The Exchange 下载。检查一下网络连接，再试一次吧。';
+  }
+
+  @override
+  String get errorShopListingNotFound => 'The Exchange 上已经没有这个模组了，可能是被下架了。';
+
+  @override
+  String get errorShopListingUnknownGame => '这个模组对应的游戏，当前版本的应用还不认识。更新一下试试。';
 
   @override
   String get eraClassic => '经典';

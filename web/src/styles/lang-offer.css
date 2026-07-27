@@ -1,0 +1,24 @@
+/* The "this page is also in your language" bar, injected under the header on
+   both the landing page and the portal. */
+.lang-offer { background: var(--tint); border-bottom: 1px solid var(--border); }
+.lang-offer .wrap {
+  display: flex; align-items: center; gap: 14px;
+  max-width: 1080px; margin: 0 auto; padding: 11px 24px;
+}
+.lang-offer p { font-size: 14px; font-weight: 700; margin: 0; }
+.lang-offer a { color: var(--accent); font-weight: 800; white-space: nowrap; }
+.lang-offer button {
+  margin-left: auto; flex: none; background: none; border: 0; cursor: pointer;
+  font: inherit; font-size: 19px; line-height: 1; color: var(--muted); padding: 4px 2px;
+}
+.lang-offer button:hover { color: var(--text); }
+@media (max-width: 560px) { .lang-offer p { font-size: 13px; } }
+
+/* The picker itself sits in both headers. */
+.lang {
+  font: inherit; font-weight: 700; font-size: 13.5px; color: var(--muted);
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 999px; padding: 6px 10px; cursor: pointer;
+  transition: color .2s, border-color .2s, background .45s ease;
+}
+.lang:hover { color: var(--text); border-color: var(--accent); }

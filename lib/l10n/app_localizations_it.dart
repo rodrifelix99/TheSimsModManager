@@ -21,7 +21,126 @@ class LIt extends L {
   String get navLibrary => 'Libreria';
 
   @override
+  String get navShop => 'The Exchange';
+
+  @override
   String get navSettings => 'Impostazioni';
+
+  @override
+  String get shopAlphaBadge => 'ALPHA';
+
+  @override
+  String get shopTagline => 'Mod dalla community, installate con un clic.';
+
+  @override
+  String shopListingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mod sugli scaffali',
+      one: '1 mod sugli scaffali',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get shopRefresh => 'Aggiorna';
+
+  @override
+  String get shopPublish => 'Pubblica le tue mod';
+
+  @override
+  String get shopLoadFailedTitle => 'The Exchange non risponde';
+
+  @override
+  String get shopLoadFailedBody =>
+      'Non siamo riusciti a caricare gli scaffali. Controlla la connessione e riprova.';
+
+  @override
+  String get shopRetry => 'Riprova';
+
+  @override
+  String get shopEmptyTitle => 'Gli scaffali sono ancora vuoti';
+
+  @override
+  String get shopEmptyBody =>
+      'The Exchange ha appena aperto i battenti e nessuno ha ancora pubblicato niente. È nuovo di zecca. Crei mod? Inaugura tu gli scaffali!';
+
+  @override
+  String get shopAllGames => 'Tutti i giochi';
+
+  @override
+  String get shopShowAllGames => 'Mostra tutti i giochi';
+
+  @override
+  String shopEmptyGameTitle(String game) {
+    return 'Ancora niente per $game';
+  }
+
+  @override
+  String shopEmptyGameBody(String game) {
+    return 'Altri giochi hanno già mod sugli scaffali, ma per $game non ha ancora pubblicato nessuno. Ne hai una? Tocca a te inaugurare lo scaffale!';
+  }
+
+  @override
+  String shopBy(String author) {
+    return 'di $author';
+  }
+
+  @override
+  String get shopInstalled => 'Installata';
+
+  @override
+  String get shopUpdate => 'Aggiorna';
+
+  @override
+  String get shopUpdateBadge => 'aggiornamento';
+
+  @override
+  String shopUpdatesWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count delle tue mod hanno una nuova versione su The Exchange',
+      one: '1 delle tue mod ha una nuova versione su The Exchange',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get shopUpdateHeading => 'C’è una nuova versione di questa mod';
+
+  @override
+  String shopUpdateBody(String version, String author) {
+    return '$author ha pubblicato la v$version su The Exchange. Aggiornando sostituisci i file che hai adesso.';
+  }
+
+  @override
+  String get shopUpdateSeeListing => 'Vedi la scheda';
+
+  @override
+  String get shopInstalling => 'Installazione…';
+
+  @override
+  String get shopInstallNotes => 'Note di installazione';
+
+  @override
+  String get shopCreatorNudge =>
+      'Crei mod? Pubblicare su The Exchange è gratis, e i giocatori installano il tuo lavoro con un clic.';
+
+  @override
+  String shopNeedsFolder(String game) {
+    return 'Prima configura la cartella dei mod di $game. La scheda Libreria ti guida passo passo.';
+  }
+
+  @override
+  String get shopBack => 'Torna agli scaffali';
+
+  @override
+  String get shopCopyLink => 'Copia link';
+
+  @override
+  String get shopLinkCopied => 'Link copiato';
 
   @override
   String get sidebarGames => 'GIOCHI';
@@ -289,6 +408,59 @@ class LIt extends L {
   @override
   String get conflictResourcesBody =>
       'Questi pacchetti contengono risorse con gli stessi identificatori, quindi il gioco tiene solo la copia che carica per ultima. Può essere voluto — le mod correttive e gli override coprono di proposito le risorse di un’altra mod — ma tra mod che non c’entrano nulla significa che una delle due smette di funzionare senza dire niente: tieni quella che vuoi e disattiva le altre.';
+
+  @override
+  String advisoryBanner(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dei tuoi mod hanno problemi noti',
+      one: 'Uno dei tuoi mod ha un problema noto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get advisoryShow => 'Dai un\'occhiata';
+
+  @override
+  String get advisoryShowAll => 'Mostra tutti i mod';
+
+  @override
+  String get advisoryBadge => 'problema';
+
+  @override
+  String get advisoryBrokenHeading => 'Questo mod è segnalato come rotto';
+
+  @override
+  String get advisoryBrokenBody =>
+      'Altri giocatori segnalano che questo manda in crash il gioco. Disattivarlo è il modo più veloce per capire se è lui il colpevole.';
+
+  @override
+  String get advisoryOutdatedHeading =>
+      'C\'è una versione più recente di questo mod';
+
+  @override
+  String get advisoryOutdatedBody =>
+      'La versione che hai è proprio quella che dà problemi. Scaricare l\'ultima del creator dovrebbe sistemare tutto.';
+
+  @override
+  String get advisoryCautionHeading => 'Da tenere d\'occhio';
+
+  @override
+  String get advisoryCautionBody =>
+      'Per la maggior parte funziona, ma ogni tanto fa i capricci. Vale la pena disattivarlo se stai cercando un problema.';
+
+  @override
+  String advisorySince(String since) {
+    return 'Da $since';
+  }
+
+  @override
+  String get advisoryOpenLink => 'Apri la pagina del creator';
+
+  @override
+  String get advisorySource => 'Segnalato da altri giocatori, non dal gioco.';
 
   @override
   String modInDirectory(String dir) {
@@ -653,6 +825,19 @@ class LIt extends L {
   String errorFileMissing(String name) {
     return '«$name» non è più nella cartella dei mod — forse un altro programma l’ha spostato o eliminato.';
   }
+
+  @override
+  String errorShopDownload(String name) {
+    return '«$name» non si è scaricata da The Exchange. Controlla la connessione e riprova.';
+  }
+
+  @override
+  String get errorShopListingNotFound =>
+      'Quella mod non è più su The Exchange. Forse è stata tolta.';
+
+  @override
+  String get errorShopListingUnknownGame =>
+      'Quella mod è per un gioco che questa versione dell’app non conosce ancora. Prova ad aggiornare.';
 
   @override
   String get eraClassic => 'Classico';

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui' show PlatformDispatcher;
 
+import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart';
 import 'package:intl/date_symbol_data_local.dart' show initializeDateFormatting;
@@ -11,6 +12,7 @@ import 'src/core/game_registry.dart';
 import 'src/games/the_sims/sims_adapters.dart';
 import 'src/services/analytics.dart';
 import 'src/services/settings_store.dart';
+import 'src/services/url_scheme.dart';
 import 'src/ui/app.dart';
 
 /// Flushes queued analytics before the window actually closes. Requires
@@ -104,11 +106,49 @@ Future<void> main() async {
     settings: settings,
     translucentSidebar: translucentSidebar,
     analytics: analytics,
+    deepLinks: _deepLinks(),
     // Set from the app rather than up front, because the OS blur has to be
     // re-tinted whenever the theme flips: a milky white backdrop behind a
     // dark sidebar washes it straight back out.
     onBrightnessChanged: translucentSidebar ? _setWindowEffect : null,
   ));
+  // After runApp, never in front of it: claiming a URL scheme is worth a
+  // registry read, not a slower first frame.
+  unawaited(ensureUrlSchemeRegistered());
+}
+
+/// Every `simsmodmanager://` address the OS hands over, cold start
+/// included. The app widget takes a plain stream rather than the plugin,
+/// so nothing below main() knows a plugin exists and widget tests can be
+/// the platform themselves.
+Stream<Uri> _deepLinks() {
+  // Not a broadcast controller on purpose: it buffers whatever arrives
+  // before the app subscribes, which is exactly the link that launched it.
+  final links = StreamController<Uri>();
+  final appLinks = AppLinks();
+  // Not awaited - a platform round trip must not sit in front of the first
+  // frame, and a link is worth nothing until there is a window to show it.
+  unawaited(appLinks.getInitialLink().then((uri) {
+    if (uri != null) links.add(uri);
+  }).catchError((_) {}));
+  appLinks.uriLinkStream.listen((uri) {
+    // The app is already running and something else has the foreground.
+    unawaited(_raiseWindow());
+    links.add(uri);
+  }, onError: (_) {});
+  return links.stream;
+}
+
+/// Brings the window back from wherever the user left it. Best-effort:
+/// Windows may refuse the foreground to a process that does not have it,
+/// in which case the taskbar button flashes instead, which is the OS's
+/// answer and not ours to argue with.
+Future<void> _raiseWindow() async {
+  try {
+    if (await windowManager.isMinimized()) await windowManager.restore();
+    await windowManager.show();
+    await windowManager.focus();
+  } catch (_) {}
 }
 
 /// Which way the app will resolve before it has drawn anything, so the

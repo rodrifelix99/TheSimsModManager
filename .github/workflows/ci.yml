@@ -25,3 +25,60 @@ jobs:
       - run: flutter pub get
       - run: flutter analyze
       - run: flutter test
+
+  # The runners under windows/, macos/ and linux/ are hand-edited C++, Swift
+  # and plists that `flutter test` never touches: the window chrome, and the
+  # single-instance plumbing simsmodmanager:// links arrive through. Nothing
+  # else compiles them until the release workflow does, and finding out then
+  # means finding out from a tag. Compiling all three here is a few minutes
+  # per push for the guarantee that a release can be cut at any time.
+  build:
+    name: Build the app (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: linux
+          - os: windows-latest
+            target: windows
+          - os: macos-latest
+            target: macos
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      # GTK and the audio stack the Linux bundle links against.
+      - if: matrix.target == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libgtk-3-dev libgstreamer1.0-dev \
+            libgstreamer-plugins-base1.0-dev
+      # flutter_acrylic's macOS side is CocoaPods-only.
+      - if: matrix.target == 'macos'
+        run: flutter config --no-enable-swift-package-manager
+      - run: flutter pub get
+      # Unsigned: this is a compile check, not an artifact. The release
+      # workflow is the only thing that produces something to hand out,
+      # and it pins its own Flutter version for reasons of its own.
+      - run: flutter build ${{ matrix.target }} --release
+
+  site:
+    name: Build the website
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm run check
+      - run: npm run build
