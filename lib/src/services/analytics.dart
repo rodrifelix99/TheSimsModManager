@@ -326,7 +326,11 @@ class Analytics {
       report.write(", path = '<path>${_extensionsOf(path)}'");
     }
     if (os != null) {
-      report.write(' (OS Error: ${os.message}, errno = ${os.errorCode})');
+      // errno only. dart:io words `os.message` in whatever language
+      // Windows is running in, so one permission failure reached the
+      // board as three separate issues - the Swedish, Chinese and Polish
+      // wordings of it - and the number says the same thing everywhere.
+      report.write(' (OS error, errno = ${os.errorCode})');
     }
     return report.toString();
   }

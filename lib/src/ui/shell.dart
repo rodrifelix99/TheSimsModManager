@@ -704,8 +704,7 @@ class _SidebarState extends State<_Sidebar>
   /// the game rows already sit inside an [Opacity].
   Widget _gameGlyph(GameTheme t, Game game,
       {required double size, required bool dim}) {
-    final asset = GameTheme.iconAsset(game);
-    if (asset == null) {
+    Widget badge() {
       final badgeColor = dim
           ? t.muted.withValues(alpha: .5)
           : GameTheme.badgeColor(game, Theme.of(context).brightness);
@@ -737,7 +736,21 @@ class _SidebarState extends State<_Sidebar>
         ),
       );
     }
-    final image = Image.asset(asset, fit: BoxFit.contain);
+
+    final asset = GameTheme.iconAsset(game);
+    if (asset == null) return badge();
+    final image = Image.asset(
+      asset,
+      fit: BoxFit.contain,
+      // The first launch after an install gets handed files the
+      // antivirus is still scanning, and the sidebar draws every game at
+      // once: five icons failed together seconds after setup finished,
+      // and with nothing catching them the failures reached
+      // FlutterError.onError as crash reports for artwork that loads
+      // fine on the next run. The badge is what a game with no artwork
+      // shows anyway.
+      errorBuilder: (_, __, ___) => badge(),
+    );
     return SizedBox(
       width: size,
       height: size,

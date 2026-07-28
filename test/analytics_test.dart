@@ -321,6 +321,41 @@ void main() {
     expect(values[2], contains('https://eu.i.posthog.com/batch/'));
   });
 
+  test('the same failure reads alike whatever language Windows speaks',
+      () async {
+    final settings = await freshStore({});
+    final post = RecordingPost();
+    final analytics = Analytics(settings: settings, post: post.call);
+    await analytics.init();
+
+    // One permission failure, reported by a Swedish, a Chinese and an
+    // English machine. PostHog groups by the text, so carrying the OS's
+    // own wording split a single issue three ways.
+    for (final message in [
+      'Atkomst nekad',
+      'Access is denied',
+      'Zugriff verweigert',
+    ]) {
+      analytics.captureException(
+        PathAccessException(r'C:\Games\Sims\mod.package', OSError(message, 5),
+            'Cannot open file'),
+        null,
+      );
+    }
+    await analytics.flush();
+
+    final values = {
+      for (final e in post.events)
+        if (e['event'] == r'$exception')
+          (((e['properties'] as Map)[r'$exception_list'] as List).single
+              as Map)['value'] as String,
+    };
+    expect(values, hasLength(1), reason: 'one issue, not three');
+    expect(values.single, contains('errno = 5'));
+    expect(values.single, contains('Cannot open file'));
+    expect(values.single, isNot(contains('nekad')));
+  });
+
   test('failed batches are kept and retried, never duplicated', () async {
     final settings = await freshStore({});
     final post = RecordingPost();

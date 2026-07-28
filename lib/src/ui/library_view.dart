@@ -80,6 +80,23 @@ class LibraryView extends StatelessWidget {
     final visible = c.filteredMods;
     final logoAsset =
         GameTheme.logoAsset(c.adapter.game, Theme.of(context).brightness);
+    // Drawn for a game we ship no wordmark for, and again when the
+    // bundle refuses to hand one over - see the sidebar's icons for when
+    // that happens.
+    final title = Text(
+      l.libraryTitle(c.adapter.game.name),
+      // Both lines stay one line each whatever the language: the header
+      // sits above everything, so a title that wraps pushes the first
+      // row of mods off a minimum-size window.
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: TextStyle(
+        fontSize: 23,
+        fontWeight: FontWeight.w900,
+        height: 1,
+        color: t.text,
+      ),
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -98,23 +115,10 @@ class LibraryView extends StatelessWidget {
                         alignment: Alignment.centerLeft,
                         fit: BoxFit.contain,
                         semanticLabel: l.libraryTitle(c.adapter.game.name),
+                        errorBuilder: (_, __, ___) => title,
                       )
                     else
-                      Text(
-                        l.libraryTitle(c.adapter.game.name),
-                        // Both lines stay one line each whatever the
-                        // language: the header sits above everything,
-                        // so a title that wraps pushes the first row of
-                        // mods off a minimum-size window.
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 23,
-                          fontWeight: FontWeight.w900,
-                          height: 1,
-                          color: t.text,
-                        ),
-                      ),
+                      title,
                     const SizedBox(height: 4),
                     Text(
                       l.modsShown(

@@ -208,7 +208,14 @@ class ShopView extends StatelessWidget {
                     child: SizedBox(
                       width: 20,
                       height: 20,
-                      child: Image.asset(asset, fit: BoxFit.contain),
+                      // The chip is named as well as pictured, so an
+                      // icon the bundle won't load leaves a gap rather
+                      // than a crash report (see the sidebar's icons).
+                      child: Image.asset(
+                        asset,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -420,7 +427,14 @@ class ShopView extends StatelessWidget {
                   child: SizedBox(
                     width: 46,
                     height: 46,
-                    child: Image.asset(asset, fit: BoxFit.contain),
+                    child: Image.asset(
+                      asset,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => Icon(
+                          Icons.inventory_2_outlined,
+                          size: 40,
+                          color: t.muted),
+                    ),
                   ),
                 )
               else
@@ -607,6 +621,14 @@ class ShopView extends StatelessWidget {
     final game = _gameOf(c, mod);
     if (game == null) return const SizedBox.shrink();
     final asset = GameTheme.iconAsset(game);
+    final label = Text(
+      game.name,
+      style: TextStyle(
+        fontSize: 10.5,
+        fontWeight: FontWeight.w800,
+        color: t.text,
+      ),
+    );
     return Tooltip(
       message: game.name,
       waitDuration: const Duration(milliseconds: 400),
@@ -625,18 +647,15 @@ class ShopView extends StatelessWidget {
           ],
         ),
         child: asset == null
-            ? Text(
-                game.name,
-                style: TextStyle(
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w800,
-                  color: t.text,
-                ),
-              )
+            ? label
             : SizedBox(
                 width: 20,
                 height: 20,
-                child: Image.asset(asset, fit: BoxFit.contain),
+                child: Image.asset(
+                  asset,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => label,
+                ),
               ),
       ),
     );
@@ -837,7 +856,11 @@ class ShopView extends StatelessWidget {
                 SizedBox(
                   width: 18,
                   height: 18,
-                  child: Image.asset(asset, fit: BoxFit.contain),
+                  child: Image.asset(
+                    asset,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                  ),
                 ),
                 const SizedBox(width: 7),
               ],
