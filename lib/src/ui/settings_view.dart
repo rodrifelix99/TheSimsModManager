@@ -67,6 +67,27 @@ class SettingsView extends StatelessWidget {
                     value: !s.confirmDelete,
                   ),
                 ),
+                // Only games that read mods from several folders have
+                // anywhere else to put one, so for the rest this would be
+                // a switch with nothing behind it. Shown anyway once it is
+                // off, because The Exchange can raise the question for a
+                // game the sidebar isn't pointing at and the way back has
+                // to be somewhere.
+                if (c.hasInstallChoice || !s.askWhereToInstall) ...[
+                  _divider(t),
+                  _prefRow(
+                    t,
+                    title: l.prefAskWhereTitle,
+                    desc: l.prefAskWhereDesc,
+                    value: s.askWhereToInstall,
+                    onToggle: () => c.setPref(
+                      () => s.setAskWhereToInstall(!s.askWhereToInstall),
+                      sound: _toggleSound(s.askWhereToInstall),
+                      setting: 'askWhereToInstall',
+                      value: !s.askWhereToInstall,
+                    ),
+                  ),
+                ],
                 _divider(t),
                 _prefRow(
                   t,

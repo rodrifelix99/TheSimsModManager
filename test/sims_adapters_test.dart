@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:archive/archive.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
+import 'package:sims_mod_manager/src/core/install_destination.dart';
 import 'package:sims_mod_manager/src/games/the_sims/sims_adapters.dart';
 
 void main() {
@@ -644,6 +645,359 @@ void main() {
           File(p.join(install.path, 'GameData', 'Skins', 'head.cmx'))
               .existsSync(),
           isTrue);
+    });
+
+    // ------------------------------------------------------- destinations
+
+    test('offers only the folders this install actually has', () async {
+      final downloads = makeInstall();
+      make(['Maxis', 'The Sims', 'GameData', 'Skins']);
+      make(['Maxis', 'The Sims', 'GameData', 'Global']);
+      make(['Maxis', 'The Sims', 'ExpansionPack6']);
+      final adapter = Sims1Adapter(programFilesOverride: [docs.path]);
+
+      final ids = [
+        for (final d in await adapter.installDestinations(downloads)) d.id,
+      ];
+
+      expect(ids, contains('Downloads'));
+      expect(ids, contains('GameData/Skins'));
+      expect(ids, contains('GameData/Global'));
+      expect(ids, contains('ExpansionPack6'));
+      // Superstar is installed and Makin' Magic is not; offering a folder
+      // that isn't there would send a mod into nowhere.
+      expect(ids, isNot(contains('ExpansionPack7')));
+      expect(ids, isNot(contains('GameData/Walls')));
+    });
+
+    test('a folder outside a Sims install has nothing to choose between',
+        () async {
+      final custom = make(['just-a-folder']);
+      final adapter = Sims1Adapter(programFilesOverride: [docs.path]);
+
+      expect(await adapter.installDestinations(custom), isEmpty);
+    });
+
+    test('the folders in a download decide where its files go', () async {
+      // How TS1 hacks are actually handed out: the folder is already
+      // around the file, because the readme has to say so anyway.
+      final downloads = makeInstall();
+      final install = downloads.parent;
+      make(['Maxis', 'The Sims', 'GameData', 'Global']);
+      make(['Maxis', 'The Sims', 'ExpansionPack6']);
+      final adapter = Sims1Adapter(programFilesOverride: [docs.path]);
+      final zip = makeZip('hack.zip', {
+        'GameData/Global/marriage.iff': 'behaviour',
+        'ExpansionPack6/GameData/booth.iff': 'a hacked phone booth',
+        'loose.iff': 'no folder named, so it sorts by type',
+      });
+
+      await adapter.installArchive(downloads, zip);
+
+      expect(
+          File(p.join(install.path, 'GameData', 'Global', 'marriage.iff'))
+              .existsSync(),
+          isTrue);
+      // The path below the folder it named is kept exactly as packaged:
+      // the download knew, and flattening it would break the override.
+      expect(
+          File(p.join(
+                  install.path, 'ExpansionPack6', 'GameData', 'booth.iff'))
+              .existsSync(),
+          isTrue);
+      expect(File(p.join(downloads.path, 'loose.iff')).existsSync(), isTrue);
+    });
+
+    test('a wrapper folder around the download does not hide the folders',
+        () async {
+      // The ordinary shape of a hack download: one folder with the
+      // creator's name on it, and the game's folders inside that.
+      final downloads = makeInstall();
+      final install = downloads.parent;
+      make(['Maxis', 'The Sims', 'GameData', 'Global']);
+      make(['Maxis', 'The Sims', 'ExpansionPack6']);
+      final adapter = Sims1Adapter(programFilesOverride: [docs.path]);
+      final zip = makeZip('super-hack.zip', {
+        'SuperHack/GameData/Global/marriage.iff': 'behaviour',
+        'SuperHack/ExpansionPack6/booth.iff': 'object',
+      });
+
+      await adapter.installArchive(downloads, zip);
+
+      expect(
+          File(p.join(install.path, 'GameData', 'Global', 'marriage.iff'))
+              .existsSync(),
+          isTrue);
+      expect(
+          File(p.join(install.path, 'ExpansionPack6', 'booth.iff'))
+              .existsSync(),
+          isTrue);
+    });
+
+    test('a dropped folder\'s own name does not hide the folders', () async {
+      // installFolder measures paths from the folder's parent, so the
+      // dropped folder's name is always in front of what it holds.
+      final downloads = makeInstall();
+      final install = downloads.parent;
+      make(['Maxis', 'The Sims', 'GameData', 'Global']);
+      final adapter = Sims1Adapter(programFilesOverride: [docs.path]);
+      makeFile(['drop', 'MyHack', 'GameData', 'Global', 'marriage.iff']);
+      makeFile(['drop', 'MyHack', 'chair.iff']);
+      final source = Directory(p.join(docs.path, 'drop', 'MyHack'));
+
+      await adapter.installFolder(downloads, source);
+
+      expect(
+          File(p.join(install.path, 'GameData', 'Global', 'marriage.iff'))
+              .existsSync(),
+          isTrue);
+      // What the download said nothing about still keeps the dropped
+      // folder around it, inside Downloads.
+      expect(
+          File(p.join(downloads.path, 'MyHack', 'chair.iff')).existsSync(),
+          isTrue);
+    });
+
+    test('the deepest folder named wins', () async {
+      final downloads = makeInstall();
+      final install = downloads.parent;
+      make(['Maxis', 'The Sims', 'GameData', 'Global']);
+      final adapter = Sims1Adapter(programFilesOverride: [docs.path]);
+      // Downloads is a destination too, and it comes first in the list;
+      // the one nearest the file is the one the creator meant.
+      final zip = makeZip('both.zip',
+          {'Downloads/GameData/Global/x.iff': 'behaviour'});
+
+      await adapter.installArchive(downloads, zip);
+
+      expect(
+          File(p.join(install.path, 'GameData', 'Global', 'x.iff'))
+              .existsSync(),
+          isTrue);
+    });
+
+    test('what a download names still goes through the path rules',
+        () async {
+      // The folders an archive names are someone else's text, so the
+      // whole path is resolved through install_path rather than joined
+      // raw. What that then does about reserved names and the length
+      // limit is the platform's business and install_path_test's, so what
+      // is pinned here is that it is reached at all.
+      final downloads = makeInstall();
+      final install = downloads.parent;
+      make(['Maxis', 'The Sims', 'GameData', 'Global']);
+      final adapter = Sims1Adapter(programFilesOverride: [docs.path]);
+      final deep = List.filled(12, 'x' * 30).join('/');
+      final zip = makeZip('nasty.zip', {
+        'GameData/Global/CON/a.iff': 'reserved device name on Windows',
+        'GameData/Global/$deep/b.iff': 'far past the Windows path limit',
+        'GameData/Global/plain.iff': 'nothing wrong with this one',
+      });
+
+      final mods = await adapter.installArchive(downloads, zip);
+
+      expect(mods, hasLength(3));
+      final global = p.join(install.path, 'GameData', 'Global');
+      for (final mod in mods) {
+        expect(p.isWithin(global, mod.path), isTrue,
+            reason: '${mod.path} should still land under Global');
+        // p.join would have left a "/./" here for a file with no folder
+        // below the one it named.
+        expect(mod.path, isNot(contains('${p.separator}.${p.separator}')));
+        expect(File(mod.path).existsSync(), isTrue);
+      }
+      expect(File(p.join(global, 'plain.iff')).existsSync(), isTrue);
+    });
+
+    test('a named folder keeps two same-named files apart', () async {
+      // The folders above the one it named are dropped, so two files the
+      // archive told apart that way arrive on the same path. Neither of
+      // them asked to replace the other.
+      final downloads = makeInstall();
+      final install = downloads.parent;
+      make(['Maxis', 'The Sims', 'GameData', 'Global']);
+      final adapter = Sims1Adapter(programFilesOverride: [docs.path]);
+      final zip = makeZip('two-hacks.zip', {
+        'A/GameData/Global/x.iff': 'one',
+        'B/GameData/Global/x.iff': 'the other',
+      });
+
+      final mods = await adapter.installArchive(downloads, zip);
+
+      expect(mods, hasLength(2));
+      expect(mods.map((m) => m.path).toSet(), hasLength(2));
+      expect(
+          Directory(p.join(install.path, 'GameData', 'Global'))
+              .listSync()
+              .whereType<File>()
+              .length,
+          2);
+    });
+
+    test('reinstalling the same download does not pile up copies', () async {
+      final downloads = makeInstall();
+      final install = downloads.parent;
+      make(['Maxis', 'The Sims', 'GameData', 'Global']);
+      final adapter = Sims1Adapter(programFilesOverride: [docs.path]);
+      final zip = makeZip('again.zip', {'GameData/Global/x.iff': 'one'});
+
+      await adapter.installArchive(downloads, zip);
+      await adapter.installArchive(downloads, zip);
+
+      expect(
+          Directory(p.join(install.path, 'GameData', 'Global'))
+              .listSync()
+              .whereType<File>()
+              .length,
+          1);
+    });
+
+    test('a chosen folder keeps two same-named files apart', () async {
+      final downloads = makeInstall();
+      final install = downloads.parent;
+      make(['Maxis', 'The Sims', 'GameData', 'Global']);
+      final adapter = Sims1Adapter(programFilesOverride: [docs.path]);
+      final zip = makeZip('twins.zip', {
+        'a/x.iff': 'one',
+        'b/x.iff': 'the other',
+      });
+
+      final mods = await adapter.installArchive(downloads, zip,
+          placement: const ChosenPlacement('GameData/Global'));
+
+      // Flattened into one folder, but not on top of each other.
+      expect(mods, hasLength(2));
+      expect(mods.map((m) => m.path).toSet(), hasLength(2));
+      expect(
+          Directory(p.join(install.path, 'GameData', 'Global'))
+              .listSync()
+              .whereType<File>()
+              .length,
+          2);
+    });
+
+    test('a named folder is matched whatever case it was packaged in',
+        () async {
+      final downloads = makeInstall();
+      final install = downloads.parent;
+      make(['Maxis', 'The Sims', 'GameData', 'Global']);
+      final adapter = Sims1Adapter(programFilesOverride: [docs.path]);
+      final zip = makeZip('shouty.zip', {'gamedata/GLOBAL/x.iff': 'behaviour'});
+
+      await adapter.installArchive(downloads, zip);
+
+      expect(
+          File(p.join(install.path, 'GameData', 'Global', 'x.iff'))
+              .existsSync(),
+          isTrue);
+    });
+
+    test('a folder the install does not have is left to the type rule',
+        () async {
+      // No Superstar here, so ExpansionPack6 is not a folder to write to.
+      final downloads = makeInstall();
+      final install = downloads.parent;
+      final adapter = Sims1Adapter(programFilesOverride: [docs.path]);
+      final zip = makeZip('ep.zip', {'ExpansionPack6/booth.iff': 'object'});
+
+      await adapter.installArchive(downloads, zip);
+
+      expect(Directory(p.join(install.path, 'ExpansionPack6')).existsSync(),
+          isFalse);
+      expect(
+          File(p.join(downloads.path, 'ExpansionPack6', 'booth.iff'))
+              .existsSync(),
+          isTrue);
+    });
+
+    test('a chosen folder overrules the type rule', () async {
+      // The case the sorting cannot get right on its own: skins that are
+      // meant to stay in Downloads so they never reach Create a Sim.
+      final downloads = makeInstall();
+      final install = downloads.parent;
+      final adapter = Sims1Adapter(programFilesOverride: [docs.path]);
+
+      await adapter.installMod(downloads, makeFile(['src', 'waiter.skn']),
+          placement: const ChosenPlacement('Downloads'));
+
+      expect(File(p.join(downloads.path, 'waiter.skn')).existsSync(), isTrue);
+      expect(
+          File(p.join(install.path, 'GameData', 'Skins', 'waiter.skn'))
+              .existsSync(),
+          isFalse);
+    });
+
+    test('a chosen folder takes the whole archive, flat', () async {
+      final downloads = makeInstall();
+      final install = downloads.parent;
+      make(['Maxis', 'The Sims', 'GameData', 'Global']);
+      final adapter = Sims1Adapter(programFilesOverride: [docs.path]);
+      final zip = makeZip('mixed.zip', {
+        'chair.iff': 'object',
+        'skins/head.cmx': 'animation',
+      });
+
+      await adapter.installArchive(downloads, zip,
+          placement: const ChosenPlacement('GameData/Global'));
+
+      // Flat, because a folder someone picked by hand was picked for the
+      // files rather than for the archive's own layout - "skins/" there is
+      // how the author tidied their zip, not a path the game reads.
+      final global = p.join(install.path, 'GameData', 'Global');
+      expect(File(p.join(global, 'chair.iff')).existsSync(), isTrue);
+      expect(File(p.join(global, 'head.cmx')).existsSync(), isTrue);
+      expect(
+          File(p.join(install.path, 'GameData', 'Skins', 'head.cmx'))
+              .existsSync(),
+          isFalse);
+    });
+
+    test('choosing Downloads keeps the archive\'s folders', () async {
+      // The one folder the game does read subfolders in, and the reason
+      // this choice exists: skins meant to stay out of Create a Sim.
+      final downloads = makeInstall();
+      final install = downloads.parent;
+      final adapter = Sims1Adapter(programFilesOverride: [docs.path]);
+      final zip = makeZip('npc.zip', {'waiters/head.cmx': 'animation'});
+
+      await adapter.installArchive(downloads, zip,
+          placement: const ChosenPlacement('Downloads'));
+
+      expect(File(p.join(downloads.path, 'waiters', 'head.cmx')).existsSync(),
+          isTrue);
+      expect(
+          File(p.join(install.path, 'GameData', 'Skins', 'head.cmx'))
+              .existsSync(),
+          isFalse);
+    });
+
+    test('a chosen folder that has gone falls back to the mods folder',
+        () async {
+      final downloads = makeInstall();
+      final adapter = Sims1Adapter(programFilesOverride: [docs.path]);
+
+      await adapter.installMod(downloads, makeFile(['src', 'chair.iff']),
+          placement: const ChosenPlacement('ExpansionPack7'));
+
+      expect(File(p.join(downloads.path, 'chair.iff')).existsSync(), isTrue);
+    });
+
+    test('the folders holding Maxis files stay out of the library',
+        () async {
+      final downloads = makeInstall();
+      make(['Maxis', 'The Sims', 'GameData', 'Skins']);
+      makeFile(['Maxis', 'The Sims', 'Downloads', 'chair.iff']);
+      makeFile(['Maxis', 'The Sims', 'GameData', 'Skins', 'head.cmx']);
+      // The game's own behaviour files. Sweeping these into the library
+      // would hand the user a switch that turns off the base game.
+      makeFile(['Maxis', 'The Sims', 'GameData', 'Global', 'Global.iff']);
+      makeFile(['Maxis', 'The Sims', 'ExpansionPack6', 'Superstar.iff']);
+      final adapter = Sims1Adapter(programFilesOverride: [docs.path]);
+
+      final mods = await adapter.listMods(downloads);
+
+      expect(mods.map((m) => m.name),
+          unorderedEquals(['chair.iff', 'head.cmx']));
     });
   });
 

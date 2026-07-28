@@ -258,11 +258,11 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 200));
     });
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
 
     // The subfolder shows up as a chip (label + count in one span);
     // filtering hides the root mod.
     final casChip = find.text('CAS  2');
+    await _until(tester, casChip);
     expect(casChip, findsOneWidget);
     await tester.tap(casChip);
     await tester.pump(const Duration(milliseconds: 400));
@@ -477,7 +477,8 @@ void main() {
       await tester.tap(find.text('Check again'));
       await Future<void>.delayed(const Duration(milliseconds: 200));
     });
-    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump();
+    await _until(tester, find.text('Fake Game Library'));
 
     expect(find.text('Fake Game mods folder not found'), findsNothing);
     expect(find.text('Fake Game Library'), findsOneWidget);
@@ -580,5 +581,51 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.text('One of your mods has a known issue'), findsNothing);
     expect(find.text('tidy lamp'), findsOneWidget);
+  });
+
+  /// Issue #5: Windows refuses a drag from Explorer to an elevated window,
+  /// and there is no way to make it stop refusing, so the library says so
+  /// instead of leaving a window that ignores every file dropped on it.
+  /// Injected rather than detected, because a test runner is not elevated
+  /// and that is the only case worth covering.
+  group('running as administrator', () {
+    Future<void> pumpLibrary(WidgetTester tester,
+        {required bool elevated}) async {
+      tester.view.physicalSize = const Size(1280, 824);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      SharedPreferences.setMockInitialValues({'soundEffects': false});
+      final tempDir = Directory.systemTemp.createTempSync('mod_manager_admin');
+      addTearDown(() => tempDir.deleteSync(recursive: true));
+      File(p.join(tempDir.path, 'cozy_sofa.package')).writeAsStringSync('sofa');
+
+      final registry = GameRegistry([_FakeAdapter(tempDir)]);
+      final settings = await SettingsStore.load();
+      await tester.runAsync(() async {
+        await tester.pumpWidget(ModManagerApp(
+            registry: registry,
+            settings: settings,
+            checkElevated: () async => elevated));
+      });
+      // Wait for the library itself, so the absence asserted below is the
+      // banner missing rather than the library not having arrived yet.
+      await _until(tester, find.text('Fake Game Library'));
+      await tester.pump(const Duration(milliseconds: 400));
+    }
+
+    testWidgets('the library says drag and drop is off, and why',
+        (tester) async {
+      await pumpLibrary(tester, elevated: true);
+
+      expect(find.textContaining('running as administrator'), findsOneWidget);
+      // Points at the way in that still works rather than just complaining.
+      expect(find.textContaining('Install button'), findsOneWidget);
+    });
+
+    testWidgets('an ordinary run says nothing', (tester) async {
+      await pumpLibrary(tester, elevated: false);
+
+      expect(find.textContaining('running as administrator'), findsNothing);
+    });
   });
 }

@@ -5,6 +5,7 @@ import 'package:path/path.dart' as p;
 
 import 'app_message.dart';
 import 'game.dart';
+import 'install_destination.dart';
 import 'install_path.dart';
 import 'mod.dart';
 import 'mod_archive.dart';
@@ -100,14 +101,32 @@ abstract class GameAdapter {
 
   Future<List<Mod>> listMods(Directory modsDir);
 
-  Future<Mod> installMod(Directory modsDir, File source);
+  /// Every folder this game reads mods from, when that is more than one.
+  ///
+  /// Empty for every game whose mods all live in the mods folder, which is
+  /// all of them but The Sims 1 - and the UI reads it that way, never
+  /// asking where anything goes unless there is more than one answer.
+  /// Only folders that exist on this machine are returned: which
+  /// expansions someone installed decides which of them there are.
+  Future<List<InstallDestination>> installDestinations(Directory modsDir) async =>
+      const [];
+
+  /// One file described as a mod of this game, or null when it isn't one
+  /// (wrong extension, or no longer on disk). Lets a caller holding a
+  /// path rather than a folder - the record of what was installed into a
+  /// folder that can't be listed - put it back in the library.
+  Mod? modAt(String path);
+
+  Future<Mod> installMod(Directory modsDir, File source,
+      {InstallPlacement placement = const SortedPlacement()});
 
   /// Unpacks [archive] (any format in [archiveFileExtensions]) into
   /// [modsDir] and returns the mod files it contained; everything else
   /// in the archive (readmes, screenshots) is skipped. Throws an
   /// [AppMessage]-carrying exception when the archive can't be read or
   /// holds no mod files.
-  Future<List<Mod>> installArchive(Directory modsDir, File archive);
+  Future<List<Mod>> installArchive(Directory modsDir, File archive,
+      {InstallPlacement placement = const SortedPlacement()});
 
   /// Installs every mod file found anywhere under [source] (a folder the
   /// user dropped or picked) into [modsDir]. The folder itself becomes a
@@ -115,7 +134,8 @@ abstract class GameAdapter {
   /// the library it shows up as a filter chip named after the folder.
   /// Everything that isn't a mod file is skipped. Throws an
   /// [AppMessage]-carrying exception when the folder holds no mod files.
-  Future<List<Mod>> installFolder(Directory modsDir, Directory source);
+  Future<List<Mod>> installFolder(Directory modsDir, Directory source,
+      {InstallPlacement placement = const SortedPlacement()});
 
   Future<void> removeMod(Mod mod);
 
@@ -270,23 +290,53 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
     return mods;
   }
 
+  /// One folder holds everything, unless a subclass says otherwise. The
+  /// interface's own default cannot reach here - this class implements
+  /// [GameAdapter] rather than extending it - so it is repeated.
   @override
-  Future<Mod> installMod(Directory modsDir, File source) async {
-    await modsDir.create(recursive: true);
-    final target = p.join(modsDir.path, p.basename(source.path));
+  Future<List<InstallDestination>> installDestinations(
+      Directory modsDir) async =>
+      const [];
+
+  /// Where an install actually writes: the folder the user chose, when
+  /// they chose one and this game has it, and the mods folder otherwise.
+  /// A game with no destinations of its own always lands on [modsDir],
+  /// which is why the placement argument costs those adapters nothing.
+  Future<Directory> resolvePlacement(
+      Directory modsDir, InstallPlacement placement) async {
+    if (placement is! ChosenPlacement) return modsDir;
+    for (final destination in await installDestinations(modsDir)) {
+      if (destination.id == placement.destinationId) return destination.directory;
+    }
+    // A folder that was there when the dialog opened and isn't now (an
+    // expansion uninstalled mid-session, a path typed into the prefs by
+    // hand). The mods folder is where the game looks anyway.
+    return modsDir;
+  }
+
+  @override
+  Future<Mod> installMod(Directory modsDir, File source,
+      {InstallPlacement placement = const SortedPlacement()}) async {
+    final dir = await resolvePlacement(modsDir, placement);
+    await dir.create(recursive: true);
+    final target = p.join(dir.path, p.basename(source.path));
     final copied = await source.copy(target);
     return toMod(copied)!;
   }
 
   @override
-  Future<List<Mod>> installArchive(Directory modsDir, File archive) async {
-    await modsDir.create(recursive: true);
-    final files = await extractModFiles(archive, modsDir, modFileExtensions);
+  Future<List<Mod>> installArchive(Directory modsDir, File archive,
+      {InstallPlacement placement = const SortedPlacement()}) async {
+    final dir = await resolvePlacement(modsDir, placement);
+    await dir.create(recursive: true);
+    final files = await extractModFiles(archive, dir, modFileExtensions);
     return [for (final file in files) toMod(file)!];
   }
 
   @override
-  Future<List<Mod>> installFolder(Directory modsDir, Directory source) async {
+  Future<List<Mod>> installFolder(Directory modsDir, Directory source,
+      {InstallPlacement placement = const SortedPlacement()}) async {
+    final dir = await resolvePlacement(modsDir, placement);
     final files = await modFilesIn(source);
     if (files.isEmpty) {
       throw ModContentException.noModFiles(
@@ -295,8 +345,8 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
     final mods = <Mod>[];
     final taken = <String>{};
     for (final file in files) {
-      final target = claimInstallTarget(modsDir.path,
-          p.relative(file.path, from: source.parent.path), taken);
+      final target = claimInstallTarget(
+          dir.path, p.relative(file.path, from: source.parent.path), taken);
       await File(target).parent.create(recursive: true);
       final copied = await file.copy(target);
       mods.add(toMod(copied)!);
@@ -488,6 +538,12 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
     } catch (_) {
       return null;
     }
+  }
+
+  @override
+  Mod? modAt(String path) {
+    final file = File(path);
+    return file.existsSync() ? toMod(file) : null;
   }
 
   /// Maps a file to a [Mod], or `null` if it isn't a mod file for this game.

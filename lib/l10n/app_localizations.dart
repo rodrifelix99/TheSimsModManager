@@ -437,6 +437,96 @@ abstract class L {
   /// **'{game} mods'**
   String filePickerModsLabel(String game);
 
+  /// No description provided for @installWhereTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Where should this go?'**
+  String get installWhereTitle;
+
+  /// No description provided for @installWhereBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{game} reads mods from several folders. The app can work it out from the file itself, or you can say where it belongs.'**
+  String installWhereBody(String game);
+
+  /// No description provided for @installWhereSorted.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort it out for me'**
+  String get installWhereSorted;
+
+  /// No description provided for @installWhereSortedDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow the folders the download names, then place the rest by file type.'**
+  String get installWhereSortedDesc;
+
+  /// No description provided for @installWhereRemember.
+  ///
+  /// In en, this message translates to:
+  /// **'Don’t ask again'**
+  String get installWhereRemember;
+
+  /// No description provided for @destinationSims1Downloads.
+  ///
+  /// In en, this message translates to:
+  /// **'Objects, hacks and most downloads.'**
+  String get destinationSims1Downloads;
+
+  /// No description provided for @destinationSims1Global.
+  ///
+  /// In en, this message translates to:
+  /// **'Overrides that change the base game everywhere.'**
+  String get destinationSims1Global;
+
+  /// No description provided for @destinationSims1Objects.
+  ///
+  /// In en, this message translates to:
+  /// **'Overrides for the game’s own object files.'**
+  String get destinationSims1Objects;
+
+  /// No description provided for @destinationSims1Skins.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyday skins and heads. These show up in Create a Sim.'**
+  String get destinationSims1Skins;
+
+  /// No description provided for @destinationSims1SkinsBuy.
+  ///
+  /// In en, this message translates to:
+  /// **'Clothing sold in community lot stores.'**
+  String get destinationSims1SkinsBuy;
+
+  /// No description provided for @destinationSims1Walls.
+  ///
+  /// In en, this message translates to:
+  /// **'Wall coverings.'**
+  String get destinationSims1Walls;
+
+  /// No description provided for @destinationSims1Floors.
+  ///
+  /// In en, this message translates to:
+  /// **'Floor tiles.'**
+  String get destinationSims1Floors;
+
+  /// No description provided for @destinationSims1Roofs.
+  ///
+  /// In en, this message translates to:
+  /// **'Roof textures.'**
+  String get destinationSims1Roofs;
+
+  /// No description provided for @prefAskWhereTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask where to install'**
+  String get prefAskWhereTitle;
+
+  /// No description provided for @prefAskWhereDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'This game reads mods from more than one folder. Choose the folder each time instead of letting the app decide'**
+  String get prefAskWhereDesc;
+
   /// No description provided for @statTotal.
   ///
   /// In en, this message translates to:
@@ -1402,6 +1492,12 @@ abstract class L {
   /// In en, this message translates to:
   /// **'This mods folder is read-only, so installing and removing mods won’t work until your account can write to it.'**
   String get folderReadOnlyBanner;
+
+  /// No description provided for @elevatedNoDropBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'You’re running as administrator, so Windows won’t let you drag files onto the window. Use the Install button instead — that still works.'**
+  String get elevatedNoDropBanner;
 
   /// No description provided for @errorShopDownload.
   ///

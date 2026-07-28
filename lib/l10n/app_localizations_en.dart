@@ -232,6 +232,59 @@ class LEn extends L {
   }
 
   @override
+  String get installWhereTitle => 'Where should this go?';
+
+  @override
+  String installWhereBody(String game) {
+    return '$game reads mods from several folders. The app can work it out from the file itself, or you can say where it belongs.';
+  }
+
+  @override
+  String get installWhereSorted => 'Sort it out for me';
+
+  @override
+  String get installWhereSortedDesc =>
+      'Follow the folders the download names, then place the rest by file type.';
+
+  @override
+  String get installWhereRemember => 'Don’t ask again';
+
+  @override
+  String get destinationSims1Downloads => 'Objects, hacks and most downloads.';
+
+  @override
+  String get destinationSims1Global =>
+      'Overrides that change the base game everywhere.';
+
+  @override
+  String get destinationSims1Objects =>
+      'Overrides for the game’s own object files.';
+
+  @override
+  String get destinationSims1Skins =>
+      'Everyday skins and heads. These show up in Create a Sim.';
+
+  @override
+  String get destinationSims1SkinsBuy =>
+      'Clothing sold in community lot stores.';
+
+  @override
+  String get destinationSims1Walls => 'Wall coverings.';
+
+  @override
+  String get destinationSims1Floors => 'Floor tiles.';
+
+  @override
+  String get destinationSims1Roofs => 'Roof textures.';
+
+  @override
+  String get prefAskWhereTitle => 'Ask where to install';
+
+  @override
+  String get prefAskWhereDesc =>
+      'This game reads mods from more than one folder. Choose the folder each time instead of letting the app decide';
+
+  @override
   String get statTotal => 'Total';
 
   @override
@@ -877,6 +930,10 @@ class LEn extends L {
   @override
   String get folderReadOnlyBanner =>
       'This mods folder is read-only, so installing and removing mods won’t work until your account can write to it.';
+
+  @override
+  String get elevatedNoDropBanner =>
+      'You’re running as administrator, so Windows won’t let you drag files onto the window. Use the Install button instead — that still works.';
 
   @override
   String errorShopDownload(String name) {

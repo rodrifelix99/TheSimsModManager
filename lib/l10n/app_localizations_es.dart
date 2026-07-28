@@ -232,6 +232,60 @@ class LEs extends L {
   }
 
   @override
+  String get installWhereTitle => '¿Dónde va esto?';
+
+  @override
+  String installWhereBody(String game) {
+    return '$game lee mods desde varias carpetas. La app puede deducirlo del propio archivo, o puedes decirle tú dónde va.';
+  }
+
+  @override
+  String get installWhereSorted => 'Decídelo por mí';
+
+  @override
+  String get installWhereSortedDesc =>
+      'Respeta las carpetas que trae la descarga y coloca el resto según el tipo de archivo.';
+
+  @override
+  String get installWhereRemember => 'No volver a preguntar';
+
+  @override
+  String get destinationSims1Downloads =>
+      'Objetos, hacks y la mayoría de descargas.';
+
+  @override
+  String get destinationSims1Global =>
+      'Cambios que afectan al juego base entero.';
+
+  @override
+  String get destinationSims1Objects =>
+      'Cambios sobre los archivos de objetos del propio juego.';
+
+  @override
+  String get destinationSims1Skins =>
+      'Pieles y cabezas de diario. Salen en Crear un Sim.';
+
+  @override
+  String get destinationSims1SkinsBuy =>
+      'Ropa que se vende en las tiendas de los solares comunitarios.';
+
+  @override
+  String get destinationSims1Walls => 'Papeles y revestimientos de pared.';
+
+  @override
+  String get destinationSims1Floors => 'Suelos.';
+
+  @override
+  String get destinationSims1Roofs => 'Texturas de tejado.';
+
+  @override
+  String get prefAskWhereTitle => 'Preguntar dónde instalar';
+
+  @override
+  String get prefAskWhereDesc =>
+      'Este juego lee mods de más de una carpeta. Elige la carpeta cada vez en lugar de dejar que decida la app';
+
+  @override
   String get statTotal => 'Total';
 
   @override
@@ -880,6 +934,10 @@ class LEs extends L {
   @override
   String get folderReadOnlyBanner =>
       'Esta carpeta de mods es de solo lectura, así que instalar y quitar mods no va a funcionar hasta que tu cuenta pueda escribir en ella.';
+
+  @override
+  String get elevatedNoDropBanner =>
+      'Estás ejecutando como administrador, así que Windows no deja arrastrar archivos a la ventana. Usa el botón Instalar — ese sigue funcionando.';
 
   @override
   String errorShopDownload(String name) {

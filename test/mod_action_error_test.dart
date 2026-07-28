@@ -7,6 +7,7 @@ import 'package:sims_mod_manager/src/core/app_message.dart';
 import 'package:sims_mod_manager/src/core/game.dart';
 import 'package:sims_mod_manager/src/core/game_adapter.dart';
 import 'package:sims_mod_manager/src/core/game_registry.dart';
+import 'package:sims_mod_manager/src/core/install_destination.dart';
 import 'package:sims_mod_manager/src/core/mod.dart';
 import 'package:sims_mod_manager/src/core/mod_archive.dart';
 import 'package:sims_mod_manager/src/core/package_insight.dart';
@@ -108,9 +109,10 @@ class _FailingAdapter extends FolderBasedGameAdapter {
   }
 
   @override
-  Future<Mod> installMod(Directory modsDir, File source) {
+  Future<Mod> installMod(Directory modsDir, File source,
+      {InstallPlacement placement = const SortedPlacement()}) {
     if (installFailure case final failure?) throw failure;
-    return super.installMod(modsDir, source);
+    return super.installMod(modsDir, source, placement: placement);
   }
 }
 

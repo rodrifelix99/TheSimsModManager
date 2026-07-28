@@ -8,6 +8,7 @@ import '../core/mod.dart';
 import '../services/sfx.dart';
 import 'app_controller.dart';
 import 'game_theme.dart';
+import 'install_destination_dialog.dart';
 import 'l10n.dart';
 import 'mod_presentation.dart';
 import 'scan_backdrop.dart';
@@ -132,6 +133,7 @@ class LibraryView extends StatelessWidget {
         ),
         if (c.announcement != null) _announcementBanner(t, c, l),
         if (!c.modsDirWritable) _readOnlyBanner(t, l),
+        if (c.runningElevated) _elevatedBanner(t, l),
         for (final key in c.unmetRequirements)
           if (l.requirement(key) case final text?)
             _requirementBanner(t, c, l, key, text),
@@ -212,6 +214,41 @@ class LibraryView extends StatelessWidget {
               iconSize: 17,
               color: t.muted,
               icon: const Icon(Icons.close_rounded),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Running as administrator costs the window its drag and drop, and
+  /// Windows refuses the drag without telling anyone - the file simply
+  /// bounces off. Say it here, next to the Install button that still
+  /// works, rather than let people conclude the app is broken.
+  Widget _elevatedBanner(GameTheme t, L l) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(28, 14, 28, 0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: t.warning.withValues(alpha: .1),
+          border: Border.all(color: t.warning, width: 1.5),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.admin_panel_settings_outlined, size: 20,
+                color: t.warning),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                l.elevatedNoDropBanner,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: t.onWarningTint,
+                ),
+              ),
             ),
           ],
         ),
@@ -468,7 +505,7 @@ class LibraryView extends StatelessWidget {
     return HoverBuilder(
       cursor: SystemMouseCursors.click,
       builder: (context, hovered) => GestureDetector(
-        onTap: () => _pickAndInstall(c, l),
+        onTap: () => _pickAndInstall(context, t, c, l),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
           transform: Matrix4.translationValues(0, hovered ? -1 : 0, 0),
@@ -509,7 +546,8 @@ class LibraryView extends StatelessWidget {
     );
   }
 
-  static Future<void> _pickAndInstall(AppController c, L l) async {
+  static Future<void> _pickAndInstall(
+      BuildContext context, GameTheme t, AppController c, L l) async {
     c.playSound(UiSound.click);
     // Archives are accepted alongside plain mod files: the adapter
     // unpacks them and installs the mod files they contain.
@@ -524,7 +562,13 @@ class LibraryView extends StatelessWidget {
           extensions: extensions),
     ]);
     if (files.isEmpty) return;
-    await c.installFiles([for (final f in files) File(f.path)]);
+    if (!context.mounted) return;
+    final placement = await resolveInstallPlacement(context, c,
+        theme: t, subjects: [for (final f in files) f.path]);
+    // Backed out of the dialog: nothing was picked, so nothing installs.
+    if (placement == null) return;
+    await c.installFiles([for (final f in files) File(f.path)],
+        placement: placement);
   }
 
   Widget _stat(GameTheme t, String label, String value, Color color) {

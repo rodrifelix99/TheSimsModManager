@@ -43,6 +43,7 @@ class ModManagerApp extends StatefulWidget {
     this.downloadShop,
     this.deepLinks,
     this.onBrightnessChanged,
+    this.checkElevated,
   });
 
   final GameRegistry registry;
@@ -74,6 +75,11 @@ class ModManagerApp extends StatefulWidget {
   /// (Windows acrylic / macOS vibrancy) that the sidebar should reveal.
   final bool translucentSidebar;
 
+  /// Whether the app has administrator rights; null means ask the OS.
+  /// Injectable so a test can have the elevated case without an elevated
+  /// runner, which is the only way to cover it at all.
+  final Future<bool> Function()? checkElevated;
+
   @override
   State<ModManagerApp> createState() => _ModManagerAppState();
 }
@@ -85,7 +91,8 @@ class _ModManagerAppState extends State<ModManagerApp> {
       analytics: widget.analytics,
       fetchShop: widget.fetchShop,
       fetchListing: widget.fetchListing,
-      downloadShop: widget.downloadShop);
+      downloadShop: widget.downloadShop,
+      checkElevated: widget.checkElevated);
 
   /// The language and theme currently rendered. Mirrored out of the
   /// controller rather than read from it during build: this widget sits

@@ -146,6 +146,23 @@ class SettingsStore {
   Future<void> setShopInstallsJson(String value) =>
       _prefs.setString('shop.installs', value);
 
+  /// Mods the app installed into folders the game also keeps its own
+  /// files in, as JSON: game id -> paths relative to that game's mods
+  /// folder. See `core/placed_mods.dart` for why those folders cannot
+  /// simply be listed.
+  String? get placedModsJson => _prefs.getString('placedMods');
+  Future<void> setPlacedModsJson(String value) =>
+      _prefs.setString('placedMods', value);
+
+  /// Whether an install asks where to put things, for the games that read
+  /// mods from more than one folder. On by default: the app's guess is
+  /// right most of the time but wrong in ways only the user can see (a
+  /// skin that is meant to stay out of Create-a-Sim looks exactly like
+  /// one that isn't).
+  bool get askWhereToInstall => _prefs.getBool('askWhereToInstall') ?? true;
+  Future<void> setAskWhereToInstall(bool value) =>
+      _prefs.setBool('askWhereToInstall', value);
+
   List<String> get dismissedAnnouncements =>
       _prefs.getStringList('dismissedAnnouncements') ?? const [];
   Future<void> addDismissedAnnouncement(String id) =>

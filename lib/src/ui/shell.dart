@@ -10,6 +10,7 @@ import '../core/game_adapter.dart';
 import 'app_controller.dart';
 import 'detail_view.dart';
 import 'game_theme.dart';
+import 'install_destination_dialog.dart';
 import 'l10n.dart';
 import 'library_view.dart';
 import 'settings_view.dart';
@@ -43,10 +44,21 @@ class _AppShellState extends State<AppShell> {
     widget.controller.init();
   }
 
-  void _handleDrop(AppController c, DropDoneDetails details) {
+  Future<void> _handleDrop(
+      AppController c, GameTheme t, DropDoneDetails details) async {
     setState(() => _dragging = false);
     if (c.modsDir == null) return;
-    c.installDroppedPaths([for (final f in details.files) f.path]);
+    final paths = [for (final f in details.files) f.path];
+    // Filtered before asking: a drop of nothing but readmes has nothing
+    // to ask about, and installDroppedPaths is still the one that says so.
+    final usable = await c.acceptedDrops(paths);
+    if (usable.isEmpty) return c.installDroppedPaths(paths);
+    if (!mounted) return;
+    final placement = await resolveInstallPlacement(context, c,
+        theme: t, subjects: [for (final source in usable) source.path]);
+    // Backed out of the dialog.
+    if (placement == null) return;
+    await c.installDroppedPaths(paths, placement: placement);
   }
 
   @override
@@ -73,7 +85,7 @@ class _AppShellState extends State<AppShell> {
               if (c.modsDir != null) setState(() => _dragging = true);
             },
             onDragExited: (_) => setState(() => _dragging = false),
-            onDragDone: (details) => _handleDrop(c, details),
+            onDragDone: (details) => _handleDrop(c, t, details),
             child: Stack(
               children: [
                 Row(

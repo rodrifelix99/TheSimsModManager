@@ -235,6 +235,60 @@ class LFr extends L {
   }
 
   @override
+  String get installWhereTitle => 'Ça va où ?';
+
+  @override
+  String installWhereBody(String game) {
+    return '$game lit les mods dans plusieurs dossiers. L’appli peut deviner d’après le fichier, ou tu lui dis où ça va.';
+  }
+
+  @override
+  String get installWhereSorted => 'Décide pour moi';
+
+  @override
+  String get installWhereSortedDesc =>
+      'Suit les dossiers fournis dans le téléchargement, puis range le reste par type de fichier.';
+
+  @override
+  String get installWhereRemember => 'Ne plus demander';
+
+  @override
+  String get destinationSims1Downloads =>
+      'Objets, hacks et la plupart des téléchargements.';
+
+  @override
+  String get destinationSims1Global =>
+      'Modifications qui changent tout le jeu de base.';
+
+  @override
+  String get destinationSims1Objects =>
+      'Modifications des fichiers d’objets du jeu lui-même.';
+
+  @override
+  String get destinationSims1Skins =>
+      'Peaux et têtes de tous les jours. Elles apparaissent dans Créer un Sim.';
+
+  @override
+  String get destinationSims1SkinsBuy =>
+      'Vêtements vendus dans les boutiques des terrains communautaires.';
+
+  @override
+  String get destinationSims1Walls => 'Revêtements muraux.';
+
+  @override
+  String get destinationSims1Floors => 'Sols.';
+
+  @override
+  String get destinationSims1Roofs => 'Textures de toit.';
+
+  @override
+  String get prefAskWhereTitle => 'Demander où installer';
+
+  @override
+  String get prefAskWhereDesc =>
+      'Ce jeu lit les mods dans plusieurs dossiers. Choisis le dossier à chaque fois au lieu de laisser l’appli décider';
+
+  @override
   String get statTotal => 'Total';
 
   @override
@@ -882,6 +936,10 @@ class LFr extends L {
   @override
   String get folderReadOnlyBanner =>
       'Ce dossier de mods est en lecture seule : installer et retirer des mods ne marchera pas tant que ton compte ne peut pas y écrire.';
+
+  @override
+  String get elevatedNoDropBanner =>
+      'Tu es en administrateur, du coup Windows empêche de glisser des fichiers sur la fenêtre. Passe par le bouton Installer — lui marche toujours.';
 
   @override
   String errorShopDownload(String name) {

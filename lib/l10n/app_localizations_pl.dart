@@ -241,6 +241,58 @@ class LPl extends L {
   }
 
   @override
+  String get installWhereTitle => 'Gdzie to ma trafić?';
+
+  @override
+  String installWhereBody(String game) {
+    return '$game czyta mody z kilku folderów. Apka może to wywnioskować z samego pliku, albo ty powiesz gdzie.';
+  }
+
+  @override
+  String get installWhereSorted => 'Zdecyduj za mnie';
+
+  @override
+  String get installWhereSortedDesc =>
+      'Najpierw foldery, które są w pobranym pliku, resztę rozłóż po typie pliku.';
+
+  @override
+  String get installWhereRemember => 'Nie pytaj więcej';
+
+  @override
+  String get destinationSims1Downloads =>
+      'Obiekty, hacki i większość pobranych rzeczy.';
+
+  @override
+  String get destinationSims1Global => 'Zmiany działające w całej podstawce.';
+
+  @override
+  String get destinationSims1Objects => 'Zmiany w plikach obiektów samej gry.';
+
+  @override
+  String get destinationSims1Skins =>
+      'Codzienne skiny i głowy. Pokazują się w Tworzeniu Simów.';
+
+  @override
+  String get destinationSims1SkinsBuy =>
+      'Ubrania sprzedawane w sklepach na działkach społecznych.';
+
+  @override
+  String get destinationSims1Walls => 'Tapety i okładziny ścian.';
+
+  @override
+  String get destinationSims1Floors => 'Podłogi.';
+
+  @override
+  String get destinationSims1Roofs => 'Tekstury dachów.';
+
+  @override
+  String get prefAskWhereTitle => 'Pytaj, gdzie instalować';
+
+  @override
+  String get prefAskWhereDesc =>
+      'Ta gra czyta mody z więcej niż jednego folderu. Wybieraj folder za każdym razem, zamiast zdawać się na apkę';
+
+  @override
   String get statTotal => 'Razem';
 
   @override
@@ -903,6 +955,10 @@ class LPl extends L {
   @override
   String get folderReadOnlyBanner =>
       'Ten folder modów jest tylko do odczytu, więc instalowanie i usuwanie modów nie zadziała, dopóki twoje konto nie będzie mogło w nim zapisywać.';
+
+  @override
+  String get elevatedNoDropBanner =>
+      'Działasz jako administrator, więc Windows nie pozwala przeciągać plików na okno. Skorzystaj z przycisku Zainstaluj — ten dalej działa.';
 
   @override
   String errorShopDownload(String name) {

@@ -240,6 +240,60 @@ class LRu extends L {
   }
 
   @override
+  String get installWhereTitle => 'Куда это положить?';
+
+  @override
+  String installWhereBody(String game) {
+    return '$game читает моды из нескольких папок. Приложение может понять по самому файлу, а можешь указать ты.';
+  }
+
+  @override
+  String get installWhereSorted => 'Разберись сам';
+
+  @override
+  String get installWhereSortedDesc =>
+      'Сначала папки, которые уже есть в загрузке, остальное - по типу файла.';
+
+  @override
+  String get installWhereRemember => 'Больше не спрашивать';
+
+  @override
+  String get destinationSims1Downloads =>
+      'Объекты, хаки и почти всё скачанное.';
+
+  @override
+  String get destinationSims1Global =>
+      'Правки, которые меняют базовую игру целиком.';
+
+  @override
+  String get destinationSims1Objects =>
+      'Правки к собственным файлам объектов игры.';
+
+  @override
+  String get destinationSims1Skins =>
+      'Повседневные скины и головы. Появляются в редакторе персонажа.';
+
+  @override
+  String get destinationSims1SkinsBuy =>
+      'Одежда, которую продают в магазинах на общественных участках.';
+
+  @override
+  String get destinationSims1Walls => 'Обои и покрытия для стен.';
+
+  @override
+  String get destinationSims1Floors => 'Напольные покрытия.';
+
+  @override
+  String get destinationSims1Roofs => 'Текстуры крыш.';
+
+  @override
+  String get prefAskWhereTitle => 'Спрашивать, куда устанавливать';
+
+  @override
+  String get prefAskWhereDesc =>
+      'Эта игра читает моды больше чем из одной папки. Выбирай папку каждый раз, вместо того чтобы это решало приложение';
+
+  @override
   String get statTotal => 'Всего';
 
   @override
@@ -902,6 +956,10 @@ class LRu extends L {
   @override
   String get folderReadOnlyBanner =>
       'Эта папка модов только для чтения, так что установка и удаление модов не сработают, пока у твоей учётной записи не будет прав на запись.';
+
+  @override
+  String get elevatedNoDropBanner =>
+      'Ты запустил приложение от имени администратора, поэтому Windows не даёт перетаскивать файлы в окно. Используй кнопку «Установить» — она по-прежнему работает.';
 
   @override
   String errorShopDownload(String name) {

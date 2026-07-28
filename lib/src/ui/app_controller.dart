@@ -13,14 +13,17 @@ import '../core/folder_access.dart';
 import '../core/game_adapter.dart';
 import '../core/game_registry.dart';
 import '../core/mod.dart';
+import '../core/install_destination.dart';
 import '../core/mod_advisories.dart';
 import '../core/mod_archive.dart';
 import '../core/mod_folder.dart';
 import '../core/mod_name.dart';
 import '../core/package_insight.dart';
+import '../core/placed_mods.dart';
 import '../services/analytics.dart';
 import '../services/demo_shop.dart';
 import '../services/disk_space.dart';
+import '../services/elevation.dart';
 import '../services/github.dart';
 import '../services/mod_shop.dart';
 import '../services/settings_store.dart';
@@ -131,10 +134,12 @@ class AppController extends ChangeNotifier {
     Future<void> Function(ShopMod mod, File destination,
             {void Function(int received, int total)? onProgress})?
         downloadShop,
+    Future<bool> Function()? checkElevated,
     int artworkBudgetBytes = defaultArtworkBudgetBytes,
   })  : _artworkBudgetBytes = artworkBudgetBytes,
         _sfx = sfx ?? Sfx(),
         analytics = analytics ?? Analytics.disabled(),
+        _checkElevated = checkElevated ?? isRunningElevated,
         _checkUpdates = checkUpdates ?? fetchAvailableUpdate,
         _loadAdvisories = loadAdvisories ?? fetchAdvisories,
         _fetchShop = fetchShop ?? fetchShopListings,
@@ -162,6 +167,10 @@ class AppController extends ChangeNotifier {
   /// Downloads the published advisory list; injectable for the same
   /// reason as [_checkUpdates].
   final Future<String?> Function() _loadAdvisories;
+
+  /// Whether this process has administrator rights; injectable so tests
+  /// can have either answer without an elevated runner.
+  final Future<bool> Function() _checkElevated;
 
   /// Fetches The Exchange's listings, every game at once; injectable for
   /// the same reason as [_checkUpdates].
@@ -196,6 +205,19 @@ class AppController extends ChangeNotifier {
   /// library says so rather than letting the user find out one failure at
   /// a time. True whenever there is no folder to judge.
   bool modsDirWritable = true;
+
+  /// Whether the app is running as administrator, which on Windows costs
+  /// it drag and drop: Explorer sits at medium integrity and cannot reach
+  /// a high-integrity window, so a drag is refused by the OS before the
+  /// app hears about it. The library says so, because the alternative is
+  /// a window that ignores every file dropped on it for no visible
+  /// reason. Installing still works - the picker runs in-process. False
+  /// everywhere but Windows, and until [init] has asked.
+  bool runningElevated = false;
+
+  /// Whether this game reads mods from more than one folder, so an
+  /// install has something to ask about. Only The Sims 1 ever does.
+  bool hasInstallChoice = false;
 
   /// Answers cached per folder: the probe writes a file, and refresh runs
   /// after every toggle. Permissions do change (that is the whole point
@@ -998,6 +1020,13 @@ class AppController extends ChangeNotifier {
     // Same reason: the update badges are drawn from these records, and
     // the first library frame should already have them.
     _shopInstalls = parseShopInstalls(settings.shopInstallsJson);
+    // Same again: mods sitting in folders the library cannot sweep are
+    // only known from here, and the first frame should show them.
+    _placedMods = parsePlacedMods(settings.placedModsJson);
+    // Before the refresh, so the first library frame already carries the
+    // banner instead of adding it a moment later. It cannot change while
+    // the app is open, so it is asked once.
+    runningElevated = await _checkElevated();
     await refresh();
     _captureLibraryOpened();
     // Not awaited, like the update check below it.
@@ -1170,8 +1199,14 @@ class AppController extends ChangeNotifier {
       modDepthLimit = dir == null ? null : await _adapter.modDepthLimit(dir);
       unmetRequirements =
           dir == null ? const [] : await _adapter.unmetRequirements(dir);
-      _setMods(_withDemoMods(
-          dir == null ? const [] : await _adapter.listMods(dir)));
+      // Settings only offers to ask where mods go when there is somewhere
+      // else for them to go, which for The Sims 1 depends on the install
+      // being found and on which expansions are in it.
+      hasInstallChoice = dir != null &&
+          (await _adapter.installDestinations(dir)).length > 1;
+      _setMods(_withDemoMods(dir == null
+          ? const []
+          : await _withPlacedMods(_adapter, dir, await _adapter.listMods(dir))));
       _findTooDeepMods();
       // Artwork/content scan happens here, under the loading screen,
       // so the library renders instantly from cache afterwards. It must
@@ -1399,8 +1434,12 @@ class AppController extends ChangeNotifier {
       screen = AppScreen.library;
     }
     // Whatever the shop thought it had installed, this file is no longer
-    // part of it.
-    if (error == null) await _forgetShopFile(mod);
+    // part of it, and nor is it something the library has to be told
+    // about any more.
+    if (error == null) {
+      await _forgetShopFile(mod);
+      await _forgetPlaced(_adapter, modsDir, mod);
+    }
     await _refreshKeepingError(error);
   }
 
@@ -1428,31 +1467,122 @@ class AppController extends ChangeNotifier {
     return Directory(p.joinAll([modsFolder.path, ...folderSegments(folder)]));
   }
 
+  /// Mods the app put in folders that hold the game's own files too, by
+  /// game id, each relative to that game's mods folder. The library has
+  /// no other way to know about them - see `core/placed_mods.dart`.
+  Map<String, Set<String>> _placedMods = {};
+
+  /// [mods] plus whatever is on record in folders [GameAdapter.listMods]
+  /// cannot sweep, minus the records whose file has since gone.
+  Future<List<Mod>> _withPlacedMods(
+      GameAdapter adapter, Directory modsDir, List<Mod> mods) async {
+    final recorded = _placedMods[adapter.game.id];
+    if (recorded == null || recorded.isEmpty) return mods;
+    final seen = {for (final mod in mods) enabledPathOf(mod.path)};
+    final kept = <String>{};
+    final placed = <Mod>[];
+    for (final relative in recorded) {
+      final path = p.normalize(p.join(modsDir.path, relative));
+      // Disabling renames the file, so a record points at the name the
+      // mod carries while it is switched on and both are tried here.
+      final mod = adapter.modAt(path) ?? adapter.modAt('$path$disabledSuffix');
+      if (mod == null) {
+        // Not there. Only forget it if the folder it lived in is, because
+        // otherwise this is a different install (the user re-pointed the
+        // mods folder, or has two copies of the game) and the mod is
+        // still sitting where it was put, still loading in the game.
+        if (Directory(p.dirname(path)).existsSync()) continue;
+        kept.add(relative);
+        continue;
+      }
+      kept.add(relative);
+      if (seen.add(enabledPathOf(mod.path))) placed.add(mod);
+    }
+    await _rememberPlaced(adapter.game.id, kept);
+    if (placed.isEmpty) return mods;
+    return [...mods, ...placed]
+      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+  }
+
+  /// Remembers any of [installed] that landed somewhere the library can't
+  /// sweep. Nothing to do for a game whose folders are all its player's.
+  Future<void> _recordPlaced(
+      GameAdapter adapter, Directory modsDir, List<Mod> installed) async {
+    if (installed.isEmpty) return;
+    final stock = [
+      for (final destination in await adapter.installDestinations(modsDir))
+        if (destination.holdsStockFiles) destination.directory.path,
+    ];
+    if (stock.isEmpty) return;
+    final paths = {...?_placedMods[adapter.game.id]};
+    for (final mod in installed) {
+      if (!stock.any((dir) => p.isWithin(dir, mod.path))) continue;
+      paths.add(p.relative(enabledPathOf(mod.path), from: modsDir.path));
+    }
+    await _rememberPlaced(adapter.game.id, paths);
+  }
+
+  /// Drops [mod] from the records, for when it is uninstalled.
+  Future<void> _forgetPlaced(GameAdapter adapter, Directory? modsDir, Mod mod) {
+    final recorded = _placedMods[adapter.game.id];
+    if (modsDir == null || recorded == null) return Future<void>.value();
+    final relative = p.relative(enabledPathOf(mod.path), from: modsDir.path);
+    if (!recorded.contains(relative)) return Future<void>.value();
+    return _rememberPlaced(adapter.game.id, {...recorded}..remove(relative));
+  }
+
+  Future<void> _rememberPlaced(String gameId, Set<String> paths) async {
+    final before = _placedMods[gameId] ?? const <String>{};
+    if (before.length == paths.length && before.containsAll(paths)) return;
+    if (paths.isEmpty) {
+      _placedMods.remove(gameId);
+    } else {
+      _placedMods[gameId] = paths;
+    }
+    await settings.setPlacedModsJson(encodePlacedMods(_placedMods));
+  }
+
   /// Installs [sources] into [into]'s mods folder, the game on screen
   /// unless a caller says otherwise ([target] is that game's folder, so
   /// the resolution isn't done twice).
-  Future<void> installFiles(List<FileSystemEntity> sources,
-      {String method = 'picker', GameAdapter? into, Directory? target}) async {
+  /// Returns the mods that reached disk, which is not something the
+  /// library can always work out for itself afterwards: a file placed in a
+  /// folder the game keeps its own files in is invisible to [listMods].
+  Future<List<Mod>> installFiles(List<FileSystemEntity> sources,
+      {String method = 'picker',
+      GameAdapter? into,
+      Directory? target,
+      InstallPlacement placement = const SortedPlacement()}) async {
     final adapter = into ?? _adapter;
     final modsFolder = target ?? modsDir;
-    if (modsFolder == null) return;
-    final dir = _installDestination(adapter, modsFolder);
+    if (modsFolder == null) return const [];
+    // A chosen folder is an answer about the whole install, so the
+    // selected chip does not get to narrow it - and the adapter has to be
+    // handed the mods folder itself, or it cannot recognise the install
+    // the chosen folder belongs to.
+    final dir = placement is ChosenPlacement
+        ? modsFolder
+        : _installDestination(adapter, modsFolder);
     AppMessage? error;
     var folders = 0, archives = 0, files = 0;
+    final installed = <Mod>[];
     FileSystemEntity? failing;
     try {
       for (final source in sources) {
         failing = source;
         if (source is Directory) {
           folders++;
-          await adapter.installFolder(dir, source);
+          installed.addAll(
+              await adapter.installFolder(dir, source, placement: placement));
         } else if (adapter.containerFileExtensions
             .contains(p.extension(source.path).toLowerCase())) {
           archives++;
-          await adapter.installArchive(dir, File(source.path));
+          installed.addAll(await adapter
+              .installArchive(dir, File(source.path), placement: placement));
         } else {
           files++;
-          await adapter.installMod(dir, File(source.path));
+          installed.add(await adapter.installMod(dir, File(source.path),
+              placement: placement));
         }
       }
       playSound(UiSound.install);
@@ -1462,6 +1592,7 @@ class AppController extends ChangeNotifier {
         'files': files,
         'archives': archives,
         'folders': folders,
+        'placement': placement is ChosenPlacement ? 'chosen' : 'sorted',
       });
     } catch (e, stack) {
       error = installFailureMessage(e, failing?.path, destination: dir.path);
@@ -1479,6 +1610,11 @@ class AppController extends ChangeNotifier {
       });
       playSound(UiSound.error);
     }
+    // Before the refresh, which is what draws them: anything that landed
+    // in a folder holding the game's own files is only findable from the
+    // record. Whatever did install is worth remembering even when a later
+    // file in the same batch failed.
+    await _recordPlaced(adapter, modsFolder, installed);
     // Another game's library isn't on screen to reload - only its sidebar
     // count moved, and the error (if any) still has to reach the banner.
     if (adapter.game.id == _adapter.game.id) {
@@ -1487,11 +1623,15 @@ class AppController extends ChangeNotifier {
       lastError = error;
       await _refreshCountFor(adapter);
     }
+    return installed;
   }
 
   /// Installs files and folders dropped onto the window, ignoring
   /// anything the current game can't use (readmes, screenshots...).
-  Future<void> installDroppedPaths(List<String> paths) async {
+  /// The dropped paths this game can do something with: its own mod files
+  /// and any archive. Separate from installing them so the UI can ask
+  /// where they go before deciding there is nothing to install.
+  Future<List<FileSystemEntity>> acceptedDrops(List<String> paths) async {
     final accepted = {
       ..._adapter.modFileExtensions,
       ..._adapter.containerFileExtensions,
@@ -1504,13 +1644,19 @@ class AppController extends ChangeNotifier {
         sources.add(File(path));
       }
     }
+    return sources;
+  }
+
+  Future<void> installDroppedPaths(List<String> paths,
+      {InstallPlacement placement = const SortedPlacement()}) async {
+    final sources = await acceptedDrops(paths);
     if (sources.isEmpty) {
       playSound(UiSound.alert);
       analytics.capture('mod_drop_rejected',
           {'game': _adapter.game.id, 'dropped': paths.length});
       return;
     }
-    await installFiles(sources, method: 'drop');
+    await installFiles(sources, method: 'drop', placement: placement);
   }
 
   /// Asks the user for a mods folder and makes it the override. Both the
@@ -2111,7 +2257,8 @@ class AppController extends ChangeNotifier {
   /// not be the one in the sidebar: the file goes to that game's folder
   /// either way. One listing at a time per id; the button shows
   /// [shopProgress] while this runs.
-  Future<void> installShopMod(ShopMod mod) async {
+  Future<void> installShopMod(ShopMod mod,
+      {InstallPlacement placement = const SortedPlacement()}) async {
     final into = registry.byGameId(mod.gameId);
     if (into == null || shopProgress.containsKey(mod.id)) return;
     playSound(UiSound.click);
@@ -2137,27 +2284,25 @@ class AppController extends ChangeNotifier {
       });
       shopProgress.remove(mod.id);
       final previous = _shopInstalls[mod.id];
-      // What the folder held before, so the files this install adds can
-      // be told apart from everything already there. Best-effort: a
-      // listing whose files can't be identified still installs, it just
-      // can't badge its mods in the library later.
-      final before = await _modPathsIn(into, dir);
-      await installFiles([file], method: 'shop', into: into, target: dir);
+      final installed = await installFiles([file],
+          method: 'shop', into: into, target: dir, placement: placement);
       // installFiles reports its own failures through lastError rather
       // than throwing; only a clean run counts as installed.
       if (lastError == null) {
+        // Straight from the install rather than by diffing the folder
+        // either side of it: a listing placed in one of the folders the
+        // game keeps its own files in never shows up in a listing of that
+        // folder, and its record would come back empty.
         final added = [
-          for (final path in await _modPathsIn(into, dir))
-            if (!before.contains(path)) p.relative(path, from: dir.path),
+          for (final placed in installed)
+            p.relative(enabledPathOf(placed.path), from: dir.path),
         ];
         await _rememberShopInstall(ShopInstall(
           listingId: mod.id,
           gameId: mod.gameId,
           version: mod.version,
           name: mod.name,
-          // An update overwrites the files it replaces, so nothing looks
-          // new; the ones recorded last time are still the right answer.
-          files: added.isEmpty ? previous?.files ?? const [] : added,
+          files: added,
         ));
         analytics.capture(previous == null ? 'shop_mod_installed'
             : 'shop_mod_updated', {
@@ -2178,16 +2323,6 @@ class AppController extends ChangeNotifier {
         await scratch?.delete(recursive: true);
       } catch (_) {}
       notifyListeners();
-    }
-  }
-
-  /// Enabled-name paths of every mod [adapter] can see in [dir]. Used
-  /// either side of a shop install to work out what it added.
-  Future<Set<String>> _modPathsIn(GameAdapter adapter, Directory dir) async {
-    try {
-      return {for (final mod in await adapter.listMods(dir)) enabledPathOf(mod.path)};
-    } catch (_) {
-      return const {};
     }
   }
 

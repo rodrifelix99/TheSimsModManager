@@ -5,6 +5,7 @@ import 'package:path/path.dart' as p;
 import '../../core/app_message.dart';
 import '../../core/game.dart';
 import '../../core/game_adapter.dart';
+import '../../core/install_destination.dart';
 import '../../core/install_path.dart';
 import '../../core/mod.dart';
 import '../../core/mod_archive.dart';
@@ -572,12 +573,17 @@ class Sims3Adapter extends DocumentsSimsAdapter {
   /// A sims3pack is unpacked by its own reader; everything else is one of
   /// the shared archive formats and goes the usual way.
   @override
-  Future<List<Mod>> installArchive(Directory modsDir, File archive) async {
+  Future<List<Mod>> installArchive(Directory modsDir, File archive,
+      {InstallPlacement placement = const SortedPlacement()}) async {
     if (!isSims3PackPath(archive.path)) {
-      return super.installArchive(modsDir, archive);
+      return super.installArchive(modsDir, archive, placement: placement);
     }
-    await modsDir.create(recursive: true);
-    final files = await extractSims3Pack(archive, modsDir, modFileExtensions);
+    // Sims 3 has one mods folder, so the placement can only ever resolve
+    // back to it; going through resolvePlacement anyway keeps the rule in
+    // one place rather than assuming that here.
+    final dir = await resolvePlacement(modsDir, placement);
+    await dir.create(recursive: true);
+    final files = await extractSims3Pack(archive, dir, modFileExtensions);
     return [for (final file in files) toMod(file)!];
   }
 }
@@ -933,6 +939,76 @@ class Sims1Adapter extends InstallFolderSimsAdapter {
   /// files carry an "xskin-" prefix before the same name.
   static final _buyableName = RegExp(r'^(xskin-)?[lswhf]\d{3}');
 
+  /// Every folder a Sims 1 install reads content from, below the install
+  /// root. Which of these exist decides what the app offers: an install
+  /// without Superstar has no ExpansionPack6 to put anything in.
+  ///
+  /// [stock] marks the folders where the game keeps its own loose files.
+  /// Those cannot be shown as a library wholesale - it would fill it with
+  /// Maxis content the user could then switch off - so what the app puts
+  /// there is remembered instead, and only that is listed.
+  static const _contentFolders = <({
+    List<String> segments,
+    String descriptionKey,
+    bool stock,
+  })>[
+    (segments: ['Downloads'], descriptionKey: 'sims1Downloads', stock: false),
+    (
+      segments: ['GameData', 'Global'],
+      descriptionKey: 'sims1Global',
+      stock: true
+    ),
+    (
+      segments: ['GameData', 'Objects'],
+      descriptionKey: 'sims1Objects',
+      stock: true
+    ),
+    (
+      segments: ['GameData', 'Skins'],
+      descriptionKey: 'sims1Skins',
+      stock: false
+    ),
+    (
+      segments: ['ExpansionShared', 'SkinsBuy'],
+      descriptionKey: 'sims1SkinsBuy',
+      stock: false
+    ),
+    (
+      segments: ['GameData', 'Walls'],
+      descriptionKey: 'sims1Walls',
+      stock: false
+    ),
+    (
+      segments: ['GameData', 'Floors'],
+      descriptionKey: 'sims1Floors',
+      stock: false
+    ),
+    // Marked as the game's own even though it may not be: roof textures
+    // are .bmp, so nothing tells a stock one from a downloaded one, and
+    // sweeping it would risk offering switches for base-game content.
+    (
+      segments: ['GameData', 'Roofs'],
+      descriptionKey: 'sims1Roofs',
+      stock: true
+    ),
+  ];
+
+  /// The expansion folders, which hold the overrides that only apply to
+  /// one pack. Livin' Large is the unnumbered one on some installs. They
+  /// are listed by folder name and nothing else on purpose: that is the
+  /// name a mod's readme uses, and translating it to "Superstar" would be
+  /// a guess about a numbering the app has no way to check.
+  static const _expansionFolders = [
+    'ExpansionPack',
+    'ExpansionPack1',
+    'ExpansionPack2',
+    'ExpansionPack3',
+    'ExpansionPack4',
+    'ExpansionPack5',
+    'ExpansionPack6',
+    'ExpansionPack7',
+  ];
+
   /// The install root [modsDir] (the Downloads folder) sits in, or null
   /// when its parent doesn't look like a Sims install - e.g. the user
   /// pointed the app at an arbitrary folder - in which case everything
@@ -943,9 +1019,38 @@ class Sims1Adapter extends InstallFolderSimsAdapter {
     return await gameData.exists() ? root : null;
   }
 
-  /// The folder [fileName] belongs in per its type. Skins folders are
-  /// flat (the game ignores their subfolders), so callers must install
-  /// by basename there; Downloads keeps archive structure.
+  @override
+  Future<List<InstallDestination>> installDestinations(
+      Directory modsDir) async {
+    final root = await _installRootOf(modsDir);
+    if (root == null) return const [];
+    final found = <InstallDestination>[];
+    Future<void> offer(
+        List<String> segments, String? descriptionKey, bool stock) async {
+      final dir = Directory(p.joinAll([root.path, ...segments]));
+      if (!await dir.exists()) return;
+      found.add(InstallDestination(
+        id: segments.join('/'),
+        directory: dir,
+        label: p.joinAll(segments),
+        descriptionKey: descriptionKey,
+        holdsStockFiles: stock,
+      ));
+    }
+
+    for (final folder in _contentFolders) {
+      await offer(folder.segments, folder.descriptionKey, folder.stock);
+    }
+    for (final name in _expansionFolders) {
+      await offer([name], null, true);
+    }
+    return found;
+  }
+
+  /// The folder [fileName] belongs in per its type, when nothing else has
+  /// decided. Skins folders are flat (the game ignores their subfolders),
+  /// so callers must install by basename there; Downloads keeps archive
+  /// structure.
   Directory _targetDirFor(Directory modsDir, Directory root, String fileName) {
     final extension = p.extension(fileName).toLowerCase();
     if (_skinExtensions.contains(extension)) {
@@ -965,47 +1070,99 @@ class Sims1Adapter extends InstallFolderSimsAdapter {
     return modsDir;
   }
 
-  /// Sibling folders that hold routed custom content, listed alongside
-  /// Downloads so skins/walls/floors show in the library and can be
-  /// disabled or removed like any mod.
-  List<Directory> _routedContentDirs(Directory root) => [
-        Directory(p.join(root.path, 'GameData', 'Skins')),
-        Directory(p.join(root.path, 'GameData', 'Walls')),
-        Directory(p.join(root.path, 'GameData', 'Floors')),
-        Directory(p.join(root.path, 'ExpansionShared', 'SkinsBuy')),
-      ];
+  /// The folder a path inside a download names for itself, and what is
+  /// left of the path below it.
+  ///
+  /// Hacks for this game are handed out with the folder already around
+  /// them - `GameData/Global/marriage.iff`,
+  /// `ExpansionPack6/GameData/booth.iff` - because that is how the readme
+  /// has to explain it anyway. When the download says where a file goes,
+  /// it knows better than any rule based on the file's extension, so the
+  /// path below the match is kept as packaged rather than flattened.
+  ///
+  /// The folder names are looked for anywhere in the path, not only at the
+  /// front: a zip is usually one wrapper folder deep
+  /// (`SuperHack/GameData/Global/x.iff`), and a dropped folder is measured
+  /// from its own parent, so its name is always in front of whatever it
+  /// holds. The match that ends deepest wins, which is the most specific
+  /// thing the download said.
+  ({InstallDestination destination, String rest})? _named(
+      List<InstallDestination> destinations, String relative) {
+    final parts = p.split(p.normalize(relative));
+    ({InstallDestination destination, String rest})? best;
+    var bestEnd = -1;
+    for (final destination in destinations) {
+      final wanted = destination.id.split('/');
+      // Every place this folder's name could sit, leaving at least the
+      // file itself below it.
+      for (var at = 0; at + wanted.length < parts.length; at++) {
+        var matches = true;
+        for (var i = 0; i < wanted.length; i++) {
+          if (parts[at + i].toLowerCase() != wanted[i].toLowerCase()) {
+            matches = false;
+            break;
+          }
+        }
+        if (!matches) continue;
+        final end = at + wanted.length;
+        // Nearest the file wins: that is the most specific thing the
+        // download said about it.
+        if (end > bestEnd) {
+          bestEnd = end;
+          best = (
+            destination: destination,
+            rest: p.joinAll(parts.sublist(end)),
+          );
+        }
+      }
+    }
+    return best;
+  }
 
   @override
   Future<List<Mod>> listMods(Directory modsDir) async {
     final mods = [...await super.listMods(modsDir)];
-    final root = await _installRootOf(modsDir);
-    if (root != null) {
-      for (final dir in _routedContentDirs(root)) {
-        mods.addAll(await super.listMods(dir));
+    for (final destination in await installDestinations(modsDir)) {
+      // The mods folder is already in, and the folders holding Maxis's own
+      // files are listed from what the app put there rather than swept.
+      if (destination.holdsStockFiles ||
+          p.equals(destination.directory.path, modsDir.path)) {
+        continue;
       }
-      mods.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+      mods.addAll(await super.listMods(destination.directory));
     }
+    mods.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
     return mods;
   }
 
   @override
-  Future<Mod> installMod(Directory modsDir, File source) async {
+  Future<Mod> installMod(Directory modsDir, File source,
+      {InstallPlacement placement = const SortedPlacement()}) async {
     final root = await _installRootOf(modsDir);
-    if (root == null) return super.installMod(modsDir, source);
+    if (root == null) {
+      return super.installMod(modsDir, source, placement: placement);
+    }
+    if (placement is ChosenPlacement) {
+      return super.installMod(modsDir, source, placement: placement);
+    }
     final target = _targetDirFor(modsDir, root, p.basename(source.path));
     return super.installMod(target, source);
   }
 
   @override
-  Future<List<Mod>> installArchive(Directory modsDir, File archive) async {
+  Future<List<Mod>> installArchive(Directory modsDir, File archive,
+      {InstallPlacement placement = const SortedPlacement()}) async {
     final root = await _installRootOf(modsDir);
-    if (root == null) return super.installArchive(modsDir, archive);
-    // Unpack to a scratch folder first, then route each file. Downloads
+    if (root == null) {
+      return super.installArchive(modsDir, archive, placement: placement);
+    }
+    // Unpack to a scratch folder first, then place each file. Downloads
     // keeps the archive's structure; the routed folders are flat.
     final scratch = await Directory.systemTemp.createTemp('sims1_install');
     try {
       final files = await extractModFiles(archive, scratch, modFileExtensions);
-      return await _installRoutedFiles(modsDir, root, files, scratch.path);
+      return await _installPlacedFiles(
+          modsDir, root, files, scratch.path, placement);
     } finally {
       try {
         await scratch.delete(recursive: true);
@@ -1014,34 +1171,80 @@ class Sims1Adapter extends InstallFolderSimsAdapter {
   }
 
   @override
-  Future<List<Mod>> installFolder(Directory modsDir, Directory source) async {
+  Future<List<Mod>> installFolder(Directory modsDir, Directory source,
+      {InstallPlacement placement = const SortedPlacement()}) async {
     final root = await _installRootOf(modsDir);
-    if (root == null) return super.installFolder(modsDir, source);
+    if (root == null) {
+      return super.installFolder(modsDir, source, placement: placement);
+    }
     final files = await modFilesIn(source);
     if (files.isEmpty) {
       throw ModContentException.noModFiles(
           modFileExtensions, p.basename(source.path));
     }
     // Relative to the folder's parent so the folder name itself is kept
-    // for the files that stay in Downloads.
-    return _installRoutedFiles(modsDir, root, files, source.parent.path);
+    // for the files that stay in Downloads. It also means the dropped
+    // folder's own name sits in front of everything inside it, which is
+    // why [_named] looks for install folders anywhere in a path.
+    return _installPlacedFiles(
+        modsDir, root, files, source.parent.path, placement);
   }
 
-  /// Copies [files] into their per-type folders. Files bound for
-  /// Downloads keep their path relative to [from]; the routed folders
-  /// are flat (the game ignores their subfolders).
-  Future<List<Mod>> _installRoutedFiles(
-      Directory modsDir, Directory root, List<File> files, String from) async {
+  /// Copies [files] where this install decided they go. Under
+  /// [ChosenPlacement] that is one folder for all of them; otherwise each
+  /// file goes where the download named, or failing that where its type
+  /// belongs.
+  Future<List<Mod>> _installPlacedFiles(
+    Directory modsDir,
+    Directory root,
+    List<File> files,
+    String from,
+    InstallPlacement placement,
+  ) async {
+    final destinations = await installDestinations(modsDir);
+    // Resolved from the list already in hand rather than through
+    // resolvePlacement, which would go back to the disk for the same
+    // answer. A folder that has since gone falls back to the mods folder.
+    final chosen = placement is! ChosenPlacement
+        ? null
+        : destinations
+                .where((d) => d.id == placement.destinationId)
+                .firstOrNull
+                ?.directory ??
+            modsDir;
     final mods = <Mod>[];
     final taken = <String>{};
     for (final file in files) {
-      final targetDir = _targetDirFor(modsDir, root, p.basename(file.path));
-      final target = p.equals(targetDir.path, modsDir.path)
-          ? claimInstallTarget(
-              modsDir.path, p.relative(file.path, from: from), taken)
-          // The routed folders are flat by design, so same-named files
-          // overwrite each other there as they always have.
-          : installTargetPath(targetDir.path, p.basename(file.path));
+      final relative = p.relative(file.path, from: from);
+      final named = chosen == null ? _named(destinations, relative) : null;
+      final targetDir = chosen ??
+          named?.destination.directory ??
+          _targetDirFor(modsDir, root, p.basename(file.path));
+      // Everything goes through install_path either way: an archive's own
+      // folder names are still someone else's text, and a name Windows
+      // refuses (or a path past its limit) has to be caught here rather
+      // than by the copy failing halfway through the install.
+      final String target;
+      if (named != null) {
+        // The download said exactly where this goes, subfolders included.
+        // What sat above the folder it named is dropped, so two files it
+        // told apart that way must not land on one path.
+        target =
+            claimDistinctInstallTarget(targetDir.path, named.rest, taken);
+      } else if (p.equals(targetDir.path, modsDir.path)) {
+        target = claimInstallTarget(modsDir.path, relative, taken);
+      } else if (chosen != null) {
+        // A folder picked by hand was picked for the files, not for the
+        // archive's own layout, so they land in it flat - but two files
+        // that were only told apart by their folder must not collapse
+        // into one on the way.
+        target = claimDistinctInstallTarget(
+            chosen.path, p.basename(file.path), taken);
+      } else {
+        // The type-routed folders are flat by design, and reinstalling a
+        // skin over itself has always replaced it.
+        target = installTargetPath(targetDir.path, p.basename(file.path));
+      }
       await File(target).parent.create(recursive: true);
       final copied = await file.copy(target);
       mods.add(toMod(copied)!);

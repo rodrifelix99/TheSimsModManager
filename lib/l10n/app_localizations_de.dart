@@ -233,6 +233,60 @@ class LDe extends L {
   }
 
   @override
+  String get installWhereTitle => 'Wo soll das hin?';
+
+  @override
+  String installWhereBody(String game) {
+    return '$game liest Mods aus mehreren Ordnern. Die App kann es an der Datei erkennen, oder du sagst, wo es hingehört.';
+  }
+
+  @override
+  String get installWhereSorted => 'Entscheide du';
+
+  @override
+  String get installWhereSortedDesc =>
+      'Nimmt die Ordner, die im Download stecken, und sortiert den Rest nach Dateityp.';
+
+  @override
+  String get installWhereRemember => 'Nicht mehr fragen';
+
+  @override
+  String get destinationSims1Downloads =>
+      'Objekte, Hacks und die meisten Downloads.';
+
+  @override
+  String get destinationSims1Global =>
+      'Änderungen, die im ganzen Grundspiel greifen.';
+
+  @override
+  String get destinationSims1Objects =>
+      'Änderungen an den Objektdateien des Spiels selbst.';
+
+  @override
+  String get destinationSims1Skins =>
+      'Alltagsskins und Köpfe. Die tauchen im Erstelle einen Sim auf.';
+
+  @override
+  String get destinationSims1SkinsBuy =>
+      'Kleidung, die es in den Läden auf Gemeinschaftsgrundstücken gibt.';
+
+  @override
+  String get destinationSims1Walls => 'Wandbeläge.';
+
+  @override
+  String get destinationSims1Floors => 'Bodenbeläge.';
+
+  @override
+  String get destinationSims1Roofs => 'Dachtexturen.';
+
+  @override
+  String get prefAskWhereTitle => 'Vor dem Installieren fragen';
+
+  @override
+  String get prefAskWhereDesc =>
+      'Dieses Spiel liest Mods aus mehreren Ordnern. Wähle jedes Mal selbst, statt es der App zu überlassen';
+
+  @override
   String get statTotal => 'Gesamt';
 
   @override
@@ -883,6 +937,10 @@ class LDe extends L {
   @override
   String get folderReadOnlyBanner =>
       'Dieser Mods-Ordner ist schreibgeschützt: Installieren und Entfernen klappt erst, wenn dein Konto darin schreiben darf.';
+
+  @override
+  String get elevatedNoDropBanner =>
+      'Du läufst als Administrator, deshalb lässt Windows keine Dateien aufs Fenster ziehen. Nimm stattdessen den Installieren-Button — der geht weiterhin.';
 
   @override
   String errorShopDownload(String name) {

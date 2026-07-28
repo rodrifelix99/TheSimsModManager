@@ -146,6 +146,29 @@ String claimInstallTarget(
   return claimed;
 }
 
+/// [relative] under [destination], always stepping aside from anything
+/// already handed out in [taken].
+///
+/// The counterpart to [claimInstallTarget], for the installs that drop
+/// part of the source layout on the way in. The Sims 1 does that twice:
+/// files are flattened into a folder someone picked by hand, and a folder
+/// the download named is followed from that point down, throwing away
+/// whatever sat above it. Either way two files that the archive told
+/// apart can arrive here with the same path, and neither of them asked to
+/// replace the other - which is exactly the case [claimInstallTarget]
+/// reads as "the source said overwrite". A second install starts with an
+/// empty [taken] and so still overwrites what the first one left, so
+/// reinstalling an archive does not pile up copies.
+String claimDistinctInstallTarget(
+    String destination, String relative, Set<String> taken,
+    {bool? windows}) {
+  final onWindows = windows ?? Platform.isWindows;
+  final target = installTargetPath(destination, relative, windows: onWindows);
+  final claimed = _unusedVariantOf(target, taken, windows: onWindows);
+  taken.add(_key(claimed, onWindows));
+  return claimed;
+}
+
 /// The `\\?\` form of [path], which lifts [windowsPathLimit] and turns
 /// off the name normalisation that otherwise hides files whose names end
 /// in a dot or a space. Only meaningful for absolute Windows paths;

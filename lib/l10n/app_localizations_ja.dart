@@ -217,6 +217,55 @@ class LJa extends L {
   }
 
   @override
+  String get installWhereTitle => 'どこに入れる？';
+
+  @override
+  String installWhereBody(String game) {
+    return '$gameはMODを複数のフォルダから読み込むよ。ファイルを見てアプリが判断することもできるし、自分で指定してもいいよ。';
+  }
+
+  @override
+  String get installWhereSorted => 'おまかせで振り分ける';
+
+  @override
+  String get installWhereSortedDesc =>
+      'ダウンロードに入っているフォルダをそのまま使って、残りはファイルの種類で振り分けるよ。';
+
+  @override
+  String get installWhereRemember => 'もう聞かない';
+
+  @override
+  String get destinationSims1Downloads => 'オブジェクト、Hack、それにほとんどのダウンロード。';
+
+  @override
+  String get destinationSims1Global => '基本ゲーム全体を書き換えるMOD。';
+
+  @override
+  String get destinationSims1Objects => 'ゲーム本体のオブジェクトファイルを差し替えるMOD。';
+
+  @override
+  String get destinationSims1Skins => '普段着のスキンと頭。CASに出てくるよ。';
+
+  @override
+  String get destinationSims1SkinsBuy => '共有区画のお店で売っている服。';
+
+  @override
+  String get destinationSims1Walls => '壁紙。';
+
+  @override
+  String get destinationSims1Floors => '床。';
+
+  @override
+  String get destinationSims1Roofs => '屋根のテクスチャ。';
+
+  @override
+  String get prefAskWhereTitle => 'インストール先を毎回聞く';
+
+  @override
+  String get prefAskWhereDesc =>
+      'このゲームはMODを複数のフォルダから読み込みます。アプリに任せず、毎回自分でフォルダを選びます';
+
+  @override
   String get statTotal => '合計';
 
   @override
@@ -821,6 +870,10 @@ class LJa extends L {
   @override
   String get folderReadOnlyBanner =>
       'このMODフォルダーは読み取り専用なので、アカウントが書き込めるようになるまでMODのインストールと削除はできません。';
+
+  @override
+  String get elevatedNoDropBanner =>
+      '管理者として実行しているので、Windows がウィンドウへのファイルのドラッグをブロックしてるよ。かわりにインストールボタンを使ってね。そっちは普通に使えるよ。';
 
   @override
   String errorShopDownload(String name) {

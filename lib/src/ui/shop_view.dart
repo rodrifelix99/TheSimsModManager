@@ -9,6 +9,7 @@ import '../services/mod_shop.dart';
 import '../services/sfx.dart';
 import 'app_controller.dart';
 import 'game_theme.dart';
+import 'install_destination_dialog.dart';
 import 'l10n.dart';
 import 'widgets.dart';
 
@@ -28,6 +29,19 @@ class ShopView extends StatelessWidget {
   final AppController controller;
 
   void _open(ShopMod mod) => controller.openShopListing(mod);
+
+  /// Asks where the listing goes before spending anything on downloading
+  /// it - the file name is all the question needs, and a dialog that
+  /// appeared after a progress bar finished would read as an afterthought.
+  static Future<void> _installFromShop(
+      BuildContext context, GameTheme t, AppController c, ShopMod mod) async {
+    final into = c.registry.byGameId(mod.gameId);
+    if (into == null) return;
+    final placement = await resolveInstallPlacement(context, c,
+        theme: t, into: into, subjects: [mod.fileName]);
+    if (placement == null) return;
+    await c.installShopMod(mod, placement: placement);
+  }
 
   void _back() => controller.closeShopListing();
 
@@ -658,7 +672,7 @@ class ShopView extends StatelessWidget {
       builder: (context, hovered) => GestureDetector(
         onTap: installed || progress != null || needsFolder
             ? null
-            : () => c.installShopMod(mod),
+            : () => _installFromShop(context, t, c, mod),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
           padding: EdgeInsets.symmetric(

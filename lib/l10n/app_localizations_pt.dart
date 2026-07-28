@@ -234,6 +234,60 @@ class LPt extends L {
   }
 
   @override
+  String get installWhereTitle => 'Onde isso vai?';
+
+  @override
+  String installWhereBody(String game) {
+    return '$game lê mods de várias pastas. O app pode descobrir pelo próprio arquivo, ou você diz onde é.';
+  }
+
+  @override
+  String get installWhereSorted => 'Decide por mim';
+
+  @override
+  String get installWhereSortedDesc =>
+      'Segue as pastas que vêm no download e coloca o resto pelo tipo de arquivo.';
+
+  @override
+  String get installWhereRemember => 'Não perguntar de novo';
+
+  @override
+  String get destinationSims1Downloads =>
+      'Objetos, hacks e a maioria dos downloads.';
+
+  @override
+  String get destinationSims1Global =>
+      'Alterações que mudam o jogo base inteiro.';
+
+  @override
+  String get destinationSims1Objects =>
+      'Alterações nos arquivos de objetos do próprio jogo.';
+
+  @override
+  String get destinationSims1Skins =>
+      'Peles e cabeças do dia a dia. Aparecem no Criar um Sim.';
+
+  @override
+  String get destinationSims1SkinsBuy =>
+      'Roupas vendidas nas lojas dos terrenos comunitários.';
+
+  @override
+  String get destinationSims1Walls => 'Revestimentos de parede.';
+
+  @override
+  String get destinationSims1Floors => 'Pisos.';
+
+  @override
+  String get destinationSims1Roofs => 'Texturas de telhado.';
+
+  @override
+  String get prefAskWhereTitle => 'Perguntar onde instalar';
+
+  @override
+  String get prefAskWhereDesc =>
+      'Esse jogo lê mods de mais de uma pasta. Escolha a pasta toda vez em vez de deixar o app decidir';
+
+  @override
   String get statTotal => 'Total';
 
   @override
@@ -880,6 +934,10 @@ class LPt extends L {
   @override
   String get folderReadOnlyBanner =>
       'Esta pasta de mods é somente leitura, então instalar e remover mods não vai funcionar até sua conta poder escrever nela.';
+
+  @override
+  String get elevatedNoDropBanner =>
+      'Você está rodando como administrador, então o Windows não deixa arrastar arquivos para a janela. Use o botão Instalar — esse continua funcionando.';
 
   @override
   String errorShopDownload(String name) {

@@ -232,6 +232,60 @@ class LIt extends L {
   }
 
   @override
+  String get installWhereTitle => 'Dove deve andare?';
+
+  @override
+  String installWhereBody(String game) {
+    return '$game legge le mod da più cartelle. L’app può capirlo dal file, oppure glielo dici tu.';
+  }
+
+  @override
+  String get installWhereSorted => 'Decidi tu';
+
+  @override
+  String get installWhereSortedDesc =>
+      'Segue le cartelle che arrivano nel download e sistema il resto per tipo di file.';
+
+  @override
+  String get installWhereRemember => 'Non chiedere più';
+
+  @override
+  String get destinationSims1Downloads =>
+      'Oggetti, hack e quasi tutti i download.';
+
+  @override
+  String get destinationSims1Global =>
+      'Modifiche che cambiano tutto il gioco base.';
+
+  @override
+  String get destinationSims1Objects =>
+      'Modifiche ai file degli oggetti del gioco stesso.';
+
+  @override
+  String get destinationSims1Skins =>
+      'Pelli e teste di tutti i giorni. Compaiono in Crea un Sim.';
+
+  @override
+  String get destinationSims1SkinsBuy =>
+      'Vestiti in vendita nei negozi dei lotti comunitari.';
+
+  @override
+  String get destinationSims1Walls => 'Rivestimenti per pareti.';
+
+  @override
+  String get destinationSims1Floors => 'Pavimenti.';
+
+  @override
+  String get destinationSims1Roofs => 'Texture per i tetti.';
+
+  @override
+  String get prefAskWhereTitle => 'Chiedi dove installare';
+
+  @override
+  String get prefAskWhereDesc =>
+      'Questo gioco legge le mod da più di una cartella. Scegli la cartella ogni volta invece di lasciar decidere all’app';
+
+  @override
   String get statTotal => 'Totale';
 
   @override
@@ -878,6 +932,10 @@ class LIt extends L {
   @override
   String get folderReadOnlyBanner =>
       'Questa cartella dei mod è di sola lettura, quindi installare e rimuovere mod non funzionerà finché il tuo account non potrà scriverci.';
+
+  @override
+  String get elevatedNoDropBanner =>
+      'Stai eseguendo come amministratore, quindi Windows non ti fa trascinare i file sulla finestra. Usa il pulsante Installa — quello funziona ancora.';
 
   @override
   String errorShopDownload(String name) {

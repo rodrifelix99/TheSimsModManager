@@ -130,6 +130,24 @@
   "@filePickerModsLabel": {
     "placeholders": { "game": { "type": "String" } }
   },
+  "installWhereTitle": "Where should this go?",
+  "installWhereBody": "{game} reads mods from several folders. The app can work it out from the file itself, or you can say where it belongs.",
+  "@installWhereBody": {
+    "placeholders": { "game": { "type": "String" } }
+  },
+  "installWhereSorted": "Sort it out for me",
+  "installWhereSortedDesc": "Follow the folders the download names, then place the rest by file type.",
+  "installWhereRemember": "Don’t ask again",
+  "destinationSims1Downloads": "Objects, hacks and most downloads.",
+  "destinationSims1Global": "Overrides that change the base game everywhere.",
+  "destinationSims1Objects": "Overrides for the game’s own object files.",
+  "destinationSims1Skins": "Everyday skins and heads. These show up in Create a Sim.",
+  "destinationSims1SkinsBuy": "Clothing sold in community lot stores.",
+  "destinationSims1Walls": "Wall coverings.",
+  "destinationSims1Floors": "Floor tiles.",
+  "destinationSims1Roofs": "Roof textures.",
+  "prefAskWhereTitle": "Ask where to install",
+  "prefAskWhereDesc": "This game reads mods from more than one folder. Choose the folder each time instead of letting the app decide",
 
   "statTotal": "Total",
   "statEnabled": "Enabled",
@@ -455,6 +473,7 @@
     "placeholders": { "folder": { "type": "String" } }
   },
   "folderReadOnlyBanner": "This mods folder is read-only, so installing and removing mods won’t work until your account can write to it.",
+  "elevatedNoDropBanner": "You’re running as administrator, so Windows won’t let you drag files onto the window. Use the Install button instead — that still works.",
   "errorShopDownload": "“{name}” couldn’t be downloaded from The Exchange. Check your connection and try again.",
   "@errorShopDownload": {
     "placeholders": { "name": { "type": "String" } }

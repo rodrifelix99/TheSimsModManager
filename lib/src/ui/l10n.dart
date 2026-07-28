@@ -117,6 +117,22 @@ extension AppText on L {
     };
   }
 
+  /// What belongs in one of a game's install folders. [key] comes from
+  /// the adapter, so the install dialog can list The Sims 1's folders
+  /// without knowing which game it is looking at; a folder the ARB files
+  /// have nothing to say about is drawn as its path alone.
+  String destinationDescription(String key) => switch (key) {
+        'sims1Downloads' => destinationSims1Downloads,
+        'sims1Global' => destinationSims1Global,
+        'sims1Objects' => destinationSims1Objects,
+        'sims1Skins' => destinationSims1Skins,
+        'sims1SkinsBuy' => destinationSims1SkinsBuy,
+        'sims1Walls' => destinationSims1Walls,
+        'sims1Floors' => destinationSims1Floors,
+        'sims1Roofs' => destinationSims1Roofs,
+        _ => '',
+      };
+
   /// The game's "where do mods live" guidance. [key] comes from the
   /// adapter, so the UI still knows nothing about concrete games; an
   /// adapter without a translation yet falls back to the empty string

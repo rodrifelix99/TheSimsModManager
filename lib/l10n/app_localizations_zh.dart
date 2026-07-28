@@ -216,6 +216,53 @@ class LZh extends L {
   }
 
   @override
+  String get installWhereTitle => '要装到哪里？';
+
+  @override
+  String installWhereBody(String game) {
+    return '$game会从好几个文件夹里读取 MOD。可以让应用根据文件自己判断，也可以由你来指定。';
+  }
+
+  @override
+  String get installWhereSorted => '让应用自己判断';
+
+  @override
+  String get installWhereSortedDesc => '优先按下载包里写好的文件夹放，剩下的按文件类型分。';
+
+  @override
+  String get installWhereRemember => '不用再问了';
+
+  @override
+  String get destinationSims1Downloads => '物件、Hack，以及大部分下载内容。';
+
+  @override
+  String get destinationSims1Global => '会影响整个基础游戏的覆盖文件。';
+
+  @override
+  String get destinationSims1Objects => '覆盖游戏自带物件文件的内容。';
+
+  @override
+  String get destinationSims1Skins => '日常皮肤和头部。会出现在创建模拟市民里。';
+
+  @override
+  String get destinationSims1SkinsBuy => '在社区地块商店里出售的服装。';
+
+  @override
+  String get destinationSims1Walls => '墙纸。';
+
+  @override
+  String get destinationSims1Floors => '地板。';
+
+  @override
+  String get destinationSims1Roofs => '屋顶贴图。';
+
+  @override
+  String get prefAskWhereTitle => '安装前先问我放哪';
+
+  @override
+  String get prefAskWhereDesc => '这个游戏会从多个文件夹读取 MOD。每次都自己选文件夹，而不是让应用决定';
+
+  @override
   String get statTotal => '总计';
 
   @override
@@ -813,6 +860,10 @@ class LZh extends L {
 
   @override
   String get folderReadOnlyBanner => '这个模组文件夹是只读的，在账户拿到写入权限之前，安装和删除模组都做不了。';
+
+  @override
+  String get elevatedNoDropBanner =>
+      '你是以管理员身份运行的，所以 Windows 不让你把文件拖到窗口里。用「安装」按钮吧 — 那个还能正常用。';
 
   @override
   String errorShopDownload(String name) {

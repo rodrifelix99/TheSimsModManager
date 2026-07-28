@@ -14,9 +14,16 @@ namespace {
 // no error anywhere to explain it. desktop_drop's RegisterDragDrop is
 // fine; the messages OLE drag and drop rides on are what get dropped.
 //
-// Letting those three through is the documented way out. It changes
-// nothing when the app is not elevated (there is nothing to filter),
-// so it is unconditional.
+// Letting those three through is the usual advice, and it is not enough:
+// measured on Windows 11, all three filters return success on both windows
+// and the drag is still refused. They are the fix for the WM_DROPFILES
+// path (DragAcceptFiles), which is not the path this app is on -
+// desktop_drop registers an OLE drop target, so Explorer reaches it over
+// marshalled COM, and a medium integrity process calling a high integrity
+// one is refused there, where no message filter applies. Kept because it
+// is harmless and is the half of the problem that is ours to solve; the
+// library tells the user drag and drop is off instead (see issue #5 and
+// services/elevation.dart).
 void AllowDropsFromLowerIntegrity(HWND window) {
   if (window == nullptr) {
     return;
