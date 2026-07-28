@@ -5,6 +5,7 @@
 // endpoint that firestore.rules already opens to everybody.
 import { fileUrl, listingIdPattern, listingUrl, toListing, type Listing } from '../data/exchange';
 import { gameNames } from '../data/games';
+import { renderProse } from '../data/markup';
 import { fmtSize, loadStrings, s } from './strings';
 
 const $ = (id: string) => document.getElementById(id)!;
@@ -40,20 +41,6 @@ async function fetched(): Promise<unknown | null> {
   } catch {
     return null;
   }
-}
-
-/// The creator's own text, blank lines and all, as paragraphs. textContent
-/// throughout: this is someone else's writing on our page.
-function prose(into: HTMLElement, text: string) {
-  into.textContent = '';
-  for (const chunk of text.split(/\n\s*\n/)) {
-    const paragraph = chunk.trim();
-    if (!paragraph) continue;
-    const element = document.createElement('p');
-    element.textContent = paragraph;
-    into.append(element);
-  }
-  return into.childElementCount > 0;
 }
 
 function gallery(mod: Listing) {
@@ -113,8 +100,8 @@ function paint(mod: Listing) {
   download.textContent = s('mod.downloadFile', fmtSize(mod.file.size));
 
   gallery(mod);
-  if (prose($('mod-description'), mod.description)) show('mod-about');
-  if (prose($('mod-instructions'), mod.instructions)) show('mod-howto');
+  if (renderProse($('mod-description'), mod.description)) show('mod-about');
+  if (renderProse($('mod-instructions'), mod.instructions)) show('mod-howto');
 
   show('mod-loading', false);
   show('mod-card');

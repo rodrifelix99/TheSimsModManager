@@ -181,6 +181,41 @@ void main() {
       expect(overlaps, isEmpty);
     });
 
+    test('the editor name map two script mods both carry is not a clash', () {
+      // s3pe and NRaasPacker both add the _KEY resource at this exact
+      // key the moment a resource in the package is given a name, which
+      // the pure-scripting tutorial has every script mod do. Two NRaas
+      // mods, or a font default next to a script mod, share it and
+      // nothing else - the game never reads it.
+      const nameMap = ResourceKey(0x0166038C, 0, 0);
+      const manifest = ResourceKey(0x73E93EEB, 0, 0x8A7F1C);
+      final a = _mod('NRaas_Overwatch.package', r'C:\mods\NRaas_Overwatch.package');
+      final b = _mod('NRaas_ErrorTrap.package', r'C:\mods\NRaas_ErrorTrap.package');
+
+      final overlaps = findResourceOverlaps([a, b], _insights({
+        a.path: [nameMap, manifest, const ResourceKey(0x073FAA07, 0, 0x111)],
+        b.path: [nameMap, manifest, const ResourceKey(0x073FAA07, 0, 0x222)],
+      }));
+
+      expect(overlaps, isEmpty);
+    });
+
+    test('an ignored type does not hide a real overlap in the same pair', () {
+      const nameMap = ResourceKey(0x0166038C, 0, 0);
+      final a = _mod('a.package', r'C:\mods\a.package');
+      final b = _mod('b.package', r'C:\mods\b.package');
+
+      final overlaps = findResourceOverlaps([a, b], _insights({
+        a.path: [nameMap, tuning],
+        b.path: [nameMap, tuning],
+      }));
+
+      expect(overlaps, {
+        a.path: {b.path: 1},
+        b.path: {a.path: 1},
+      });
+    });
+
     test('a key nearly every package carries is boilerplate, not a clash',
         () {
       // A creator tool stamping the same id into everything it exports

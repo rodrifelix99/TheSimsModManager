@@ -32,6 +32,7 @@ import {
   uploadBytesResumable,
 } from 'firebase/storage';
 import { auth, db, storage } from './firebase';
+import { closeFormatPreviews, wireFormatting } from './format';
 import { fmtSize, loadStrings, s } from '../strings';
 import { gameNames } from '../../data/games';
 import { revealOnScroll } from '../reveal';
@@ -570,6 +571,13 @@ function wireEditor() {
   for (const id of ['f-name', 'f-version', 'f-author', 'f-game']) {
     $(id).addEventListener('input', renderPreview);
   }
+  wireFormatting('f-desc');
+  wireFormatting('f-notes');
+  // Before the click that submits, and again if anything did get as far as
+  // failing validation: a required box the browser cannot focus is refused
+  // with nothing on screen to explain itself.
+  $('btn-save').addEventListener('mousedown', closeFormatPreviews);
+  $('form-editor').addEventListener('invalid', closeFormatPreviews, true);
 
   $('form-editor').addEventListener('submit', async (event) => {
     event.preventDefault();

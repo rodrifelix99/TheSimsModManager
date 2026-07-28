@@ -11,6 +11,7 @@ import 'app_controller.dart';
 import 'game_theme.dart';
 import 'install_destination_dialog.dart';
 import 'l10n.dart';
+import 'prose_text.dart';
 import 'widgets.dart';
 
 /// The Exchange: the in-app storefront for listings creators publish
@@ -921,7 +922,7 @@ class ShopView extends StatelessWidget {
         _installButton(t, c, l, mod),
         if (mod.description.isNotEmpty) ...[
           const SizedBox(height: 22),
-          Text(
+          ProseText(
             mod.description,
             style: TextStyle(
               fontSize: 13.5,
@@ -929,6 +930,8 @@ class ShopView extends StatelessWidget {
               height: 1.6,
               color: t.text,
             ),
+            linkColor: t.accent,
+            onLink: (url) => c.openUrl(Uri.parse(url)),
           ),
         ],
         if (mod.instructions case final notes?) ...[
@@ -947,7 +950,7 @@ class ShopView extends StatelessWidget {
                 Text(l.shopInstallNotes.toUpperCase(),
                     style: eyebrowStyle(t)),
                 const SizedBox(height: 6),
-                Text(
+                ProseText(
                   notes,
                   style: TextStyle(
                     fontSize: 13,
@@ -955,6 +958,8 @@ class ShopView extends StatelessWidget {
                     height: 1.55,
                     color: t.text,
                   ),
+                  linkColor: t.accent,
+                  onLink: (url) => c.openUrl(Uri.parse(url)),
                 ),
               ],
             ),

@@ -44,8 +44,49 @@ input:focus, select:focus, textarea:focus {
 select { font-weight: 700; cursor: pointer; }
 textarea { min-height: 110px; line-height: 1.6; resize: vertical; }
 textarea.notes { min-height: 78px; }
+
+/* ---------- the formatting buttons over a description box ---------- */
+
+.fmtbar { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+.fmt {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 34px; height: 32px; padding: 0 9px;
+  font-size: 14px; font-weight: 800; color: var(--muted);
+  background: var(--surface-alt); border: 1.4px solid var(--border);
+  border-radius: 9px;
+  transition: color .16s ease, border-color .16s ease, background .16s ease;
+}
+.fmt:hover:not(:disabled) { color: var(--text); border-color: var(--accent); }
+.fmt:disabled { opacity: .45; cursor: default; }
+.fmt svg {
+  width: 16px; height: 16px; fill: none;
+  stroke: currentColor; stroke-width: 1.7; stroke-linecap: round;
+}
+.fmt-b { font-weight: 900; }
+.fmt-i { font-style: italic; font-family: Georgia, serif; }
+.fmt-u { text-decoration: underline; }
+.fmt-preview { margin-left: auto; font-size: 12.5px; font-weight: 800; }
+.fmt-preview[aria-pressed='true'] { color: var(--text); border-color: var(--accent); }
+
+/* The rendered text, standing in for the box it replaced. Sized to match, so
+   turning the preview on does not make the page jump. */
+.fmt-shown {
+  min-height: 110px; margin-top: 7px; padding: 13px 15px;
+  font-size: 15px; line-height: 1.6;
+  background: var(--surface-alt); border: 1.6px dashed var(--border);
+  border-radius: 13px;
+}
+.fmt-shown p + p { margin-top: 12px; }
+.prose strong { font-weight: 900; }
+.prose em { font-style: italic; }
+.prose a { color: var(--accent); text-decoration: underline; word-break: break-word; }
 input::placeholder, textarea::placeholder { color: var(--muted); opacity: .75; }
 .hint { margin-top: 6px; font-size: 12.5px; font-weight: 700; color: var(--muted); }
+.hint code {
+  padding: 1px 5px; border-radius: 5px; white-space: nowrap;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px;
+  background: var(--surface-alt); border: 1px solid var(--border); color: var(--text);
+}
 
 /* ---------- header ---------- */
 header {

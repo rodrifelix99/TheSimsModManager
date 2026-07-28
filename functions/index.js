@@ -52,6 +52,13 @@ const escapeHtml = (value) =>
 /// stops a description containing `</script>` from ending the block early.
 const escapeJson = (value) => JSON.stringify(value).replace(/</g, '\\u003c');
 
+/// A description's formatting tags taken back out. The browser half renders
+/// them (web/src/data/markup.ts); a meta description and an og:title are one
+/// line of plain text, and `[b]` in a search result reads as a broken site.
+/// Only the tags that file knows, so `[WIP]` in a title survives.
+const stripTags = (text) =>
+  String(text).replace(/\[\/?(?:b|i|u|center|url)(?:=[^\]\n]*)?\]/gi, '');
+
 /// A meta description: one line, and short enough that nothing truncates it in
 /// an unflattering place.
 function summarize(text, limit = 200) {
@@ -197,7 +204,7 @@ export const modPage = onRequest(
       return;
     }
     const images = plain(fields.images) ?? [];
-    const description = summarize(plain(fields.description) ?? '');
+    const description = summarize(stripTags(plain(fields.description) ?? ''));
 
     response
       .status(200)

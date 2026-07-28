@@ -71,11 +71,25 @@ Map<String, ConflictReason> findConflicts(List<Mod> mods) {
   return flagged;
 }
 
-/// DBPF resource types excluded from overlap detection because they sit
-/// at the same key in nearly every package, so they'd flag the whole
-/// library. 0xE86B1EEF is the Sims 2 DIR resource (the directory of
-/// compressed entries every compressed package carries).
-const _ignoredOverlapTypes = <int>{0xE86B1EEF};
+/// DBPF resource types excluded from overlap detection: bookkeeping the
+/// editor or the launcher writes into a package, never content the game
+/// looks up, so two packages carrying the same one override nothing a
+/// player could notice.
+///
+/// The name map is why unrelated Sims 3 mods kept being reported as
+/// clashing. It is the editor's own list of instance -> name pairs, and
+/// both s3pe and Twallan's NRaasPacker add it at the fixed key
+/// `0166038c-00000000-0000000000000000` - literally `TGIBlock(_KEY, 0, 0)`
+/// in each of them - whenever a resource in the package is given a name.
+/// Naming the script resource is step one of the pure-scripting tutorial,
+/// so every script mod has one: every NRaas mod, and every hand-built
+/// package next to them, shared that single key and flagged each other.
+/// The Sims 3 merging tools drop both types for the same reason.
+const _ignoredOverlapTypes = <int>{
+  0xE86B1EEF, // Sims 2 DIR: the directory every compressed package carries.
+  0x0166038C, // _KEY / NMAP: the editor's resource-name map.
+  0x73E93EEB, // The launcher's package manifest.
+};
 
 /// A resource key held by more enabled packages than this is treated as
 /// boilerplate rather than a clash - a fixed id some creator tool stamps

@@ -92,6 +92,11 @@
 .mod-body .prose { margin-top: 14px; }
 .mod-body .prose p { font-size: 16px; font-weight: 600; color: var(--muted); text-wrap: pretty; }
 .mod-body .prose p + p { margin-top: 12px; }
+/* What a creator's own formatting draws as (web/src/data/markup.ts). */
+.prose strong { font-weight: 900; color: var(--text); }
+.prose em { font-style: italic; }
+.prose a { color: var(--accent); text-decoration: underline; word-break: break-word; }
+.prose a:hover { color: var(--accent2); }
 
 .mod-howto .prose {
   padding: 18px 22px; border-radius: 16px;

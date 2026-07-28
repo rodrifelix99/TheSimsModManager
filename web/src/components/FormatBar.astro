@@ -1,0 +1,63 @@
+---
+// The buttons over a description box. They write tags into the textarea rather
+// than edit rich text: what a listing stores is plain text with the markup in
+// web/src/data/markup.ts in it, and a box you can still select, paste and undo
+// in beats a contenteditable that only looks like the real thing.
+import { useTranslations, type Locale } from '../i18n';
+
+interface Props {
+  locale: Locale;
+  /// The id of the textarea these buttons write into.
+  for: string;
+}
+const { locale, for: field } = Astro.props;
+const t = useTranslations(locale);
+const marks = [
+  { fmt: 'b', key: 'bold', label: 'B' },
+  { fmt: 'i', key: 'italic', label: 'I' },
+  { fmt: 'u', key: 'underline', label: 'U' },
+];
+---
+
+<div class="fmtbar" data-for={field}>
+  {
+    marks.map((mark) => (
+      <button
+        type="button"
+        class={`fmt fmt-${mark.fmt}`}
+        data-fmt={mark.fmt}
+        title={t.plain(`portal.editor.fmt.${mark.key}`)}
+        aria-label={t.plain(`portal.editor.fmt.${mark.key}`)}
+      >
+        {mark.label}
+      </button>
+    ))
+  }
+  <button
+    type="button"
+    class="fmt"
+    data-fmt="center"
+    title={t.plain('portal.editor.fmt.center')}
+    aria-label={t.plain('portal.editor.fmt.center')}
+  >
+    <svg viewBox="0 0 16 16" aria-hidden="true">
+      <path d="M2 3h12M4 6.6h8M2 10.2h12M4 13.8h8" />
+    </svg>
+  </button>
+  <button
+    type="button"
+    class="fmt"
+    data-fmt="link"
+    title={t.plain('portal.editor.fmt.link')}
+    aria-label={t.plain('portal.editor.fmt.link')}
+  >
+    <svg viewBox="0 0 16 16" aria-hidden="true">
+      <path d="M6.6 9.4a2.6 2.6 0 0 0 3.7 0l2.3-2.3a2.6 2.6 0 0 0-3.7-3.7l-1 1" />
+      <path d="M9.4 6.6a2.6 2.6 0 0 0-3.7 0L3.4 8.9a2.6 2.6 0 0 0 3.7 3.7l1-1" />
+    </svg>
+  </button>
+  <button type="button" class="fmt fmt-preview" data-fmt="preview">
+    <span set:html={t('portal.editor.fmt.preview')} />
+  </button>
+</div>
+<div class="prose fmt-shown hidden" data-preview={field}></div>

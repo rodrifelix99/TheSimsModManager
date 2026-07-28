@@ -28,3 +28,4 @@ functions/node_modules/
 .fvm/
 # Firebase CLI deploy cache
 .firebase/
+firebase-debug.log

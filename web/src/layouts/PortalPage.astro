@@ -3,6 +3,7 @@
 // Three views in one page, swapped by the script; nothing here is server-side.
 import Base from './Base.astro';
 import Diamond from '../components/Diamond.astro';
+import FormatBar from '../components/FormatBar.astro';
 import LangPicker from '../components/LangPicker.astro';
 import { localePath, portalStrings, useTranslations, type Locale } from '../i18n';
 import { games } from '../data/games';
@@ -262,15 +263,18 @@ const ticker = ['portal.ticker1', 'portal.ticker2', 'portal.ticker3', 'portal.ti
             <div class="card">
               <h2 set:html={t('portal.editor.secWhat')} />
               <label for="f-desc" set:html={t('portal.editor.description')} />
+              <FormatBar locale={locale} for="f-desc" />
               <textarea
                 id="f-desc"
                 maxlength="6000"
                 required
                 placeholder={t.plain('portal.editor.descriptionPlaceholder')}></textarea>
+              <div class="hint" set:html={t('portal.editor.fmt.hint')} />
               <label for="f-notes">
                 <Fragment set:html={t('portal.editor.notes')} />{' '}
                 <span class="opt" set:html={t('portal.editor.optional')} />
               </label>
+              <FormatBar locale={locale} for="f-notes" />
               <textarea
                 id="f-notes"
                 maxlength="6000"
