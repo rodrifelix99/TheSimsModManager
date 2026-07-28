@@ -227,6 +227,21 @@ class LFr extends L {
   String get searchMods => 'Rechercher des mods…';
 
   @override
+  String get viewGrid => 'Grille';
+
+  @override
+  String get viewList => 'Liste';
+
+  @override
+  String get viewFolders => 'Dossiers';
+
+  @override
+  String get libraryRefresh => 'Actualiser';
+
+  @override
+  String get libraryRootFolder => 'Dossier Mods';
+
+  @override
   String get install => 'Installer';
 
   @override
@@ -299,6 +314,28 @@ class LFr extends L {
 
   @override
   String get statConflicts => 'Conflits';
+
+  @override
+  String get statTotalTooltip => 'Tous les mods de ce dossier, actifs ou non.';
+
+  @override
+  String get statTotalTooltipClear =>
+      'Tous les mods de ce dossier. Clique pour effacer la recherche et les filtres.';
+
+  @override
+  String get statEnabledTooltip => 'Les mods que le jeu charge.';
+
+  @override
+  String get statEnabledTooltipActive =>
+      'Seuls les mods actifs sont affichés. Clique pour revoir tous les mods.';
+
+  @override
+  String get statDisabledTooltip =>
+      'Les mods posés dans le dossier mais désactivés.';
+
+  @override
+  String get statDisabledTooltipActive =>
+      'Seuls les mods inactifs sont affichés. Clique pour revoir tous les mods.';
 
   @override
   String get conflictTooltipActive =>

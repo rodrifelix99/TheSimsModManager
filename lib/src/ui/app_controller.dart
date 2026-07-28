@@ -31,6 +31,22 @@ import '../services/sfx.dart';
 
 enum AppScreen { library, detail, settings, shop }
 
+/// Which half of the library the Enabled/Disabled stats are showing.
+/// [all] is both, i.e. no narrowing at all.
+enum ModStateFilter { all, enabled, disabled }
+
+/// How the library draws the mods that got past the filters. [folders]
+/// is [list] with the rows gathered under the subfolder each one sits
+/// in - the shape of the mods directory, which the folder chips can only
+/// filter by, one at a time.
+enum LibraryLayout { grid, list, folders }
+
+/// A section of the folder view: the mods sitting directly in [folder],
+/// which is `null` for the ones in the mods directory itself. A mod
+/// belongs to exactly one, so `cc` does not repeat what `cc/defaults`
+/// already shows.
+typedef ModFolderGroup = ({String? folder, List<Mod> mods, int sizeBytes});
+
 /// What to tell the user when installing [error] failed on the file or
 /// folder at [sourcePath]. Adapters raise [ModContentException] and
 /// [ArchiveExtractionException] already carrying the message; everything
@@ -257,6 +273,11 @@ class AppController extends ChangeNotifier {
   /// scan. Toggled by tapping the Conflicts stat in the library header.
   bool conflictsOnly = false;
 
+  /// Narrows [filteredMods] to one side of the switch. Toggled by tapping
+  /// the Enabled and Disabled stats, the way [conflictsOnly] is toggled by
+  /// the Conflicts one.
+  ModStateFilter stateFilter = ModStateFilter.all;
+
   /// Enabled mods the published advisory list has something to say about:
   /// path -> the advisory covering it. See [matchAdvisories].
   Map<String, ModAdvisory> advisories = const {};
@@ -322,7 +343,11 @@ class AppController extends ChangeNotifier {
     notifyListeners();
   }
 
-  bool get listView => settings.listView;
+  LibraryLayout get layout => switch (settings.libraryLayout) {
+        'list' => LibraryLayout.list,
+        'folders' => LibraryLayout.folders,
+        _ => LibraryLayout.grid,
+      };
 
   /// The language Settings is forcing, or null to follow the OS (which is
   /// what a fresh install does: Flutter resolves the system locale against
@@ -418,6 +443,12 @@ class AppController extends ChangeNotifier {
     // The chips these filters point at may have just gone away.
     if (!categories.contains(category)) category = 'All';
     if (folder != 'All' && !_folderCounts.containsKey(folder)) folder = 'All';
+    // So might the side of the switch the library is showing: enabling
+    // the last disabled mod shouldn't leave an empty list behind.
+    if (stateFilter == ModStateFilter.enabled && _enabledCount == 0 ||
+        stateFilter == ModStateFilter.disabled && disabledCount == 0) {
+      stateFilter = ModStateFilter.all;
+    }
     _libraryStamp++;
   }
 
@@ -429,9 +460,15 @@ class AppController extends ChangeNotifier {
   List<Mod> get filteredMods {
     final q = query.trim().toLowerCase();
     final key = '$_libraryStamp|$category|$folder|$conflictsOnly'
-        '|$advisoriesOnly|$tooDeepOnly|${settings.showDisabled}|$q';
+        '|$advisoriesOnly|$tooDeepOnly|$stateFilter'
+        '|${settings.showDisabled}|$q';
     final cached = _filtered;
     if (cached != null && _filteredKey == key) return cached;
+    // Asking for the disabled ones outranks the preference that hides
+    // them: it was a click on that very number, so answering with an
+    // empty library would be a joke at the user's expense.
+    final hideDisabled =
+        !settings.showDisabled && stateFilter != ModStateFilter.disabled;
     final result = [
       for (final mod in mods)
         if ((category == 'All' || mod.category == category) &&
@@ -439,7 +476,9 @@ class AppController extends ChangeNotifier {
             (!conflictsOnly || conflictPaths.contains(mod.path)) &&
             (!advisoriesOnly || advisories.containsKey(mod.path)) &&
             (!tooDeepOnly || tooDeepPaths.contains(mod.path)) &&
-            (settings.showDisabled || mod.isEnabled) &&
+            (stateFilter == ModStateFilter.all ||
+                mod.isEnabled == (stateFilter == ModStateFilter.enabled)) &&
+            (!hideDisabled || mod.isEnabled) &&
             (q.isEmpty ||
                 mod.name.toLowerCase().contains(q) ||
                 humanizeModName(mod.name).toLowerCase().contains(q)))
@@ -507,6 +546,63 @@ class AppController extends ChangeNotifier {
 
   int folderCount(String f) => _folderCounts[f] ?? 0;
 
+  /// The key a collapsed section is remembered under when it is the mods
+  /// directory itself, which has no folder name of its own.
+  static const rootFolderKey = '';
+
+  /// [filteredMods] gathered into the folder view's sections. Grouped on
+  /// the folder each mod actually sits in rather than on the ancestry the
+  /// chips count, so nothing is listed twice; the sections then follow
+  /// [folders], which means rearranging the chips rearranges these too.
+  /// The mods directory itself comes first whatever that order says.
+  List<ModFolderGroup> get folderGroups {
+    final visible = filteredMods;
+    final cached = _folderGroups;
+    if (cached != null && identical(_folderGroupsFrom, visible)) return cached;
+    final byFolder = <String?, List<Mod>>{};
+    for (final mod in visible) {
+      (byFolder[folderOf(mod)] ??= []).add(mod);
+    }
+    ModFolderGroup group(String? folder) {
+      final mods = byFolder.remove(folder)!;
+      return (
+        folder: folder,
+        mods: mods,
+        sizeBytes: mods.fold(0, (sum, m) => sum + (m.sizeBytes ?? 0)),
+      );
+    }
+
+    final result = [
+      if (byFolder.containsKey(null)) group(null),
+      for (final f in folders)
+        if (byFolder.containsKey(f)) group(f),
+      // Anything the chip order somehow missed still has to be drawn:
+      // a section the user cannot see is a mod the user cannot reach.
+      for (final f in byFolder.keys.toList()) group(f),
+    ];
+    _folderGroups = result;
+    _folderGroupsFrom = visible;
+    return result;
+  }
+
+  List<ModFolderGroup>? _folderGroups;
+  List<Mod>? _folderGroupsFrom;
+
+  bool isFolderCollapsed(String? folder) =>
+      settings.collapsedFolders(_adapter.game.id).contains(folder ?? rootFolderKey);
+
+  /// Rolls a folder view section up or down. Remembered per game, so a
+  /// library someone has organised stays the way they left it.
+  Future<void> toggleFolderCollapsed(String? folder) async {
+    final key = folder ?? rootFolderKey;
+    final collapsed = settings.collapsedFolders(_adapter.game.id).toSet();
+    final wasCollapsed = collapsed.remove(key);
+    if (!wasCollapsed) collapsed.add(key);
+    playSound(wasCollapsed ? UiSound.toggleOn : UiSound.toggleOff);
+    await settings.setCollapsedFolders(_adapter.game.id, collapsed.toList());
+    notifyListeners();
+  }
+
   /// Drops folder chip [moved] onto [target]: [moved] takes [target]'s
   /// position. Only the folder chips rearrange; category chips and every
   /// other filter keep their order. Remembered per game.
@@ -520,10 +616,16 @@ class AppController extends ChangeNotifier {
     order.removeAt(from);
     order.insert(to, moved);
     await settings.setFolderOrder(_adapter.game.id, order);
+    // The folder view's sections follow this order, and the mods they
+    // hold haven't changed - the one way that cache goes stale without
+    // the library underneath it moving.
+    _folderGroups = null;
     notifyListeners();
   }
 
   int get enabledCount => _enabledCount;
+
+  int get disabledCount => _mods.length - _enabledCount;
   int get conflictCount => conflictPaths.length;
   int get totalSizeBytes => _totalSizeBytes;
 
@@ -558,6 +660,53 @@ class AppController extends ChangeNotifier {
   /// "N shared resources" detail.
   int sharedResourcesWith(Mod mod, Mod other) =>
       resourceOverlaps[mod.path]?[other.path] ?? 0;
+
+  /// Whether anything the user can switch off from the library is
+  /// narrowing it right now - exactly what [clearFilters] clears, which
+  /// is why the show-disabled preference isn't in it.
+  bool get isFiltering =>
+      query.isNotEmpty ||
+      category != 'All' ||
+      folder != 'All' ||
+      conflictsOnly ||
+      advisoriesOnly ||
+      tooDeepOnly ||
+      stateFilter != ModStateFilter.all;
+
+  /// Narrows the library to the enabled or the disabled mods, or back to
+  /// all of them when [state] is already the one showing. No-op when that
+  /// side of the library is empty.
+  void showOnly(ModStateFilter state) {
+    if (state == stateFilter) state = ModStateFilter.all;
+    if (state == ModStateFilter.enabled && enabledCount == 0) return;
+    if (state == ModStateFilter.disabled && disabledCount == 0) return;
+    playSound(UiSound.cycle);
+    stateFilter = state;
+    if (state != ModStateFilter.all) {
+      analytics.capture('state_filter_opened', {
+        'state': state.name,
+        'mods': state == ModStateFilter.enabled ? enabledCount : disabledCount,
+      });
+    }
+    notifyListeners();
+  }
+
+  /// The Total stat's click: everything the library was narrowed by, off
+  /// at once, so the count it shows is the count you get. The
+  /// show-disabled preference is left alone - it's a setting the user
+  /// chose, not a filter they left on.
+  void clearFilters() {
+    if (!isFiltering) return;
+    playSound(UiSound.cycle);
+    query = '';
+    category = 'All';
+    folder = 'All';
+    conflictsOnly = false;
+    advisoriesOnly = false;
+    tooDeepOnly = false;
+    stateFilter = ModStateFilter.all;
+    notifyListeners();
+  }
 
   /// Narrows the library to conflicting mods, or back to all of them.
   /// No-op when there's nothing to narrow to.
@@ -1060,6 +1209,7 @@ class AppController extends ChangeNotifier {
     conflictsOnly = false;
     advisoriesOnly = false;
     tooDeepOnly = false;
+    stateFilter = ModStateFilter.all;
     _selectedModPath = null;
     // The Exchange is deliberately left alone: its shelves span every
     // game, so switching the library doesn't re-shelve them.
@@ -1285,7 +1435,13 @@ class AppController extends ChangeNotifier {
   Future<void> _refreshCountFor(GameAdapter other, {bool notify = true}) async {
     try {
       final dir = await modsDirFor(other);
-      final otherMods = dir == null ? null : await other.listMods(dir);
+      // Through _withPlacedMods like the game on screen: a mod in one of
+      // the folders listMods can't sweep is still installed, and a sidebar
+      // that counted it only once its game was selected was off by it on
+      // every launch that started somewhere else.
+      final otherMods = dir == null
+          ? null
+          : await _withPlacedMods(other, dir, await other.listMods(dir));
       modCounts[other.game.id] = otherMods?.length;
       modSizes[other.game.id] =
           otherMods?.fold(0, (sum, m) => sum! + (m.sizeBytes ?? 0)) ?? 0;
@@ -1365,13 +1521,12 @@ class AppController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> setListView(bool value) async {
-    if (value != settings.listView) {
+  Future<void> setLayout(LibraryLayout value) async {
+    if (value != layout) {
       playSound(UiSound.cycle);
-      analytics
-          .capture('view_mode_changed', {'mode': value ? 'list' : 'grid'});
+      analytics.capture('view_mode_changed', {'mode': value.name});
     }
-    await settings.setListView(value);
+    await settings.setLibraryLayout(value.name);
     notifyListeners();
   }
 

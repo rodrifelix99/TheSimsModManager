@@ -224,6 +224,21 @@ class LEs extends L {
   String get searchMods => 'Buscar mods…';
 
   @override
+  String get viewGrid => 'Cuadrícula';
+
+  @override
+  String get viewList => 'Lista';
+
+  @override
+  String get viewFolders => 'Carpetas';
+
+  @override
+  String get libraryRefresh => 'Actualizar';
+
+  @override
+  String get libraryRootFolder => 'Carpeta Mods';
+
+  @override
   String get install => 'Instalar';
 
   @override
@@ -296,6 +311,29 @@ class LEs extends L {
 
   @override
   String get statConflicts => 'Conflictos';
+
+  @override
+  String get statTotalTooltip =>
+      'Todos los mods de esta carpeta, activos o no.';
+
+  @override
+  String get statTotalTooltipClear =>
+      'Todos los mods de esta carpeta. Haz clic para quitar la búsqueda y los filtros.';
+
+  @override
+  String get statEnabledTooltip => 'Los mods que el juego carga.';
+
+  @override
+  String get statEnabledTooltipActive =>
+      'Mostrando solo los mods activos. Haz clic para ver todos otra vez.';
+
+  @override
+  String get statDisabledTooltip =>
+      'Mods que están en la carpeta pero apagados.';
+
+  @override
+  String get statDisabledTooltipActive =>
+      'Mostrando solo los mods inactivos. Haz clic para ver todos otra vez.';
 
   @override
   String get conflictTooltipActive =>

@@ -224,6 +224,21 @@ class LIt extends L {
   String get searchMods => 'Cerca mod…';
 
   @override
+  String get viewGrid => 'Griglia';
+
+  @override
+  String get viewList => 'Elenco';
+
+  @override
+  String get viewFolders => 'Cartelle';
+
+  @override
+  String get libraryRefresh => 'Aggiorna';
+
+  @override
+  String get libraryRootFolder => 'Cartella Mods';
+
+  @override
   String get install => 'Installa';
 
   @override
@@ -296,6 +311,29 @@ class LIt extends L {
 
   @override
   String get statConflicts => 'Conflitti';
+
+  @override
+  String get statTotalTooltip =>
+      'Tutte le mod in questa cartella, attive o no.';
+
+  @override
+  String get statTotalTooltipClear =>
+      'Tutte le mod in questa cartella. Clicca per togliere ricerca e filtri.';
+
+  @override
+  String get statEnabledTooltip => 'Le mod che il gioco carica.';
+
+  @override
+  String get statEnabledTooltipActive =>
+      'Stai vedendo solo le mod attive. Clicca per rivederle tutte.';
+
+  @override
+  String get statDisabledTooltip =>
+      'Mod che stanno nella cartella ma sono spente.';
+
+  @override
+  String get statDisabledTooltipActive =>
+      'Stai vedendo solo le mod disattive. Clicca per rivederle tutte.';
 
   @override
   String get conflictTooltipActive =>

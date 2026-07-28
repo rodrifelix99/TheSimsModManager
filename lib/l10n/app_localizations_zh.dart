@@ -208,6 +208,21 @@ class LZh extends L {
   String get searchMods => '搜索 MOD…';
 
   @override
+  String get viewGrid => '网格';
+
+  @override
+  String get viewList => '列表';
+
+  @override
+  String get viewFolders => '文件夹';
+
+  @override
+  String get libraryRefresh => '刷新';
+
+  @override
+  String get libraryRootFolder => 'Mods 文件夹';
+
+  @override
   String get install => '安装';
 
   @override
@@ -273,6 +288,24 @@ class LZh extends L {
 
   @override
   String get statConflicts => '冲突';
+
+  @override
+  String get statTotalTooltip => '这个文件夹里的所有 MOD，启用的和停用的都算。';
+
+  @override
+  String get statTotalTooltipClear => '这个文件夹里的所有 MOD。点击可清掉搜索和所有筛选。';
+
+  @override
+  String get statEnabledTooltip => '游戏会加载的 MOD。';
+
+  @override
+  String get statEnabledTooltipActive => '当前只显示已启用的 MOD。点击可重新显示全部。';
+
+  @override
+  String get statDisabledTooltip => '放在文件夹里但关掉了的 MOD。';
+
+  @override
+  String get statDisabledTooltipActive => '当前只显示已停用的 MOD。点击可重新显示全部。';
 
   @override
   String get conflictTooltipActive => '当前只显示有冲突的 MOD。点击可重新显示全部。';

@@ -125,6 +125,11 @@
   "learnMore": "Learn more",
   "dismiss": "Dismiss",
   "searchMods": "Search mods…",
+  "viewGrid": "Grid",
+  "viewList": "List",
+  "viewFolders": "Folders",
+  "libraryRefresh": "Refresh",
+  "libraryRootFolder": "Mods folder",
   "install": "Install",
   "filePickerModsLabel": "{game} mods",
   "@filePickerModsLabel": {
@@ -153,6 +158,13 @@
   "statEnabled": "Enabled",
   "statDisabled": "Disabled",
   "statConflicts": "Conflicts",
+
+  "statTotalTooltip": "Every mod in this folder, switched on or off.",
+  "statTotalTooltipClear": "Every mod in this folder. Click to drop the search and every filter.",
+  "statEnabledTooltip": "Mods the game loads.",
+  "statEnabledTooltipActive": "Showing enabled mods only. Click to show all mods again.",
+  "statDisabledTooltip": "Mods sitting in the folder switched off.",
+  "statDisabledTooltipActive": "Showing disabled mods only. Click to show all mods again.",
 
   "conflictTooltipActive": "Showing conflicting mods only. Click to show all mods again.",
   "conflictTooltip": "Enabled mods sharing a file name with another enabled mod, installed in more than one version, or overriding the same in-game resources. The game only keeps the copy it loads last — sometimes intentional (patch mods), often not.",

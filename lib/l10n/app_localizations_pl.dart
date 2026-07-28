@@ -233,6 +233,21 @@ class LPl extends L {
   String get searchMods => 'Szukaj modów…';
 
   @override
+  String get viewGrid => 'Siatka';
+
+  @override
+  String get viewList => 'Lista';
+
+  @override
+  String get viewFolders => 'Foldery';
+
+  @override
+  String get libraryRefresh => 'Odśwież';
+
+  @override
+  String get libraryRootFolder => 'Folder Mods';
+
+  @override
   String get install => 'Zainstaluj';
 
   @override
@@ -303,6 +318,29 @@ class LPl extends L {
 
   @override
   String get statConflicts => 'Konflikty';
+
+  @override
+  String get statTotalTooltip =>
+      'Wszystkie mody w tym folderze, włączone i wyłączone.';
+
+  @override
+  String get statTotalTooltipClear =>
+      'Wszystkie mody w tym folderze. Kliknij, żeby zrzucić wyszukiwanie i filtry.';
+
+  @override
+  String get statEnabledTooltip => 'Mody, które gra wczytuje.';
+
+  @override
+  String get statEnabledTooltipActive =>
+      'Widzisz tylko włączone mody. Kliknij, żeby znów pokazać wszystkie.';
+
+  @override
+  String get statDisabledTooltip =>
+      'Mody, które leżą w folderze, ale są wyłączone.';
+
+  @override
+  String get statDisabledTooltipActive =>
+      'Widzisz tylko wyłączone mody. Kliknij, żeby znów pokazać wszystkie.';
 
   @override
   String get conflictTooltipActive =>

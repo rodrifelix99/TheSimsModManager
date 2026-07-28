@@ -102,6 +102,12 @@ class LibraryView extends StatelessWidget {
                     else
                       Text(
                         l.libraryTitle(c.adapter.game.name),
+                        // Both lines stay one line each whatever the
+                        // language: the header sits above everything,
+                        // so a title that wraps pushes the first row of
+                        // mods off a minimum-size window.
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 23,
                           fontWeight: FontWeight.w900,
@@ -113,6 +119,8 @@ class LibraryView extends StatelessWidget {
                     Text(
                       l.modsShown(
                           visible.length, eraLabel(l, t, c.adapter.game)),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
@@ -125,7 +133,9 @@ class LibraryView extends StatelessWidget {
               const SizedBox(width: 14),
               _searchField(t, c, l),
               const SizedBox(width: 14),
-              _viewToggle(t, c),
+              _viewToggle(t, c, l),
+              const SizedBox(width: 6),
+              _refreshButton(t, c, l),
               const SizedBox(width: 14),
               _installButton(t, c, l),
             ],
@@ -144,10 +154,9 @@ class LibraryView extends StatelessWidget {
           child: Row(
             children: [
               Expanded(child: _FilterChips(theme: t, controller: c)),
-              _stat(t, l.statTotal, '${c.mods.length}', t.text),
-              _stat(t, l.statEnabled, '${c.enabledCount}', t.accent),
-              _stat(t, l.statDisabled, '${c.mods.length - c.enabledCount}',
-                  t.muted),
+              _totalStat(t, c, l),
+              _stateStat(t, c, l, ModStateFilter.enabled),
+              _stateStat(t, c, l, ModStateFilter.disabled),
               _conflictStat(t, c, l),
             ],
           ),
@@ -155,9 +164,11 @@ class LibraryView extends StatelessWidget {
         Expanded(
           child: visible.isEmpty
               ? _EmptyLibrary(theme: t, controller: c)
-              : c.listView
-                  ? _modList(t, c, visible)
-                  : _modGrid(t, c, visible),
+              : switch (c.layout) {
+                  LibraryLayout.grid => _modGrid(t, c, visible),
+                  LibraryLayout.list => _modList(t, c, visible),
+                  LibraryLayout.folders => _modFolders(t, c),
+                },
         ),
       ],
     );
@@ -463,22 +474,27 @@ class LibraryView extends StatelessWidget {
     );
   }
 
-  Widget _viewToggle(GameTheme t, AppController c) {
-    Widget button(bool list, IconData icon) {
-      final active = c.listView == list;
-      return GestureDetector(
-        onTap: () => c.setListView(list),
-        child: MouseRegion(
-          cursor: SystemMouseCursors.click,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 160),
-            width: 34,
-            height: 32,
-            decoration: BoxDecoration(
-              color: active ? t.surface : Colors.transparent,
-              borderRadius: BorderRadius.circular(8),
+  Widget _viewToggle(GameTheme t, AppController c, L l) {
+    // Three unlabelled icons is one more than reads at a glance, so each
+    // says what it is on hover.
+    Widget button(LibraryLayout layout, IconData icon, String label) {
+      final active = c.layout == layout;
+      return Tooltip(
+        message: label,
+        child: GestureDetector(
+          onTap: () => c.setLayout(layout),
+          child: MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 160),
+              width: 34,
+              height: 32,
+              decoration: BoxDecoration(
+                color: active ? t.surface : Colors.transparent,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, size: 16, color: active ? t.accent : t.muted),
             ),
-            child: Icon(icon, size: 16, color: active ? t.accent : t.muted),
           ),
         ),
       );
@@ -493,10 +509,47 @@ class LibraryView extends StatelessWidget {
       ),
       child: Row(
         children: [
-          button(false, Icons.grid_view_rounded),
+          button(LibraryLayout.grid, Icons.grid_view_rounded, l.viewGrid),
           const SizedBox(width: 2),
-          button(true, Icons.view_list_rounded),
+          button(LibraryLayout.list, Icons.view_list_rounded, l.viewList),
+          const SizedBox(width: 2),
+          button(LibraryLayout.folders, Icons.folder_copy_rounded,
+              l.viewFolders),
         ],
+      ),
+    );
+  }
+
+  /// The folder is only re-read when the app itself touches it, so a mod
+  /// copied in from Explorer stays invisible until something forces a
+  /// scan. Switching games in the sidebar already did that, but nothing
+  /// on screen said so.
+  Widget _refreshButton(GameTheme t, AppController c, L l) {
+    return Tooltip(
+      message: l.libraryRefresh,
+      child: HoverBuilder(
+        cursor: SystemMouseCursors.click,
+        builder: (context, hovered) => GestureDetector(
+          onTap: () {
+            c.playSound(UiSound.click);
+            c.refresh();
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            width: 34,
+            height: 40,
+            decoration: BoxDecoration(
+              color: hovered ? t.surface : t.surfaceAlt,
+              border: Border.all(color: t.border),
+              borderRadius: BorderRadius.circular(11),
+            ),
+            child: Icon(
+              Icons.refresh_rounded,
+              size: 18,
+              color: hovered ? t.accent : t.muted,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -571,13 +624,85 @@ class LibraryView extends StatelessWidget {
         placement: placement);
   }
 
-  Widget _stat(GameTheme t, String label, String value, Color color) {
+  /// Every stat in the header is also a filter, so they all draw the same
+  /// way: a hover tint in their own colour while there's something to
+  /// click, and a stronger one while they're the filter in force.
+  Widget _stat(
+    GameTheme t,
+    String label,
+    String value,
+    Color color, {
+    required String tooltip,
+    required bool active,
+    required bool tappable,
+    required VoidCallback onTap,
+  }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 13),
+      padding: const EdgeInsets.symmetric(horizontal: 5),
       decoration: BoxDecoration(
         border: Border(left: BorderSide(color: t.border)),
       ),
-      child: _statBody(t, label, value, color),
+      child: Tooltip(
+        message: tooltip,
+        waitDuration: const Duration(milliseconds: 400),
+        child: HoverBuilder(
+          cursor:
+              tappable ? SystemMouseCursors.click : SystemMouseCursors.basic,
+          builder: (context, hovered) => GestureDetector(
+            onTap: tappable ? onTap : null,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: active
+                    ? color.withValues(alpha: .14)
+                    : hovered && tappable
+                        ? color.withValues(alpha: .07)
+                        : Colors.transparent,
+                borderRadius: BorderRadius.circular(9),
+              ),
+              child: _statBody(t, label, value, color),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Total is the way back out: it clears every filter at once, so the
+  /// number it shows is the number you end up looking at.
+  Widget _totalStat(GameTheme t, AppController c, L l) {
+    final tappable = c.isFiltering;
+    return _stat(
+      t,
+      l.statTotal,
+      '${c.mods.length}',
+      t.text,
+      tooltip: tappable ? l.statTotalTooltipClear : l.statTotalTooltip,
+      active: false,
+      tappable: tappable,
+      onTap: c.clearFilters,
+    );
+  }
+
+  /// The Enabled and Disabled stats narrow the library to their own half,
+  /// and let go of it when clicked again.
+  Widget _stateStat(GameTheme t, AppController c, L l, ModStateFilter state) {
+    final enabled = state == ModStateFilter.enabled;
+    final count = enabled ? c.enabledCount : c.disabledCount;
+    final active = c.stateFilter == state;
+    return _stat(
+      t,
+      enabled ? l.statEnabled : l.statDisabled,
+      '$count',
+      enabled ? t.accent : t.muted,
+      tooltip: active
+          ? (enabled ? l.statEnabledTooltipActive : l.statDisabledTooltipActive)
+          : '${enabled ? l.statEnabledTooltip : l.statDisabledTooltip}'
+              '${count > 0 ? ' ${l.conflictTooltipClickHint}' : ''}',
+      active: active,
+      tappable: active || count > 0,
+      onTap: () => c.showOnly(state),
     );
   }
 
@@ -607,46 +732,23 @@ class LibraryView extends StatelessWidget {
     );
   }
 
-  /// The Conflicts stat doubles as a filter: tapping it narrows the
-  /// library to the flagged mods, tapping again clears. A tooltip spells
-  /// out what "conflict" means here (duplicate names, versions, or
-  /// packages overriding the same resources).
+  /// A tooltip spells out what "conflict" means here (duplicate names,
+  /// versions, or packages overriding the same resources).
   Widget _conflictStat(GameTheme t, AppController c, L l) {
     final active = c.conflictsOnly;
     final tappable = active || c.conflictCount > 0;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 5),
-      decoration: BoxDecoration(
-        border: Border(left: BorderSide(color: t.border)),
-      ),
-      child: Tooltip(
-        message: active
-            ? l.conflictTooltipActive
-            : '${l.conflictTooltip}'
-                '${tappable ? ' ${l.conflictTooltipClickHint}' : ''}',
-        waitDuration: const Duration(milliseconds: 400),
-        child: HoverBuilder(
-          cursor:
-              tappable ? SystemMouseCursors.click : SystemMouseCursors.basic,
-          builder: (context, hovered) => GestureDetector(
-            onTap: tappable ? c.toggleConflictsOnly : null,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: active
-                    ? t.warning.withValues(alpha: .14)
-                    : hovered && tappable
-                        ? t.warning.withValues(alpha: .07)
-                        : Colors.transparent,
-                borderRadius: BorderRadius.circular(9),
-              ),
-              child: _statBody(
-                  t, l.statConflicts, '${c.conflictCount}', t.warning),
-            ),
-          ),
-        ),
-      ),
+    return _stat(
+      t,
+      l.statConflicts,
+      '${c.conflictCount}',
+      t.warning,
+      tooltip: active
+          ? l.conflictTooltipActive
+          : '${l.conflictTooltip}'
+              '${tappable ? ' ${l.conflictTooltipClickHint}' : ''}',
+      active: active,
+      tappable: tappable,
+      onTap: c.toggleConflictsOnly,
     );
   }
 
@@ -677,6 +779,111 @@ class LibraryView extends StatelessWidget {
       separatorBuilder: (_, __) => const SizedBox(height: 8),
       itemBuilder: (context, i) =>
           _ListRow(theme: t, controller: c, mod: visible[i]),
+    );
+  }
+
+  /// The list, gathered under a header per subfolder. The sections are
+  /// flattened into one lazy list rather than built as nested columns so
+  /// a library of thousands still only builds the rows on screen.
+  Widget _modFolders(GameTheme t, AppController c) {
+    final rows = <_FolderRow>[];
+    for (final group in c.folderGroups) {
+      rows.add((group: group, mod: null));
+      if (c.isFolderCollapsed(group.folder)) continue;
+      for (final mod in group.mods) {
+        rows.add((group: null, mod: mod));
+      }
+    }
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(28, 4, 28, 28),
+      itemCount: rows.length,
+      // A header wants air above it; rows under one sit close together.
+      separatorBuilder: (_, i) =>
+          SizedBox(height: rows[i + 1].group != null ? 18 : 8),
+      itemBuilder: (context, i) {
+        final row = rows[i];
+        final group = row.group;
+        return group == null
+            ? _ListRow(theme: t, controller: c, mod: row.mod!)
+            : _FolderHeader(theme: t, controller: c, group: group);
+      },
+    );
+  }
+}
+
+/// One line of the folder view: a section header, or a mod belonging to
+/// the header above it. Exactly one of the two is set.
+typedef _FolderRow = ({ModFolderGroup? group, Mod? mod});
+
+/// A folder view section header: what the folder is called, how much it
+/// holds, and a chevron that rolls it up.
+class _FolderHeader extends StatelessWidget {
+  const _FolderHeader(
+      {required this.theme, required this.controller, required this.group});
+
+  final GameTheme theme;
+  final AppController controller;
+  final ModFolderGroup group;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = theme;
+    final c = controller;
+    final l = L.of(context);
+    final folder = group.folder;
+    final collapsed = c.isFolderCollapsed(folder);
+    return HoverBuilder(
+      cursor: SystemMouseCursors.click,
+      builder: (context, hovered) => GestureDetector(
+        onTap: () => c.toggleFolderCollapsed(folder),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+          decoration: BoxDecoration(
+            color: hovered ? t.surfaceAlt : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(
+            children: [
+              AnimatedRotation(
+                duration: const Duration(milliseconds: 160),
+                turns: collapsed ? -0.25 : 0,
+                child: Icon(Icons.expand_more_rounded,
+                    size: 19, color: t.muted),
+              ),
+              const SizedBox(width: 8),
+              Icon(
+                folder == null
+                    ? Icons.inventory_2_rounded
+                    : Icons.folder_rounded,
+                size: 16,
+                color: t.accent,
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  folder == null ? l.libraryRootFolder : folderChipLabel(folder),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w800,
+                    color: t.text,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                '${group.mods.length} · ${formatBytes(group.sizeBytes)}',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: t.muted,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -1450,10 +1657,7 @@ class _EmptyLibrary extends StatelessWidget {
     final t = theme;
     final c = controller;
     final l = L.of(context);
-    final filtering = c.query.isNotEmpty ||
-        c.category != 'All' ||
-        c.folder != 'All' ||
-        !c.settings.showDisabled;
+    final filtering = c.isFiltering || !c.settings.showDisabled;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,

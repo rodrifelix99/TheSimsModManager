@@ -224,6 +224,21 @@ class LEn extends L {
   String get searchMods => 'Search mods…';
 
   @override
+  String get viewGrid => 'Grid';
+
+  @override
+  String get viewList => 'List';
+
+  @override
+  String get viewFolders => 'Folders';
+
+  @override
+  String get libraryRefresh => 'Refresh';
+
+  @override
+  String get libraryRootFolder => 'Mods folder';
+
+  @override
   String get install => 'Install';
 
   @override
@@ -295,6 +310,28 @@ class LEn extends L {
 
   @override
   String get statConflicts => 'Conflicts';
+
+  @override
+  String get statTotalTooltip =>
+      'Every mod in this folder, switched on or off.';
+
+  @override
+  String get statTotalTooltipClear =>
+      'Every mod in this folder. Click to drop the search and every filter.';
+
+  @override
+  String get statEnabledTooltip => 'Mods the game loads.';
+
+  @override
+  String get statEnabledTooltipActive =>
+      'Showing enabled mods only. Click to show all mods again.';
+
+  @override
+  String get statDisabledTooltip => 'Mods sitting in the folder switched off.';
+
+  @override
+  String get statDisabledTooltipActive =>
+      'Showing disabled mods only. Click to show all mods again.';
 
   @override
   String get conflictTooltipActive =>

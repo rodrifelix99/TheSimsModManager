@@ -72,9 +72,25 @@ class SettingsStore {
   Future<void> setShowDisabled(bool value) =>
       _prefs.setBool('showDisabled', value);
 
-  /// Library layout: `true` = list rows, `false` = grid cards.
-  bool get listView => _prefs.getBool('listView') ?? false;
-  Future<void> setListView(bool value) => _prefs.setBool('listView', value);
+  /// Library layout: 'grid' cards, 'list' rows, or 'folders' (rows under
+  /// a header per subfolder). Falls back to the boolean this used to be,
+  /// so an install that already picked a side keeps it.
+  String get libraryLayout =>
+      _prefs.getString('libraryLayout') ??
+      ((_prefs.getBool('listView') ?? false) ? 'list' : 'grid');
+  Future<void> setLibraryLayout(String value) =>
+      _prefs.setString('libraryLayout', value);
+
+  static String _collapsedFoldersKey(String gameId) =>
+      'collapsedFolders.$gameId';
+
+  /// Folder sections the user rolled up in the folder view. Per game,
+  /// like the folder arrangement, since the folders themselves are.
+  List<String> collapsedFolders(String gameId) =>
+      _prefs.getStringList(_collapsedFoldersKey(gameId)) ?? const [];
+
+  Future<void> setCollapsedFolders(String gameId, List<String> folders) =>
+      _prefs.setStringList(_collapsedFoldersKey(gameId), folders);
 
   /// Look inside mod files for embedded artwork and content summaries
   /// while the library loads (the slow part of the loading screen).

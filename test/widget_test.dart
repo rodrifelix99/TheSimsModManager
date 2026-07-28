@@ -133,6 +133,44 @@ void main() {
     );
   });
 
+  testWidgets('the refresh button picks up a mod copied in behind our back',
+      (tester) async {
+    tester.view.physicalSize = const Size(1280, 824);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    SharedPreferences.setMockInitialValues({'soundEffects': false});
+    final tempDir = Directory.systemTemp.createTempSync('mod_manager_reload');
+    addTearDown(() => tempDir.deleteSync(recursive: true));
+    File(p.join(tempDir.path, 'cozy_sofa.package'))
+        .writeAsStringSync('sofa bytes');
+
+    final registry = GameRegistry([_FakeAdapter(tempDir)]);
+    final settings = await SettingsStore.load();
+
+    await tester.runAsync(() async {
+      await tester.pumpWidget(
+          ModManagerApp(registry: registry, settings: settings));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    // What the file manager does while the app is looking the other way.
+    File(p.join(tempDir.path, 'retro_lamp.package'))
+        .writeAsStringSync('lamp bytes');
+    expect(find.text('retro lamp'), findsNothing);
+
+    await tester.runAsync(() async {
+      await tester.tap(find.byTooltip('Refresh'));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.text('retro lamp'), findsOneWidget);
+    expect(find.text('cozy sofa'), findsOneWidget);
+  });
+
   testWidgets('a failed action is named in the shell banner and dismissed',
       (tester) async {
     tester.view.physicalSize = const Size(1280, 824);
@@ -230,6 +268,48 @@ void main() {
         (w.data == p.join('A', 'lamp.package') ||
             w.data == p.join('B', 'lamp.package')));
     expect(row, findsOneWidget);
+  });
+
+  testWidgets('the other three stats filter the library too', (tester) async {
+    tester.view.physicalSize = const Size(1280, 824);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    SharedPreferences.setMockInitialValues({'soundEffects': false});
+    final tempDir = Directory.systemTemp.createTempSync('mod_manager_ui');
+    addTearDown(() => tempDir.deleteSync(recursive: true));
+    File(p.join(tempDir.path, 'lamp.package')).writeAsStringSync('x');
+    File(p.join(tempDir.path, 'sofa.package.disabled')).writeAsStringSync('x');
+
+    final registry = GameRegistry([_FakeAdapter(tempDir)]);
+    final settings = await SettingsStore.load();
+
+    await tester.runAsync(() async {
+      await tester.pumpWidget(
+          ModManagerApp(registry: registry, settings: settings));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.text('lamp'), findsOneWidget);
+    expect(find.text('sofa'), findsOneWidget);
+
+    await tester.tap(find.text('ENABLED'));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('lamp'), findsOneWidget);
+    expect(find.text('sofa'), findsNothing);
+
+    // The two are one filter, so Disabled takes over rather than adding.
+    await tester.tap(find.text('DISABLED'));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('lamp'), findsNothing);
+    expect(find.text('sofa'), findsOneWidget);
+
+    // And Total is the way out of it.
+    await tester.tap(find.text('TOTAL'));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('lamp'), findsOneWidget);
+    expect(find.text('sofa'), findsOneWidget);
   });
 
   testWidgets('subfolders become filter chips that narrow the library',
@@ -368,6 +448,58 @@ void main() {
         lessThan(tester.getCenter(find.text('Alpha  1')).dx));
     expect(tester.getCenter(find.text('All  3')).dx <
         tester.getCenter(find.text('Gamma  1')).dx, isTrue);
+  });
+
+  testWidgets('the folder view gathers mods under a header each',
+      (tester) async {
+    tester.view.physicalSize = const Size(1280, 824);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    SharedPreferences.setMockInitialValues(
+        {'soundEffects': false, 'libraryLayout': 'folders'});
+    final tempDir = Directory.systemTemp.createTempSync('mod_manager_ui');
+    addTearDown(() => tempDir.deleteSync(recursive: true));
+    File(p.join(tempDir.path, 'loose_mod.package')).writeAsStringSync('x');
+    for (final name in ['Alpha', 'Beta']) {
+      final dir = Directory(p.join(tempDir.path, name))..createSync();
+      File(p.join(dir.path, '${name.toLowerCase()}_mod.package'))
+          .writeAsStringSync('x');
+    }
+
+    final registry = GameRegistry([_FakeAdapter(tempDir)]);
+    final settings = await SettingsStore.load();
+
+    await tester.runAsync(() async {
+      await tester.pumpWidget(
+          ModManagerApp(registry: registry, settings: settings));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    // A header per section, the mods folder itself above the subfolders.
+    // The chips carry their count in the same string ('Alpha  1'), so
+    // these bare labels are the headers.
+    expect(find.text('Mods folder'), findsOneWidget);
+    expect(find.text('Alpha'), findsOneWidget);
+    expect(tester.getCenter(find.text('Mods folder')).dy,
+        lessThan(tester.getCenter(find.text('Alpha')).dy));
+    // A list row draws its title as Text.rich (the extension rides along
+    // in a quieter span), so the title only matches through rich text.
+    Finder row(String title) =>
+        find.textContaining(title, findRichText: true);
+    expect(row('loose mod'), findsOneWidget);
+    expect(row('alpha mod'), findsOneWidget);
+
+    // Rolling one up hides its mods and leaves the others alone.
+    await tester.tap(find.text('Alpha'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(row('alpha mod'), findsNothing);
+    expect(find.text('Alpha'), findsOneWidget);
+    expect(row('beta mod'), findsOneWidget);
+    expect(row('loose mod'), findsOneWidget);
+    expect(settings.collapsedFolders('fake'), ['Alpha']);
   });
 
   testWidgets('menu folders reorder in place and drag out onto the line',

@@ -209,6 +209,21 @@ class LJa extends L {
   String get searchMods => 'MOD を検索…';
 
   @override
+  String get viewGrid => 'グリッド';
+
+  @override
+  String get viewList => 'リスト';
+
+  @override
+  String get viewFolders => 'フォルダ';
+
+  @override
+  String get libraryRefresh => '更新';
+
+  @override
+  String get libraryRootFolder => 'Mods フォルダ';
+
+  @override
   String get install => 'インストール';
 
   @override
@@ -276,6 +291,25 @@ class LJa extends L {
 
   @override
   String get statConflicts => '競合';
+
+  @override
+  String get statTotalTooltip => 'このフォルダにある MOD の数。有効も無効もぜんぶ。';
+
+  @override
+  String get statTotalTooltipClear =>
+      'このフォルダにある MOD の数。クリックすると検索と絞り込みを全部解除します。';
+
+  @override
+  String get statEnabledTooltip => 'ゲームが読み込む MOD。';
+
+  @override
+  String get statEnabledTooltipActive => '有効な MOD だけを表示中です。クリックすると全部に戻ります。';
+
+  @override
+  String get statDisabledTooltip => 'フォルダには入っているけど切ってある MOD。';
+
+  @override
+  String get statDisabledTooltipActive => '無効な MOD だけを表示中です。クリックすると全部に戻ります。';
 
   @override
   String get conflictTooltipActive => '競合している MOD だけを表示中です。クリックすると全部に戻ります。';

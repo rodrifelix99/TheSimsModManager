@@ -425,6 +425,36 @@ abstract class L {
   /// **'Search mods…'**
   String get searchMods;
 
+  /// No description provided for @viewGrid.
+  ///
+  /// In en, this message translates to:
+  /// **'Grid'**
+  String get viewGrid;
+
+  /// No description provided for @viewList.
+  ///
+  /// In en, this message translates to:
+  /// **'List'**
+  String get viewList;
+
+  /// No description provided for @viewFolders.
+  ///
+  /// In en, this message translates to:
+  /// **'Folders'**
+  String get viewFolders;
+
+  /// No description provided for @libraryRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get libraryRefresh;
+
+  /// No description provided for @libraryRootFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Mods folder'**
+  String get libraryRootFolder;
+
   /// No description provided for @install.
   ///
   /// In en, this message translates to:
@@ -550,6 +580,42 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Conflicts'**
   String get statConflicts;
+
+  /// No description provided for @statTotalTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Every mod in this folder, switched on or off.'**
+  String get statTotalTooltip;
+
+  /// No description provided for @statTotalTooltipClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Every mod in this folder. Click to drop the search and every filter.'**
+  String get statTotalTooltipClear;
+
+  /// No description provided for @statEnabledTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Mods the game loads.'**
+  String get statEnabledTooltip;
+
+  /// No description provided for @statEnabledTooltipActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing enabled mods only. Click to show all mods again.'**
+  String get statEnabledTooltipActive;
+
+  /// No description provided for @statDisabledTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Mods sitting in the folder switched off.'**
+  String get statDisabledTooltip;
+
+  /// No description provided for @statDisabledTooltipActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing disabled mods only. Click to show all mods again.'**
+  String get statDisabledTooltipActive;
 
   /// No description provided for @conflictTooltipActive.
   ///

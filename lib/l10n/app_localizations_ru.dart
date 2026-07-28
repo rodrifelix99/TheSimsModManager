@@ -232,6 +232,21 @@ class LRu extends L {
   String get searchMods => 'Поиск модов…';
 
   @override
+  String get viewGrid => 'Сетка';
+
+  @override
+  String get viewList => 'Список';
+
+  @override
+  String get viewFolders => 'Папки';
+
+  @override
+  String get libraryRefresh => 'Обновить';
+
+  @override
+  String get libraryRootFolder => 'Папка Mods';
+
+  @override
   String get install => 'Установить';
 
   @override
@@ -304,6 +319,29 @@ class LRu extends L {
 
   @override
   String get statConflicts => 'Конфликты';
+
+  @override
+  String get statTotalTooltip =>
+      'Все моды в этой папке, включённые и выключенные.';
+
+  @override
+  String get statTotalTooltipClear =>
+      'Все моды в этой папке. Нажми, чтобы сбросить поиск и все фильтры.';
+
+  @override
+  String get statEnabledTooltip => 'Моды, которые игра загружает.';
+
+  @override
+  String get statEnabledTooltipActive =>
+      'Показаны только включённые моды. Нажми, чтобы снова увидеть все.';
+
+  @override
+  String get statDisabledTooltip =>
+      'Моды, которые лежат в папке, но выключены.';
+
+  @override
+  String get statDisabledTooltipActive =>
+      'Показаны только выключенные моды. Нажми, чтобы снова увидеть все.';
 
   @override
   String get conflictTooltipActive =>

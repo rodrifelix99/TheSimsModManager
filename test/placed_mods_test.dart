@@ -239,6 +239,41 @@ void main() {
         reason: 'the other install still has it');
   });
 
+  test('the sidebar counts a placed mod in a game that is not on screen',
+      () async {
+    // The sidebar's count for the other games comes from its own pass,
+    // which read the folder straight and so missed everything sitting in
+    // one it cannot sweep - The Sims 1 read one short until it was
+    // selected.
+    SharedPreferences.setMockInitialValues({
+      'soundEffects': false,
+      'placedMods':
+          '{"sims1": [${record(['GameData', 'Global', 'marriage.iff'])}]}',
+    });
+    makeInstall();
+    makeFile(['Maxis', 'The Sims', 'Downloads', 'sofa.iff']);
+    makeFile(['Maxis', 'The Sims', 'GameData', 'Global', 'marriage.iff']);
+    // Maxis's own file next to it, which must not reach the count either.
+    makeFile(['Maxis', 'The Sims', 'GameData', 'Global', 'Global.iff']);
+
+    final sims1 = Sims1Adapter(programFilesOverride: [root.path]);
+    final c = AppController(
+      // Sims 4 comes first, so it is the one init() opens on and Sims 1
+      // is counted by the sidebar pass rather than by refresh().
+      registry:
+          GameRegistry([Sims4Adapter(documentsOverride: root), sims1]),
+      settings: await SettingsStore.load(),
+      checkUpdates: () async => null,
+      loadAdvisories: () async => null,
+      fetchShop: () async => null,
+    );
+    await c.init();
+    expect(c.adapter.game.id, 'sims4',
+        reason: 'Sims 1 has to be the background one');
+
+    expect(c.modCounts['sims1'], 2);
+  });
+
   group('parsing', () {
     test('round trips', () {
       final placed = {

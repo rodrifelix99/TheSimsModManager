@@ -226,6 +226,21 @@ class LPt extends L {
   String get searchMods => 'Buscar mods…';
 
   @override
+  String get viewGrid => 'Grade';
+
+  @override
+  String get viewList => 'Lista';
+
+  @override
+  String get viewFolders => 'Pastas';
+
+  @override
+  String get libraryRefresh => 'Atualizar';
+
+  @override
+  String get libraryRootFolder => 'Pasta Mods';
+
+  @override
   String get install => 'Instalar';
 
   @override
@@ -298,6 +313,27 @@ class LPt extends L {
 
   @override
   String get statConflicts => 'Conflitos';
+
+  @override
+  String get statTotalTooltip => 'Todos os mods desta pasta, ligados ou não.';
+
+  @override
+  String get statTotalTooltipClear =>
+      'Todos os mods desta pasta. Clique para largar a busca e os filtros.';
+
+  @override
+  String get statEnabledTooltip => 'Os mods que o jogo carrega.';
+
+  @override
+  String get statEnabledTooltipActive =>
+      'Mostrando só os mods ativos. Clique para ver todos de novo.';
+
+  @override
+  String get statDisabledTooltip => 'Mods que estão na pasta mas desligados.';
+
+  @override
+  String get statDisabledTooltipActive =>
+      'Mostrando só os mods inativos. Clique para ver todos de novo.';
 
   @override
   String get conflictTooltipActive =>

@@ -225,6 +225,21 @@ class LDe extends L {
   String get searchMods => 'Mods suchen…';
 
   @override
+  String get viewGrid => 'Raster';
+
+  @override
+  String get viewList => 'Liste';
+
+  @override
+  String get viewFolders => 'Ordner';
+
+  @override
+  String get libraryRefresh => 'Aktualisieren';
+
+  @override
+  String get libraryRootFolder => 'Mods-Ordner';
+
+  @override
   String get install => 'Installieren';
 
   @override
@@ -297,6 +312,29 @@ class LDe extends L {
 
   @override
   String get statConflicts => 'Konflikte';
+
+  @override
+  String get statTotalTooltip =>
+      'Alle Mods in diesem Ordner, aktiv oder nicht.';
+
+  @override
+  String get statTotalTooltipClear =>
+      'Alle Mods in diesem Ordner. Klick, um Suche und Filter fallen zu lassen.';
+
+  @override
+  String get statEnabledTooltip => 'Mods, die das Spiel lädt.';
+
+  @override
+  String get statEnabledTooltipActive =>
+      'Es werden nur aktive Mods gezeigt. Klick, um wieder alle zu sehen.';
+
+  @override
+  String get statDisabledTooltip =>
+      'Mods, die im Ordner liegen, aber ausgeschaltet sind.';
+
+  @override
+  String get statDisabledTooltipActive =>
+      'Es werden nur inaktive Mods gezeigt. Klick, um wieder alle zu sehen.';
 
   @override
   String get conflictTooltipActive =>
