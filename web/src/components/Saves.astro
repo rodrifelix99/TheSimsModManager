@@ -1,0 +1,39 @@
+---
+import { useTranslations, type Locale } from '../i18n';
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+---
+
+<section id="saves">
+  <div class="wrap">
+    <div class="head">
+      <h2 data-reveal="0" set:html={t('saves.h2')} />
+      <p class="lead" data-reveal="0.05" set:html={t('saves.lead')} />
+    </div>
+
+    <div class="saves-shots">
+      <figure data-reveal="0">
+        <img
+          src="/images/save-households-ts4.png"
+          alt={t.plain('saves.householdsAlt')}
+          width="1600"
+          loading="lazy"
+        />
+        <figcaption set:html={t('saves.householdsCap')} />
+      </figure>
+      <figure data-reveal="0.06">
+        <img
+          src="/images/save-stats-ts2.png"
+          alt={t.plain('saves.statsAlt')}
+          width="1600"
+          loading="lazy"
+        />
+        <figcaption set:html={t('saves.statsCap')} />
+      </figure>
+    </div>
+  </div>
+</section>

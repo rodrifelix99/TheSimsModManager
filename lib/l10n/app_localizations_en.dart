@@ -134,6 +134,20 @@ class LEn extends L {
   }
 
   @override
+  String shopVariations(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count variations',
+      one: '1 variation',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get shopVariationPick => 'Pick a variation';
+
+  @override
   String get shopBack => 'Back to the shelves';
 
   @override
@@ -339,7 +353,7 @@ class LEn extends L {
 
   @override
   String get conflictTooltip =>
-      'Enabled mods sharing a file name with another enabled mod, installed in more than one version, or overriding the same in-game resources. The game only keeps the copy it loads last — sometimes intentional (patch mods), often not.';
+      'Enabled mods sharing a file name with another enabled mod, installed in more than one version, or overriding the same in-game resources. The game only keeps the copy it loads last, sometimes intentional (patch mods), often not.';
 
   @override
   String get conflictTooltipClickHint => 'Click to show only these mods.';
@@ -497,7 +511,7 @@ class LEn extends L {
 
   @override
   String get conflictResourcesBody =>
-      'These packages contain resources with the same identifiers, so the game only keeps the copy it loads last. That can be intentional — patch and override mods shadow another mod\'s resources on purpose — but for unrelated mods it means one of them silently stops working: keep the one you want and disable the rest.';
+      'These packages contain resources with the same identifiers, so the game only keeps the copy it loads last. That can be intentional (patch and override mods shadow another mod\'s resources on purpose), but for unrelated mods it means one of them silently stops working: keep the one you want and disable the rest.';
 
   @override
   String advisoryBanner(int count) {
@@ -900,37 +914,37 @@ class LEn extends L {
 
   @override
   String errorSims3PackWorld(String name) {
-    return '$name is a world, not custom content. Install it with The Sims 3 Launcher — the game keeps worlds outside the mods folder.';
+    return '$name is a world, not custom content. Install it with The Sims 3 Launcher - the game keeps worlds outside the mods folder.';
   }
 
   @override
   String errorSims3PackLibrary(String name) {
-    return '$name is a lot or a household, not custom content. Install it with The Sims 3 Launcher — it lands in your in-game Library.';
+    return '$name is a lot or a household, not custom content. Install it with The Sims 3 Launcher - it lands in your in-game Library.';
   }
 
   @override
   String errorInstallFailed(String name, String reason) {
-    return '“$name” couldn’t be installed — $reason. Unpack it manually and install the files inside if it keeps failing.';
+    return '“$name” couldn’t be installed - $reason. Unpack it manually and install the files inside if it keeps failing.';
   }
 
   @override
   String errorInstallFailedRaw(String name, String reason) {
-    return '“$name” couldn’t be installed — $reason';
+    return '“$name” couldn’t be installed - $reason';
   }
 
   @override
   String errorFileInUseDelete(String name) {
-    return '“$name” couldn’t be deleted — it’s in use by another program (is the game running?) or write-protected. Close anything using it and try again.';
+    return '“$name” couldn’t be deleted - it’s in use by another program (is the game running?) or write-protected. Close anything using it and try again.';
   }
 
   @override
   String errorFileInUseRename(String name) {
-    return '“$name” couldn’t be renamed — it’s in use by another program (is the game running?) or write-protected. Close anything using it and try again.';
+    return '“$name” couldn’t be renamed - it’s in use by another program (is the game running?) or write-protected. Close anything using it and try again.';
   }
 
   @override
   String errorFileMissing(String name) {
-    return '“$name” is no longer in the mods folder — it may have been moved or deleted by another program.';
+    return '“$name” is no longer in the mods folder - it may have been moved or deleted by another program.';
   }
 
   @override
@@ -956,7 +970,7 @@ class LEn extends L {
       other: '$count mods are',
       one: 'One mod is',
     );
-    return '$_temp0 in a subfolder the game doesn’t read. It only looks $levels folders deep inside the mods folder — move them higher up and they’ll load.';
+    return '$_temp0 in a subfolder the game doesn’t read. It only looks $levels folders deep inside the mods folder - move them higher up and they’ll load.';
   }
 
   @override
@@ -964,7 +978,7 @@ class LEn extends L {
 
   @override
   String errorNoWriteAccess(String folder) {
-    return 'The app isn’t allowed to write to “$folder”. Your system protects that folder — give your account write access to it, or point the app somewhere else in Settings.';
+    return 'The app isn’t allowed to write to “$folder”. Your system protects that folder - give your account write access to it, or point the app somewhere else in Settings.';
   }
 
   @override
@@ -973,7 +987,7 @@ class LEn extends L {
 
   @override
   String get elevatedNoDropBanner =>
-      'You’re running as administrator, so Windows won’t let you drag files onto the window. Use the Install button instead — that still works.';
+      'You’re running as administrator, so Windows won’t let you drag files onto the window. Use the Install button instead - that still works.';
 
   @override
   String errorShopDownload(String name) {
@@ -1014,7 +1028,7 @@ class LEn extends L {
 
   @override
   String savesEmptyBody(String game) {
-    return 'Once you play $game and save, your worlds show up here — families, photos and all.';
+    return 'Once you play $game and save, your worlds show up here - families, photos and all.';
   }
 
   @override
@@ -1541,7 +1555,7 @@ class LEn extends L {
 
   @override
   String get setupHelpSims1 =>
-      'The original The Sims keeps custom content inside its install folder, not Documents: objects go in a Downloads folder next to the game executable (e.g. C:\\Program Files (x86)\\Maxis\\The Sims\\Downloads), and this app sorts the other types automatically — skins (.skn/.cmx/.bmp) into GameData\\Skins, walls and floors into GameData\\Walls and GameData\\Floors. The 2025 Legacy Collection works the same way from its own install folder (EA Games\\The Sims Legacy, or Steam\\steamapps\\common\\The Sims Legacy Collection). If the game is installed somewhere else (a different drive, a custom Steam library), pick its Downloads folder manually.';
+      'The original The Sims keeps custom content inside its install folder, not Documents: objects go in a Downloads folder next to the game executable (e.g. C:\\Program Files (x86)\\Maxis\\The Sims\\Downloads), and this app sorts the other types automatically - skins (.skn/.cmx/.bmp) into GameData\\Skins, walls and floors into GameData\\Walls and GameData\\Floors. The 2025 Legacy Collection works the same way from its own install folder (EA Games\\The Sims Legacy, or Steam\\steamapps\\common\\The Sims Legacy Collection). If the game is installed somewhere else (a different drive, a custom Steam library), pick its Downloads folder manually.';
 
   @override
   String get setupHelpSims2 =>

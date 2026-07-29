@@ -135,6 +135,20 @@ class LFr extends L {
   }
 
   @override
+  String shopVariations(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count variantes',
+      one: '1 variante',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get shopVariationPick => 'Choisis une variante';
+
+  @override
   String get shopBack => 'Retour aux rayons';
 
   @override
@@ -343,7 +357,7 @@ class LFr extends L {
 
   @override
   String get conflictTooltip =>
-      'Les mods actifs qui partagent un nom de fichier avec un autre mod actif, qui sont installés en plusieurs versions, ou qui écrasent les mêmes ressources du jeu. Le jeu ne garde que la copie chargée en dernier — parfois c’est voulu (mods correctifs), souvent non.';
+      'Les mods actifs qui partagent un nom de fichier avec un autre mod actif, qui sont installés en plusieurs versions, ou qui écrasent les mêmes ressources du jeu. Le jeu ne garde que la copie chargée en dernier : parfois c’est voulu (mods correctifs), souvent non.';
 
   @override
   String get conflictTooltipClickHint => 'Clique pour n’afficher que ces mods.';
@@ -501,7 +515,7 @@ class LFr extends L {
 
   @override
   String get conflictResourcesBody =>
-      'Ces paquets contiennent des ressources aux mêmes identifiants, donc le jeu ne garde que la copie chargée en dernier. Ça peut être voulu — les mods correctifs et les overrides recouvrent les ressources d’un autre mod exprès — mais entre mods sans rapport, ça veut dire que l’un d’eux cesse de fonctionner sans rien dire : garde celui que tu veux et désactive les autres.';
+      'Ces paquets contiennent des ressources aux mêmes identifiants, donc le jeu ne garde que la copie chargée en dernier. Ça peut être voulu (les mods correctifs et les overrides recouvrent les ressources d’un autre mod exprès), mais entre mods sans rapport, ça veut dire que l’un d’eux cesse de fonctionner sans rien dire : garde celui que tu veux et désactive les autres.';
 
   @override
   String advisoryBanner(int count) {
@@ -906,37 +920,37 @@ class LFr extends L {
 
   @override
   String errorSims3PackWorld(String name) {
-    return '$name est un monde, pas du contenu personnalisé. Installe-le avec le Launcher des Sims 3 — le jeu range les mondes en dehors du dossier de mods.';
+    return '$name est un monde, pas du contenu personnalisé. Installe-le avec le Launcher des Sims 3 : le jeu range les mondes en dehors du dossier de mods.';
   }
 
   @override
   String errorSims3PackLibrary(String name) {
-    return '$name est un terrain ou un ménage, pas du contenu personnalisé. Installe-le avec le Launcher des Sims 3 — il atterrit dans ta Bibliothèque en jeu.';
+    return '$name est un terrain ou un ménage, pas du contenu personnalisé. Installe-le avec le Launcher des Sims 3 : il atterrit dans ta Bibliothèque en jeu.';
   }
 
   @override
   String errorInstallFailed(String name, String reason) {
-    return '« $name » n’a pas pu être installé — $reason. Si ça continue, décompresse-le à la main et installe les fichiers qu’il contient.';
+    return '« $name » n’a pas pu être installé : $reason. Si ça continue, décompresse-le à la main et installe les fichiers qu’il contient.';
   }
 
   @override
   String errorInstallFailedRaw(String name, String reason) {
-    return '« $name » n’a pas pu être installé — $reason';
+    return '« $name » n’a pas pu être installé : $reason';
   }
 
   @override
   String errorFileInUseDelete(String name) {
-    return '« $name » n’a pas pu être supprimé — un autre programme l’utilise (le jeu est lancé ?) ou il est protégé en écriture. Ferme ce qui l’utilise et réessaie.';
+    return '« $name » n’a pas pu être supprimé : un autre programme l’utilise (le jeu est lancé ?) ou il est protégé en écriture. Ferme ce qui l’utilise et réessaie.';
   }
 
   @override
   String errorFileInUseRename(String name) {
-    return '« $name » n’a pas pu être renommé — un autre programme l’utilise (le jeu est lancé ?) ou il est protégé en écriture. Ferme ce qui l’utilise et réessaie.';
+    return '« $name » n’a pas pu être renommé : un autre programme l’utilise (le jeu est lancé ?) ou il est protégé en écriture. Ferme ce qui l’utilise et réessaie.';
   }
 
   @override
   String errorFileMissing(String name) {
-    return '« $name » n’est plus dans le dossier de mods — un autre programme l’a peut-être déplacé ou supprimé.';
+    return '« $name » n’est plus dans le dossier de mods : un autre programme l’a peut-être déplacé ou supprimé.';
   }
 
   @override
@@ -962,7 +976,7 @@ class LFr extends L {
       other: '$count mods sont',
       one: 'Un mod est',
     );
-    return '$_temp0 dans un sous-dossier que le jeu ne lit pas. Il ne descend que de $levels dossiers — remonte-les d’un cran et ils se chargeront.';
+    return '$_temp0 dans un sous-dossier que le jeu ne lit pas. Il ne descend que de $levels dossiers, alors remonte-les d’un cran et ils se chargeront.';
   }
 
   @override
@@ -970,7 +984,7 @@ class LFr extends L {
 
   @override
   String errorNoWriteAccess(String folder) {
-    return 'L’appli n’a pas le droit d’écrire dans « $folder ». Ton système protège ce dossier — donne à ton compte l’accès en écriture, ou choisis un autre dossier dans les Réglages.';
+    return 'L’appli n’a pas le droit d’écrire dans « $folder ». Ton système protège ce dossier : donne à ton compte l’accès en écriture, ou choisis un autre dossier dans les Réglages.';
   }
 
   @override
@@ -979,7 +993,7 @@ class LFr extends L {
 
   @override
   String get elevatedNoDropBanner =>
-      'Tu es en administrateur, du coup Windows empêche de glisser des fichiers sur la fenêtre. Passe par le bouton Installer — lui marche toujours.';
+      'Tu es en administrateur, du coup Windows empêche de glisser des fichiers sur la fenêtre. Passe par le bouton Installer, lui marche toujours.';
 
   @override
   String errorShopDownload(String name) {
@@ -1020,7 +1034,7 @@ class LFr extends L {
 
   @override
   String savesEmptyBody(String game) {
-    return 'Dès que tu joues à $game et que tu sauvegardes, tes mondes s\'affichent ici — familles, photos et tout le reste.';
+    return 'Dès que tu joues à $game et que tu sauvegardes, tes mondes s\'affichent ici : familles, photos et tout le reste.';
   }
 
   @override
@@ -1547,7 +1561,7 @@ class LFr extends L {
 
   @override
   String get setupHelpSims1 =>
-      'Le tout premier Les Sims garde le contenu personnalisé dans son dossier d’installation, pas dans Documents : les objets vont dans un dossier Downloads à côté de l’exécutable du jeu (par exemple C:\\Program Files (x86)\\Maxis\\The Sims\\Downloads), et l’appli range les autres types toute seule — les skins (.skn/.cmx/.bmp) dans GameData\\Skins, les murs et les sols dans GameData\\Walls et GameData\\Floors. La Legacy Collection de 2025 fonctionne pareil depuis son propre dossier d’installation (EA Games\\The Sims Legacy, ou Steam\\steamapps\\common\\The Sims Legacy Collection). Si le jeu est installé ailleurs (autre disque, bibliothèque Steam personnalisée), choisis son dossier Downloads à la main.';
+      'Le tout premier Les Sims garde le contenu personnalisé dans son dossier d’installation, pas dans Documents : les objets vont dans un dossier Downloads à côté de l’exécutable du jeu (par exemple C:\\Program Files (x86)\\Maxis\\The Sims\\Downloads), et l’appli range les autres types toute seule : les skins (.skn/.cmx/.bmp) dans GameData\\Skins, les murs et les sols dans GameData\\Walls et GameData\\Floors. La Legacy Collection de 2025 fonctionne pareil depuis son propre dossier d’installation (EA Games\\The Sims Legacy, ou Steam\\steamapps\\common\\The Sims Legacy Collection). Si le jeu est installé ailleurs (autre disque, bibliothèque Steam personnalisée), choisis son dossier Downloads à la main.';
 
   @override
   String get setupHelpSims2 =>

@@ -135,6 +135,20 @@ class LDe extends L {
   }
 
   @override
+  String shopVariations(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Varianten',
+      one: '1 Variante',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get shopVariationPick => 'Wähl eine Variante';
+
+  @override
   String get shopBack => 'Zurück zu den Regalen';
 
   @override
@@ -342,7 +356,7 @@ class LDe extends L {
 
   @override
   String get conflictTooltip =>
-      'Aktive Mods, die sich einen Dateinamen mit einem anderen aktiven Mod teilen, die in mehreren Versionen installiert sind oder die dieselben Spielressourcen überschreiben. Das Spiel behält nur die zuletzt geladene Kopie — manchmal ist das Absicht (Patch-Mods), oft aber nicht.';
+      'Aktive Mods, die sich einen Dateinamen mit einem anderen aktiven Mod teilen, die in mehreren Versionen installiert sind oder die dieselben Spielressourcen überschreiben. Das Spiel behält nur die zuletzt geladene Kopie: manchmal ist das Absicht (Patch-Mods), oft aber nicht.';
 
   @override
   String get conflictTooltipClickHint => 'Klick, um nur diese Mods zu sehen.';
@@ -502,7 +516,7 @@ class LDe extends L {
 
   @override
   String get conflictResourcesBody =>
-      'Diese Pakete enthalten Ressourcen mit denselben Kennungen, also behält das Spiel nur die zuletzt geladene Kopie. Das kann Absicht sein — Patch- und Override-Mods überdecken die Ressourcen anderer Mods bewusst —, aber bei Mods, die nichts miteinander zu tun haben, hört einer davon einfach still auf zu funktionieren: behalte den, den du willst, und deaktiviere die anderen.';
+      'Diese Pakete enthalten Ressourcen mit denselben Kennungen, also behält das Spiel nur die zuletzt geladene Kopie. Das kann Absicht sein (Patch- und Override-Mods überdecken die Ressourcen anderer Mods bewusst), aber bei Mods, die nichts miteinander zu tun haben, hört einer davon einfach still auf zu funktionieren: behalte den, den du willst, und deaktiviere die anderen.';
 
   @override
   String advisoryBanner(int count) {
@@ -908,37 +922,37 @@ class LDe extends L {
 
   @override
   String errorSims3PackWorld(String name) {
-    return '$name ist eine Welt, kein Custom Content. Installier sie über den Die Sims 3 Launcher — Welten legt das Spiel außerhalb des Mods-Ordners ab.';
+    return '$name ist eine Welt, kein Custom Content. Installier sie über den Die Sims 3 Launcher. Welten legt das Spiel außerhalb des Mods-Ordners ab.';
   }
 
   @override
   String errorSims3PackLibrary(String name) {
-    return '$name ist ein Grundstück oder ein Haushalt, kein Custom Content. Installier es über den Die Sims 3 Launcher — es landet in deiner Bibliothek im Spiel.';
+    return '$name ist ein Grundstück oder ein Haushalt, kein Custom Content. Installier es über den Die Sims 3 Launcher. Es landet in deiner Bibliothek im Spiel.';
   }
 
   @override
   String errorInstallFailed(String name, String reason) {
-    return '„$name“ konnte nicht installiert werden — $reason. Wenn es weiter schiefgeht, entpack es von Hand und installier die Dateien daraus.';
+    return '„$name“ konnte nicht installiert werden: $reason. Wenn es weiter schiefgeht, entpack es von Hand und installier die Dateien daraus.';
   }
 
   @override
   String errorInstallFailedRaw(String name, String reason) {
-    return '„$name“ konnte nicht installiert werden — $reason';
+    return '„$name“ konnte nicht installiert werden: $reason';
   }
 
   @override
   String errorFileInUseDelete(String name) {
-    return '„$name“ konnte nicht gelöscht werden — die Datei wird von einem anderen Programm benutzt (läuft das Spiel?) oder ist schreibgeschützt. Schließ alles, was sie benutzt, und versuch es nochmal.';
+    return '„$name“ konnte nicht gelöscht werden: die Datei wird von einem anderen Programm benutzt (läuft das Spiel?) oder ist schreibgeschützt. Schließ alles, was sie benutzt, und versuch es nochmal.';
   }
 
   @override
   String errorFileInUseRename(String name) {
-    return '„$name“ konnte nicht umbenannt werden — die Datei wird von einem anderen Programm benutzt (läuft das Spiel?) oder ist schreibgeschützt. Schließ alles, was sie benutzt, und versuch es nochmal.';
+    return '„$name“ konnte nicht umbenannt werden: die Datei wird von einem anderen Programm benutzt (läuft das Spiel?) oder ist schreibgeschützt. Schließ alles, was sie benutzt, und versuch es nochmal.';
   }
 
   @override
   String errorFileMissing(String name) {
-    return '„$name“ liegt nicht mehr im Mods-Ordner — vielleicht hat ein anderes Programm die Datei verschoben oder gelöscht.';
+    return '„$name“ liegt nicht mehr im Mods-Ordner, vielleicht hat ein anderes Programm die Datei verschoben oder gelöscht.';
   }
 
   @override
@@ -964,7 +978,7 @@ class LDe extends L {
       other: '$count Mods liegen',
       one: 'Ein Mod liegt',
     );
-    return '$_temp0 in einem Unterordner, den das Spiel nicht liest. Es schaut nur $levels Ordner tief — schieb sie weiter nach oben, dann laden sie.';
+    return '$_temp0 in einem Unterordner, den das Spiel nicht liest. Es schaut nur $levels Ordner tief: schieb sie weiter nach oben, dann laden sie.';
   }
 
   @override
@@ -972,7 +986,7 @@ class LDe extends L {
 
   @override
   String errorNoWriteAccess(String folder) {
-    return 'Die App darf nicht in „$folder“ schreiben. Dein System schützt diesen Ordner — gib deinem Konto Schreibrechte darauf, oder wähl in den Einstellungen einen anderen Ordner.';
+    return 'Die App darf nicht in „$folder“ schreiben. Dein System schützt diesen Ordner: gib deinem Konto Schreibrechte darauf, oder wähl in den Einstellungen einen anderen Ordner.';
   }
 
   @override
@@ -981,7 +995,7 @@ class LDe extends L {
 
   @override
   String get elevatedNoDropBanner =>
-      'Du läufst als Administrator, deshalb lässt Windows keine Dateien aufs Fenster ziehen. Nimm stattdessen den Installieren-Button — der geht weiterhin.';
+      'Du läufst als Administrator, deshalb lässt Windows keine Dateien aufs Fenster ziehen. Nimm stattdessen den Installieren-Button, der geht weiterhin.';
 
   @override
   String errorShopDownload(String name) {
@@ -1022,7 +1036,7 @@ class LDe extends L {
 
   @override
   String savesEmptyBody(String game) {
-    return 'Sobald du $game spielst und speicherst, tauchen deine Welten hier auf — mit Familien, Fotos und allem Drum und Dran.';
+    return 'Sobald du $game spielst und speicherst, tauchen deine Welten hier auf, mit Familien, Fotos und allem Drum und Dran.';
   }
 
   @override
@@ -1549,7 +1563,7 @@ class LDe extends L {
 
   @override
   String get setupHelpSims1 =>
-      'Das allererste Die Sims legt Custom Content in seinem Installationsordner ab, nicht in Dokumente: Objekte kommen in einen Downloads-Ordner neben die Spiel-EXE (z. B. C:\\Program Files (x86)\\Maxis\\The Sims\\Downloads), und diese App sortiert die übrigen Typen automatisch — Skins (.skn/.cmx/.bmp) nach GameData\\Skins, Wände und Böden nach GameData\\Walls und GameData\\Floors. Die Legacy Collection von 2025 funktioniert genauso aus ihrem eigenen Installationsordner (EA Games\\The Sims Legacy oder Steam\\steamapps\\common\\The Sims Legacy Collection). Wenn das Spiel woanders installiert ist (andere Festplatte, eigene Steam-Bibliothek), wähl seinen Downloads-Ordner von Hand aus.';
+      'Das allererste Die Sims legt Custom Content in seinem Installationsordner ab, nicht in Dokumente: Objekte kommen in einen Downloads-Ordner neben die Spiel-EXE (z. B. C:\\Program Files (x86)\\Maxis\\The Sims\\Downloads), und diese App sortiert die übrigen Typen automatisch: Skins (.skn/.cmx/.bmp) nach GameData\\Skins, Wände und Böden nach GameData\\Walls und GameData\\Floors. Die Legacy Collection von 2025 funktioniert genauso aus ihrem eigenen Installationsordner (EA Games\\The Sims Legacy oder Steam\\steamapps\\common\\The Sims Legacy Collection). Wenn das Spiel woanders installiert ist (andere Festplatte, eigene Steam-Bibliothek), wähl seinen Downloads-Ordner von Hand aus.';
 
   @override
   String get setupHelpSims2 =>

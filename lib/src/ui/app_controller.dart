@@ -2042,6 +2042,32 @@ class AppController extends ChangeNotifier {
     ];
   }
 
+  /// What the shelves actually lay out: [visibleShopMods] with each
+  /// creator's sets folded into one entry. The counts above and the
+  /// filter chips still count listings, because that is what is on offer
+  /// - a set of eight is eight mods behind one card, and the card says so.
+  List<ShopGroup> get visibleShopGroups => groupShopListings(visibleShopMods);
+
+  /// The set the open listing belongs to, or null when it belongs to
+  /// none. Drawn from the whole catalog rather than the filtered shelves:
+  /// a deep link clears the game filter, and the picker has to offer the
+  /// siblings either way. A deep-linked listing the catalog page didn't
+  /// carry is added to them for this one purpose - it is kept out of the
+  /// shelves and the counts so they agree with the query, but a link to
+  /// one colour still has to find the other seven.
+  ShopGroup? get selectedShopGroup {
+    final mod = selectedShopListing;
+    if (mod == null || shopGroupKey(mod) == null) return null;
+    final known = shopKnownMods;
+    final catalog = known.any((other) => other.id == mod.id)
+        ? known
+        : [mod, ...known];
+    for (final group in groupShopListings(catalog)) {
+      if (group.isSet && group.contains(mod.id)) return group;
+    }
+    return null;
+  }
+
   /// How many listings each game has, for the shop's filter chips.
   Map<String, int> get shopCountsByGame {
     final counts = <String, int>{};
@@ -2254,6 +2280,18 @@ class AppController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Swaps which variation of the open set is showing. The same screen
+  /// either way, so it makes no sound and takes no journey: the user is
+  /// picking a colour, not opening a mod.
+  void openShopVariant(ShopMod mod) {
+    if (_shopSelectedId == mod.id) return;
+    playSound(UiSound.click);
+    analytics.capture('shop_listing_opened',
+        {'game': mod.gameId, 'listing': mod.id, 'source': 'variant'});
+    _shopSelectedId = mod.id;
+    notifyListeners();
+  }
+
   /// Back to the shelves.
   void closeShopListing() {
     if (_shopSelectedId == null) return;
@@ -2371,7 +2409,30 @@ class AppController extends ChangeNotifier {
           advisories[mod.path] == null &&
           isDemoMod(mod);
     }).firstOrNull;
+    // The invented set, so the shelf card and the variation picker have
+    // their states too: one colour taken and current, the next one taken
+    // and since republished.
+    final variations = [
+      for (final listing in mine)
+        if (listing.group != null) listing,
+    ];
     _demoShopInstalls = {
+      if (variations.length > 1) ...{
+        variations.first.id: ShopInstall(
+          listingId: variations.first.id,
+          gameId: variations.first.gameId,
+          version: variations.first.version,
+          name: variations.first.name,
+          files: const [],
+        ),
+        variations[1].id: ShopInstall(
+          listingId: variations[1].id,
+          gameId: variations[1].gameId,
+          version: 'demo-older',
+          name: variations[1].name,
+          files: const [],
+        ),
+      },
       if (mine.length > 1)
         mine[1].id: ShopInstall(
           listingId: mine[1].id,

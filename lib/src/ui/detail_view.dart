@@ -415,7 +415,7 @@ class DetailView extends StatelessWidget {
     String rowLabel(Mod other) {
       final shared = c.sharedResourcesWith(mod, other);
       if (shared == 0) return relPath(other);
-      return '${relPath(other)} — ${l.sharedResources(shared)}';
+      return '${relPath(other)} - ${l.sharedResources(shared)}';
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),

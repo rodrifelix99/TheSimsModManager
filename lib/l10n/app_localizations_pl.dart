@@ -139,6 +139,22 @@ class LPl extends L {
   }
 
   @override
+  String shopVariations(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count wariantu',
+      many: '$count wariantów',
+      few: '$count warianty',
+      one: '1 wariant',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get shopVariationPick => 'Wybierz wariant';
+
+  @override
   String get shopBack => 'Wróć do półek';
 
   @override
@@ -348,7 +364,7 @@ class LPl extends L {
 
   @override
   String get conflictTooltip =>
-      'Włączone mody, które mają tę samą nazwę pliku co inny włączony mod, są zainstalowane w kilku wersjach albo nadpisują te same zasoby gry. Gra zostawia tylko tę kopię, którą wczyta na końcu — czasem to celowe (mody-łatki), ale często nie.';
+      'Włączone mody, które mają tę samą nazwę pliku co inny włączony mod, są zainstalowane w kilku wersjach albo nadpisują te same zasoby gry. Gra zostawia tylko tę kopię, którą wczyta na końcu, czasem to celowe (mody-łatki), ale często nie.';
 
   @override
   String get conflictTooltipClickHint =>
@@ -517,7 +533,7 @@ class LPl extends L {
 
   @override
   String get conflictResourcesBody =>
-      'Te paczki zawierają zasoby o tych samych identyfikatorach, więc gra zostawi tylko tę kopię, którą wczyta na końcu. Czasem tak ma być — mody-łatki i override celowo przykrywają zasoby innego moda — ale przy modach, które nie mają ze sobą nic wspólnego, oznacza to, że jeden po cichu przestaje działać: zostaw ten, na którym ci zależy, a resztę wyłącz.';
+      'Te paczki zawierają zasoby o tych samych identyfikatorach, więc gra zostawi tylko tę kopię, którą wczyta na końcu. Czasem tak ma być (mody-łatki i override celowo przykrywają zasoby innego moda), ale przy modach, które nie mają ze sobą nic wspólnego, oznacza to, że jeden po cichu przestaje działać: zostaw ten, na którym ci zależy, a resztę wyłącz.';
 
   @override
   String advisoryBanner(int count) {
@@ -605,7 +621,7 @@ class LPl extends L {
 
   @override
   String statusDisabledBody(String marker) {
-    return 'Ten mod jest wyłączony: plik zostaje na dysku z dopiskiem „$marker”, żeby gra go pominęła. Możesz włączyć go, kiedy chcesz — nic nie znika.';
+    return 'Ten mod jest wyłączony: plik zostaje na dysku z dopiskiem „$marker”, żeby gra go pominęła. Możesz włączyć go, kiedy chcesz. Nic nie znika.';
   }
 
   @override
@@ -816,7 +832,7 @@ class LPl extends L {
 
   @override
   String get wikiDesc =>
-      'Jak instalować mody, naprawić wykrywanie folderów i więcej — na wiki projektu';
+      'Jak instalować mody, naprawić wykrywanie folderów i więcej, na wiki projektu';
 
   @override
   String get wikiButton => 'Otwórz wiki';
@@ -927,37 +943,37 @@ class LPl extends L {
 
   @override
   String errorSims3PackWorld(String name) {
-    return '$name to świat, a nie zawartość niestandardowa. Zainstaluj go Launcherem The Sims 3 — gra trzyma światy poza folderem modów.';
+    return '$name to świat, a nie zawartość niestandardowa. Zainstaluj go Launcherem The Sims 3: gra trzyma światy poza folderem modów.';
   }
 
   @override
   String errorSims3PackLibrary(String name) {
-    return '$name to działka albo rodzina, a nie zawartość niestandardowa. Zainstaluj to Launcherem The Sims 3 — trafi do twojej Biblioteki w grze.';
+    return '$name to działka albo rodzina, a nie zawartość niestandardowa. Zainstaluj to Launcherem The Sims 3: trafi do twojej Biblioteki w grze.';
   }
 
   @override
   String errorInstallFailed(String name, String reason) {
-    return 'Nie udało się zainstalować „$name” — $reason. Jeśli będzie się powtarzać, rozpakuj ręcznie i zainstaluj pliki ze środka.';
+    return 'Nie udało się zainstalować „$name”: $reason. Jeśli będzie się powtarzać, rozpakuj ręcznie i zainstaluj pliki ze środka.';
   }
 
   @override
   String errorInstallFailedRaw(String name, String reason) {
-    return 'Nie udało się zainstalować „$name” — $reason';
+    return 'Nie udało się zainstalować „$name”: $reason';
   }
 
   @override
   String errorFileInUseDelete(String name) {
-    return 'Nie udało się usunąć „$name” — plik jest używany przez inny program (gra jest włączona?) albo chroniony przed zapisem. Zamknij wszystko, co go używa, i spróbuj ponownie.';
+    return 'Nie udało się usunąć „$name”: plik jest używany przez inny program (gra jest włączona?) albo chroniony przed zapisem. Zamknij wszystko, co go używa, i spróbuj ponownie.';
   }
 
   @override
   String errorFileInUseRename(String name) {
-    return 'Nie udało się zmienić nazwy „$name” — plik jest używany przez inny program (gra jest włączona?) albo chroniony przed zapisem. Zamknij wszystko, co go używa, i spróbuj ponownie.';
+    return 'Nie udało się zmienić nazwy „$name”: plik jest używany przez inny program (gra jest włączona?) albo chroniony przed zapisem. Zamknij wszystko, co go używa, i spróbuj ponownie.';
   }
 
   @override
   String errorFileMissing(String name) {
-    return '„$name” nie ma już w folderze modów — możliwe, że inny program go przeniósł albo usunął.';
+    return '„$name” nie ma już w folderze modów: możliwe, że inny program go przeniósł albo usunął.';
   }
 
   @override
@@ -982,7 +998,7 @@ class LPl extends L {
       locale: localeName,
       other: '$count modów',
     );
-    return '$_temp0 siedzi w podfolderze, którego gra nie czyta. Schodzi tylko $levels foldery w głąb — przenieś je wyżej, to się wczytają.';
+    return '$_temp0 siedzi w podfolderze, którego gra nie czyta. Schodzi tylko $levels foldery w głąb. Przenieś je wyżej, to się wczytają.';
   }
 
   @override
@@ -990,7 +1006,7 @@ class LPl extends L {
 
   @override
   String errorNoWriteAccess(String folder) {
-    return 'Apka nie ma uprawnień do zapisu w „$folder”. System chroni ten folder — nadaj swojemu kontu prawo zapisu albo wskaż inny folder w Ustawieniach.';
+    return 'Apka nie ma uprawnień do zapisu w „$folder”. System chroni ten folder: nadaj swojemu kontu prawo zapisu albo wskaż inny folder w Ustawieniach.';
   }
 
   @override
@@ -999,7 +1015,7 @@ class LPl extends L {
 
   @override
   String get elevatedNoDropBanner =>
-      'Działasz jako administrator, więc Windows nie pozwala przeciągać plików na okno. Skorzystaj z przycisku Zainstaluj — ten dalej działa.';
+      'Działasz jako administrator, więc Windows nie pozwala przeciągać plików na okno. Skorzystaj z przycisku Zainstaluj, ten dalej działa.';
 
   @override
   String errorShopDownload(String name) {
@@ -1040,7 +1056,7 @@ class LPl extends L {
 
   @override
   String savesEmptyBody(String game) {
-    return 'Zagraj w $game i zapisz grę — twoje światy pojawią się tutaj: rodziny, zdjęcia i cała reszta.';
+    return 'Zagraj w $game i zapisz grę, a twoje światy pojawią się tutaj: rodziny, zdjęcia i cała reszta.';
   }
 
   @override
@@ -1581,11 +1597,11 @@ class LPl extends L {
 
   @override
   String get setupHelpSims1 =>
-      'Pierwsze The Sims trzyma własną zawartość w folderze instalacji, a nie w Dokumentach: obiekty trafiają do folderu Downloads obok pliku wykonywalnego gry (na przykład C:\\Program Files (x86)\\Maxis\\The Sims\\Downloads), a resztę aplikacja sortuje sama — skórki (.skn/.cmx/.bmp) do GameData\\Skins, ściany i podłogi do GameData\\Walls i GameData\\Floors. Legacy Collection z 2025 działa tak samo ze swojego folderu instalacji (EA Games\\The Sims Legacy albo Steam\\steamapps\\common\\The Sims Legacy Collection). Jeśli gra siedzi gdzie indziej (inny dysk, własna biblioteka Steam), wskaż jej folder Downloads ręcznie.';
+      'Pierwsze The Sims trzyma własną zawartość w folderze instalacji, a nie w Dokumentach: obiekty trafiają do folderu Downloads obok pliku wykonywalnego gry (na przykład C:\\Program Files (x86)\\Maxis\\The Sims\\Downloads), a resztę aplikacja sortuje sama: skórki (.skn/.cmx/.bmp) do GameData\\Skins, ściany i podłogi do GameData\\Walls i GameData\\Floors. Legacy Collection z 2025 działa tak samo ze swojego folderu instalacji (EA Games\\The Sims Legacy albo Steam\\steamapps\\common\\The Sims Legacy Collection). Jeśli gra siedzi gdzie indziej (inny dysk, własna biblioteka Steam), wskaż jej folder Downloads ręcznie.';
 
   @override
   String get setupHelpSims2 =>
-      'The Sims 2 wczytuje własną zawartość z Dokumenty > EA Games > The Sims 2 > Downloads (Ultimate Collection używa „The Sims 2 Ultimate Collection”, a Legacy Collection z 2025 — „The Sims 2 Legacy”). Folder może nie istnieć, dopóki go nie utworzysz albo raz czegoś nie zainstalujesz. Przy starcie gry odpowiedz „Tak” na pytanie o własną zawartość, żeby pobrane rzeczy się włączyły.';
+      'The Sims 2 wczytuje własną zawartość z Dokumenty > EA Games > The Sims 2 > Downloads (Ultimate Collection używa „The Sims 2 Ultimate Collection”, a Legacy Collection z 2025 używa „The Sims 2 Legacy”). Folder może nie istnieć, dopóki go nie utworzysz albo raz czegoś nie zainstalujesz. Przy starcie gry odpowiedz „Tak” na pytanie o własną zawartość, żeby pobrane rzeczy się włączyły.';
 
   @override
   String get setupHelpSims3 =>

@@ -224,6 +224,20 @@ const ticker = ['portal.ticker1', 'portal.ticker2', 'portal.ticker3', 'portal.ti
                 placeholder={t.plain('portal.editor.namePlaceholder')}
               />
               <div class="hint" set:html={t('portal.editor.nameHint')} />
+              <label for="f-group">
+                <Fragment set:html={t('portal.editor.group')} />{' '}
+                <span class="opt" set:html={t('portal.editor.optional')} />
+              </label>
+              <input
+                id="f-group"
+                maxlength="60"
+                list="group-names"
+                placeholder={t.plain('portal.editor.groupPlaceholder')}
+              />
+              {/* The sets you already have, so the second colour is a pick
+                  rather than a retyping: a typo would leave it on its own. */}
+              <datalist id="group-names"></datalist>
+              <div class="hint" set:html={t('portal.editor.groupHint')} />
               <div class="row">
                 <div class="grow">
                   <label for="f-game" set:html={t('portal.editor.game')} />

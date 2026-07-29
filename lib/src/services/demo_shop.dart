@@ -43,6 +43,10 @@ List<ShopMod> buildDemoShop(List<DemoShopGame> games,
         description: template.blurb,
         instructions: template.notes,
         authorName: creator,
+        // The handle stands in for the account: grouping is one
+        // creator's word, so the invented shelves need invented
+        // creators the same way the real ones need real ones.
+        authorUid: creator,
         fileName: '${creator}_$slug${archive ? '.zip' : game.fileExtension}',
         // A path that looks like the real thing, though nothing ever
         // fetches it: demo listings carry their bytes with them.
@@ -60,8 +64,41 @@ List<ShopMod> buildDemoShop(List<DemoShopGame> games,
       ));
       index++;
     }
+    listings.addAll(_variations(game, today: today));
   }
   return listings;
+}
+
+/// One invented set per game: the same recolour in five shades, each its
+/// own listing under one set name, which is how a creator actually
+/// publishes colours - one at a time, gathered afterwards. Appended after
+/// the plain listings so their ids and the records that point at them
+/// don't move.
+List<ShopMod> _variations(DemoShopGame game, {required DateTime today}) {
+  const creator = 'sagegrove';
+  const set = 'Linen Curtains';
+  const shades = ['Bone', 'Clay', 'Fern', 'Ink', 'Rose'];
+  return [
+    for (final (i, shade) in shades.indexed)
+      ShopMod(
+        id: 'demo-${game.id}-set-$i',
+        gameId: game.id,
+        name: '$set - $shade',
+        group: set,
+        version: '1.1',
+        description: 'Floor-length linen curtains in five shades, on a '
+            'slim brass rail. Each colour is its own download, so you can '
+            'take the ones you will actually use and leave the rest.',
+        authorName: creator,
+        authorUid: creator,
+        fileName: '${creator}_LinenCurtains_$shade${game.fileExtension}',
+        filePath: 'mods/demo/${game.id}-set-$i/${creator}_$shade',
+        fileSizeBytes: 210 * 1024 + i * 34000,
+        updatedAt: today.subtract(Duration(days: i + 2)),
+        downloads: 400 + i * 260,
+        demoImages: [demoListingArt(90 + i), demoListingArt(90 + i, 1)],
+      ),
+  ];
 }
 
 /// How many listings each game gets. Enough that the grid fills a window

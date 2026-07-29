@@ -201,7 +201,7 @@ class LibraryView extends StatelessWidget {
             Expanded(
               child: Text(
                 title is String && title.isNotEmpty
-                    ? '$title — $message'
+                    ? '$title: $message'
                     : message,
                 style: TextStyle(
                   fontSize: 13,

@@ -285,6 +285,17 @@ figure.shot figcaption {
   margin-top: 14px; text-align: center; font-size: 13.5px; font-weight: 700; color: var(--muted);
 }
 
+/* ---------- saves ---------- */
+#saves { padding: clamp(56px, 7vw, 88px) 0; }
+.saves-shots {
+  display: grid; gap: clamp(26px, 4vw, 38px); margin-top: clamp(34px, 5vw, 52px);
+  grid-template-columns: repeat(auto-fit, minmax(min(430px, 100%), 1fr));
+}
+.saves-shots img { border-radius: 18px; }
+.saves-shots figcaption {
+  margin-top: 14px; text-align: center; font-size: 13.5px; font-weight: 700; color: var(--muted);
+}
+
 /* ---------- download ---------- */
 .version-pill {
   display: inline-block; margin-top: 14px; padding: 5px 16px; border-radius: 999px;

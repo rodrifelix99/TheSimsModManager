@@ -49,6 +49,29 @@ Map<String, Object?> _listing({
       'downloads': {'integerValue': '1284'},
     });
 
+/// A listing as the app holds it, for the grouping the shelves do.
+ShopMod _mod({
+  required String id,
+  required String name,
+  String? group,
+  String authorUid = 'u1',
+  String gameId = 'sims4',
+}) =>
+    ShopMod(
+      id: id,
+      gameId: gameId,
+      name: name,
+      version: '1.0',
+      description: 'A recolour.',
+      authorName: 'plumbob_pat',
+      authorUid: authorUid,
+      group: group,
+      fileName: '$id.package',
+      filePath: 'mods/$authorUid/$id/$id.package',
+      fileSizeBytes: 2048,
+      downloads: 1284,
+    );
+
 void main() {
   test('parses a runQuery response into listings', () {
     final body = jsonEncode([
@@ -109,6 +132,63 @@ void main() {
     expect(mods.single.instructions, isNull);
     expect(mods.single.updatedAt, isNull);
     expect(mods.single.coverUri, isNull);
+  });
+
+  test('a set name is read, and a blank one is no set at all', () {
+    final named = _listing();
+    ((named['document']! as Map)['fields']! as Map)['group'] = {
+      'stringValue': ' Comfy Sofa '
+    };
+    final blank = _listing(id: 'def456');
+    ((blank['document']! as Map)['fields']! as Map)['group'] = {
+      'stringValue': '   '
+    };
+    final mods = parseShopListings(jsonEncode([named, blank]));
+    expect(mods.first.group, 'Comfy Sofa');
+    expect(mods.last.group, isNull);
+    expect(shopGroupKey(mods.last), isNull);
+  });
+
+  test('same creator, same set name, same game is one shelf entry', () {
+    final groups = groupShopListings([
+      _mod(id: 'a', name: 'Comfy Sofa - Sage', group: 'Comfy Sofa'),
+      _mod(id: 'b', name: 'Lace Curtains'),
+      _mod(id: 'c', name: 'Comfy Sofa - Rust', group: 'comfy  sofa'),
+    ]);
+    // The set keeps the place its most recent variation had, and the
+    // creator's own spelling of the name.
+    expect(groups.map((g) => g.name), ['Comfy Sofa', 'Lace Curtains']);
+    expect(groups.first.isSet, isTrue);
+    expect(groups.first.lead.id, 'a');
+    // Reading order is the label's, not the catalog's: Rust before Sage.
+    expect(groups.first.variants.map((m) => m.id), ['c', 'a']);
+    expect(groups.last.isSet, isFalse);
+    // Counted numbers add up; nothing is estimated for the set.
+    expect(groups.first.downloads, 2568);
+  });
+
+  test('a set is one creator, one game - never two who chose the same name',
+      () {
+    final groups = groupShopListings([
+      _mod(id: 'a', name: 'Sage', group: 'Comfy Sofa'),
+      _mod(id: 'b', name: 'Rust', group: 'Comfy Sofa', authorUid: 'u2'),
+      _mod(id: 'c', name: 'Bone', group: 'Comfy Sofa', gameId: 'sims3'),
+      // A listing with no creator behind it is nobody's word to trust.
+      _mod(id: 'd', name: 'Ink', group: 'Comfy Sofa', authorUid: ''),
+    ]);
+    expect(groups, hasLength(4));
+    expect(groups.every((group) => !group.isSet), isTrue);
+  });
+
+  test('a variation is captioned by what its name adds to the set', () {
+    expect(shopVariantLabel('Comfy Sofa', 'Comfy Sofa - Sage'), 'Sage');
+    expect(shopVariantLabel('Comfy Sofa', 'Comfy Sofa (Sage)'), 'Sage');
+    expect(shopVariantLabel('Comfy Sofa', 'comfy sofa: Sage'), 'Sage');
+    // Nothing to strip, or nothing left after stripping: the creator's
+    // own name for the listing stands.
+    expect(shopVariantLabel('Comfy Sofa', 'Sage Sofa'), 'Sage Sofa');
+    expect(shopVariantLabel('Comfy Sofa', 'Comfy Sofa'), 'Comfy Sofa');
+    expect(shopVariantLabel('Comfy Sofa', 'Comfy Sofa -'), 'Comfy Sofa -');
   });
 
   test('non-JSON and non-list bodies parse to nothing', () {

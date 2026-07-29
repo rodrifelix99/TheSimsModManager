@@ -266,6 +266,10 @@ class ShopView extends StatelessWidget {
           ? _emptyShelves(t, c, l)
           : _emptyShelf(t, c, l, filtered);
     }
+    // One card per shelf entry rather than per listing: a creator's set
+    // of eight colours is one thing to consider, and the choice between
+    // them belongs on the page that describes it.
+    final groups = c.visibleShopGroups;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -282,8 +286,10 @@ class ShopView extends StatelessWidget {
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
                 ),
-                itemCount: mods.length,
-                itemBuilder: (context, i) => _card(t, c, l, mods[i]),
+                itemCount: groups.length,
+                itemBuilder: (context, i) => groups[i].isSet
+                    ? _setCard(t, c, l, groups[i])
+                    : _card(t, c, l, groups[i].lead),
               );
             },
           ),
@@ -609,7 +615,8 @@ class ShopView extends StatelessWidget {
                                   ),
                                 ),
                                 if (mod.downloads > 0)
-                                  _downloadCount(t, mod, leading: ' · '),
+                                  _downloadCount(t, mod.downloads,
+                                      leading: ' · '),
                               ],
                             ),
                           ),
@@ -627,12 +634,180 @@ class ShopView extends StatelessWidget {
     );
   }
 
+  /// A creator's set, as one card. It wears the most recently updated
+  /// variation's cover and says how many there are; what it does not
+  /// carry is an Install button, because there is no answer to which
+  /// colour that would be - the page behind it asks.
+  Widget _setCard(GameTheme t, AppController c, L l, ShopGroup group) {
+    final lead = group.lead;
+    final updatable =
+        group.variants.any((mod) => c.shopUpdateFor(mod) != null);
+    final installed =
+        !updatable && group.variants.any(c.isShopModInstalled);
+    return HoverBuilder(
+      cursor: SystemMouseCursors.click,
+      builder: (context, hovered) => GestureDetector(
+        onTap: () => _open(lead),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          transform: Matrix4.translationValues(0, hovered ? -3 : 0, 0),
+          decoration: BoxDecoration(
+            color: t.surface,
+            border: Border.all(color: hovered ? t.accent : t.border),
+            borderRadius: BorderRadius.circular(15),
+            boxShadow: hovered
+                ? [
+                    BoxShadow(
+                      color: t.shadow.withValues(alpha: .45),
+                      blurRadius: 34,
+                      offset: const Offset(0, 18),
+                    ),
+                  ]
+                : const [],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SizedBox(
+                height: 120,
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: _cover(lead,
+                          const BorderRadius.vertical(top: Radius.circular(14))),
+                    ),
+                    if (c.shopGameFilter == null)
+                      Positioned(
+                        left: 8,
+                        top: 8,
+                        child: _gameBadge(t, c, lead),
+                      ),
+                    Positioned(
+                      right: 8,
+                      bottom: 8,
+                      child: _plate(
+                        t,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.palette_outlined,
+                                size: 12.5, color: t.accent),
+                            const SizedBox(width: 4),
+                            Text(
+                              l.shopVariations(group.variants.length),
+                              style: TextStyle(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w800,
+                                color: t.text,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        group.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          height: 1.15,
+                          color: t.text,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        l.shopBy(lead.authorName),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: t.muted,
+                        ),
+                      ),
+                      const Spacer(),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // The set's takes, which is the sum of numbers
+                          // that were each counted; silent at zero, the
+                          // same as a lone listing's. Flexible because a
+                          // big number and a translated badge share one
+                          // narrow row.
+                          if (group.downloads > 0)
+                            Flexible(child: _downloadCount(t, group.downloads))
+                          else
+                            const SizedBox.shrink(),
+                          if (updatable)
+                            TagChip(
+                              label: l.shopUpdate,
+                              color: t.accent,
+                              background: t.tint,
+                            )
+                          else if (installed)
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.check_rounded,
+                                    size: 13, color: t.muted),
+                                const SizedBox(width: 4),
+                                Text(
+                                  l.shopInstalled,
+                                  style: TextStyle(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: t.muted,
+                                  ),
+                                ),
+                              ],
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// The solid backing a label needs to read over a screenshot.
+  Widget _plate(GameTheme t, {required Widget child}) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: t.surface.withValues(alpha: .88),
+          borderRadius: BorderRadius.circular(9),
+          boxShadow: [
+            BoxShadow(
+              color: t.shadow.withValues(alpha: .3),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: child,
+      );
+
   /// How many people have taken this mod, on the card next to its size.
   /// Only ever drawn above zero: a listing nobody has downloaded yet says
   /// more by saying nothing, and every listing published before there was
   /// a counter reads zero for reasons that are ours rather than the
   /// creator's.
-  Widget _downloadCount(GameTheme t, ShopMod mod, {String leading = ''}) {
+  Widget _downloadCount(GameTheme t, int downloads, {String leading = ''}) {
     final style = TextStyle(
       fontSize: 11.5,
       fontWeight: FontWeight.w700,
@@ -644,7 +819,10 @@ class ShopView extends StatelessWidget {
         if (leading.isNotEmpty) Text(leading, style: style),
         Icon(Icons.file_download_outlined, size: 12.5, color: t.muted),
         const SizedBox(width: 2),
-        Text(_count(mod.downloads), style: style),
+        Flexible(
+          child: Text(_count(downloads),
+              maxLines: 1, overflow: TextOverflow.ellipsis, style: style),
+        ),
       ],
     );
   }
@@ -925,6 +1103,76 @@ class ShopView extends StatelessWidget {
     );
   }
 
+  /// The row that swaps which variation of a set the page is about. Each
+  /// chip carries what the user already has of it - a tick for installed,
+  /// an arrow where the creator has published something newer - so the
+  /// answer to "which of these did I take?" is on screen rather than one
+  /// click away per colour.
+  Widget _variantPicker(
+      GameTheme t, AppController c, L l, ShopGroup group, ShopMod selected) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l.shopVariationPick.toUpperCase(), style: eyebrowStyle(t)),
+        const SizedBox(height: 7),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final variant in group.variants)
+              _variantChip(t, c, group, variant, variant.id == selected.id),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _variantChip(GameTheme t, AppController c, ShopGroup group,
+      ShopMod variant, bool selected) {
+    final updatable = c.shopUpdateFor(variant) != null;
+    final installed = !updatable && c.isShopModInstalled(variant);
+    return HoverBuilder(
+      cursor: SystemMouseCursors.click,
+      builder: (context, hovered) => GestureDetector(
+        onTap: () => c.openShopVariant(variant),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.fromLTRB(12, 7, 12, 7),
+          decoration: BoxDecoration(
+            color: selected ? t.tint : (hovered ? t.surfaceAlt : t.surface),
+            border: Border.all(
+              color: selected ? t.accent : t.border,
+              width: selected ? 1.5 : 1,
+            ),
+            borderRadius: BorderRadius.circular(11),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (installed) ...[
+                Icon(Icons.check_rounded, size: 13, color: t.muted),
+                const SizedBox(width: 5),
+              ],
+              if (updatable) ...[
+                Icon(Icons.arrow_circle_down_rounded,
+                    size: 13, color: t.accent),
+                const SizedBox(width: 5),
+              ],
+              Text(
+                shopVariantLabel(group.name, variant.name),
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w800,
+                  color: selected ? t.accent : t.text,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _info(GameTheme t, AppController c, L l, ShopMod mod) {
     final facts = <(String, String)>[
       if (mod.version.isNotEmpty) (l.factVersion, mod.version),
@@ -932,11 +1180,15 @@ class ShopView extends StatelessWidget {
       if (mod.updatedAt != null) (l.factModified, _updatedDate(mod)),
       if (mod.downloads > 0) (l.factDownloads, _count(mod.downloads)),
     ];
+    // Inside a set, the page is the set's: its name at the top, and the
+    // picker below choosing which variation everything under it - the
+    // facts, the button, the description - is about.
+    final group = c.selectedShopGroup;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          mod.name,
+          group?.name ?? mod.name,
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.w900,
@@ -965,6 +1217,10 @@ class ShopView extends StatelessWidget {
             ],
           ],
         ),
+        if (group != null) ...[
+          const SizedBox(height: 16),
+          _variantPicker(t, c, l, group, mod),
+        ],
         const SizedBox(height: 14),
         Wrap(
           spacing: 18,

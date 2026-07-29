@@ -54,6 +54,8 @@ class ShopMod {
     required this.filePath,
     required this.fileSizeBytes,
     this.instructions,
+    this.authorUid = '',
+    this.group,
     this.imagePaths = const [],
     this.updatedAt,
     this.downloads = 0,
@@ -77,6 +79,21 @@ class ShopMod {
   final String? instructions;
 
   final String authorName;
+
+  /// The creator's account, which is not shown anywhere - it is what
+  /// makes [group] one creator's word rather than a name any two of them
+  /// could pick and have merged into one shelf entry.
+  final String authorUid;
+
+  /// The creator's own name for a set these listings belong to: eight
+  /// colours of one recolour, three sizes of one window. Free text they
+  /// typed in the portal, absent on a listing that stands alone.
+  ///
+  /// Grouping is drawn, never stored differently: each variation stays
+  /// its own listing with its own id, link, download count and install
+  /// record, so a creator can publish them one at a time and gather them
+  /// afterwards without anything they already shared going stale.
+  final String? group;
 
   /// The download: its file name (what lands in the mods folder, or an
   /// archive the adapter unpacks), storage path and size.
@@ -112,6 +129,135 @@ class ShopMod {
       imagePaths.isEmpty ? null : shopFileUri(imagePaths.first);
 
   Uri imageUri(int index) => shopFileUri(imagePaths[index]);
+}
+
+/// One entry on the shelves: a listing that stands alone, or the set a
+/// creator gathered under one [name]. [variants] is never empty.
+///
+/// A set is only ever as complete as the catalog page it came from - a
+/// deep link can name one colour of eight while the other seven sit
+/// past the 300-listing cap - so a group holds exactly what was
+/// fetched. One variation left standing draws as the plain listing it
+/// is, which is also what every listing looked like before any of this.
+class ShopGroup {
+  const ShopGroup({
+    required this.name,
+    required this.lead,
+    required this.variants,
+    this.key,
+  });
+
+  /// Null for a listing that named no set, so nothing has to ask twice
+  /// whether two entries could ever merge.
+  final String? key;
+
+  /// The set's name, or the lone listing's own.
+  final String name;
+
+  /// The variation that put this entry where it is on the shelves - the
+  /// most recently updated one, since that is the order the catalog
+  /// arrives in - and whose cover the card wears.
+  final ShopMod lead;
+
+  /// Every variation, in reading order (by the label the picker shows,
+  /// not by whoever was edited last: a row of colours that reshuffles
+  /// itself between visits is a row nobody can point at).
+  final List<ShopMod> variants;
+
+  bool get isSet => variants.length > 1;
+
+  /// What the whole set has been downloaded, which is the sum of numbers
+  /// that were each counted rather than a guess at a total.
+  int get downloads {
+    var total = 0;
+    for (final mod in variants) {
+      total += mod.downloads;
+    }
+    return total;
+  }
+
+  bool contains(String id) => variants.any((mod) => mod.id == id);
+}
+
+/// Folds [listings] into shelf entries, keeping the order they arrive in:
+/// a set lands where its most recent variation would have.
+///
+/// Two listings belong together only when the same creator gave them the
+/// same set name for the same game. Case and spacing are ignored, because
+/// "Comfy Sofa" typed again three weeks later is the same set; the
+/// creator's own spelling is what gets drawn.
+List<ShopGroup> groupShopListings(List<ShopMod> listings) {
+  final groups = <ShopGroup>[];
+  final byKey = <String, int>{};
+  final collected = <String, List<ShopMod>>{};
+  for (final mod in listings) {
+    final key = shopGroupKey(mod);
+    if (key == null) {
+      groups.add(ShopGroup(name: mod.name, lead: mod, variants: [mod]));
+      continue;
+    }
+    final at = byKey[key];
+    if (at == null) {
+      byKey[key] = groups.length;
+      collected[key] = [mod];
+      groups.add(ShopGroup(
+        key: key,
+        name: mod.group!.trim(),
+        lead: mod,
+        variants: const [],
+      ));
+      continue;
+    }
+    collected[key]!.add(mod);
+  }
+  return [
+    for (final group in groups)
+      if (group.key == null)
+        group
+      else
+        ShopGroup(
+          key: group.key,
+          name: group.name,
+          lead: group.lead,
+          variants: collected[group.key]!
+            ..sort((a, b) => shopVariantLabel(group.name, a.name)
+                .toLowerCase()
+                .compareTo(shopVariantLabel(group.name, b.name).toLowerCase())),
+        ),
+  ];
+}
+
+/// What two listings have to share to be the same set, or null when the
+/// listing named none. A listing with no creator behind it is left alone:
+/// the set name is only trustworthy as one creator's word.
+String? shopGroupKey(ShopMod mod) {
+  final name = mod.group?.trim() ?? '';
+  if (name.isEmpty || mod.authorUid.isEmpty) return null;
+  return '${mod.authorUid} ${mod.gameId} ${_foldGroupName(name)}';
+}
+
+String _foldGroupName(String name) =>
+    name.toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+
+/// How one variation is captioned inside its set: the part of its own
+/// name that isn't the set's. "Comfy Sofa - Sage" in the set "Comfy
+/// Sofa" is "Sage", and so is "Comfy Sofa (Sage)", because those are the
+/// two ways people actually write it. Anything that doesn't start with
+/// the set name is left exactly as the creator wrote it.
+String shopVariantLabel(String group, String name) {
+  final label = name.trim();
+  final prefix = group.trim();
+  if (prefix.isEmpty || label.length <= prefix.length) return label;
+  if (label.substring(0, prefix.length).toLowerCase() != prefix.toLowerCase()) {
+    return label;
+  }
+  var rest = label.substring(prefix.length).trim();
+  // The separators creators reach for between a name and a colour.
+  rest = rest.replaceFirst(RegExp(r'^[-–—:·,/|]+'), '').trim();
+  if (rest.startsWith('(') && rest.endsWith(')')) {
+    rest = rest.substring(1, rest.length - 1).trim();
+  }
+  return rest.isEmpty ? label : rest;
 }
 
 /// What one listing left on this machine: the version that was
@@ -253,6 +399,14 @@ ShopMod? _parseDocument(Object? row) {
     description: _str(fields['description']) ?? '',
     instructions: _str(fields['instructions']),
     authorName: _str(fields['authorName']) ?? '',
+    authorUid: _str(fields['authorUid']) ?? '',
+    // Absent on every listing that stands on its own, which is most of
+    // them; blank is the same as absent, so a creator who cleared the
+    // box in the portal doesn't leave a set of one behind.
+    group: switch (_str(fields['group'])?.trim()) {
+      final String name when name.isNotEmpty => name,
+      _ => null,
+    },
     fileName: fileName,
     filePath: filePath,
     fileSizeBytes: _int(f['size']) ?? 0,

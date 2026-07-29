@@ -74,6 +74,8 @@ ShopMod _listing({
   String name = 'Camera Fix',
   String version = '2.0',
   int downloads = 0,
+  String authorUid = 'u1',
+  String? group,
 }) =>
     ShopMod(
       id: id,
@@ -83,6 +85,8 @@ ShopMod _listing({
       description: 'Frees the camera.',
       instructions: 'Restart the game afterwards.',
       authorName: 'plumbob_pat',
+      authorUid: authorUid,
+      group: group,
       fileName: fileName,
       filePath: 'mods/u1/$id/$fileName',
       fileSizeBytes: 11,
@@ -371,8 +375,14 @@ void main() {
     // Both of the states worth photographing are on the shelves, next to
     // the plain Install ones.
     expect(find.text('Installed'), findsOneWidget);
-    expect(find.text('Update'), findsOneWidget);
     expect(find.text('Install'), findsWidgets);
+    // The invented set is one card of five colours, and its own Update
+    // is the second of the two on screen: one on a plain listing's
+    // button, one on the set card's badge.
+    expect(find.text('Linen Curtains'), findsOneWidget);
+    expect(find.text('Linen Curtains - Bone'), findsNothing);
+    expect(find.text('5 variations'), findsOneWidget);
+    expect(find.text('Update'), findsNWidgets(2));
     // And the invented listings carry their own pictures rather than
     // reaching for a URL that would 404 in a screenshot.
     expect(find.byType(widgets.Image), findsWidgets);
@@ -709,5 +719,87 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.text('DOWNLOADS'), findsOneWidget);
     expect(find.text('1,284'), findsOneWidget);
+  });
+
+  testWidgets('a creator\'s set is one card, and the picker installs the '
+      'colour that was chosen', (tester) async {
+    tester.view.physicalSize = const Size(1280, 824);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    SharedPreferences.setMockInitialValues({'soundEffects': false});
+    final tempDir = Directory.systemTemp.createTempSync('shop_set');
+    addTearDown(() => tempDir.deleteSync(recursive: true));
+
+    final registry = GameRegistry([_FakeAdapter(tempDir)]);
+    final settings = await SettingsStore.load();
+
+    await tester.runAsync(() async {
+      await tester.pumpWidget(ModManagerApp(
+        registry: registry,
+        settings: settings,
+        fetchShop: () async => [
+          for (final shade in ['Bone', 'Clay', 'Fern'])
+            _listing(
+              id: 'set-$shade',
+              name: 'Linen Curtains - $shade',
+              group: 'Linen Curtains',
+              fileName: 'curtains_${shade.toLowerCase()}.package',
+              downloads: 100,
+            ),
+          _listing(id: 'lone', name: 'Quiet Doors', fileName: 'doors.package'),
+        ],
+        downloadShop: (mod, destination, {onProgress}) async {
+          destination.writeAsStringSync('shop bytes!');
+          onProgress?.call(11, 11);
+        },
+      ));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    await tester.tap(find.text('The Exchange'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    // Three listings, one card: the set's name, its count, and none of
+    // the colours spelled out on the shelf. The lone listing is
+    // untouched, and the header still counts what is on offer.
+    expect(find.text('Linen Curtains'), findsOneWidget);
+    expect(find.text('Linen Curtains - Bone'), findsNothing);
+    expect(find.text('3 variations'), findsOneWidget);
+    expect(find.text('Quiet Doors'), findsOneWidget);
+    expect(find.text('4 mods on the shelves'), findsOneWidget);
+    // A set card offers no Install - which colour would it be? - while
+    // the lone listing still does. Its takes are the three added up.
+    expect(find.text('Install'), findsOneWidget);
+    expect(find.text('300'), findsOneWidget);
+
+    // The page behind it is the set's, with the colours to choose from.
+    await tester.tap(find.text('Linen Curtains'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('PICK A VARIATION'), findsOneWidget);
+    expect(find.text('Bone'), findsOneWidget);
+    expect(find.text('Clay'), findsOneWidget);
+    expect(find.text('Fern'), findsOneWidget);
+
+    // Picking one and installing it takes that colour and no other.
+    await tester.tap(find.text('Fern'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tap(find.text('Install'));
+    await _until(tester, find.text('Installed'));
+
+    expect(File(p.join(tempDir.path, 'curtains_fern.package')).existsSync(),
+        isTrue);
+    expect(File(p.join(tempDir.path, 'curtains_bone.package')).existsSync(),
+        isFalse);
+
+    // And the shelf card behind it says the set has been started.
+    await tester.tap(find.text('Back to the shelves'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('Installed'), findsOneWidget);
   });
 }

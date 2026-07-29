@@ -134,6 +134,20 @@ class LIt extends L {
   }
 
   @override
+  String shopVariations(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count varianti',
+      one: '1 variante',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get shopVariationPick => 'Scegli una variante';
+
+  @override
   String get shopBack => 'Torna agli scaffali';
 
   @override
@@ -341,7 +355,7 @@ class LIt extends L {
 
   @override
   String get conflictTooltip =>
-      'Mod attive che hanno lo stesso nome file di un’altra mod attiva, che sono installate in più versioni, o che sovrascrivono le stesse risorse di gioco. Il gioco tiene solo la copia che carica per ultima — a volte è voluto (mod correttive), spesso no.';
+      'Mod attive che hanno lo stesso nome file di un’altra mod attiva, che sono installate in più versioni, o che sovrascrivono le stesse risorse di gioco. Il gioco tiene solo la copia che carica per ultima: a volte è voluto (mod correttive), spesso no.';
 
   @override
   String get conflictTooltipClickHint => 'Clicca per vedere solo queste mod.';
@@ -499,7 +513,7 @@ class LIt extends L {
 
   @override
   String get conflictResourcesBody =>
-      'Questi pacchetti contengono risorse con gli stessi identificatori, quindi il gioco tiene solo la copia che carica per ultima. Può essere voluto — le mod correttive e gli override coprono di proposito le risorse di un’altra mod — ma tra mod che non c’entrano nulla significa che una delle due smette di funzionare senza dire niente: tieni quella che vuoi e disattiva le altre.';
+      'Questi pacchetti contengono risorse con gli stessi identificatori, quindi il gioco tiene solo la copia che carica per ultima. Può essere voluto (le mod correttive e gli override coprono di proposito le risorse di un’altra mod), ma tra mod che non c’entrano nulla significa che una delle due smette di funzionare senza dire niente: tieni quella che vuoi e disattiva le altre.';
 
   @override
   String advisoryBanner(int count) {
@@ -903,37 +917,37 @@ class LIt extends L {
 
   @override
   String errorSims3PackWorld(String name) {
-    return '$name è un mondo, non contenuto personalizzato. Installalo con il Launcher di The Sims 3 — il gioco tiene i mondi fuori dalla cartella delle mod.';
+    return '$name è un mondo, non contenuto personalizzato. Installalo con il Launcher di The Sims 3: il gioco tiene i mondi fuori dalla cartella delle mod.';
   }
 
   @override
   String errorSims3PackLibrary(String name) {
-    return '$name è un lotto o una famiglia, non contenuto personalizzato. Installalo con il Launcher di The Sims 3 — finisce nella tua Libreria nel gioco.';
+    return '$name è un lotto o una famiglia, non contenuto personalizzato. Installalo con il Launcher di The Sims 3: finisce nella tua Libreria nel gioco.';
   }
 
   @override
   String errorInstallFailed(String name, String reason) {
-    return 'Non è stato possibile installare «$name» — $reason. Se continua a non funzionare, estrailo a mano e installa i file che ci sono dentro.';
+    return 'Non è stato possibile installare «$name»: $reason. Se continua a non funzionare, estrailo a mano e installa i file che ci sono dentro.';
   }
 
   @override
   String errorInstallFailedRaw(String name, String reason) {
-    return 'Non è stato possibile installare «$name» — $reason';
+    return 'Non è stato possibile installare «$name»: $reason';
   }
 
   @override
   String errorFileInUseDelete(String name) {
-    return 'Non è stato possibile eliminare «$name» — lo sta usando un altro programma (il gioco è aperto?) oppure è protetto da scrittura. Chiudi quello che lo sta usando e riprova.';
+    return 'Non è stato possibile eliminare «$name»: lo sta usando un altro programma (il gioco è aperto?) oppure è protetto da scrittura. Chiudi quello che lo sta usando e riprova.';
   }
 
   @override
   String errorFileInUseRename(String name) {
-    return 'Non è stato possibile rinominare «$name» — lo sta usando un altro programma (il gioco è aperto?) oppure è protetto da scrittura. Chiudi quello che lo sta usando e riprova.';
+    return 'Non è stato possibile rinominare «$name»: lo sta usando un altro programma (il gioco è aperto?) oppure è protetto da scrittura. Chiudi quello che lo sta usando e riprova.';
   }
 
   @override
   String errorFileMissing(String name) {
-    return '«$name» non è più nella cartella dei mod — forse un altro programma l’ha spostato o eliminato.';
+    return '«$name» non è più nella cartella dei mod: forse un altro programma l’ha spostato o eliminato.';
   }
 
   @override
@@ -959,7 +973,7 @@ class LIt extends L {
       other: 'Ci sono $count mod',
       one: 'C’è una mod',
     );
-    return '$_temp0 in una sottocartella che il gioco non legge. Scende solo di $levels cartelle — spostale più in alto e funzioneranno.';
+    return '$_temp0 in una sottocartella che il gioco non legge. Scende solo di $levels cartelle: spostale più in alto e funzioneranno.';
   }
 
   @override
@@ -967,7 +981,7 @@ class LIt extends L {
 
   @override
   String errorNoWriteAccess(String folder) {
-    return 'L’app non ha il permesso di scrivere in «$folder». Il sistema protegge quella cartella — dai al tuo account l’accesso in scrittura, o scegli un’altra cartella nelle Impostazioni.';
+    return 'L’app non ha il permesso di scrivere in «$folder». Il sistema protegge quella cartella: dai al tuo account l’accesso in scrittura, o scegli un’altra cartella nelle Impostazioni.';
   }
 
   @override
@@ -976,7 +990,7 @@ class LIt extends L {
 
   @override
   String get elevatedNoDropBanner =>
-      'Stai eseguendo come amministratore, quindi Windows non ti fa trascinare i file sulla finestra. Usa il pulsante Installa — quello funziona ancora.';
+      'Stai eseguendo come amministratore, quindi Windows non ti fa trascinare i file sulla finestra. Usa il pulsante Installa: quello funziona ancora.';
 
   @override
   String errorShopDownload(String name) {
@@ -1017,7 +1031,7 @@ class LIt extends L {
 
   @override
   String savesEmptyBody(String game) {
-    return 'Quando giochi a $game e salvi, i tuoi mondi compaiono qui — famiglie, foto e tutto il resto.';
+    return 'Quando giochi a $game e salvi, i tuoi mondi compaiono qui: famiglie, foto e tutto il resto.';
   }
 
   @override
@@ -1544,7 +1558,7 @@ class LIt extends L {
 
   @override
   String get setupHelpSims1 =>
-      'Il primissimo The Sims tiene i contenuti personalizzati dentro la sua cartella di installazione, non in Documenti: gli oggetti vanno in una cartella Downloads accanto all’eseguibile del gioco (per esempio C:\\Program Files (x86)\\Maxis\\The Sims\\Downloads), e questa app smista gli altri tipi da sola — le skin (.skn/.cmx/.bmp) in GameData\\Skins, muri e pavimenti in GameData\\Walls e GameData\\Floors. La Legacy Collection del 2025 funziona allo stesso modo dalla sua cartella di installazione (EA Games\\The Sims Legacy, oppure Steam\\steamapps\\common\\The Sims Legacy Collection). Se il gioco è installato altrove (un altro disco, una libreria Steam personalizzata), scegli a mano la sua cartella Downloads.';
+      'Il primissimo The Sims tiene i contenuti personalizzati dentro la sua cartella di installazione, non in Documenti: gli oggetti vanno in una cartella Downloads accanto all’eseguibile del gioco (per esempio C:\\Program Files (x86)\\Maxis\\The Sims\\Downloads), e questa app smista gli altri tipi da sola: le skin (.skn/.cmx/.bmp) vanno in GameData\\Skins, muri e pavimenti in GameData\\Walls e GameData\\Floors. La Legacy Collection del 2025 funziona allo stesso modo dalla sua cartella di installazione (EA Games\\The Sims Legacy, oppure Steam\\steamapps\\common\\The Sims Legacy Collection). Se il gioco è installato altrove (un altro disco, una libreria Steam personalizzata), scegli a mano la sua cartella Downloads.';
 
   @override
   String get setupHelpSims2 =>

@@ -134,6 +134,20 @@ class LEs extends L {
   }
 
   @override
+  String shopVariations(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count variaciones',
+      one: '1 variación',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get shopVariationPick => 'Elige una variación';
+
+  @override
   String get shopBack => 'Volver a las estanterías';
 
   @override
@@ -905,37 +919,37 @@ class LEs extends L {
 
   @override
   String errorSims3PackWorld(String name) {
-    return '$name es un mundo, no contenido personalizado. Instálalo con el Launcher de Los Sims 3 — el juego guarda los mundos fuera de la carpeta de mods.';
+    return '$name es un mundo, no contenido personalizado. Instálalo con el Launcher de Los Sims 3: el juego guarda los mundos fuera de la carpeta de mods.';
   }
 
   @override
   String errorSims3PackLibrary(String name) {
-    return '$name es un solar o una familia, no contenido personalizado. Instálalo con el Launcher de Los Sims 3 — acaba en tu Biblioteca dentro del juego.';
+    return '$name es un solar o una familia, no contenido personalizado. Instálalo con el Launcher de Los Sims 3: acaba en tu Biblioteca dentro del juego.';
   }
 
   @override
   String errorInstallFailed(String name, String reason) {
-    return 'No se pudo instalar «$name» — $reason. Si sigue fallando, descomprímelo a mano e instala los archivos que haya dentro.';
+    return 'No se pudo instalar «$name»: $reason. Si sigue fallando, descomprímelo a mano e instala los archivos que haya dentro.';
   }
 
   @override
   String errorInstallFailedRaw(String name, String reason) {
-    return 'No se pudo instalar «$name» — $reason';
+    return 'No se pudo instalar «$name»: $reason';
   }
 
   @override
   String errorFileInUseDelete(String name) {
-    return 'No se pudo borrar «$name» — lo está usando otro programa (¿tienes el juego abierto?) o está protegido contra escritura. Cierra lo que lo esté usando y vuelve a intentarlo.';
+    return 'No se pudo borrar «$name»: lo está usando otro programa (¿tienes el juego abierto?) o está protegido contra escritura. Cierra lo que lo esté usando y vuelve a intentarlo.';
   }
 
   @override
   String errorFileInUseRename(String name) {
-    return 'No se pudo renombrar «$name» — lo está usando otro programa (¿tienes el juego abierto?) o está protegido contra escritura. Cierra lo que lo esté usando y vuelve a intentarlo.';
+    return 'No se pudo renombrar «$name»: lo está usando otro programa (¿tienes el juego abierto?) o está protegido contra escritura. Cierra lo que lo esté usando y vuelve a intentarlo.';
   }
 
   @override
   String errorFileMissing(String name) {
-    return '«$name» ya no está en la carpeta de mods — puede que otro programa lo haya movido o borrado.';
+    return '«$name» ya no está en la carpeta de mods: puede que otro programa lo haya movido o borrado.';
   }
 
   @override
@@ -961,7 +975,7 @@ class LEs extends L {
       other: 'Hay $count mods',
       one: 'Hay un mod',
     );
-    return '$_temp0 en una subcarpeta que el juego no lee. Solo mira $levels carpetas hacia dentro — súbelos y funcionarán.';
+    return '$_temp0 en una subcarpeta que el juego no lee. Solo mira $levels carpetas hacia dentro. Súbelos y funcionarán.';
   }
 
   @override
@@ -969,7 +983,7 @@ class LEs extends L {
 
   @override
   String errorNoWriteAccess(String folder) {
-    return 'La app no tiene permiso para escribir en «$folder». Tu sistema protege esa carpeta — dale permiso de escritura a tu cuenta, o elige otra carpeta en Ajustes.';
+    return 'La app no tiene permiso para escribir en «$folder». Tu sistema protege esa carpeta: dale permiso de escritura a tu cuenta, o elige otra carpeta en Ajustes.';
   }
 
   @override
@@ -978,7 +992,7 @@ class LEs extends L {
 
   @override
   String get elevatedNoDropBanner =>
-      'Estás ejecutando como administrador, así que Windows no deja arrastrar archivos a la ventana. Usa el botón Instalar — ese sigue funcionando.';
+      'Estás ejecutando como administrador, así que Windows no deja arrastrar archivos a la ventana. Usa el botón Instalar, que sigue funcionando.';
 
   @override
   String errorShopDownload(String name) {

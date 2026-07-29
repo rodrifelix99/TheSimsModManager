@@ -59,6 +59,9 @@ that re-themes itself to match the game you're managing.
 - **The Exchange**: a mod shop inside the app. Browse the whole catalog,
   filter by game, install in one click, and get an Update button when a
   creator ships a new version of something you already have.
+- **Saves**: read-only insight into your save files - households, funds,
+  photo albums, and world stats like population, net worth, life stages
+  and top skills, without opening the game.
 
 <div align="center">
 
@@ -83,6 +86,25 @@ publish shows up on everyone's shelves.
 <img src="web/public/images/mod-shop-mod-detail-and-update-page.png" alt="A listing inside the app with screenshots, version, size, install notes and an Update button" width="800">
 
 <sub>A listing brings its screenshots and install notes along, and turns into an Update button once the creator publishes a newer version.</sub>
+
+</div>
+
+## Saves
+
+Read-only insight into your save files, no game launch required: every
+household with its funds and members, a photo album, and world stats
+(population, net worth, life stages, top skills). Support varies per game
+by what each save format actually holds.
+
+<div align="center">
+
+<img src="web/public/images/save-households-ts4.png" alt="Saves screen for The Sims 4 listing a save's households, with the selected household's funds, room count and members" width="800">
+
+<sub>Every save's households, backups included. Open one to see its funds, its house, and who's living there.</sub>
+
+<img src="web/public/images/save-stats-ts2.png" alt="Saves screen for The Sims 2 showing world stats: total Sims, households, net worth, size on disk, photos and a life-stage breakdown" width="800">
+
+<sub>World stats for the whole save: population, net worth, life stages, even the highest skill in the save.</sub>
 
 </div>
 

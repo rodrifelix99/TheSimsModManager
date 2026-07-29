@@ -19,9 +19,16 @@ service cloud.firestore {
               'createdAt', 'updatedAt'])
           && data.keys().hasOnly(['name', 'gameId', 'version', 'description',
               'instructions', 'authorUid', 'authorName', 'file', 'images',
-              'published', 'createdAt', 'updatedAt', 'downloads'])
+              'published', 'createdAt', 'updatedAt', 'downloads', 'group'])
           && data.name is string
           && data.name.size() >= 1 && data.name.size() <= 100
+          // The set this listing is one variation of, if the creator said
+          // so. Nothing but a caption the app groups its shelves by, and
+          // absent on most listings - the portal clears the field rather
+          // than saving an empty one.
+          && (!('group' in data)
+              || (data.group is string
+                  && data.group.size() >= 1 && data.group.size() <= 60))
           && data.gameId in ['sims1', 'sims2', 'sims3', 'sims4', 'simsmedieval']
           && data.version is string && data.version.size() <= 40
           && data.description is string && data.description.size() <= 6000

@@ -60,6 +60,11 @@
   "@shopNeedsFolder": {
     "placeholders": { "game": { "type": "String" } }
   },
+  "shopVariations": "{count, plural, =1{1 variation} other{{count} variations}}",
+  "@shopVariations": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "shopVariationPick": "Pick a variation",
   "shopBack": "Back to the shelves",
   "shopCopyLink": "Copy link",
   "shopLinkCopied": "Link copied",
@@ -167,7 +172,7 @@
   "statDisabledTooltipActive": "Showing disabled mods only. Click to show all mods again.",
 
   "conflictTooltipActive": "Showing conflicting mods only. Click to show all mods again.",
-  "conflictTooltip": "Enabled mods sharing a file name with another enabled mod, installed in more than one version, or overriding the same in-game resources. The game only keeps the copy it loads last — sometimes intentional (patch mods), often not.",
+  "conflictTooltip": "Enabled mods sharing a file name with another enabled mod, installed in more than one version, or overriding the same in-game resources. The game only keeps the copy it loads last, sometimes intentional (patch mods), often not.",
   "conflictTooltipClickHint": "Click to show only these mods.",
 
   "filterAll": "All",
@@ -240,7 +245,7 @@
   },
   "conflictSameNameBody": "Identical names usually mean the same mod is installed twice, or two creators' packages clash. The game loads their overlapping resources in an unpredictable order: keep one and disable or remove the rest.",
   "conflictVersionBody": "Having several versions of a mod installed means the game loads their overlapping resources in an unpredictable order: keep the newest and disable or remove the rest.",
-  "conflictResourcesBody": "These packages contain resources with the same identifiers, so the game only keeps the copy it loads last. That can be intentional — patch and override mods shadow another mod's resources on purpose — but for unrelated mods it means one of them silently stops working: keep the one you want and disable the rest.",
+  "conflictResourcesBody": "These packages contain resources with the same identifiers, so the game only keeps the copy it loads last. That can be intentional (patch and override mods shadow another mod's resources on purpose), but for unrelated mods it means one of them silently stops working: keep the one you want and disable the rest.",
 
   "advisoryBanner": "{count, plural, =1{One of your mods has a known issue} other{{count} of your mods have known issues}}",
   "@advisoryBanner": {"placeholders": {"count": {"type": "int"}}},
@@ -435,37 +440,37 @@
   "@errorSims3PackUnreadable": {
     "placeholders": { "name": { "type": "String" } }
   },
-  "errorSims3PackWorld": "{name} is a world, not custom content. Install it with The Sims 3 Launcher — the game keeps worlds outside the mods folder.",
+  "errorSims3PackWorld": "{name} is a world, not custom content. Install it with The Sims 3 Launcher - the game keeps worlds outside the mods folder.",
   "@errorSims3PackWorld": {
     "placeholders": { "name": { "type": "String" } }
   },
-  "errorSims3PackLibrary": "{name} is a lot or a household, not custom content. Install it with The Sims 3 Launcher — it lands in your in-game Library.",
+  "errorSims3PackLibrary": "{name} is a lot or a household, not custom content. Install it with The Sims 3 Launcher - it lands in your in-game Library.",
   "@errorSims3PackLibrary": {
     "placeholders": { "name": { "type": "String" } }
   },
-  "errorInstallFailed": "“{name}” couldn’t be installed — {reason}. Unpack it manually and install the files inside if it keeps failing.",
+  "errorInstallFailed": "“{name}” couldn’t be installed - {reason}. Unpack it manually and install the files inside if it keeps failing.",
   "@errorInstallFailed": {
     "placeholders": {
       "name": { "type": "String" },
       "reason": { "type": "String" }
     }
   },
-  "errorInstallFailedRaw": "“{name}” couldn’t be installed — {reason}",
+  "errorInstallFailedRaw": "“{name}” couldn’t be installed - {reason}",
   "@errorInstallFailedRaw": {
     "placeholders": {
       "name": { "type": "String" },
       "reason": { "type": "String" }
     }
   },
-  "errorFileInUseDelete": "“{name}” couldn’t be deleted — it’s in use by another program (is the game running?) or write-protected. Close anything using it and try again.",
+  "errorFileInUseDelete": "“{name}” couldn’t be deleted - it’s in use by another program (is the game running?) or write-protected. Close anything using it and try again.",
   "@errorFileInUseDelete": {
     "placeholders": { "name": { "type": "String" } }
   },
-  "errorFileInUseRename": "“{name}” couldn’t be renamed — it’s in use by another program (is the game running?) or write-protected. Close anything using it and try again.",
+  "errorFileInUseRename": "“{name}” couldn’t be renamed - it’s in use by another program (is the game running?) or write-protected. Close anything using it and try again.",
   "@errorFileInUseRename": {
     "placeholders": { "name": { "type": "String" } }
   },
-  "errorFileMissing": "“{name}” is no longer in the mods folder — it may have been moved or deleted by another program.",
+  "errorFileMissing": "“{name}” is no longer in the mods folder - it may have been moved or deleted by another program.",
   "@errorFileMissing": {
     "placeholders": { "name": { "type": "String" } }
   },
@@ -473,7 +478,7 @@
   "requirementSims4ModsOff": "The game has custom content and mods switched off in its own Game Options, so none of this is loading. Turn it back on under Options → Game Options → Other, then restart the game.",
   "requirementSims4ScriptModsOff": "You have script mods here, but the game has “Script Mods Allowed” switched off in its own Game Options. Game updates reset that.",
   "requirementGetFile": "Where to get it",
-  "tooDeepBanner": "{count, plural, =1{One mod is} other{{count} mods are}} in a subfolder the game doesn’t read. It only looks {levels} folders deep inside the mods folder — move them higher up and they’ll load.",
+  "tooDeepBanner": "{count, plural, =1{One mod is} other{{count} mods are}} in a subfolder the game doesn’t read. It only looks {levels} folders deep inside the mods folder - move them higher up and they’ll load.",
   "@tooDeepBanner": {
     "placeholders": {
       "count": { "type": "int" },
@@ -481,12 +486,12 @@
     }
   },
   "tooDeepShow": "Show them",
-  "errorNoWriteAccess": "The app isn’t allowed to write to “{folder}”. Your system protects that folder — give your account write access to it, or point the app somewhere else in Settings.",
+  "errorNoWriteAccess": "The app isn’t allowed to write to “{folder}”. Your system protects that folder - give your account write access to it, or point the app somewhere else in Settings.",
   "@errorNoWriteAccess": {
     "placeholders": { "folder": { "type": "String" } }
   },
   "folderReadOnlyBanner": "This mods folder is read-only, so installing and removing mods won’t work until your account can write to it.",
-  "elevatedNoDropBanner": "You’re running as administrator, so Windows won’t let you drag files onto the window. Use the Install button instead — that still works.",
+  "elevatedNoDropBanner": "You’re running as administrator, so Windows won’t let you drag files onto the window. Use the Install button instead - that still works.",
   "errorShopDownload": "“{name}” couldn’t be downloaded from The Exchange. Check your connection and try again.",
   "@errorShopDownload": {
     "placeholders": { "name": { "type": "String" } }
@@ -503,7 +508,7 @@
   "navSaves": "Saves",
   "savesScanning": "Reading your saves…",
   "savesEmptyTitle": "No saves found",
-  "savesEmptyBody": "Once you play {game} and save, your worlds show up here — families, photos and all.",
+  "savesEmptyBody": "Once you play {game} and save, your worlds show up here - families, photos and all.",
   "@savesEmptyBody": {
     "placeholders": { "game": { "type": "String" } }
   },
@@ -723,7 +728,7 @@
   "savesInterestMusic": "Music",
   "savesInterestOutdoors": "Outdoors",
 
-  "setupHelpSims1": "The original The Sims keeps custom content inside its install folder, not Documents: objects go in a Downloads folder next to the game executable (e.g. C:\\Program Files (x86)\\Maxis\\The Sims\\Downloads), and this app sorts the other types automatically — skins (.skn/.cmx/.bmp) into GameData\\Skins, walls and floors into GameData\\Walls and GameData\\Floors. The 2025 Legacy Collection works the same way from its own install folder (EA Games\\The Sims Legacy, or Steam\\steamapps\\common\\The Sims Legacy Collection). If the game is installed somewhere else (a different drive, a custom Steam library), pick its Downloads folder manually.",
+  "setupHelpSims1": "The original The Sims keeps custom content inside its install folder, not Documents: objects go in a Downloads folder next to the game executable (e.g. C:\\Program Files (x86)\\Maxis\\The Sims\\Downloads), and this app sorts the other types automatically - skins (.skn/.cmx/.bmp) into GameData\\Skins, walls and floors into GameData\\Walls and GameData\\Floors. The 2025 Legacy Collection works the same way from its own install folder (EA Games\\The Sims Legacy, or Steam\\steamapps\\common\\The Sims Legacy Collection). If the game is installed somewhere else (a different drive, a custom Steam library), pick its Downloads folder manually.",
   "setupHelpSims2": "The Sims 2 loads custom content from Documents > EA Games > The Sims 2 > Downloads (the Ultimate Collection uses “The Sims 2 Ultimate Collection”; the 2025 Legacy Collection uses “The Sims 2 Legacy”). The folder may not exist until you create it or install content once. When the game starts, answer “Yes” to the custom content prompt so downloads are enabled.",
   "setupHelpSims3": "The Sims 3 does not create a mods folder on its own: it needs the community “framework”: a Mods > Packages folder inside Documents > Electronic Arts > The Sims 3, plus a Resource.cfg file that tells the game to read it. This app can create both for you. On disc/Wine installs the folder can live inside the app bundle instead; use “Choose folder” to point at it.",
   "setupHelpSims4": "The Sims 4 loads mods from Documents > Electronic Arts > The Sims 4 > Mods. The game creates this folder the first time it runs, so launch the game once if it is missing. Then, in the game, turn on Options > Game Options > Other > “Enable Custom Content and Mods” (and “Script Mods Allowed” for .ts4script files) and restart the game.",

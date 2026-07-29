@@ -305,6 +305,18 @@ abstract class L {
   /// **'Set up {game}’s mods folder first. The Library tab walks you through it.'**
   String shopNeedsFolder(String game);
 
+  /// No description provided for @shopVariations.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 variation} other{{count} variations}}'**
+  String shopVariations(int count);
+
+  /// No description provided for @shopVariationPick.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a variation'**
+  String get shopVariationPick;
+
   /// No description provided for @shopBack.
   ///
   /// In en, this message translates to:
@@ -626,7 +638,7 @@ abstract class L {
   /// No description provided for @conflictTooltip.
   ///
   /// In en, this message translates to:
-  /// **'Enabled mods sharing a file name with another enabled mod, installed in more than one version, or overriding the same in-game resources. The game only keeps the copy it loads last — sometimes intentional (patch mods), often not.'**
+  /// **'Enabled mods sharing a file name with another enabled mod, installed in more than one version, or overriding the same in-game resources. The game only keeps the copy it loads last, sometimes intentional (patch mods), often not.'**
   String get conflictTooltip;
 
   /// No description provided for @conflictTooltipClickHint.
@@ -836,7 +848,7 @@ abstract class L {
   /// No description provided for @conflictResourcesBody.
   ///
   /// In en, this message translates to:
-  /// **'These packages contain resources with the same identifiers, so the game only keeps the copy it loads last. That can be intentional — patch and override mods shadow another mod\'s resources on purpose — but for unrelated mods it means one of them silently stops working: keep the one you want and disable the rest.'**
+  /// **'These packages contain resources with the same identifiers, so the game only keeps the copy it loads last. That can be intentional (patch and override mods shadow another mod\'s resources on purpose), but for unrelated mods it means one of them silently stops working: keep the one you want and disable the rest.'**
   String get conflictResourcesBody;
 
   /// No description provided for @advisoryBanner.
@@ -1478,43 +1490,43 @@ abstract class L {
   /// No description provided for @errorSims3PackWorld.
   ///
   /// In en, this message translates to:
-  /// **'{name} is a world, not custom content. Install it with The Sims 3 Launcher — the game keeps worlds outside the mods folder.'**
+  /// **'{name} is a world, not custom content. Install it with The Sims 3 Launcher - the game keeps worlds outside the mods folder.'**
   String errorSims3PackWorld(String name);
 
   /// No description provided for @errorSims3PackLibrary.
   ///
   /// In en, this message translates to:
-  /// **'{name} is a lot or a household, not custom content. Install it with The Sims 3 Launcher — it lands in your in-game Library.'**
+  /// **'{name} is a lot or a household, not custom content. Install it with The Sims 3 Launcher - it lands in your in-game Library.'**
   String errorSims3PackLibrary(String name);
 
   /// No description provided for @errorInstallFailed.
   ///
   /// In en, this message translates to:
-  /// **'“{name}” couldn’t be installed — {reason}. Unpack it manually and install the files inside if it keeps failing.'**
+  /// **'“{name}” couldn’t be installed - {reason}. Unpack it manually and install the files inside if it keeps failing.'**
   String errorInstallFailed(String name, String reason);
 
   /// No description provided for @errorInstallFailedRaw.
   ///
   /// In en, this message translates to:
-  /// **'“{name}” couldn’t be installed — {reason}'**
+  /// **'“{name}” couldn’t be installed - {reason}'**
   String errorInstallFailedRaw(String name, String reason);
 
   /// No description provided for @errorFileInUseDelete.
   ///
   /// In en, this message translates to:
-  /// **'“{name}” couldn’t be deleted — it’s in use by another program (is the game running?) or write-protected. Close anything using it and try again.'**
+  /// **'“{name}” couldn’t be deleted - it’s in use by another program (is the game running?) or write-protected. Close anything using it and try again.'**
   String errorFileInUseDelete(String name);
 
   /// No description provided for @errorFileInUseRename.
   ///
   /// In en, this message translates to:
-  /// **'“{name}” couldn’t be renamed — it’s in use by another program (is the game running?) or write-protected. Close anything using it and try again.'**
+  /// **'“{name}” couldn’t be renamed - it’s in use by another program (is the game running?) or write-protected. Close anything using it and try again.'**
   String errorFileInUseRename(String name);
 
   /// No description provided for @errorFileMissing.
   ///
   /// In en, this message translates to:
-  /// **'“{name}” is no longer in the mods folder — it may have been moved or deleted by another program.'**
+  /// **'“{name}” is no longer in the mods folder - it may have been moved or deleted by another program.'**
   String errorFileMissing(String name);
 
   /// No description provided for @requirementMedievalModLoader.
@@ -1544,7 +1556,7 @@ abstract class L {
   /// No description provided for @tooDeepBanner.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{One mod is} other{{count} mods are}} in a subfolder the game doesn’t read. It only looks {levels} folders deep inside the mods folder — move them higher up and they’ll load.'**
+  /// **'{count, plural, =1{One mod is} other{{count} mods are}} in a subfolder the game doesn’t read. It only looks {levels} folders deep inside the mods folder - move them higher up and they’ll load.'**
   String tooDeepBanner(int count, int levels);
 
   /// No description provided for @tooDeepShow.
@@ -1556,7 +1568,7 @@ abstract class L {
   /// No description provided for @errorNoWriteAccess.
   ///
   /// In en, this message translates to:
-  /// **'The app isn’t allowed to write to “{folder}”. Your system protects that folder — give your account write access to it, or point the app somewhere else in Settings.'**
+  /// **'The app isn’t allowed to write to “{folder}”. Your system protects that folder - give your account write access to it, or point the app somewhere else in Settings.'**
   String errorNoWriteAccess(String folder);
 
   /// No description provided for @folderReadOnlyBanner.
@@ -1568,7 +1580,7 @@ abstract class L {
   /// No description provided for @elevatedNoDropBanner.
   ///
   /// In en, this message translates to:
-  /// **'You’re running as administrator, so Windows won’t let you drag files onto the window. Use the Install button instead — that still works.'**
+  /// **'You’re running as administrator, so Windows won’t let you drag files onto the window. Use the Install button instead - that still works.'**
   String get elevatedNoDropBanner;
 
   /// No description provided for @errorShopDownload.
@@ -1640,7 +1652,7 @@ abstract class L {
   /// No description provided for @savesEmptyBody.
   ///
   /// In en, this message translates to:
-  /// **'Once you play {game} and save, your worlds show up here — families, photos and all.'**
+  /// **'Once you play {game} and save, your worlds show up here - families, photos and all.'**
   String savesEmptyBody(String game);
 
   /// No description provided for @savesRescan.
@@ -2546,7 +2558,7 @@ abstract class L {
   /// No description provided for @setupHelpSims1.
   ///
   /// In en, this message translates to:
-  /// **'The original The Sims keeps custom content inside its install folder, not Documents: objects go in a Downloads folder next to the game executable (e.g. C:\\Program Files (x86)\\Maxis\\The Sims\\Downloads), and this app sorts the other types automatically — skins (.skn/.cmx/.bmp) into GameData\\Skins, walls and floors into GameData\\Walls and GameData\\Floors. The 2025 Legacy Collection works the same way from its own install folder (EA Games\\The Sims Legacy, or Steam\\steamapps\\common\\The Sims Legacy Collection). If the game is installed somewhere else (a different drive, a custom Steam library), pick its Downloads folder manually.'**
+  /// **'The original The Sims keeps custom content inside its install folder, not Documents: objects go in a Downloads folder next to the game executable (e.g. C:\\Program Files (x86)\\Maxis\\The Sims\\Downloads), and this app sorts the other types automatically - skins (.skn/.cmx/.bmp) into GameData\\Skins, walls and floors into GameData\\Walls and GameData\\Floors. The 2025 Legacy Collection works the same way from its own install folder (EA Games\\The Sims Legacy, or Steam\\steamapps\\common\\The Sims Legacy Collection). If the game is installed somewhere else (a different drive, a custom Steam library), pick its Downloads folder manually.'**
   String get setupHelpSims1;
 
   /// No description provided for @setupHelpSims2.

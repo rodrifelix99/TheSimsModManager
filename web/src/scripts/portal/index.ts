@@ -51,6 +51,11 @@ interface StoredFile {
 
 interface Listing {
   name: string;
+  /// The set this listing is one variation of, if the creator named one. The
+  /// app draws every listing sharing it as a single card with a picker; each
+  /// one keeps its own page, link and download count, which is what lets a
+  /// creator publish colours one at a time and gather them afterwards.
+  group?: string;
   gameId: string;
   version: string;
   description: string;
@@ -274,7 +279,11 @@ function modCard(id: string, mod: Listing): HTMLElement {
 
   const meta = document.createElement('p');
   meta.className = 'meta';
-  meta.textContent = [gameNames[mod.gameId] ?? mod.gameId, fmtSize(mod.file?.size ?? 0)].join(' · ');
+  meta.textContent = [
+    gameNames[mod.gameId] ?? mod.gameId,
+    fmtSize(mod.file?.size ?? 0),
+    ...(mod.group ? [s('portal.mods.inSet', mod.group)] : []),
+  ].join(' · ');
 
   const edit = document.createElement('button');
   edit.className = 'btn';
@@ -315,6 +324,24 @@ function wireFilters() {
   }
 }
 
+/// The set names already in use, offered as suggestions under the field. A
+/// second colour has to land on the same spelling as the first or it stands
+/// alone, and picking beats remembering.
+function fillGroupNames(names: (string | undefined)[]) {
+  const seen = new Map<string, string>();
+  for (const name of names) {
+    const trimmed = name?.trim();
+    if (trimmed) seen.set(trimmed.toLowerCase(), trimmed);
+  }
+  const list = $('group-names');
+  list.textContent = '';
+  for (const name of [...seen.values()].sort((a, b) => a.localeCompare(b))) {
+    const option = document.createElement('option');
+    option.value = name;
+    list.append(option);
+  }
+}
+
 async function loadMods() {
   show('view-mods');
   const user = auth.currentUser;
@@ -340,6 +367,7 @@ async function loadMods() {
   }
 
   const listings = docs.map((entry) => [entry.id, entry.data() as Listing] as const);
+  fillGroupNames(listings.map(([, mod]) => mod.group));
   $('mods-empty').classList.toggle('hidden', listings.length > 0);
   $('mod-filters').classList.toggle('hidden', listings.length === 0);
 
@@ -558,6 +586,7 @@ async function openEditor(id: string | null) {
     if (snap.exists()) {
       existing = snap.data() as Listing;
       input('f-name').value = existing.name;
+      input('f-group').value = existing.group ?? '';
       select('f-game').value = existing.gameId;
       input('f-version').value = existing.version;
       input('f-author').value = existing.authorName;
@@ -678,6 +707,7 @@ function wireEditor() {
         updatedAt: serverTimestamp(),
       };
       const notes = area('f-notes').value.trim();
+      const set = input('f-group').value.trim();
       const listing = doc(db, 'mods', id);
       if (existing) {
         // An edit saves with update(), not set(): `downloads` belongs to the
@@ -685,9 +715,16 @@ function wireEditor() {
         // only way a save can be legal however long the editing took. The
         // price is that cleared instructions need saying out loud - set()
         // dropped a missing key for free.
-        await updateDoc(listing, { ...data, instructions: notes || deleteField() });
+        await updateDoc(listing, {
+          ...data,
+          instructions: notes || deleteField(),
+          // Same as the notes: a field cleared to nothing has to be said
+          // out loud, or the listing stays in a set it was taken out of.
+          group: set || deleteField(),
+        });
       } else {
         if (notes) data.instructions = notes;
+        if (set) data.group = set;
         data.downloads = 0;
         await setDoc(listing, data);
       }

@@ -131,6 +131,19 @@ class LJa extends L {
   }
 
   @override
+  String shopVariations(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 種類',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get shopVariationPick => 'バリエーションを選ぶ';
+
+  @override
   String get shopBack => '棚に戻る';
 
   @override
@@ -838,37 +851,37 @@ class LJa extends L {
 
   @override
   String errorSims3PackWorld(String name) {
-    return '$name はワールドで、カスタムコンテンツじゃないよ。The Sims 3 ランチャーからインストールしてね — ワールドは Mods フォルダの外に置かれるんだ。';
+    return '$name はワールドで、カスタムコンテンツじゃないよ。The Sims 3 ランチャーからインストールしてね。ワールドは Mods フォルダの外に置かれるんだ。';
   }
 
   @override
   String errorSims3PackLibrary(String name) {
-    return '$name は区画か世帯で、カスタムコンテンツじゃないよ。The Sims 3 ランチャーからインストールしてね — ゲーム内のライブラリに入るよ。';
+    return '$name は区画か世帯で、カスタムコンテンツじゃないよ。The Sims 3 ランチャーからインストールしてね。ゲーム内のライブラリに入るよ。';
   }
 
   @override
   String errorInstallFailed(String name, String reason) {
-    return '「$name」をインストールできませんでした — $reason。うまくいかないままなら、手動で展開して中のファイルをインストールしてね。';
+    return '「$name」をインストールできませんでした。$reason。うまくいかないままなら、手動で展開して中のファイルをインストールしてね。';
   }
 
   @override
   String errorInstallFailedRaw(String name, String reason) {
-    return '「$name」をインストールできませんでした — $reason';
+    return '「$name」をインストールできませんでした。$reason';
   }
 
   @override
   String errorFileInUseDelete(String name) {
-    return '「$name」を削除できませんでした — 別のプログラムが使用中（ゲームは起動中？）か、書き込み禁止になっています。使っているものを閉じて、もう一度試してね。';
+    return '「$name」を削除できませんでした。別のプログラムが使用中（ゲームは起動中？）か、書き込み禁止になっています。使っているものを閉じて、もう一度試してね。';
   }
 
   @override
   String errorFileInUseRename(String name) {
-    return '「$name」の名前を変更できませんでした — 別のプログラムが使用中（ゲームは起動中？）か、書き込み禁止になっています。使っているものを閉じて、もう一度試してね。';
+    return '「$name」の名前を変更できませんでした。別のプログラムが使用中（ゲームは起動中？）か、書き込み禁止になっています。使っているものを閉じて、もう一度試してね。';
   }
 
   @override
   String errorFileMissing(String name) {
-    return '「$name」はもうMODフォルダーにありません — 別のプログラムが移動したか削除したのかもしれません。';
+    return '「$name」はもうMODフォルダーにありません。別のプログラムが移動したか削除したのかもしれません。';
   }
 
   @override
@@ -893,7 +906,7 @@ class LJa extends L {
       locale: localeName,
       other: '$count個のMOD',
     );
-    return '$_temp0が、ゲームの読まないサブフォルダーに入っています。MODフォルダーの中は$levels階層までしか見てくれません — 上の階層に移せば読み込まれます。';
+    return '$_temp0が、ゲームの読まないサブフォルダーに入っています。MODフォルダーの中は$levels階層までしか見てくれません。上の階層に移せば読み込まれます。';
   }
 
   @override
@@ -901,7 +914,7 @@ class LJa extends L {
 
   @override
   String errorNoWriteAccess(String folder) {
-    return 'アプリに「$folder」への書き込み権限がありません。このフォルダーはシステムに保護されています — アカウントに書き込み権限を付けるか、設定で別のフォルダーを選んでください。';
+    return 'アプリに「$folder」への書き込み権限がありません。このフォルダーはシステムに保護されています。アカウントに書き込み権限を付けるか、設定で別のフォルダーを選んでください。';
   }
 
   @override

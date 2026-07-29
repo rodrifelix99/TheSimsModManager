@@ -130,6 +130,19 @@ class LZh extends L {
   }
 
   @override
+  String shopVariations(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个款式',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get shopVariationPick => '选一个款式';
+
+  @override
   String get shopBack => '返回货架';
 
   @override
@@ -312,7 +325,7 @@ class LZh extends L {
 
   @override
   String get conflictTooltip =>
-      '这些已启用的 MOD 与另一个已启用的 MOD 文件名相同、装了不止一个版本，或者覆盖了同样的游戏资源。游戏只会保留最后加载的那一份——有时是故意的（补丁类 MOD），但更多时候不是。';
+      '这些已启用的 MOD 与另一个已启用的 MOD 文件名相同、装了不止一个版本，或者覆盖了同样的游戏资源。游戏只会保留最后加载的那一份，有时是故意的（补丁类 MOD），但更多时候不是。';
 
   @override
   String get conflictTooltipClickHint => '点击可只看这些 MOD。';
@@ -458,7 +471,7 @@ class LZh extends L {
 
   @override
   String get conflictResourcesBody =>
-      '这些包里有标识符相同的资源，所以游戏只会保留最后加载的那一份。这有时是故意的——补丁类和覆盖类 MOD 本来就是要盖住别的 MOD 的资源——但如果两个 MOD 毫不相干，那就意味着其中一个悄悄失效了：留下你想要的那个，把其余的停用。';
+      '这些包里有标识符相同的资源，所以游戏只会保留最后加载的那一份。这有时是故意的（补丁类和覆盖类 MOD 本来就是要盖住别的 MOD 的资源），但如果两个 MOD 毫不相干，那就意味着其中一个悄悄失效了：留下你想要的那个，把其余的停用。';
 
   @override
   String advisoryBanner(int count) {
@@ -828,37 +841,37 @@ class LZh extends L {
 
   @override
   String errorSims3PackWorld(String name) {
-    return '$name 是一个世界，不是自定义内容。用《模拟人生3》启动器安装吧 — 游戏把世界放在 Mods 文件夹之外。';
+    return '$name 是一个世界，不是自定义内容。用《模拟人生3》启动器安装吧，游戏把世界放在 Mods 文件夹之外。';
   }
 
   @override
   String errorSims3PackLibrary(String name) {
-    return '$name 是一块地块或一户家庭，不是自定义内容。用《模拟人生3》启动器安装吧 — 它会进到游戏里的收藏库。';
+    return '$name 是一块地块或一户家庭，不是自定义内容。用《模拟人生3》启动器安装吧，它会进到游戏里的收藏库。';
   }
 
   @override
   String errorInstallFailed(String name, String reason) {
-    return '「$name」安装失败 — $reason。要是一直不行，就手动解压后安装里面的文件。';
+    return '「$name」安装失败：$reason。要是一直不行，就手动解压后安装里面的文件。';
   }
 
   @override
   String errorInstallFailedRaw(String name, String reason) {
-    return '「$name」安装失败 — $reason';
+    return '「$name」安装失败：$reason';
   }
 
   @override
   String errorFileInUseDelete(String name) {
-    return '「$name」删除失败 — 文件被别的程序占用了（游戏还开着？），或者是只读的。先关掉占用它的程序，再试一次。';
+    return '「$name」删除失败：文件被别的程序占用了（游戏还开着？），或者是只读的。先关掉占用它的程序，再试一次。';
   }
 
   @override
   String errorFileInUseRename(String name) {
-    return '「$name」重命名失败 — 文件被别的程序占用了（游戏还开着？），或者是只读的。先关掉占用它的程序，再试一次。';
+    return '「$name」重命名失败：文件被别的程序占用了（游戏还开着？），或者是只读的。先关掉占用它的程序，再试一次。';
   }
 
   @override
   String errorFileMissing(String name) {
-    return '「$name」已经不在模组文件夹里了 — 可能被别的程序移动或删除了。';
+    return '「$name」已经不在模组文件夹里了，可能被别的程序移动或删除了。';
   }
 
   @override
@@ -883,7 +896,7 @@ class LZh extends L {
       locale: localeName,
       other: '有 $count 个模组',
     );
-    return '$_temp0放在游戏读不到的子文件夹里。游戏只会往模组文件夹里找 $levels 层 — 把它们往上挪一挪就能加载了。';
+    return '$_temp0放在游戏读不到的子文件夹里。游戏只会往模组文件夹里找 $levels 层，把它们往上挪一挪就能加载了。';
   }
 
   @override
@@ -891,7 +904,7 @@ class LZh extends L {
 
   @override
   String errorNoWriteAccess(String folder) {
-    return '应用没有权限写入「$folder」。这个文件夹被系统保护着 — 给你的账户加上写入权限，或者在设置里换一个文件夹。';
+    return '应用没有权限写入「$folder」。这个文件夹被系统保护着，给你的账户加上写入权限，或者在设置里换一个文件夹。';
   }
 
   @override
@@ -899,7 +912,7 @@ class LZh extends L {
 
   @override
   String get elevatedNoDropBanner =>
-      '你是以管理员身份运行的，所以 Windows 不让你把文件拖到窗口里。用「安装」按钮吧 — 那个还能正常用。';
+      '你是以管理员身份运行的，所以 Windows 不让你把文件拖到窗口里。用「安装」按钮吧，那个还能正常用。';
 
   @override
   String errorShopDownload(String name) {
@@ -938,7 +951,7 @@ class LZh extends L {
 
   @override
   String savesEmptyBody(String game) {
-    return '玩过$game并保存后，你的世界就会出现在这里——家庭、照片，一个都不少。';
+    return '玩过$game并保存后，你的世界就会出现在这里：家庭、照片，一个都不少。';
   }
 
   @override
@@ -1423,7 +1436,7 @@ class LZh extends L {
 
   @override
   String get setupHelpSims1 =>
-      '初代模拟人生把自定义内容放在自己的安装目录里，而不是「文档」：物件放在游戏可执行文件旁边的 Downloads 文件夹（例如 C:\\Program Files (x86)\\Maxis\\The Sims\\Downloads），其他类型这个应用会自动归类——皮肤（.skn/.cmx/.bmp）放进 GameData\\Skins，墙面和地板放进 GameData\\Walls 和 GameData\\Floors。2025 年的 Legacy Collection 也一样，用它自己的安装目录（EA Games\\The Sims Legacy，或 Steam\\steamapps\\common\\The Sims Legacy Collection）。如果游戏装在别的地方（另一个磁盘、自定义的 Steam 库），请手动选它的 Downloads 文件夹。';
+      '初代模拟人生把自定义内容放在自己的安装目录里，而不是「文档」：物件放在游戏可执行文件旁边的 Downloads 文件夹（例如 C:\\Program Files (x86)\\Maxis\\The Sims\\Downloads），其他类型这个应用会自动归类：皮肤（.skn/.cmx/.bmp）放进 GameData\\Skins，墙面和地板放进 GameData\\Walls 和 GameData\\Floors。2025 年的 Legacy Collection 也一样，用它自己的安装目录（EA Games\\The Sims Legacy，或 Steam\\steamapps\\common\\The Sims Legacy Collection）。如果游戏装在别的地方（另一个磁盘、自定义的 Steam 库），请手动选它的 Downloads 文件夹。';
 
   @override
   String get setupHelpSims2 =>
