@@ -4,8 +4,11 @@
 // future. If not, the values below would default to using the project name when this becomes a
 // 'flutter create' template.
 
-// The application's name. By default this is also the title of the Flutter window.
-PRODUCT_NAME = sims_mod_manager
+// The application's name. It names the bundle, the executable inside it, and
+// the app menu next to the Apple logo - so it is the name Finder, the Dock and
+// the menu bar all show, and it has to be the real one rather than the package
+// name pubspec.yaml carries.
+PRODUCT_NAME = The Sims Mod Manager
 
 // The application's bundle identifier
 PRODUCT_BUNDLE_IDENTIFIER = com.felix.simsModManager

@@ -65,6 +65,15 @@ jobs:
       # workflow is the only thing that produces something to hand out,
       # and it pins its own Flutter version for reasons of its own.
       - run: flutter build ${{ matrix.target }} --release
+      # The disk image is assembled by a Finder script that only the release
+      # workflow runs, right at the end, on a tag. Same bargain as the runners
+      # above: build one here, unsigned and thrown away, so a layout that
+      # stopped assembling is a push away rather than a tag away.
+      - if: matrix.target == 'macos'
+        run: |
+          brew install create-dmg
+          installer/macos/make_dmg.sh build/smoke.dmg \
+            "build/macos/Build/Products/Release/The Sims Mod Manager.app"
 
   site:
     name: Build the website

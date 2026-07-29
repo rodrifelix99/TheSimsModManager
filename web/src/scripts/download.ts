@@ -6,7 +6,10 @@ import { releasesApi } from '../data/links';
 const SUFFIXES: Record<string, (name: string) => boolean> = {
   'windows-setup': (n) => n.endsWith('-windows-setup.exe'),
   'windows-portable': (n) => n.endsWith('-windows-portable.zip'),
-  macos: (n) => n.endsWith('-macos.zip'),
+  // macOS ships a disk image now. The site deploys on every push and the
+  // release it reads is whatever is out, so the zip older releases carry has
+  // to keep resolving until one with a .dmg is published.
+  macos: (n) => n.endsWith('-macos.dmg') || n.endsWith('-macos.zip'),
   linux: (n) => n.endsWith('-linux-x64.tar.gz'),
 };
 
