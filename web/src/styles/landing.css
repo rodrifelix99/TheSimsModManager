@@ -50,7 +50,7 @@ header {
   transform: translateY(-1px); background: linear-gradient(120deg, var(--accent), var(--accent2));
   box-shadow: 0 12px 26px -10px color-mix(in srgb, var(--accent) 95%, transparent);
 }
-.nav-links a.cta span { position: relative; }
+.nav-links a.cta span:not(.gleam) { position: relative; }
 .nav-links .lang {
   margin: 0 2px; padding: 6px 12px; font: inherit; font-size: 13px; font-weight: 800;
   color: var(--muted); background: var(--surface); border: 1px solid var(--border);
@@ -108,7 +108,7 @@ header {
   transform: translateY(-2px);
   box-shadow: 0 22px 44px -16px color-mix(in srgb, var(--accent) 100%, transparent);
 }
-.btn-primary span { position: relative; }
+.btn-primary span:not(.gleam) { position: relative; }
 .btn-ghost {
   padding: 15px 28px; border: 2px solid var(--border); border-radius: 16px;
   background: var(--surface); color: var(--text); font-size: 16px; font-weight: 800;

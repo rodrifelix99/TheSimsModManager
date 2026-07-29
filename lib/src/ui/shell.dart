@@ -13,6 +13,7 @@ import 'game_theme.dart';
 import 'install_destination_dialog.dart';
 import 'l10n.dart';
 import 'library_view.dart';
+import 'saves_view.dart';
 import 'settings_view.dart';
 import 'shop_view.dart';
 import 'widgets.dart';
@@ -134,6 +135,8 @@ class _AppShellState extends State<AppShell> {
                                       SettingsView(theme: t, controller: c),
                                     AppScreen.shop =>
                                       ShopView(theme: t, controller: c),
+                                    AppScreen.saves =>
+                                      SavesView(theme: t, controller: c),
                                   },
                                 ),
                               ),
@@ -459,6 +462,28 @@ class _SidebarState extends State<_Sidebar>
               ),
             ),
             onTap: c.backToLibrary,
+          ),
+          const SizedBox(height: 4),
+          _navButton(
+            t,
+            label: l.navSaves,
+            active: c.screen == AppScreen.saves,
+            // The design's saves glyph: the library square with one
+            // corner rounded off, a page with a dog-ear.
+            iconBuilder: (color) => Container(
+              width: 18,
+              height: 18,
+              decoration: BoxDecoration(
+                border: Border.all(color: color, width: 2.5),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(5),
+                  topRight: Radius.circular(5),
+                  bottomRight: Radius.circular(5),
+                  bottomLeft: Radius.circular(9),
+                ),
+              ),
+            ),
+            onTap: c.openSaves,
           ),
           const SizedBox(height: 4),
           _navButton(

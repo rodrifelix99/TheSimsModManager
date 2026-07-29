@@ -46,6 +46,7 @@ Map<String, Object?> _listing({
       },
       'createdAt': {'timestampValue': '2026-07-01T09:30:00Z'},
       'updatedAt': {'timestampValue': '2026-07-20T18:00:00Z'},
+      'downloads': {'integerValue': '1284'},
     });
 
 void main() {
@@ -69,6 +70,20 @@ void main() {
     expect(mod.fileSizeBytes, 20480);
     expect(mod.imagePaths, ['mods/u1/abc123/images/1.png']);
     expect(mod.updatedAt, DateTime.utc(2026, 7, 20, 18).toLocal());
+    expect(mod.downloads, 1284);
+  });
+
+  test('a listing from before the counter reads zero downloads, not junk', () {
+    final row = _listing();
+    final fields =
+        ((row['document']! as Map)['fields']! as Map).cast<String, Object?>();
+    fields.remove('downloads');
+    expect(parseShopListings(jsonEncode([row])).single.downloads, 0);
+
+    // Nothing here is written by the app, so the wire is allowed to be
+    // wrong; it must not come back as a negative count on a card.
+    fields['downloads'] = {'integerValue': '-5'};
+    expect(parseShopListings(jsonEncode([row])).single.downloads, 0);
   });
 
   test('drops rows missing required fields instead of failing the lot', () {

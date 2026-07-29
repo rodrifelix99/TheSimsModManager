@@ -530,6 +530,9 @@ class LZh extends L {
   String get factModified => '修改时间';
 
   @override
+  String get factDownloads => '下载量';
+
+  @override
   String get statusHeading => '状态';
 
   @override
@@ -923,6 +926,500 @@ class LZh extends L {
 
   @override
   String get eraMedieval => '中世纪';
+
+  @override
+  String get navSaves => '存档';
+
+  @override
+  String get savesScanning => '正在读取你的存档…';
+
+  @override
+  String get savesEmptyTitle => '没有找到存档';
+
+  @override
+  String savesEmptyBody(String game) {
+    return '玩过$game并保存后，你的世界就会出现在这里——家庭、照片，一个都不少。';
+  }
+
+  @override
+  String get savesRescan => '重新扫描存档';
+
+  @override
+  String savesCount(int count) {
+    return '找到 $count 个存档';
+  }
+
+  @override
+  String savesLastSaved(String date) {
+    return '上次保存于 $date';
+  }
+
+  @override
+  String get savesShowInFolder => '在文件夹中显示';
+
+  @override
+  String savesBackups(int count) {
+    return '$count 个备份';
+  }
+
+  @override
+  String get savesTabHouseholds => '家庭';
+
+  @override
+  String get savesTabAlbum => '相册';
+
+  @override
+  String get savesTabStats => '世界统计';
+
+  @override
+  String savesNeighborhood(int number) {
+    return '社区 $number';
+  }
+
+  @override
+  String get savesOtherHouseholds => '市民与其他家庭';
+
+  @override
+  String savesSimCount(int count) {
+    return '$count 个市民';
+  }
+
+  @override
+  String get savesFunds => '资金';
+
+  @override
+  String get savesRooms => '房间';
+
+  @override
+  String savesBedsBaths(int beds, int baths) {
+    return '$beds 卧 · $baths 卫';
+  }
+
+  @override
+  String savesByCreator(String name) {
+    return '由 $name 创建';
+  }
+
+  @override
+  String get savesMembers => '成员';
+
+  @override
+  String get savesRelationships => '关系';
+
+  @override
+  String get savesUnknownSim => '未知市民';
+
+  @override
+  String get savesStatSims => '市民';
+
+  @override
+  String get savesStatHouseholds => '家庭';
+
+  @override
+  String get savesStatNetWorth => '总资产';
+
+  @override
+  String get savesStatWorlds => '世界';
+
+  @override
+  String get savesStatPhotos => '照片';
+
+  @override
+  String savesAcrossHouseholds(int count) {
+    return '来自 $count 个家庭';
+  }
+
+  @override
+  String savesPlayedCount(int count) {
+    return '$count 个在玩';
+  }
+
+  @override
+  String get savesSizeOnDisk => '占用空间';
+
+  @override
+  String get savesLifeStages => '人生阶段';
+
+  @override
+  String get savesTopSkills => '本存档的最高技能';
+
+  @override
+  String get savesSaveInfo => '存档文件';
+
+  @override
+  String get savesLastSavedLabel => '上次保存';
+
+  @override
+  String get savesGameVersion => '游戏版本';
+
+  @override
+  String get savesDescription => '描述';
+
+  @override
+  String get savesAgeInfant => '新生儿';
+
+  @override
+  String get savesAgeBaby => '婴儿';
+
+  @override
+  String get savesAgeToddler => '幼儿';
+
+  @override
+  String get savesAgeChild => '儿童';
+
+  @override
+  String get savesAgeTeen => '青少年';
+
+  @override
+  String get savesAgeYoungAdult => '青年';
+
+  @override
+  String get savesAgeAdult => '成年';
+
+  @override
+  String get savesAgeElder => '老年';
+
+  @override
+  String get savesGenderMale => '男';
+
+  @override
+  String get savesGenderFemale => '女';
+
+  @override
+  String get savesSkillCooking => '烹饪';
+
+  @override
+  String get savesSkillMechanical => '机械';
+
+  @override
+  String get savesSkillCharisma => '魅力';
+
+  @override
+  String get savesSkillBody => '体魄';
+
+  @override
+  String get savesSkillLogic => '逻辑';
+
+  @override
+  String get savesSkillCreativity => '创造力';
+
+  @override
+  String get savesSkillCleaning => '清洁';
+
+  @override
+  String get savesPersonalityNeat => '爱干净';
+
+  @override
+  String get savesPersonalityOutgoing => '外向';
+
+  @override
+  String get savesPersonalityActive => '活跃';
+
+  @override
+  String get savesPersonalityPlayful => '爱玩';
+
+  @override
+  String get savesPersonalityNice => '友善';
+
+  @override
+  String get savesZodiacAries => '白羊座';
+
+  @override
+  String get savesZodiacTaurus => '金牛座';
+
+  @override
+  String get savesZodiacGemini => '双子座';
+
+  @override
+  String get savesZodiacCancer => '巨蟹座';
+
+  @override
+  String get savesZodiacLeo => '狮子座';
+
+  @override
+  String get savesZodiacVirgo => '处女座';
+
+  @override
+  String get savesZodiacLibra => '天秤座';
+
+  @override
+  String get savesZodiacScorpio => '天蝎座';
+
+  @override
+  String get savesZodiacSagittarius => '射手座';
+
+  @override
+  String get savesZodiacCapricorn => '摩羯座';
+
+  @override
+  String get savesZodiacAquarius => '水瓶座';
+
+  @override
+  String get savesZodiacPisces => '双鱼座';
+
+  @override
+  String get savesAspirationRomance => '浪漫';
+
+  @override
+  String get savesAspirationFamily => '家庭';
+
+  @override
+  String get savesAspirationFortune => '财富';
+
+  @override
+  String get savesAspirationPopularity => '人气';
+
+  @override
+  String get savesAspirationKnowledge => '知识';
+
+  @override
+  String get savesAspirationGrowUp => '成长';
+
+  @override
+  String get savesAspirationPleasure => '享乐';
+
+  @override
+  String get savesAspirationGrilledCheese => '烤奶酪';
+
+  @override
+  String get savesRelCrush => '心动';
+
+  @override
+  String get savesRelLove => '热恋';
+
+  @override
+  String get savesRelEngaged => '订婚';
+
+  @override
+  String get savesRelMarried => '已婚';
+
+  @override
+  String get savesRelFriends => '朋友';
+
+  @override
+  String get savesRelBestFriends => '挚友';
+
+  @override
+  String get savesRelSteady => '稳定交往';
+
+  @override
+  String get savesRelEnemies => '敌人';
+
+  @override
+  String get savesPhotoFamilyPortrait => '全家福';
+
+  @override
+  String get savesPhotoLot => '地块';
+
+  @override
+  String get savesPhotoSim => '市民照';
+
+  @override
+  String get savesPhotoSnapshot => '快照';
+
+  @override
+  String get savesProperty => '房产';
+
+  @override
+  String get savesGhost => '幽灵';
+
+  @override
+  String savesCareerLevel(String career, int level) {
+    return '$career · 第 $level 级';
+  }
+
+  @override
+  String get savesSpeciesLargeDog => '狗';
+
+  @override
+  String get savesSpeciesSmallDog => '小型犬';
+
+  @override
+  String get savesSpeciesCat => '猫';
+
+  @override
+  String get savesOccultVampire => '吸血鬼';
+
+  @override
+  String get savesOccultZombie => '僵尸';
+
+  @override
+  String get savesOccultWerewolf => '狼人';
+
+  @override
+  String get savesOccultPlantSim => '植物人';
+
+  @override
+  String get savesOccultAlien => '外星人';
+
+  @override
+  String get savesOccultServo => '机器人';
+
+  @override
+  String get savesOccultWitch => '女巫';
+
+  @override
+  String get savesOccultBigfoot => '大脚怪';
+
+  @override
+  String get savesOccultFairy => '妖精';
+
+  @override
+  String get savesOccultGenie => '精灵';
+
+  @override
+  String get savesOccultMermaid => '人鱼';
+
+  @override
+  String get savesLotResidential => '住宅';
+
+  @override
+  String get savesLotCommunity => '社区场地';
+
+  @override
+  String get savesLotDorm => '宿舍';
+
+  @override
+  String get savesLotSecretSociety => '秘密社团';
+
+  @override
+  String get savesLotGreekHouse => '兄弟会';
+
+  @override
+  String get savesLotHotel => '酒店';
+
+  @override
+  String get savesLotSecret => '隐藏场地';
+
+  @override
+  String get savesLotBusiness => '商铺';
+
+  @override
+  String get savesLotApartment => '公寓';
+
+  @override
+  String savesGpa(String gpa) {
+    return '绩点 $gpa';
+  }
+
+  @override
+  String savesSemester(int number) {
+    return '第 $number 学期';
+  }
+
+  @override
+  String savesPredestinedHobby(String hobby) {
+    return '天生适合$hobby';
+  }
+
+  @override
+  String get savesHobbyCuisine => '烹饪';
+
+  @override
+  String get savesHobbyArts => '手工艺';
+
+  @override
+  String get savesHobbyFilm => '影视文学';
+
+  @override
+  String get savesHobbySports => '运动';
+
+  @override
+  String get savesHobbyGames => '游戏';
+
+  @override
+  String get savesHobbyNature => '自然';
+
+  @override
+  String get savesHobbyTinkering => '修补';
+
+  @override
+  String get savesHobbyFitness => '健身';
+
+  @override
+  String get savesHobbyScience => '科学';
+
+  @override
+  String get savesHobbyMusic => '音乐舞蹈';
+
+  @override
+  String get savesTieMother => '母亲';
+
+  @override
+  String get savesTieFather => '父亲';
+
+  @override
+  String get savesTieSpouse => '配偶';
+
+  @override
+  String savesTieSibling(int count) {
+    return '兄弟姐妹';
+  }
+
+  @override
+  String savesTieChild(int count) {
+    return '子女';
+  }
+
+  @override
+  String get savesInterestPolitics => '政治';
+
+  @override
+  String get savesInterestMoney => '金钱';
+
+  @override
+  String get savesInterestEnvironment => '环境';
+
+  @override
+  String get savesInterestCrime => '犯罪';
+
+  @override
+  String get savesInterestEntertainment => '娱乐';
+
+  @override
+  String get savesInterestCulture => '文化';
+
+  @override
+  String get savesInterestFood => '美食';
+
+  @override
+  String get savesInterestHealth => '健康';
+
+  @override
+  String get savesInterestFashion => '时尚';
+
+  @override
+  String get savesInterestSports => '运动';
+
+  @override
+  String get savesInterestParanormal => '灵异';
+
+  @override
+  String get savesInterestTravel => '旅行';
+
+  @override
+  String get savesInterestWork => '工作';
+
+  @override
+  String get savesInterestWeather => '天气';
+
+  @override
+  String get savesInterestAnimals => '动物';
+
+  @override
+  String get savesInterestSchool => '学校';
+
+  @override
+  String get savesInterestToys => '玩具';
+
+  @override
+  String get savesInterestSciFi => '科幻';
+
+  @override
+  String get savesInterestMusic => '音乐';
+
+  @override
+  String get savesInterestOutdoors => '户外';
 
   @override
   String get setupHelpSims1 =>

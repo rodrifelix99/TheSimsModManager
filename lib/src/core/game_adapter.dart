@@ -11,6 +11,7 @@ import 'mod.dart';
 import 'mod_archive.dart';
 import 'package_insight.dart';
 import 'resource_cfg.dart';
+import 'save_game.dart';
 
 /// Suffix appended to a mod file to hide it from the game without deleting it.
 const disabledSuffix = '.disabled';
@@ -180,6 +181,13 @@ abstract class GameAdapter {
     void Function(Map<String, PackageInsight> found)? onFound,
     bool Function()? isCancelled,
   });
+
+  /// This game's saves as found on this machine, newest first - a
+  /// best-effort read of whatever the save files give up (see [SaveGame]:
+  /// every game stores something different). Empty when the game or its
+  /// saves can't be located, and for games without a save reader yet.
+  /// Runs off the UI thread and must never throw.
+  Future<List<SaveGame>> listSaveGames() async => const [];
 }
 
 /// Default implementation for games whose mods are plain files in a folder,
@@ -297,6 +305,11 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
   Future<List<InstallDestination>> installDestinations(
       Directory modsDir) async =>
       const [];
+
+  /// No saves until a subclass knows how to read this game's. Repeated
+  /// from the interface for the same reason as [installDestinations].
+  @override
+  Future<List<SaveGame>> listSaveGames() async => const [];
 
   /// Where an install actually writes: the folder the user chose, when
   /// they chose one and this game has it, and the mods folder otherwise.

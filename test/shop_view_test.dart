@@ -14,6 +14,7 @@ import 'package:sims_mod_manager/src/core/package_insight.dart';
 import 'package:sims_mod_manager/src/services/mod_shop.dart';
 import 'package:sims_mod_manager/src/services/settings_store.dart';
 import 'package:sims_mod_manager/src/ui/app.dart';
+import 'package:sims_mod_manager/src/ui/app_controller.dart';
 import 'package:sims_mod_manager/src/ui/shop_view.dart';
 
 class _FakeAdapter extends FolderBasedGameAdapter {
@@ -72,6 +73,7 @@ ShopMod _listing({
   String gameId = 'fake',
   String name = 'Camera Fix',
   String version = '2.0',
+  int downloads = 0,
 }) =>
     ShopMod(
       id: id,
@@ -84,6 +86,7 @@ ShopMod _listing({
       fileName: fileName,
       filePath: 'mods/u1/$id/$fileName',
       fileSizeBytes: 11,
+      downloads: downloads,
     );
 
 void main() {
@@ -621,5 +624,90 @@ void main() {
 
     expect(find.text('Camera Fix'), findsOneWidget);
     expect(find.text('Back to the shelves'), findsOneWidget);
+  });
+
+  // The install itself is driven straight through the controller rather than
+  // by tapping: an install draws "Installed" the moment the file lands, well
+  // before the call returns, so nothing that happens at the end of one can be
+  // waited for through the interface.
+  test('installing a listing reports one download, and a demo one reports none',
+      () async {
+    SharedPreferences.setMockInitialValues({'soundEffects': false});
+    final tempDir = Directory.systemTemp.createTempSync('shop_counts_ctl');
+    addTearDown(() => tempDir.deleteSync(recursive: true));
+    final counted = <String>[];
+
+    final controller = AppController(
+      registry: GameRegistry([_FakeAdapter(tempDir)]),
+      settings: await SettingsStore.load(),
+      checkUpdates: () async => null,
+      downloadShop: (mod, destination, {onProgress}) async {
+        destination.writeAsStringSync('shop bytes!');
+      },
+      reportDownload: (id) async => counted.add(id),
+    );
+    await controller.refresh();
+
+    await controller.installShopMod(_listing());
+    expect(controller.lastError, isNull);
+    expect(counted, ['l1']);
+
+    // Reinstalling is a download the creator did have; the server is what
+    // decides it is the same machine twice, not the app.
+    await controller.installShopMod(_listing());
+    expect(counted, ['l1', 'l1']);
+
+    // The demo shelves are invented mods by invented creators. Nothing on
+    // them may ever reach a real listing's count.
+    await controller.settings.setDemoLibrary(true);
+    await controller.installShopMod(
+        _listing(id: 'l9', name: 'Pretend Mod', fileName: 'pretend.package'));
+    expect(counted, ['l1', 'l1']);
+  });
+
+  testWidgets('a download count shows on the shelf once there is one',
+      (tester) async {
+    tester.view.physicalSize = const Size(1280, 824);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    SharedPreferences.setMockInitialValues({'soundEffects': false});
+    final tempDir = Directory.systemTemp.createTempSync('shop_counts');
+    addTearDown(() => tempDir.deleteSync(recursive: true));
+
+    final registry = GameRegistry([_FakeAdapter(tempDir)]);
+    final settings = await SettingsStore.load();
+
+    await tester.runAsync(() async {
+      await tester.pumpWidget(ModManagerApp(
+        registry: registry,
+        settings: settings,
+        fetchShop: () async => [
+          _listing(downloads: 1284),
+          // Nobody has taken this one, and a card that says so out loud
+          // does the creator no favours: the number stays off entirely.
+          _listing(
+              id: 'l2', name: 'Quiet Doors', fileName: 'doors.package'),
+        ],
+      ));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    await tester.tap(find.text('The Exchange'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    // Grouped the way the reader's own language groups numbers, and drawn
+    // for the listing that has downloads and nowhere else.
+    expect(find.text('1,284'), findsOneWidget);
+    expect(find.text('0'), findsNothing);
+
+    // The detail panel says it in words, next to the size and the date.
+    await tester.tap(find.text('Camera Fix'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('DOWNLOADS'), findsOneWidget);
+    expect(find.text('1,284'), findsOneWidget);
   });
 }

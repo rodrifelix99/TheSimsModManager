@@ -577,6 +577,9 @@ class LFr extends L {
   String get factModified => 'Modifié';
 
   @override
+  String get factDownloads => 'Téléchargements';
+
+  @override
   String get statusHeading => 'État';
 
   @override
@@ -1005,6 +1008,542 @@ class LFr extends L {
 
   @override
   String get eraMedieval => 'Médiéval';
+
+  @override
+  String get navSaves => 'Sauvegardes';
+
+  @override
+  String get savesScanning => 'Lecture de tes sauvegardes…';
+
+  @override
+  String get savesEmptyTitle => 'Aucune sauvegarde trouvée';
+
+  @override
+  String savesEmptyBody(String game) {
+    return 'Dès que tu joues à $game et que tu sauvegardes, tes mondes s\'affichent ici — familles, photos et tout le reste.';
+  }
+
+  @override
+  String get savesRescan => 'Relancer la recherche';
+
+  @override
+  String savesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sauvegardes trouvées',
+      one: '1 sauvegarde trouvée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String savesLastSaved(String date) {
+    return 'Dernière sauvegarde : $date';
+  }
+
+  @override
+  String get savesShowInFolder => 'Afficher dans le dossier';
+
+  @override
+  String savesBackups(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count copies de secours',
+      one: '1 copie de secours',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get savesTabHouseholds => 'Foyers';
+
+  @override
+  String get savesTabAlbum => 'Album photo';
+
+  @override
+  String get savesTabStats => 'Statistiques';
+
+  @override
+  String savesNeighborhood(int number) {
+    return 'Quartier $number';
+  }
+
+  @override
+  String get savesOtherHouseholds => 'PNJ et autres foyers';
+
+  @override
+  String savesSimCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Sims',
+      one: '1 Sim',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get savesFunds => 'Fonds';
+
+  @override
+  String get savesRooms => 'Pièces';
+
+  @override
+  String savesBedsBaths(int beds, int baths) {
+    return '$beds ch. · $baths sdb';
+  }
+
+  @override
+  String savesByCreator(String name) {
+    return 'par $name';
+  }
+
+  @override
+  String get savesMembers => 'Membres';
+
+  @override
+  String get savesRelationships => 'Relations';
+
+  @override
+  String get savesUnknownSim => 'Sim inconnu';
+
+  @override
+  String get savesStatSims => 'Sims';
+
+  @override
+  String get savesStatHouseholds => 'Foyers';
+
+  @override
+  String get savesStatNetWorth => 'Patrimoine';
+
+  @override
+  String get savesStatWorlds => 'Mondes';
+
+  @override
+  String get savesStatPhotos => 'Photos';
+
+  @override
+  String savesAcrossHouseholds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'dans $count foyers',
+      one: 'dans 1 foyer',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String savesPlayedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count joués',
+      one: '1 joué',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get savesSizeOnDisk => 'Espace disque';
+
+  @override
+  String get savesLifeStages => 'Étapes de la vie';
+
+  @override
+  String get savesTopSkills => 'Meilleures compétences de cette partie';
+
+  @override
+  String get savesSaveInfo => 'Fichier de sauvegarde';
+
+  @override
+  String get savesLastSavedLabel => 'Dernière sauvegarde';
+
+  @override
+  String get savesGameVersion => 'Version du jeu';
+
+  @override
+  String get savesDescription => 'Description';
+
+  @override
+  String get savesAgeInfant => 'Nourrisson';
+
+  @override
+  String get savesAgeBaby => 'Bébé';
+
+  @override
+  String get savesAgeToddler => 'Bambin';
+
+  @override
+  String get savesAgeChild => 'Enfant';
+
+  @override
+  String get savesAgeTeen => 'Ado';
+
+  @override
+  String get savesAgeYoungAdult => 'Jeune adulte';
+
+  @override
+  String get savesAgeAdult => 'Adulte';
+
+  @override
+  String get savesAgeElder => 'Senior';
+
+  @override
+  String get savesGenderMale => 'Homme';
+
+  @override
+  String get savesGenderFemale => 'Femme';
+
+  @override
+  String get savesSkillCooking => 'Cuisine';
+
+  @override
+  String get savesSkillMechanical => 'Mécanique';
+
+  @override
+  String get savesSkillCharisma => 'Charisme';
+
+  @override
+  String get savesSkillBody => 'Physique';
+
+  @override
+  String get savesSkillLogic => 'Logique';
+
+  @override
+  String get savesSkillCreativity => 'Créativité';
+
+  @override
+  String get savesSkillCleaning => 'Ménage';
+
+  @override
+  String get savesPersonalityNeat => 'Ordonné';
+
+  @override
+  String get savesPersonalityOutgoing => 'Extraverti';
+
+  @override
+  String get savesPersonalityActive => 'Actif';
+
+  @override
+  String get savesPersonalityPlayful => 'Joueur';
+
+  @override
+  String get savesPersonalityNice => 'Gentil';
+
+  @override
+  String get savesZodiacAries => 'Bélier';
+
+  @override
+  String get savesZodiacTaurus => 'Taureau';
+
+  @override
+  String get savesZodiacGemini => 'Gémeaux';
+
+  @override
+  String get savesZodiacCancer => 'Cancer';
+
+  @override
+  String get savesZodiacLeo => 'Lion';
+
+  @override
+  String get savesZodiacVirgo => 'Vierge';
+
+  @override
+  String get savesZodiacLibra => 'Balance';
+
+  @override
+  String get savesZodiacScorpio => 'Scorpion';
+
+  @override
+  String get savesZodiacSagittarius => 'Sagittaire';
+
+  @override
+  String get savesZodiacCapricorn => 'Capricorne';
+
+  @override
+  String get savesZodiacAquarius => 'Verseau';
+
+  @override
+  String get savesZodiacPisces => 'Poissons';
+
+  @override
+  String get savesAspirationRomance => 'Romance';
+
+  @override
+  String get savesAspirationFamily => 'Famille';
+
+  @override
+  String get savesAspirationFortune => 'Fortune';
+
+  @override
+  String get savesAspirationPopularity => 'Popularité';
+
+  @override
+  String get savesAspirationKnowledge => 'Connaissance';
+
+  @override
+  String get savesAspirationGrowUp => 'Grandir';
+
+  @override
+  String get savesAspirationPleasure => 'Plaisir';
+
+  @override
+  String get savesAspirationGrilledCheese => 'Croque-monsieur';
+
+  @override
+  String get savesRelCrush => 'béguin';
+
+  @override
+  String get savesRelLove => 'amoureux';
+
+  @override
+  String get savesRelEngaged => 'fiancés';
+
+  @override
+  String get savesRelMarried => 'mariés';
+
+  @override
+  String get savesRelFriends => 'amis';
+
+  @override
+  String get savesRelBestFriends => 'meilleurs amis';
+
+  @override
+  String get savesRelSteady => 'en couple';
+
+  @override
+  String get savesRelEnemies => 'ennemis';
+
+  @override
+  String get savesPhotoFamilyPortrait => 'Portrait de famille';
+
+  @override
+  String get savesPhotoLot => 'Terrain';
+
+  @override
+  String get savesPhotoSim => 'Portrait de Sim';
+
+  @override
+  String get savesPhotoSnapshot => 'Photo';
+
+  @override
+  String get savesProperty => 'Patrimoine';
+
+  @override
+  String get savesGhost => 'fantôme';
+
+  @override
+  String savesCareerLevel(String career, int level) {
+    return '$career · niveau $level';
+  }
+
+  @override
+  String get savesSpeciesLargeDog => 'chien';
+
+  @override
+  String get savesSpeciesSmallDog => 'petit chien';
+
+  @override
+  String get savesSpeciesCat => 'chat';
+
+  @override
+  String get savesOccultVampire => 'vampire';
+
+  @override
+  String get savesOccultZombie => 'zombie';
+
+  @override
+  String get savesOccultWerewolf => 'loup-garou';
+
+  @override
+  String get savesOccultPlantSim => 'SimPlante';
+
+  @override
+  String get savesOccultAlien => 'extraterrestre';
+
+  @override
+  String get savesOccultServo => 'servo';
+
+  @override
+  String get savesOccultWitch => 'sorcière';
+
+  @override
+  String get savesOccultBigfoot => 'Bigfoot';
+
+  @override
+  String get savesOccultFairy => 'fée';
+
+  @override
+  String get savesOccultGenie => 'génie';
+
+  @override
+  String get savesOccultMermaid => 'sirène';
+
+  @override
+  String get savesLotResidential => 'Résidentiel';
+
+  @override
+  String get savesLotCommunity => 'Terrain communautaire';
+
+  @override
+  String get savesLotDorm => 'Résidence';
+
+  @override
+  String get savesLotSecretSociety => 'Société secrète';
+
+  @override
+  String get savesLotGreekHouse => 'Maison grecque';
+
+  @override
+  String get savesLotHotel => 'Hôtel';
+
+  @override
+  String get savesLotSecret => 'Terrain secret';
+
+  @override
+  String get savesLotBusiness => 'Commerce';
+
+  @override
+  String get savesLotApartment => 'Appartement';
+
+  @override
+  String savesGpa(String gpa) {
+    return 'moyenne $gpa';
+  }
+
+  @override
+  String savesSemester(int number) {
+    return 'semestre $number';
+  }
+
+  @override
+  String savesPredestinedHobby(String hobby) {
+    return 'Né pour $hobby';
+  }
+
+  @override
+  String get savesHobbyCuisine => 'Cuisine';
+
+  @override
+  String get savesHobbyArts => 'Arts et loisirs';
+
+  @override
+  String get savesHobbyFilm => 'Cinéma et littérature';
+
+  @override
+  String get savesHobbySports => 'Sport';
+
+  @override
+  String get savesHobbyGames => 'Jeux';
+
+  @override
+  String get savesHobbyNature => 'Nature';
+
+  @override
+  String get savesHobbyTinkering => 'Bricolage';
+
+  @override
+  String get savesHobbyFitness => 'Forme';
+
+  @override
+  String get savesHobbyScience => 'Science';
+
+  @override
+  String get savesHobbyMusic => 'Musique et danse';
+
+  @override
+  String get savesTieMother => 'mère';
+
+  @override
+  String get savesTieFather => 'père';
+
+  @override
+  String get savesTieSpouse => 'marié à';
+
+  @override
+  String savesTieSibling(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'frères et sœurs',
+      one: 'frère ou sœur',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String savesTieChild(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'enfants',
+      one: 'enfant',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get savesInterestPolitics => 'Politique';
+
+  @override
+  String get savesInterestMoney => 'Argent';
+
+  @override
+  String get savesInterestEnvironment => 'Environnement';
+
+  @override
+  String get savesInterestCrime => 'Crime';
+
+  @override
+  String get savesInterestEntertainment => 'Divertissement';
+
+  @override
+  String get savesInterestCulture => 'Culture';
+
+  @override
+  String get savesInterestFood => 'Cuisine';
+
+  @override
+  String get savesInterestHealth => 'Santé';
+
+  @override
+  String get savesInterestFashion => 'Mode';
+
+  @override
+  String get savesInterestSports => 'Sport';
+
+  @override
+  String get savesInterestParanormal => 'Paranormal';
+
+  @override
+  String get savesInterestTravel => 'Voyages';
+
+  @override
+  String get savesInterestWork => 'Travail';
+
+  @override
+  String get savesInterestWeather => 'Météo';
+
+  @override
+  String get savesInterestAnimals => 'Animaux';
+
+  @override
+  String get savesInterestSchool => 'École';
+
+  @override
+  String get savesInterestToys => 'Jouets';
+
+  @override
+  String get savesInterestSciFi => 'Science-fiction';
+
+  @override
+  String get savesInterestMusic => 'Musique';
+
+  @override
+  String get savesInterestOutdoors => 'Plein air';
 
   @override
   String get setupHelpSims1 =>

@@ -12,6 +12,7 @@ import 'package:sims_mod_manager/src/core/game_adapter.dart';
 import 'package:sims_mod_manager/src/core/game_registry.dart';
 import 'package:sims_mod_manager/src/core/mod.dart';
 import 'package:sims_mod_manager/src/core/package_insight.dart';
+import 'package:sims_mod_manager/src/core/save_game.dart';
 import 'package:sims_mod_manager/src/games/the_sims/sims_adapters.dart';
 import 'package:sims_mod_manager/src/services/settings_store.dart';
 import 'package:sims_mod_manager/src/ui/app.dart';
@@ -43,11 +44,80 @@ class _FakeAdapter extends FolderBasedGameAdapter {
 
   @override
   Future<String?> defaultModsPath() async => dir.path;
+
+  /// A save touching every translated saves label: stat tiles, life
+  /// stages, skills, personality, relationship flags, photo kinds.
+  @override
+  Future<List<SaveGame>> listSaveGames() async => [
+        SaveGame(
+          name: 'Legacy',
+          path: dir.path,
+          modifiedAt: DateTime(2026, 7, 20),
+          sizeBytes: 12 << 20,
+          backupCount: 2,
+          gameVersion: '1.0',
+          worldsVisited: const ['Willow Creek'],
+          households: const [
+            SaveHousehold(
+              name: 'Goth',
+              funds: 45500,
+              lotName: 'Ophelia Villa',
+              bedrooms: 3,
+              bathrooms: 2,
+              members: [
+                SaveSim(
+                  firstName: 'Bella',
+                  lastName: 'Goth',
+                  ageKey: 'youngAdult',
+                  genderKey: 'female',
+                  zodiacKey: 'sagittarius',
+                  aspirationKey: 'grilledCheese',
+                  skills: {
+                    'cooking': 900,
+                    'mechanical': 800,
+                    'charisma': 700,
+                    'body': 600,
+                    'logic': 500,
+                    'creativity': 400,
+                    'cleaning': 300,
+                  },
+                  personality: {
+                    'neat': 900,
+                    'outgoing': 800,
+                    'active': 700,
+                    'playful': 600,
+                    'nice': 500,
+                  },
+                  hobbies: {'cuisine': 900, 'film': 700, 'music': 500},
+                  predestinedHobbyKey: 'film',
+                  education: SaveEducation(
+                      major: 'Political Science', gpa: 3.4, semester: 5),
+                  familyTies: [
+                    SaveFamilyTie(kindKey: 'mother', name: 'Jocasta Goth'),
+                    SaveFamilyTie(kindKey: 'child', name: 'Alexander Goth'),
+                    SaveFamilyTie(kindKey: 'child', name: 'Cassandra Goth'),
+                  ],
+                ),
+                SaveSim(firstName: 'Alexander', ageKey: 'child'),
+              ],
+              relationships: [
+                SaveRelationship(
+                    nameA: 'Bella',
+                    nameB: 'Alexander',
+                    score: 80,
+                    labelKeys: ['friends', 'married']),
+              ],
+            ),
+            SaveHousehold(name: 'Townie', isPlayed: false),
+          ],
+          photos: const [SavePhoto(kindKey: 'familyPortrait')],
+        ),
+      ];
 }
 
-Map<String, Object?> _arb(String locale) => (jsonDecode(
-        File('lib/l10n/app_$locale.arb').readAsStringSync())
-    as Map<String, Object?>);
+Map<String, Object?> _arb(String locale) =>
+    (jsonDecode(File('lib/l10n/app_$locale.arb').readAsStringSync())
+        as Map<String, Object?>);
 
 void main() {
   test('every shipped language has a translation file', () {
@@ -146,8 +216,10 @@ void main() {
     (system: [Locale('de')], want: 'de'),
     (system: [Locale('es', 'MX')], want: 'es'),
     (system: [Locale('pt', 'PT')], want: 'pt'),
-    (system: [Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant')],
-        want: 'zh'),
+    (
+      system: [Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant')],
+      want: 'zh'
+    ),
     // Nothing we ship: English, not whichever language sorts first.
     (system: [Locale('ko')], want: 'en'),
     // Second choice counts when the first is unsupported.
@@ -192,8 +264,8 @@ void main() {
     final settings = await SettingsStore.load();
 
     await tester.runAsync(() async {
-      await tester.pumpWidget(
-          ModManagerApp(registry: registry, settings: settings));
+      await tester
+          .pumpWidget(ModManagerApp(registry: registry, settings: settings));
       await Future<void>.delayed(const Duration(milliseconds: 200));
     });
     await tester.pump();
@@ -280,6 +352,21 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
       expect(overflows, isEmpty, reason: 'shop in ${language.name}');
+
+      // The saves screen and each of its tabs, seeded with every kind of
+      // stat the scanners produce.
+      await tester.runAsync(() async {
+        await tester.tap(find.text(strings.navSaves).last);
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      });
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(overflows, isEmpty, reason: 'saves in ${language.name}');
+      await tester.tap(find.text(strings.savesTabAlbum));
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(overflows, isEmpty, reason: 'saves album in ${language.name}');
+      await tester.tap(find.text(strings.savesTabStats));
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(overflows, isEmpty, reason: 'saves stats in ${language.name}');
     });
   }
 }

@@ -267,6 +267,7 @@
   "factSize": "Size",
   "factType": "Type",
   "factModified": "Modified",
+  "factDownloads": "Downloads",
 
   "statusHeading": "Status",
   "statusEnabledBody": "This mod is active: the game will load it on next launch.",
@@ -498,6 +499,229 @@
   "eraAmbitions": "Ambitions",
   "eraModern": "Modern",
   "eraMedieval": "Medieval",
+
+  "navSaves": "Saves",
+  "savesScanning": "Reading your saves…",
+  "savesEmptyTitle": "No saves found",
+  "savesEmptyBody": "Once you play {game} and save, your worlds show up here — families, photos and all.",
+  "@savesEmptyBody": {
+    "placeholders": { "game": { "type": "String" } }
+  },
+  "savesRescan": "Rescan saves",
+  "savesCount": "{count, plural, =1{1 save found} other{{count} saves found}}",
+  "@savesCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "savesLastSaved": "Last saved {date}",
+  "@savesLastSaved": {
+    "placeholders": { "date": { "type": "String" } }
+  },
+  "savesShowInFolder": "Show in folder",
+  "savesBackups": "{count, plural, =1{1 backup} other{{count} backups}}",
+  "@savesBackups": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "savesTabHouseholds": "Households",
+  "savesTabAlbum": "Photo album",
+  "savesTabStats": "World stats",
+  "savesNeighborhood": "Neighborhood {number}",
+  "@savesNeighborhood": {
+    "placeholders": { "number": { "type": "int" } }
+  },
+  "savesOtherHouseholds": "Townies & other households",
+  "savesSimCount": "{count, plural, =1{1 Sim} other{{count} Sims}}",
+  "@savesSimCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "savesFunds": "Funds",
+  "savesRooms": "Rooms",
+  "savesBedsBaths": "{beds} bed · {baths} bath",
+  "@savesBedsBaths": {
+    "placeholders": {
+      "beds": { "type": "int" },
+      "baths": { "type": "int" }
+    }
+  },
+  "savesByCreator": "by {name}",
+  "@savesByCreator": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "savesMembers": "Members",
+  "savesRelationships": "Relationships",
+  "savesUnknownSim": "Unknown Sim",
+  "savesStatSims": "Sims",
+  "savesStatHouseholds": "Households",
+  "savesStatNetWorth": "Net worth",
+  "savesStatWorlds": "Worlds",
+  "savesStatPhotos": "Photos",
+  "savesAcrossHouseholds": "{count, plural, =1{in 1 household} other{across {count} households}}",
+  "@savesAcrossHouseholds": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "savesPlayedCount": "{count, plural, =1{1 played} other{{count} played}}",
+  "@savesPlayedCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "savesSizeOnDisk": "Size on disk",
+  "savesLifeStages": "Life stages",
+  "savesTopSkills": "Highest skills in this save",
+  "savesSaveInfo": "Save file",
+  "savesLastSavedLabel": "Last saved",
+  "savesGameVersion": "Game version",
+  "savesDescription": "Description",
+
+  "savesAgeInfant": "Infant",
+  "savesAgeBaby": "Baby",
+  "savesAgeToddler": "Toddler",
+  "savesAgeChild": "Child",
+  "savesAgeTeen": "Teen",
+  "savesAgeYoungAdult": "Young adult",
+  "savesAgeAdult": "Adult",
+  "savesAgeElder": "Elder",
+  "savesGenderMale": "Male",
+  "savesGenderFemale": "Female",
+
+  "savesSkillCooking": "Cooking",
+  "savesSkillMechanical": "Mechanical",
+  "savesSkillCharisma": "Charisma",
+  "savesSkillBody": "Body",
+  "savesSkillLogic": "Logic",
+  "savesSkillCreativity": "Creativity",
+  "savesSkillCleaning": "Cleaning",
+
+  "savesPersonalityNeat": "Neat",
+  "savesPersonalityOutgoing": "Outgoing",
+  "savesPersonalityActive": "Active",
+  "savesPersonalityPlayful": "Playful",
+  "savesPersonalityNice": "Nice",
+
+  "savesZodiacAries": "Aries",
+  "savesZodiacTaurus": "Taurus",
+  "savesZodiacGemini": "Gemini",
+  "savesZodiacCancer": "Cancer",
+  "savesZodiacLeo": "Leo",
+  "savesZodiacVirgo": "Virgo",
+  "savesZodiacLibra": "Libra",
+  "savesZodiacScorpio": "Scorpio",
+  "savesZodiacSagittarius": "Sagittarius",
+  "savesZodiacCapricorn": "Capricorn",
+  "savesZodiacAquarius": "Aquarius",
+  "savesZodiacPisces": "Pisces",
+
+  "savesAspirationRomance": "Romance",
+  "savesAspirationFamily": "Family",
+  "savesAspirationFortune": "Fortune",
+  "savesAspirationPopularity": "Popularity",
+  "savesAspirationKnowledge": "Knowledge",
+  "savesAspirationGrowUp": "Grow up",
+  "savesAspirationPleasure": "Pleasure",
+  "savesAspirationGrilledCheese": "Grilled cheese",
+
+  "savesRelCrush": "crush",
+  "savesRelLove": "in love",
+  "savesRelEngaged": "engaged",
+  "savesRelMarried": "married",
+  "savesRelFriends": "friends",
+  "savesRelBestFriends": "best friends",
+  "savesRelSteady": "going steady",
+  "savesRelEnemies": "enemies",
+
+  "savesPhotoFamilyPortrait": "Family portrait",
+  "savesPhotoLot": "Lot",
+  "savesPhotoSim": "Sim portrait",
+  "savesPhotoSnapshot": "Snapshot",
+
+  "savesProperty": "Property",
+  "savesGhost": "ghost",
+  "savesCareerLevel": "{career} · level {level}",
+  "@savesCareerLevel": {
+    "placeholders": {
+      "career": { "type": "String" },
+      "level": { "type": "int" }
+    }
+  },
+
+  "savesSpeciesLargeDog": "dog",
+  "savesSpeciesSmallDog": "small dog",
+  "savesSpeciesCat": "cat",
+  "savesOccultVampire": "vampire",
+  "savesOccultZombie": "zombie",
+  "savesOccultWerewolf": "werewolf",
+  "savesOccultPlantSim": "PlantSim",
+  "savesOccultAlien": "alien",
+  "savesOccultServo": "servo",
+  "savesOccultWitch": "witch",
+  "savesOccultBigfoot": "bigfoot",
+  "savesOccultFairy": "fairy",
+  "savesOccultGenie": "genie",
+  "savesOccultMermaid": "mermaid",
+
+  "savesLotResidential": "Residential",
+  "savesLotCommunity": "Community lot",
+  "savesLotDorm": "Dorm",
+  "savesLotSecretSociety": "Secret society",
+  "savesLotGreekHouse": "Greek house",
+  "savesLotHotel": "Hotel",
+  "savesLotSecret": "Secret lot",
+  "savesLotBusiness": "Business",
+  "savesLotApartment": "Apartment",
+
+  "savesGpa": "{gpa} GPA",
+  "@savesGpa": {
+    "placeholders": { "gpa": { "type": "String" } }
+  },
+  "savesSemester": "semester {number}",
+  "@savesSemester": {
+    "placeholders": { "number": { "type": "int" } }
+  },
+  "savesPredestinedHobby": "Born for {hobby}",
+  "@savesPredestinedHobby": {
+    "placeholders": { "hobby": { "type": "String" } }
+  },
+
+  "savesHobbyCuisine": "Cuisine",
+  "savesHobbyArts": "Arts & crafts",
+  "savesHobbyFilm": "Film & literature",
+  "savesHobbySports": "Sports",
+  "savesHobbyGames": "Games",
+  "savesHobbyNature": "Nature",
+  "savesHobbyTinkering": "Tinkering",
+  "savesHobbyFitness": "Fitness",
+  "savesHobbyScience": "Science",
+  "savesHobbyMusic": "Music & dance",
+
+  "savesTieMother": "mother",
+  "savesTieFather": "father",
+  "savesTieSpouse": "married to",
+  "savesTieSibling": "{count, plural, =1{sibling} other{siblings}}",
+  "@savesTieSibling": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "savesTieChild": "{count, plural, =1{child} other{children}}",
+  "@savesTieChild": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "savesInterestPolitics": "Politics",
+  "savesInterestMoney": "Money",
+  "savesInterestEnvironment": "Environment",
+  "savesInterestCrime": "Crime",
+  "savesInterestEntertainment": "Entertainment",
+  "savesInterestCulture": "Culture",
+  "savesInterestFood": "Food",
+  "savesInterestHealth": "Health",
+  "savesInterestFashion": "Fashion",
+  "savesInterestSports": "Sports",
+  "savesInterestParanormal": "Paranormal",
+  "savesInterestTravel": "Travel",
+  "savesInterestWork": "Work",
+  "savesInterestWeather": "Weather",
+  "savesInterestAnimals": "Animals",
+  "savesInterestSchool": "School",
+  "savesInterestToys": "Toys",
+  "savesInterestSciFi": "Sci-fi",
+  "savesInterestMusic": "Music",
+  "savesInterestOutdoors": "Outdoors",
 
   "setupHelpSims1": "The original The Sims keeps custom content inside its install folder, not Documents: objects go in a Downloads folder next to the game executable (e.g. C:\\Program Files (x86)\\Maxis\\The Sims\\Downloads), and this app sorts the other types automatically — skins (.skn/.cmx/.bmp) into GameData\\Skins, walls and floors into GameData\\Walls and GameData\\Floors. The 2025 Legacy Collection works the same way from its own install folder (EA Games\\The Sims Legacy, or Steam\\steamapps\\common\\The Sims Legacy Collection). If the game is installed somewhere else (a different drive, a custom Steam library), pick its Downloads folder manually.",
   "setupHelpSims2": "The Sims 2 loads custom content from Documents > EA Games > The Sims 2 > Downloads (the Ultimate Collection uses “The Sims 2 Ultimate Collection”; the 2025 Legacy Collection uses “The Sims 2 Legacy”). The folder may not exist until you create it or install content once. When the game starts, answer “Yes” to the custom content prompt so downloads are enabled.",

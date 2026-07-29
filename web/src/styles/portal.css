@@ -190,7 +190,10 @@ main > .inner { position: relative; max-width: 1240px; margin: 0 auto; }
   box-shadow: 0 16px 32px -18px color-mix(in srgb, var(--accent) 100%, transparent);
   transition: transform .16s ease, box-shadow .18s ease;
 }
-.btn > span { position: relative; }
+/* The label sits above the gleam, which is why it is positioned at all. Not the
+   gleam itself: it would leave the flow and the flex gap would offset the label
+   as if the button had an icon. */
+.btn > span:not(.gleam) { position: relative; }
 .btn:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 24px 46px -18px color-mix(in srgb, var(--accent) 100%, transparent);
@@ -343,6 +346,11 @@ main > .inner { position: relative; max-width: 1240px; margin: 0 auto; }
 }
 .modcard .ver { flex: none; font-size: 12.5px; font-weight: 800; color: var(--muted); }
 .modcard .meta { margin-top: 4px; font-size: 13.5px; font-weight: 700; color: var(--muted); }
+/* The one number on this page a creator actually wants, so the count itself
+   carries the accent and the word next to it stays quiet. */
+.dlstat { display: inline-block; font-size: 13.5px; font-weight: 700; color: var(--muted); }
+.dlstat b { font-weight: 900; color: var(--accent); }
+.modcard .dlstat { margin-top: 8px; }
 .modcard .btn {
   width: 100%; margin-top: 14px; padding: 9px 0; border-radius: 11px; font-size: 13.5px;
   background: none; border: 2px solid var(--accent); color: var(--accent); box-shadow: none;

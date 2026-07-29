@@ -953,6 +953,12 @@ abstract class L {
   /// **'Modified'**
   String get factModified;
 
+  /// No description provided for @factDownloads.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads'**
+  String get factDownloads;
+
   /// No description provided for @statusHeading.
   ///
   /// In en, this message translates to:
@@ -1612,6 +1618,930 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Medieval'**
   String get eraMedieval;
+
+  /// No description provided for @navSaves.
+  ///
+  /// In en, this message translates to:
+  /// **'Saves'**
+  String get navSaves;
+
+  /// No description provided for @savesScanning.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading your saves…'**
+  String get savesScanning;
+
+  /// No description provided for @savesEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No saves found'**
+  String get savesEmptyTitle;
+
+  /// No description provided for @savesEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Once you play {game} and save, your worlds show up here — families, photos and all.'**
+  String savesEmptyBody(String game);
+
+  /// No description provided for @savesRescan.
+  ///
+  /// In en, this message translates to:
+  /// **'Rescan saves'**
+  String get savesRescan;
+
+  /// No description provided for @savesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 save found} other{{count} saves found}}'**
+  String savesCount(int count);
+
+  /// No description provided for @savesLastSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Last saved {date}'**
+  String savesLastSaved(String date);
+
+  /// No description provided for @savesShowInFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Show in folder'**
+  String get savesShowInFolder;
+
+  /// No description provided for @savesBackups.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 backup} other{{count} backups}}'**
+  String savesBackups(int count);
+
+  /// No description provided for @savesTabHouseholds.
+  ///
+  /// In en, this message translates to:
+  /// **'Households'**
+  String get savesTabHouseholds;
+
+  /// No description provided for @savesTabAlbum.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo album'**
+  String get savesTabAlbum;
+
+  /// No description provided for @savesTabStats.
+  ///
+  /// In en, this message translates to:
+  /// **'World stats'**
+  String get savesTabStats;
+
+  /// No description provided for @savesNeighborhood.
+  ///
+  /// In en, this message translates to:
+  /// **'Neighborhood {number}'**
+  String savesNeighborhood(int number);
+
+  /// No description provided for @savesOtherHouseholds.
+  ///
+  /// In en, this message translates to:
+  /// **'Townies & other households'**
+  String get savesOtherHouseholds;
+
+  /// No description provided for @savesSimCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 Sim} other{{count} Sims}}'**
+  String savesSimCount(int count);
+
+  /// No description provided for @savesFunds.
+  ///
+  /// In en, this message translates to:
+  /// **'Funds'**
+  String get savesFunds;
+
+  /// No description provided for @savesRooms.
+  ///
+  /// In en, this message translates to:
+  /// **'Rooms'**
+  String get savesRooms;
+
+  /// No description provided for @savesBedsBaths.
+  ///
+  /// In en, this message translates to:
+  /// **'{beds} bed · {baths} bath'**
+  String savesBedsBaths(int beds, int baths);
+
+  /// No description provided for @savesByCreator.
+  ///
+  /// In en, this message translates to:
+  /// **'by {name}'**
+  String savesByCreator(String name);
+
+  /// No description provided for @savesMembers.
+  ///
+  /// In en, this message translates to:
+  /// **'Members'**
+  String get savesMembers;
+
+  /// No description provided for @savesRelationships.
+  ///
+  /// In en, this message translates to:
+  /// **'Relationships'**
+  String get savesRelationships;
+
+  /// No description provided for @savesUnknownSim.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown Sim'**
+  String get savesUnknownSim;
+
+  /// No description provided for @savesStatSims.
+  ///
+  /// In en, this message translates to:
+  /// **'Sims'**
+  String get savesStatSims;
+
+  /// No description provided for @savesStatHouseholds.
+  ///
+  /// In en, this message translates to:
+  /// **'Households'**
+  String get savesStatHouseholds;
+
+  /// No description provided for @savesStatNetWorth.
+  ///
+  /// In en, this message translates to:
+  /// **'Net worth'**
+  String get savesStatNetWorth;
+
+  /// No description provided for @savesStatWorlds.
+  ///
+  /// In en, this message translates to:
+  /// **'Worlds'**
+  String get savesStatWorlds;
+
+  /// No description provided for @savesStatPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get savesStatPhotos;
+
+  /// No description provided for @savesAcrossHouseholds.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{in 1 household} other{across {count} households}}'**
+  String savesAcrossHouseholds(int count);
+
+  /// No description provided for @savesPlayedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 played} other{{count} played}}'**
+  String savesPlayedCount(int count);
+
+  /// No description provided for @savesSizeOnDisk.
+  ///
+  /// In en, this message translates to:
+  /// **'Size on disk'**
+  String get savesSizeOnDisk;
+
+  /// No description provided for @savesLifeStages.
+  ///
+  /// In en, this message translates to:
+  /// **'Life stages'**
+  String get savesLifeStages;
+
+  /// No description provided for @savesTopSkills.
+  ///
+  /// In en, this message translates to:
+  /// **'Highest skills in this save'**
+  String get savesTopSkills;
+
+  /// No description provided for @savesSaveInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Save file'**
+  String get savesSaveInfo;
+
+  /// No description provided for @savesLastSavedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Last saved'**
+  String get savesLastSavedLabel;
+
+  /// No description provided for @savesGameVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Game version'**
+  String get savesGameVersion;
+
+  /// No description provided for @savesDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get savesDescription;
+
+  /// No description provided for @savesAgeInfant.
+  ///
+  /// In en, this message translates to:
+  /// **'Infant'**
+  String get savesAgeInfant;
+
+  /// No description provided for @savesAgeBaby.
+  ///
+  /// In en, this message translates to:
+  /// **'Baby'**
+  String get savesAgeBaby;
+
+  /// No description provided for @savesAgeToddler.
+  ///
+  /// In en, this message translates to:
+  /// **'Toddler'**
+  String get savesAgeToddler;
+
+  /// No description provided for @savesAgeChild.
+  ///
+  /// In en, this message translates to:
+  /// **'Child'**
+  String get savesAgeChild;
+
+  /// No description provided for @savesAgeTeen.
+  ///
+  /// In en, this message translates to:
+  /// **'Teen'**
+  String get savesAgeTeen;
+
+  /// No description provided for @savesAgeYoungAdult.
+  ///
+  /// In en, this message translates to:
+  /// **'Young adult'**
+  String get savesAgeYoungAdult;
+
+  /// No description provided for @savesAgeAdult.
+  ///
+  /// In en, this message translates to:
+  /// **'Adult'**
+  String get savesAgeAdult;
+
+  /// No description provided for @savesAgeElder.
+  ///
+  /// In en, this message translates to:
+  /// **'Elder'**
+  String get savesAgeElder;
+
+  /// No description provided for @savesGenderMale.
+  ///
+  /// In en, this message translates to:
+  /// **'Male'**
+  String get savesGenderMale;
+
+  /// No description provided for @savesGenderFemale.
+  ///
+  /// In en, this message translates to:
+  /// **'Female'**
+  String get savesGenderFemale;
+
+  /// No description provided for @savesSkillCooking.
+  ///
+  /// In en, this message translates to:
+  /// **'Cooking'**
+  String get savesSkillCooking;
+
+  /// No description provided for @savesSkillMechanical.
+  ///
+  /// In en, this message translates to:
+  /// **'Mechanical'**
+  String get savesSkillMechanical;
+
+  /// No description provided for @savesSkillCharisma.
+  ///
+  /// In en, this message translates to:
+  /// **'Charisma'**
+  String get savesSkillCharisma;
+
+  /// No description provided for @savesSkillBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Body'**
+  String get savesSkillBody;
+
+  /// No description provided for @savesSkillLogic.
+  ///
+  /// In en, this message translates to:
+  /// **'Logic'**
+  String get savesSkillLogic;
+
+  /// No description provided for @savesSkillCreativity.
+  ///
+  /// In en, this message translates to:
+  /// **'Creativity'**
+  String get savesSkillCreativity;
+
+  /// No description provided for @savesSkillCleaning.
+  ///
+  /// In en, this message translates to:
+  /// **'Cleaning'**
+  String get savesSkillCleaning;
+
+  /// No description provided for @savesPersonalityNeat.
+  ///
+  /// In en, this message translates to:
+  /// **'Neat'**
+  String get savesPersonalityNeat;
+
+  /// No description provided for @savesPersonalityOutgoing.
+  ///
+  /// In en, this message translates to:
+  /// **'Outgoing'**
+  String get savesPersonalityOutgoing;
+
+  /// No description provided for @savesPersonalityActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get savesPersonalityActive;
+
+  /// No description provided for @savesPersonalityPlayful.
+  ///
+  /// In en, this message translates to:
+  /// **'Playful'**
+  String get savesPersonalityPlayful;
+
+  /// No description provided for @savesPersonalityNice.
+  ///
+  /// In en, this message translates to:
+  /// **'Nice'**
+  String get savesPersonalityNice;
+
+  /// No description provided for @savesZodiacAries.
+  ///
+  /// In en, this message translates to:
+  /// **'Aries'**
+  String get savesZodiacAries;
+
+  /// No description provided for @savesZodiacTaurus.
+  ///
+  /// In en, this message translates to:
+  /// **'Taurus'**
+  String get savesZodiacTaurus;
+
+  /// No description provided for @savesZodiacGemini.
+  ///
+  /// In en, this message translates to:
+  /// **'Gemini'**
+  String get savesZodiacGemini;
+
+  /// No description provided for @savesZodiacCancer.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancer'**
+  String get savesZodiacCancer;
+
+  /// No description provided for @savesZodiacLeo.
+  ///
+  /// In en, this message translates to:
+  /// **'Leo'**
+  String get savesZodiacLeo;
+
+  /// No description provided for @savesZodiacVirgo.
+  ///
+  /// In en, this message translates to:
+  /// **'Virgo'**
+  String get savesZodiacVirgo;
+
+  /// No description provided for @savesZodiacLibra.
+  ///
+  /// In en, this message translates to:
+  /// **'Libra'**
+  String get savesZodiacLibra;
+
+  /// No description provided for @savesZodiacScorpio.
+  ///
+  /// In en, this message translates to:
+  /// **'Scorpio'**
+  String get savesZodiacScorpio;
+
+  /// No description provided for @savesZodiacSagittarius.
+  ///
+  /// In en, this message translates to:
+  /// **'Sagittarius'**
+  String get savesZodiacSagittarius;
+
+  /// No description provided for @savesZodiacCapricorn.
+  ///
+  /// In en, this message translates to:
+  /// **'Capricorn'**
+  String get savesZodiacCapricorn;
+
+  /// No description provided for @savesZodiacAquarius.
+  ///
+  /// In en, this message translates to:
+  /// **'Aquarius'**
+  String get savesZodiacAquarius;
+
+  /// No description provided for @savesZodiacPisces.
+  ///
+  /// In en, this message translates to:
+  /// **'Pisces'**
+  String get savesZodiacPisces;
+
+  /// No description provided for @savesAspirationRomance.
+  ///
+  /// In en, this message translates to:
+  /// **'Romance'**
+  String get savesAspirationRomance;
+
+  /// No description provided for @savesAspirationFamily.
+  ///
+  /// In en, this message translates to:
+  /// **'Family'**
+  String get savesAspirationFamily;
+
+  /// No description provided for @savesAspirationFortune.
+  ///
+  /// In en, this message translates to:
+  /// **'Fortune'**
+  String get savesAspirationFortune;
+
+  /// No description provided for @savesAspirationPopularity.
+  ///
+  /// In en, this message translates to:
+  /// **'Popularity'**
+  String get savesAspirationPopularity;
+
+  /// No description provided for @savesAspirationKnowledge.
+  ///
+  /// In en, this message translates to:
+  /// **'Knowledge'**
+  String get savesAspirationKnowledge;
+
+  /// No description provided for @savesAspirationGrowUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Grow up'**
+  String get savesAspirationGrowUp;
+
+  /// No description provided for @savesAspirationPleasure.
+  ///
+  /// In en, this message translates to:
+  /// **'Pleasure'**
+  String get savesAspirationPleasure;
+
+  /// No description provided for @savesAspirationGrilledCheese.
+  ///
+  /// In en, this message translates to:
+  /// **'Grilled cheese'**
+  String get savesAspirationGrilledCheese;
+
+  /// No description provided for @savesRelCrush.
+  ///
+  /// In en, this message translates to:
+  /// **'crush'**
+  String get savesRelCrush;
+
+  /// No description provided for @savesRelLove.
+  ///
+  /// In en, this message translates to:
+  /// **'in love'**
+  String get savesRelLove;
+
+  /// No description provided for @savesRelEngaged.
+  ///
+  /// In en, this message translates to:
+  /// **'engaged'**
+  String get savesRelEngaged;
+
+  /// No description provided for @savesRelMarried.
+  ///
+  /// In en, this message translates to:
+  /// **'married'**
+  String get savesRelMarried;
+
+  /// No description provided for @savesRelFriends.
+  ///
+  /// In en, this message translates to:
+  /// **'friends'**
+  String get savesRelFriends;
+
+  /// No description provided for @savesRelBestFriends.
+  ///
+  /// In en, this message translates to:
+  /// **'best friends'**
+  String get savesRelBestFriends;
+
+  /// No description provided for @savesRelSteady.
+  ///
+  /// In en, this message translates to:
+  /// **'going steady'**
+  String get savesRelSteady;
+
+  /// No description provided for @savesRelEnemies.
+  ///
+  /// In en, this message translates to:
+  /// **'enemies'**
+  String get savesRelEnemies;
+
+  /// No description provided for @savesPhotoFamilyPortrait.
+  ///
+  /// In en, this message translates to:
+  /// **'Family portrait'**
+  String get savesPhotoFamilyPortrait;
+
+  /// No description provided for @savesPhotoLot.
+  ///
+  /// In en, this message translates to:
+  /// **'Lot'**
+  String get savesPhotoLot;
+
+  /// No description provided for @savesPhotoSim.
+  ///
+  /// In en, this message translates to:
+  /// **'Sim portrait'**
+  String get savesPhotoSim;
+
+  /// No description provided for @savesPhotoSnapshot.
+  ///
+  /// In en, this message translates to:
+  /// **'Snapshot'**
+  String get savesPhotoSnapshot;
+
+  /// No description provided for @savesProperty.
+  ///
+  /// In en, this message translates to:
+  /// **'Property'**
+  String get savesProperty;
+
+  /// No description provided for @savesGhost.
+  ///
+  /// In en, this message translates to:
+  /// **'ghost'**
+  String get savesGhost;
+
+  /// No description provided for @savesCareerLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'{career} · level {level}'**
+  String savesCareerLevel(String career, int level);
+
+  /// No description provided for @savesSpeciesLargeDog.
+  ///
+  /// In en, this message translates to:
+  /// **'dog'**
+  String get savesSpeciesLargeDog;
+
+  /// No description provided for @savesSpeciesSmallDog.
+  ///
+  /// In en, this message translates to:
+  /// **'small dog'**
+  String get savesSpeciesSmallDog;
+
+  /// No description provided for @savesSpeciesCat.
+  ///
+  /// In en, this message translates to:
+  /// **'cat'**
+  String get savesSpeciesCat;
+
+  /// No description provided for @savesOccultVampire.
+  ///
+  /// In en, this message translates to:
+  /// **'vampire'**
+  String get savesOccultVampire;
+
+  /// No description provided for @savesOccultZombie.
+  ///
+  /// In en, this message translates to:
+  /// **'zombie'**
+  String get savesOccultZombie;
+
+  /// No description provided for @savesOccultWerewolf.
+  ///
+  /// In en, this message translates to:
+  /// **'werewolf'**
+  String get savesOccultWerewolf;
+
+  /// No description provided for @savesOccultPlantSim.
+  ///
+  /// In en, this message translates to:
+  /// **'PlantSim'**
+  String get savesOccultPlantSim;
+
+  /// No description provided for @savesOccultAlien.
+  ///
+  /// In en, this message translates to:
+  /// **'alien'**
+  String get savesOccultAlien;
+
+  /// No description provided for @savesOccultServo.
+  ///
+  /// In en, this message translates to:
+  /// **'servo'**
+  String get savesOccultServo;
+
+  /// No description provided for @savesOccultWitch.
+  ///
+  /// In en, this message translates to:
+  /// **'witch'**
+  String get savesOccultWitch;
+
+  /// No description provided for @savesOccultBigfoot.
+  ///
+  /// In en, this message translates to:
+  /// **'bigfoot'**
+  String get savesOccultBigfoot;
+
+  /// No description provided for @savesOccultFairy.
+  ///
+  /// In en, this message translates to:
+  /// **'fairy'**
+  String get savesOccultFairy;
+
+  /// No description provided for @savesOccultGenie.
+  ///
+  /// In en, this message translates to:
+  /// **'genie'**
+  String get savesOccultGenie;
+
+  /// No description provided for @savesOccultMermaid.
+  ///
+  /// In en, this message translates to:
+  /// **'mermaid'**
+  String get savesOccultMermaid;
+
+  /// No description provided for @savesLotResidential.
+  ///
+  /// In en, this message translates to:
+  /// **'Residential'**
+  String get savesLotResidential;
+
+  /// No description provided for @savesLotCommunity.
+  ///
+  /// In en, this message translates to:
+  /// **'Community lot'**
+  String get savesLotCommunity;
+
+  /// No description provided for @savesLotDorm.
+  ///
+  /// In en, this message translates to:
+  /// **'Dorm'**
+  String get savesLotDorm;
+
+  /// No description provided for @savesLotSecretSociety.
+  ///
+  /// In en, this message translates to:
+  /// **'Secret society'**
+  String get savesLotSecretSociety;
+
+  /// No description provided for @savesLotGreekHouse.
+  ///
+  /// In en, this message translates to:
+  /// **'Greek house'**
+  String get savesLotGreekHouse;
+
+  /// No description provided for @savesLotHotel.
+  ///
+  /// In en, this message translates to:
+  /// **'Hotel'**
+  String get savesLotHotel;
+
+  /// No description provided for @savesLotSecret.
+  ///
+  /// In en, this message translates to:
+  /// **'Secret lot'**
+  String get savesLotSecret;
+
+  /// No description provided for @savesLotBusiness.
+  ///
+  /// In en, this message translates to:
+  /// **'Business'**
+  String get savesLotBusiness;
+
+  /// No description provided for @savesLotApartment.
+  ///
+  /// In en, this message translates to:
+  /// **'Apartment'**
+  String get savesLotApartment;
+
+  /// No description provided for @savesGpa.
+  ///
+  /// In en, this message translates to:
+  /// **'{gpa} GPA'**
+  String savesGpa(String gpa);
+
+  /// No description provided for @savesSemester.
+  ///
+  /// In en, this message translates to:
+  /// **'semester {number}'**
+  String savesSemester(int number);
+
+  /// No description provided for @savesPredestinedHobby.
+  ///
+  /// In en, this message translates to:
+  /// **'Born for {hobby}'**
+  String savesPredestinedHobby(String hobby);
+
+  /// No description provided for @savesHobbyCuisine.
+  ///
+  /// In en, this message translates to:
+  /// **'Cuisine'**
+  String get savesHobbyCuisine;
+
+  /// No description provided for @savesHobbyArts.
+  ///
+  /// In en, this message translates to:
+  /// **'Arts & crafts'**
+  String get savesHobbyArts;
+
+  /// No description provided for @savesHobbyFilm.
+  ///
+  /// In en, this message translates to:
+  /// **'Film & literature'**
+  String get savesHobbyFilm;
+
+  /// No description provided for @savesHobbySports.
+  ///
+  /// In en, this message translates to:
+  /// **'Sports'**
+  String get savesHobbySports;
+
+  /// No description provided for @savesHobbyGames.
+  ///
+  /// In en, this message translates to:
+  /// **'Games'**
+  String get savesHobbyGames;
+
+  /// No description provided for @savesHobbyNature.
+  ///
+  /// In en, this message translates to:
+  /// **'Nature'**
+  String get savesHobbyNature;
+
+  /// No description provided for @savesHobbyTinkering.
+  ///
+  /// In en, this message translates to:
+  /// **'Tinkering'**
+  String get savesHobbyTinkering;
+
+  /// No description provided for @savesHobbyFitness.
+  ///
+  /// In en, this message translates to:
+  /// **'Fitness'**
+  String get savesHobbyFitness;
+
+  /// No description provided for @savesHobbyScience.
+  ///
+  /// In en, this message translates to:
+  /// **'Science'**
+  String get savesHobbyScience;
+
+  /// No description provided for @savesHobbyMusic.
+  ///
+  /// In en, this message translates to:
+  /// **'Music & dance'**
+  String get savesHobbyMusic;
+
+  /// No description provided for @savesTieMother.
+  ///
+  /// In en, this message translates to:
+  /// **'mother'**
+  String get savesTieMother;
+
+  /// No description provided for @savesTieFather.
+  ///
+  /// In en, this message translates to:
+  /// **'father'**
+  String get savesTieFather;
+
+  /// No description provided for @savesTieSpouse.
+  ///
+  /// In en, this message translates to:
+  /// **'married to'**
+  String get savesTieSpouse;
+
+  /// No description provided for @savesTieSibling.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{sibling} other{siblings}}'**
+  String savesTieSibling(int count);
+
+  /// No description provided for @savesTieChild.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{child} other{children}}'**
+  String savesTieChild(int count);
+
+  /// No description provided for @savesInterestPolitics.
+  ///
+  /// In en, this message translates to:
+  /// **'Politics'**
+  String get savesInterestPolitics;
+
+  /// No description provided for @savesInterestMoney.
+  ///
+  /// In en, this message translates to:
+  /// **'Money'**
+  String get savesInterestMoney;
+
+  /// No description provided for @savesInterestEnvironment.
+  ///
+  /// In en, this message translates to:
+  /// **'Environment'**
+  String get savesInterestEnvironment;
+
+  /// No description provided for @savesInterestCrime.
+  ///
+  /// In en, this message translates to:
+  /// **'Crime'**
+  String get savesInterestCrime;
+
+  /// No description provided for @savesInterestEntertainment.
+  ///
+  /// In en, this message translates to:
+  /// **'Entertainment'**
+  String get savesInterestEntertainment;
+
+  /// No description provided for @savesInterestCulture.
+  ///
+  /// In en, this message translates to:
+  /// **'Culture'**
+  String get savesInterestCulture;
+
+  /// No description provided for @savesInterestFood.
+  ///
+  /// In en, this message translates to:
+  /// **'Food'**
+  String get savesInterestFood;
+
+  /// No description provided for @savesInterestHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Health'**
+  String get savesInterestHealth;
+
+  /// No description provided for @savesInterestFashion.
+  ///
+  /// In en, this message translates to:
+  /// **'Fashion'**
+  String get savesInterestFashion;
+
+  /// No description provided for @savesInterestSports.
+  ///
+  /// In en, this message translates to:
+  /// **'Sports'**
+  String get savesInterestSports;
+
+  /// No description provided for @savesInterestParanormal.
+  ///
+  /// In en, this message translates to:
+  /// **'Paranormal'**
+  String get savesInterestParanormal;
+
+  /// No description provided for @savesInterestTravel.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel'**
+  String get savesInterestTravel;
+
+  /// No description provided for @savesInterestWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Work'**
+  String get savesInterestWork;
+
+  /// No description provided for @savesInterestWeather.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather'**
+  String get savesInterestWeather;
+
+  /// No description provided for @savesInterestAnimals.
+  ///
+  /// In en, this message translates to:
+  /// **'Animals'**
+  String get savesInterestAnimals;
+
+  /// No description provided for @savesInterestSchool.
+  ///
+  /// In en, this message translates to:
+  /// **'School'**
+  String get savesInterestSchool;
+
+  /// No description provided for @savesInterestToys.
+  ///
+  /// In en, this message translates to:
+  /// **'Toys'**
+  String get savesInterestToys;
+
+  /// No description provided for @savesInterestSciFi.
+  ///
+  /// In en, this message translates to:
+  /// **'Sci-fi'**
+  String get savesInterestSciFi;
+
+  /// No description provided for @savesInterestMusic.
+  ///
+  /// In en, this message translates to:
+  /// **'Music'**
+  String get savesInterestMusic;
+
+  /// No description provided for @savesInterestOutdoors.
+  ///
+  /// In en, this message translates to:
+  /// **'Outdoors'**
+  String get savesInterestOutdoors;
 
   /// No description provided for @setupHelpSims1.
   ///

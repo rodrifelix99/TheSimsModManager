@@ -145,4 +145,177 @@ extension AppText on L {
         'simsmedieval' => setupHelpSimsMedieval,
         _ => '',
       };
+
+  // What the save scanners report travels as stable keys too (they name
+  // the games' own enums); like everything else here, an unknown key -
+  // a life stage or skill a future game adds - degrades to the key
+  // itself instead of blanking.
+
+  String savesAge(String key) => switch (key) {
+        'infant' => savesAgeInfant,
+        'baby' => savesAgeBaby,
+        'toddler' => savesAgeToddler,
+        'child' => savesAgeChild,
+        'teen' => savesAgeTeen,
+        'youngAdult' => savesAgeYoungAdult,
+        'adult' => savesAgeAdult,
+        'elder' => savesAgeElder,
+        _ => key,
+      };
+
+  String savesGender(String key) => switch (key) {
+        'male' => savesGenderMale,
+        'female' => savesGenderFemale,
+        _ => key,
+      };
+
+  String savesSkill(String key) => switch (key) {
+        'cooking' => savesSkillCooking,
+        'mechanical' => savesSkillMechanical,
+        'charisma' => savesSkillCharisma,
+        'body' => savesSkillBody,
+        'logic' => savesSkillLogic,
+        'creativity' => savesSkillCreativity,
+        'cleaning' => savesSkillCleaning,
+        _ => key,
+      };
+
+  String savesPersonality(String key) => switch (key) {
+        'neat' => savesPersonalityNeat,
+        'outgoing' => savesPersonalityOutgoing,
+        'active' => savesPersonalityActive,
+        'playful' => savesPersonalityPlayful,
+        'nice' => savesPersonalityNice,
+        _ => key,
+      };
+
+  String savesZodiac(String key) => switch (key) {
+        'aries' => savesZodiacAries,
+        'taurus' => savesZodiacTaurus,
+        'gemini' => savesZodiacGemini,
+        'cancer' => savesZodiacCancer,
+        'leo' => savesZodiacLeo,
+        'virgo' => savesZodiacVirgo,
+        'libra' => savesZodiacLibra,
+        'scorpio' => savesZodiacScorpio,
+        'sagittarius' => savesZodiacSagittarius,
+        'capricorn' => savesZodiacCapricorn,
+        'aquarius' => savesZodiacAquarius,
+        'pisces' => savesZodiacPisces,
+        _ => key,
+      };
+
+  String savesAspiration(String key) => switch (key) {
+        'romance' => savesAspirationRomance,
+        'family' => savesAspirationFamily,
+        'fortune' => savesAspirationFortune,
+        'popularity' => savesAspirationPopularity,
+        'knowledge' => savesAspirationKnowledge,
+        'growUp' => savesAspirationGrowUp,
+        'pleasure' => savesAspirationPleasure,
+        'grilledCheese' => savesAspirationGrilledCheese,
+        _ => key,
+      };
+
+  String savesRelationshipFlag(String key) => switch (key) {
+        'crush' => savesRelCrush,
+        'love' => savesRelLove,
+        'engaged' => savesRelEngaged,
+        'married' => savesRelMarried,
+        'friends' => savesRelFriends,
+        'bestFriends' => savesRelBestFriends,
+        'steady' => savesRelSteady,
+        'enemies' => savesRelEnemies,
+        _ => key,
+      };
+
+  String savesPhotoKind(String key) => switch (key) {
+        'familyPortrait' => savesPhotoFamilyPortrait,
+        'lot' => savesPhotoLot,
+        'sim' => savesPhotoSim,
+        'snapshot' => savesPhotoSnapshot,
+        _ => key,
+      };
+
+  /// What a household member is when it isn't an ordinary living sim -
+  /// the pets share this slot, since it is the same question.
+  String savesOccult(String key) => switch (key) {
+        'largeDog' => savesSpeciesLargeDog,
+        'smallDog' => savesSpeciesSmallDog,
+        'cat' => savesSpeciesCat,
+        'vampire' => savesOccultVampire,
+        'zombie' => savesOccultZombie,
+        'werewolf' => savesOccultWerewolf,
+        'plantSim' => savesOccultPlantSim,
+        'alien' => savesOccultAlien,
+        'servo' => savesOccultServo,
+        'witch' => savesOccultWitch,
+        'bigfoot' => savesOccultBigfoot,
+        'fairy' => savesOccultFairy,
+        'genie' => savesOccultGenie,
+        'mermaid' => savesOccultMermaid,
+        _ => key,
+      };
+
+  String savesLotType(String key) => switch (key) {
+        'residential' => savesLotResidential,
+        'community' => savesLotCommunity,
+        'dorm' => savesLotDorm,
+        'secretSociety' => savesLotSecretSociety,
+        'greekHouse' => savesLotGreekHouse,
+        'hotel' => savesLotHotel,
+        'secret' => savesLotSecret,
+        'ownableBusiness' => savesLotBusiness,
+        'apartment' => savesLotApartment,
+        _ => key,
+      };
+
+  String savesHobby(String key) => switch (key) {
+        'cuisine' => savesHobbyCuisine,
+        'arts' => savesHobbyArts,
+        'film' => savesHobbyFilm,
+        'sports' => savesHobbySports,
+        'games' => savesHobbyGames,
+        'nature' => savesHobbyNature,
+        'tinkering' => savesHobbyTinkering,
+        'fitness' => savesHobbyFitness,
+        'science' => savesHobbyScience,
+        'music' => savesHobbyMusic,
+        _ => key,
+      };
+
+  /// How a sim's relatives of one kind are introduced. [count] picks the
+  /// plural, so one child reads "child" and three read "children".
+  String savesFamilyTie(String key, int count) => switch (key) {
+        'mother' => savesTieMother,
+        'father' => savesTieFather,
+        'spouse' => savesTieSpouse,
+        'sibling' => savesTieSibling(count),
+        'child' => savesTieChild(count),
+        _ => key,
+      };
+
+  String savesInterest(String key) => switch (key) {
+        'politics' => savesInterestPolitics,
+        'money' => savesInterestMoney,
+        'environment' => savesInterestEnvironment,
+        'crime' => savesInterestCrime,
+        'entertainment' => savesInterestEntertainment,
+        'culture' => savesInterestCulture,
+        'food' => savesInterestFood,
+        'health' => savesInterestHealth,
+        'fashion' => savesInterestFashion,
+        'sports' => savesInterestSports,
+        'paranormal' => savesInterestParanormal,
+        'travel' => savesInterestTravel,
+        'work' => savesInterestWork,
+        'weather' => savesInterestWeather,
+        'animals' => savesInterestAnimals,
+        'school' => savesInterestSchool,
+        'toys' => savesInterestToys,
+        'sciFi' => savesInterestSciFi,
+        'music' => savesInterestMusic,
+        'outdoors' => savesInterestOutdoors,
+        _ => key,
+      };
 }

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:path/path.dart' as p;
 
@@ -10,6 +11,11 @@ import '../../core/install_path.dart';
 import '../../core/mod.dart';
 import '../../core/mod_archive.dart';
 import '../../core/resource_cfg.dart';
+import '../../core/save_game.dart';
+import 'sims1_saves.dart';
+import 'sims2_saves.dart';
+import 'sims3_saves.dart';
+import 'sims4_saves.dart';
 import 'sims3pack.dart';
 
 /// Adapters for the four mainline Sims games and The Sims Medieval.
@@ -109,6 +115,33 @@ Future<List<Directory>> winePrefixDocumentsDirs(String home) async {
 /// every re-release picks a new one, and a repack or a hand-moved copy
 /// invents its own.
 typedef InstallSignature = Future<bool> Function(Directory dir);
+
+/// Runs a save [scan] over the first of [roots] whose [subfolder] exists,
+/// inside an isolate - a late-game save decompresses to tens of MB and
+/// the UI thread has no business waiting on that. Every adapter's
+/// `listSaveGames` funnels through here so the "first folder that has
+/// saves wins, never throw" rule lives once. [scan] must be a top-level
+/// function or a closure over plain values: it crosses the isolate
+/// boundary.
+Future<List<SaveGame>> scanSavesIn(
+  Future<List<Directory>> Function() roots,
+  String subfolder,
+  List<SaveGame> Function(String path) scan,
+) async {
+  try {
+    for (final dir in await roots()) {
+      final target =
+          subfolder.isEmpty ? dir : Directory(p.join(dir.path, subfolder));
+      if (!await target.exists()) continue;
+      final path = target.path;
+      return await Isolate.run(() => scan(path));
+    }
+  } catch (_) {
+    // A save folder that can't be read means no saves to show, not an
+    // error banner over the library.
+  }
+  return const [];
+}
 
 /// The Steam client roots a Linux machine may have: the classic symlinked
 /// location, the XDG one, and the Flatpak sandbox. One list, because it
@@ -507,6 +540,10 @@ class Sims4Adapter extends DocumentsSimsAdapter {
     } catch (_) {}
     return false;
   }
+
+  @override
+  Future<List<SaveGame>> listSaveGames() =>
+      scanSavesIn(gameDataFolders, 'saves', scanSims4Saves);
 }
 
 class Sims3Adapter extends DocumentsSimsAdapter {
@@ -586,6 +623,10 @@ class Sims3Adapter extends DocumentsSimsAdapter {
     final files = await extractSims3Pack(archive, dir, modFileExtensions);
     return [for (final file in files) toMod(file)!];
   }
+
+  @override
+  Future<List<SaveGame>> listSaveGames() => scanSavesIn(gameDataFolders,
+      'Saves', (path) => scanSims3Saves(path, extension: '.sims3'));
 }
 
 class Sims2Adapter extends DocumentsSimsAdapter {
@@ -626,6 +667,10 @@ class Sims2Adapter extends DocumentsSimsAdapter {
 
   @override
   String get setupHelpKey => 'sims2';
+
+  @override
+  Future<List<SaveGame>> listSaveGames() =>
+      scanSavesIn(gameDataFolders, 'Neighborhoods', scanSims2Saves);
 }
 
 /// Shared resolution for the games whose mods live inside the install
@@ -850,6 +895,39 @@ class SimsMedievalAdapter extends InstallFolderSimsAdapter {
     final loader = File(p.join(root.path, 'Game', 'Bin', 'd3dx9_31.dll'));
     return await loader.exists() ? const [] : const ['medievalModLoader'];
   }
+
+  /// The Documents folder holding the saves is localized like the disc
+  /// installs ("Die Sims Mittelalter"), so candidates are recognized by
+  /// their contents - a `Saves` folder with `.tsm` saves in it - with the
+  /// numbered mainline games' folders excluded up front.
+  Future<List<Directory>> _saveDataFolders() async {
+    final docs = await documentsDir(override: documentsOverride);
+    if (docs == null) return const [];
+    final vendor = Directory(p.join(docs.path, 'Electronic Arts'));
+    if (!await vendor.exists()) return const [];
+    final found = <Directory>[];
+    await for (final entity in vendor.list().handleError((Object _) {})) {
+      if (entity is! Directory) continue;
+      final name = p.basename(entity.path).toLowerCase().replaceAll('™', '');
+      if (_numberedSims.hasMatch(name)) continue;
+      final saves = Directory(p.join(entity.path, 'Saves'));
+      try {
+        if (!await saves.exists()) continue;
+        await for (final save in saves.list().handleError((Object _) {})) {
+          if (save is Directory &&
+              p.basename(save.path).toLowerCase().endsWith('.tsm')) {
+            found.add(entity);
+            break;
+          }
+        }
+      } catch (_) {}
+    }
+    return found;
+  }
+
+  @override
+  Future<List<SaveGame>> listSaveGames() => scanSavesIn(
+      _saveDataFolders, 'Saves', (path) => scanSims3Saves(path, extension: '.tsm'));
 }
 
 /// The original The Sims routes custom content by file type (per the
@@ -927,6 +1005,10 @@ class Sims1Adapter extends InstallFolderSimsAdapter {
     }
     return found;
   }
+
+  @override
+  Future<List<SaveGame>> listSaveGames() =>
+      scanSavesIn(installCandidates, '', scanSims1Saves);
 
   /// File types that belong in a skins folder. A skin is a trio: the
   /// .bmp texture, the .cmx animation link and the .skn mesh - all three

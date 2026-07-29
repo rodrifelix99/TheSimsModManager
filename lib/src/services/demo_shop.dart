@@ -1,6 +1,6 @@
-import 'dart:io' show zlib;
 import 'dart:typed_data';
 
+import '../core/bitmap.dart';
 import 'mod_shop.dart';
 
 /// Invented listings for The Exchange, the shop's half of the demo
@@ -49,6 +49,11 @@ List<ShopMod> buildDemoShop(List<DemoShopGame> games,
         filePath: 'mods/demo/${game.id}-$n/${creator}_$slug',
         fileSizeBytes: _size(seed, template.parts),
         updatedAt: today.subtract(Duration(days: seed * 3 % 41 + 1)),
+        // Invented, like everything else about this listing - a shelf of
+        // pretend mods by pretend creators, drawn for screenshots behind
+        // the debug-only toggle. Nothing real is ever counted here, and
+        // the controller skips the download ping while it is on.
+        downloads: seed * 137 % 900 + seed % 7 * 1100,
         demoImages: [
           for (var i = 0; i < template.shots; i++) demoListingArt(seed, i),
         ],
@@ -88,7 +93,8 @@ const _creators = [
 ];
 
 class _Listing {
-  const _Listing(this.name, this.blurb, {this.notes, this.parts = 1, this.shots = 3});
+  const _Listing(this.name, this.blurb,
+      {this.notes, this.parts = 1, this.shots = 3});
 
   final String name;
   final String blurb;
@@ -249,50 +255,5 @@ Uint8List _paint(int seed, int variant, int width, int height) {
       rgb[i + 2] = b;
     }
   }
-  return _encodePng(width, height, rgb);
-}
-
-/// Minimal PNG writer: 8-bit RGB, one IDAT, no interlacing. Enough for
-/// generated art, and it saves pulling an image package into the app for
-/// something only a debug build ever draws.
-Uint8List _encodePng(int width, int height, Uint8List rgb) {
-  final raw = BytesBuilder();
-  for (var y = 0; y < height; y++) {
-    raw.addByte(0); // filter type: none
-    raw.add(Uint8List.sublistView(rgb, y * width * 3, (y + 1) * width * 3));
-  }
-  final out = BytesBuilder();
-  out.add(const [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);
-  _chunk(out, 'IHDR',
-      Uint8List.fromList([..._be32(width), ..._be32(height), 8, 2, 0, 0, 0]));
-  _chunk(out, 'IDAT', Uint8List.fromList(zlib.encode(raw.takeBytes())));
-  _chunk(out, 'IEND', Uint8List(0));
-  return out.takeBytes();
-}
-
-List<int> _be32(int value) =>
-    [value >> 24 & 0xFF, value >> 16 & 0xFF, value >> 8 & 0xFF, value & 0xFF];
-
-void _chunk(BytesBuilder out, String type, Uint8List data) {
-  final typeBytes = type.codeUnits;
-  out.add(_be32(data.length));
-  out.add(typeBytes);
-  out.add(data);
-  out.add(_be32(_crc32([...typeBytes, ...data])));
-}
-
-final _crcTable = List<int>.generate(256, (n) {
-  var c = n;
-  for (var k = 0; k < 8; k++) {
-    c = (c & 1) != 0 ? 0xEDB88320 ^ (c >> 1) : c >> 1;
-  }
-  return c;
-});
-
-int _crc32(List<int> bytes) {
-  var c = 0xFFFFFFFF;
-  for (final byte in bytes) {
-    c = _crcTable[(c ^ byte) & 0xFF] ^ (c >> 8);
-  }
-  return (c ^ 0xFFFFFFFF) & 0xFFFFFFFF;
+  return encodePng(width, height, rgb);
 }

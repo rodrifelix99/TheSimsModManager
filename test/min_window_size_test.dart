@@ -15,6 +15,7 @@ import 'package:sims_mod_manager/src/core/game_adapter.dart';
 import 'package:sims_mod_manager/src/core/game_registry.dart';
 import 'package:sims_mod_manager/src/core/mod.dart';
 import 'package:sims_mod_manager/src/core/package_insight.dart';
+import 'package:sims_mod_manager/src/core/save_game.dart';
 import 'package:sims_mod_manager/src/services/github.dart';
 import 'package:sims_mod_manager/src/services/settings_store.dart';
 import 'package:sims_mod_manager/src/ui/app.dart';
@@ -50,6 +51,92 @@ class _FakeAdapter extends FolderBasedGameAdapter {
 
   @override
   Future<String?> defaultModsPath() async => dir.path;
+
+  /// A save wide enough to stress every section of the saves screen:
+  /// slot cards, the household detail panel, the stats tab.
+  @override
+  Future<List<SaveGame>> listSaveGames() async => [
+        for (var slot = 0; slot < 3; slot++)
+          SaveGame(
+            name: 'A rather long legacy save name $slot',
+            path: dir.path,
+            modifiedAt: DateTime(2026, 7, 20),
+            sizeBytes: 12 << 20,
+            backupCount: 4,
+            gameVersion: '1.125.59.1030',
+            worldsVisited: const ['Willow Creek', 'Oasis Springs'],
+            households: [
+              SaveHousehold(
+                name: 'A Very Long Household Name Indeed',
+                funds: 1234567,
+                lotName: 'An Extremely Long Lot Name On A Hill',
+                bedrooms: 4,
+                bathrooms: 3,
+                members: const [
+                  SaveSim(
+                    firstName: 'Wilhelmina',
+                    lastName: 'Braunschweiger-Lampenschirm',
+                    ageKey: 'youngAdult',
+                    genderKey: 'female',
+                    zodiacKey: 'sagittarius',
+                    aspirationKey: 'grilledCheese',
+                    skills: {
+                      'cooking': 1000,
+                      'mechanical': 900,
+                      'charisma': 800,
+                      'body': 700,
+                      'logic': 600,
+                      'creativity': 500,
+                      'cleaning': 400,
+                    },
+                    personality: {
+                      'neat': 1000,
+                      'outgoing': 900,
+                      'active': 800,
+                      'playful': 700,
+                      'nice': 600,
+                    },
+                    hobbies: {
+                      'cuisine': 1000,
+                      'film': 900,
+                      'tinkering': 800,
+                      'music': 700,
+                    },
+                    predestinedHobbyKey: 'tinkering',
+                    education: SaveEducation(
+                        major: 'Political Science', gpa: 3.9, semester: 8),
+                    familyTies: [
+                      SaveFamilyTie(
+                          kindKey: 'mother',
+                          name: 'Wilhelmina Braunschweiger-Lampenschirm'),
+                      SaveFamilyTie(
+                          kindKey: 'child', name: 'Another Long Name Here'),
+                      SaveFamilyTie(
+                          kindKey: 'child', name: 'And One More Long Name'),
+                    ],
+                  ),
+                  SaveSim(firstName: 'Bob', ageKey: 'elder'),
+                ],
+                relationships: const [
+                  SaveRelationship(
+                    nameA: 'Wilhelmina Braunschweiger-Lampenschirm',
+                    nameB: 'Bob',
+                    score: -100,
+                    labelKeys: ['married', 'enemies'],
+                  ),
+                ],
+              ),
+              const SaveHousehold(name: 'Townie', isPlayed: false),
+            ],
+            photos: [
+              SavePhoto(
+                  path: p.join(dir.path, 'missing.png'),
+                  caption: 'A snapshot with a very long caption on it',
+                  modifiedAt: DateTime(2026, 7, 1)),
+              const SavePhoto(kindKey: 'lot'),
+            ],
+          ),
+      ];
 }
 
 void main() {
@@ -105,8 +192,8 @@ void main() {
     final settings = await SettingsStore.load();
 
     await tester.runAsync(() async {
-      await tester.pumpWidget(
-          ModManagerApp(registry: registry, settings: settings));
+      await tester
+          .pumpWidget(ModManagerApp(registry: registry, settings: settings));
     });
     await pumpUntil(tester, find.text('Fake Game Library'));
     await tester.pump(const Duration(milliseconds: 500));
@@ -115,8 +202,7 @@ void main() {
     expect(find.text('Fake Game Library'), findsOneWidget);
     expect(find.text('cozy sofa'), findsOneWidget,
         reason: 'the grid must still build cards at the minimum size');
-    expect(overflows, isEmpty,
-        reason: 'library overflowed at $kMinWindowSize');
+    expect(overflows, isEmpty, reason: 'library overflowed at $kMinWindowSize');
 
     // Detail: fixed 300px left column + facts column.
     await tester.tap(find.text('cozy sofa'));
@@ -132,6 +218,25 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
     expect(overflows, isEmpty,
         reason: 'settings overflowed at $kMinWindowSize');
+
+    // Saves: header with slot cards, households + detail panel, then the
+    // album and stats tabs.
+    await tester.runAsync(() async {
+      await tester.tap(find.text('Saves'));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    });
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.textContaining('legacy save name'), findsWidgets);
+    expect(overflows, isEmpty,
+        reason: 'saves households overflowed at $kMinWindowSize');
+    await tester.tap(find.text('Photo album'));
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(overflows, isEmpty,
+        reason: 'saves album overflowed at $kMinWindowSize');
+    await tester.tap(find.text('World stats'));
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(overflows, isEmpty,
+        reason: 'saves stats overflowed at $kMinWindowSize');
   });
 
   // The sidebar's height is the number of games plus whatever the bottom
@@ -139,8 +244,7 @@ void main() {
   // a five-game sidebar came to overflow by 83px at the old minimum. This
   // one runs the shipped shape: every game, the update banner up, the
   // disk bar filled in.
-  testWidgets('the full sidebar fits the minimum window size',
-      (tester) async {
+  testWidgets('the full sidebar fits the minimum window size', (tester) async {
     tester.view.physicalSize = kMinWindowSize;
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);

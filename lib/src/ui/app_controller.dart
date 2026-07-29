@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui' show Locale;
 
@@ -20,6 +21,7 @@ import '../core/mod_folder.dart';
 import '../core/mod_name.dart';
 import '../core/package_insight.dart';
 import '../core/placed_mods.dart';
+import '../core/save_game.dart';
 import '../services/analytics.dart';
 import '../services/demo_shop.dart';
 import '../services/disk_space.dart';
@@ -29,7 +31,7 @@ import '../services/mod_shop.dart';
 import '../services/settings_store.dart';
 import '../services/sfx.dart';
 
-enum AppScreen { library, detail, settings, shop }
+enum AppScreen { library, detail, settings, shop, saves }
 
 /// Which half of the library the Enabled/Disabled stats are showing.
 /// [all] is both, i.e. no narrowing at all.
@@ -40,6 +42,12 @@ enum ModStateFilter { all, enabled, disabled }
 /// in - the shape of the mods directory, which the folder chips can only
 /// filter by, one at a time.
 enum LibraryLayout { grid, list, folders }
+
+/// The saves screen's sub-tabs. Which ones a save actually offers depends
+/// on what its files gave up ([AppController.availableSavesTabs]): every
+/// game fills [households] differently, only some have photos, and
+/// [stats] draws whatever numbers exist.
+enum SavesTab { households, album, stats }
 
 /// A section of the folder view: the mods sitting directly in [folder],
 /// which is `null` for the ones in the mods directory itself. A mod
@@ -150,6 +158,7 @@ class AppController extends ChangeNotifier {
     Future<void> Function(ShopMod mod, File destination,
             {void Function(int received, int total)? onProgress})?
         downloadShop,
+    Future<void> Function(String id)? reportDownload,
     Future<bool> Function()? checkElevated,
     int artworkBudgetBytes = defaultArtworkBudgetBytes,
   })  : _artworkBudgetBytes = artworkBudgetBytes,
@@ -161,6 +170,7 @@ class AppController extends ChangeNotifier {
         _fetchShop = fetchShop ?? fetchShopListings,
         _fetchListing = fetchListing ?? fetchShopListing,
         _downloadShop = downloadShop ?? downloadShopFile,
+        _reportDownload = reportDownload ?? reportShopDownload,
         _adapter = registry.byGameId('sims4') ?? registry.adapters.first {
     // Remote flags may land after the first frame (announcement banner,
     // kill switches); repaint when they do.
@@ -200,6 +210,11 @@ class AppController extends ChangeNotifier {
   /// local byte source instead of the network.
   final Future<void> Function(ShopMod mod, File destination,
       {void Function(int received, int total)? onProgress}) _downloadShop;
+
+  /// Tells The Exchange that a listing was installed, which is where a
+  /// creator's download count comes from; injectable so tests count
+  /// nothing and touch no network.
+  final Future<void> Function(String id) _reportDownload;
 
   GameAdapter _adapter;
   GameAdapter get adapter => _adapter;
@@ -1211,6 +1226,13 @@ class AppController extends ChangeNotifier {
     tooDeepOnly = false;
     stateFilter = ModStateFilter.all;
     _selectedModPath = null;
+    // Another game's saves are another set of files; they are read when
+    // the user next opens the Saves screen, not eagerly on every switch.
+    saveGames = null;
+    savesLoading = false;
+    _selectedSaveIndex = 0;
+    _selectedHouseholdIndex = 0;
+    savesPhotoIndex = 0;
     // The Exchange is deliberately left alone: its shelves span every
     // game, so switching the library doesn't re-shelve them.
     await refresh();
@@ -2473,6 +2495,14 @@ class AppController extends ChangeNotifier {
           'listing': mod.id,
           'size_kb': (mod.fileSizeBytes / 1024).round(),
         });
+        // The creator's download count, and the one thing here that is
+        // reported whether or not analytics are on: it is a fact about
+        // their listing rather than anything about this machine, and a
+        // creator's number should not depend on who has which toggle on.
+        // Not awaited - the install is finished and this is nobody's
+        // business but the server's. Demo listings are invented, so they
+        // count nothing.
+        if (!settings.demoLibrary) unawaited(_reportDownload(mod.id));
       }
     } catch (e) {
       // Only the download can throw here; installs report themselves.
@@ -2494,6 +2524,146 @@ class AppController extends ChangeNotifier {
   void openShopPortal() {
     analytics.capture('shop_publish_clicked', {'game': _adapter.game.id});
     openUrl(Uri.parse(shopPortalUrl));
+  }
+
+  // =========================================================================
+  // Saves
+
+  /// The current game's saves, or null before the first look (switching
+  /// game clears it, so each game's saves are read when first asked for
+  /// rather than on every launch).
+  List<SaveGame>? saveGames;
+
+  bool savesLoading = false;
+
+  SavesTab savesTab = SavesTab.households;
+
+  int _selectedSaveIndex = 0;
+  int _selectedHouseholdIndex = 0;
+
+  /// Which album photo is on the easel.
+  int savesPhotoIndex = 0;
+
+  SaveGame? get selectedSave {
+    final saves = saveGames;
+    if (saves == null || saves.isEmpty) return null;
+    return saves[_selectedSaveIndex.clamp(0, saves.length - 1)];
+  }
+
+  SaveHousehold? get selectedSaveHousehold {
+    final households = selectedSave?.households;
+    if (households == null || households.isEmpty) return null;
+    return households[_selectedHouseholdIndex.clamp(0, households.length - 1)];
+  }
+
+  /// The sub-tabs this save has anything to show on, in display order.
+  /// A save with no readable content still offers [SavesTab.stats]: size,
+  /// backups and dates exist for any file the scanner could list.
+  List<SavesTab> get availableSavesTabs {
+    final save = selectedSave;
+    if (save == null) return const [];
+    return [
+      if (save.households.isNotEmpty) SavesTab.households,
+      if (save.photos.isNotEmpty) SavesTab.album,
+      SavesTab.stats,
+    ];
+  }
+
+  /// [savesTab], unless the selected save doesn't offer it (a Sims 3 save
+  /// has no album when its world file was unreadable), in which case the
+  /// first tab it does.
+  SavesTab get effectiveSavesTab {
+    final available = availableSavesTabs;
+    if (available.isEmpty || available.contains(savesTab)) return savesTab;
+    return available.first;
+  }
+
+  void openSaves() {
+    if (screen != AppScreen.saves) {
+      playSound(UiSound.open);
+      analytics.capture('saves_opened', {'game': _adapter.game.id});
+    }
+    screen = AppScreen.saves;
+    if (saveGames == null && !savesLoading) {
+      _loadSaves();
+    }
+    notifyListeners();
+  }
+
+  /// Re-reads the saves from disk - the refresh button, and the way the
+  /// list catches a save written while the app was open.
+  Future<void> refreshSaves() {
+    playSound(UiSound.click);
+    return _loadSaves();
+  }
+
+  Future<void> _loadSaves() async {
+    final scanned = _adapter;
+    savesLoading = true;
+    notifyListeners();
+    List<SaveGame> saves = const [];
+    try {
+      saves = await scanned.listSaveGames();
+    } catch (_) {
+      // The adapter contract says never throw; a surprise here still
+      // must not take the screen down.
+    }
+    // The user may have switched games mid-scan; those results belong to
+    // the game that was asked.
+    if (!identical(scanned, _adapter)) return;
+    saveGames = saves;
+    savesLoading = false;
+    _selectedSaveIndex = 0;
+    _selectedHouseholdIndex = 0;
+    savesPhotoIndex = 0;
+    analytics.capture('saves_loaded', {
+      'game': scanned.game.id,
+      'saves': saves.length,
+      'households': saves.isEmpty ? 0 : saves.first.households.length,
+      'sims': saves.isEmpty ? 0 : saves.first.simCount,
+      'photos': saves.isEmpty ? 0 : saves.first.photos.length,
+    });
+    notifyListeners();
+  }
+
+  void selectSave(int index) {
+    final saves = saveGames;
+    if (saves == null || index < 0 || index >= saves.length) return;
+    if (index == _selectedSaveIndex) return;
+    playSound(UiSound.select);
+    _selectedSaveIndex = index;
+    _selectedHouseholdIndex = 0;
+    savesPhotoIndex = 0;
+    notifyListeners();
+  }
+
+  int get selectedSaveIndex => _selectedSaveIndex;
+
+  void selectSaveHousehold(int index) {
+    final households = selectedSave?.households;
+    if (households == null || index < 0 || index >= households.length) return;
+    if (index == _selectedHouseholdIndex) return;
+    playSound(UiSound.click);
+    _selectedHouseholdIndex = index;
+    notifyListeners();
+  }
+
+  int get selectedSaveHouseholdIndex => _selectedHouseholdIndex;
+
+  void setSavesTab(SavesTab tab) {
+    if (tab == savesTab) return;
+    playSound(UiSound.cycle);
+    savesTab = tab;
+    notifyListeners();
+  }
+
+  void selectSavePhoto(int index) {
+    final photos = selectedSave?.photos;
+    if (photos == null || index < 0 || index >= photos.length) return;
+    if (index == savesPhotoIndex) return;
+    playSound(UiSound.click);
+    savesPhotoIndex = index;
+    notifyListeners();
   }
 
   /// Opens the system file manager at [path] (selecting it when it's a

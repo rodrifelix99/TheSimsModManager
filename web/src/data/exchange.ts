@@ -61,6 +61,10 @@ export interface Listing {
   file: { path: string; name: string; size: number };
   images: string[];
   updatedAt: string;
+  /// How many people have taken this mod, counted by the recordDownload
+  /// function. Reads 0 on a listing published before there was a counter,
+  /// which is the truth about what we know rather than a guess.
+  downloads: number;
 }
 
 /// A Firestore REST document (`{name, fields}`) as a listing, or null when it
@@ -91,5 +95,6 @@ export function toListing(doc: unknown): Listing | null {
       (path): path is string => typeof path === 'string',
     ),
     updatedAt: String(field('updatedAt') ?? ''),
+    downloads: Math.max(0, Math.trunc(Number(field('downloads') ?? 0)) || 0),
   };
 }

@@ -537,6 +537,9 @@ class LJa extends L {
   String get factModified => '更新日';
 
   @override
+  String get factDownloads => 'ダウンロード数';
+
+  @override
   String get statusHeading => '状態';
 
   @override
@@ -936,6 +939,500 @@ class LJa extends L {
 
   @override
   String get eraMedieval => '中世';
+
+  @override
+  String get navSaves => 'セーブ';
+
+  @override
+  String get savesScanning => 'セーブデータを読み込み中…';
+
+  @override
+  String get savesEmptyTitle => 'セーブデータが見つかりません';
+
+  @override
+  String savesEmptyBody(String game) {
+    return '$gameをプレイしてセーブすると、家族や写真などワールドの情報がここに表示されます。';
+  }
+
+  @override
+  String get savesRescan => '再スキャン';
+
+  @override
+  String savesCount(int count) {
+    return 'セーブデータ $count 件';
+  }
+
+  @override
+  String savesLastSaved(String date) {
+    return '最終セーブ: $date';
+  }
+
+  @override
+  String get savesShowInFolder => 'フォルダで表示';
+
+  @override
+  String savesBackups(int count) {
+    return 'バックアップ $count 件';
+  }
+
+  @override
+  String get savesTabHouseholds => '世帯';
+
+  @override
+  String get savesTabAlbum => 'フォトアルバム';
+
+  @override
+  String get savesTabStats => 'ワールド統計';
+
+  @override
+  String savesNeighborhood(int number) {
+    return '近隣地域 $number';
+  }
+
+  @override
+  String get savesOtherHouseholds => 'NPCとその他の世帯';
+
+  @override
+  String savesSimCount(int count) {
+    return 'シム $count 人';
+  }
+
+  @override
+  String get savesFunds => '資金';
+
+  @override
+  String get savesRooms => '部屋';
+
+  @override
+  String savesBedsBaths(int beds, int baths) {
+    return '寝室$beds · 浴室$baths';
+  }
+
+  @override
+  String savesByCreator(String name) {
+    return '作成者: $name';
+  }
+
+  @override
+  String get savesMembers => 'メンバー';
+
+  @override
+  String get savesRelationships => '人間関係';
+
+  @override
+  String get savesUnknownSim => '不明なシム';
+
+  @override
+  String get savesStatSims => 'シム';
+
+  @override
+  String get savesStatHouseholds => '世帯';
+
+  @override
+  String get savesStatNetWorth => '総資産';
+
+  @override
+  String get savesStatWorlds => 'ワールド';
+
+  @override
+  String get savesStatPhotos => '写真';
+
+  @override
+  String savesAcrossHouseholds(int count) {
+    return '$count 世帯';
+  }
+
+  @override
+  String savesPlayedCount(int count) {
+    return 'プレイ中 $count';
+  }
+
+  @override
+  String get savesSizeOnDisk => 'ディスク使用量';
+
+  @override
+  String get savesLifeStages => 'ライフステージ';
+
+  @override
+  String get savesTopSkills => 'このセーブの最高スキル';
+
+  @override
+  String get savesSaveInfo => 'セーブファイル';
+
+  @override
+  String get savesLastSavedLabel => '最終セーブ';
+
+  @override
+  String get savesGameVersion => 'ゲームバージョン';
+
+  @override
+  String get savesDescription => '説明';
+
+  @override
+  String get savesAgeInfant => '乳児';
+
+  @override
+  String get savesAgeBaby => '赤ちゃん';
+
+  @override
+  String get savesAgeToddler => '幼児';
+
+  @override
+  String get savesAgeChild => '子供';
+
+  @override
+  String get savesAgeTeen => 'ティーン';
+
+  @override
+  String get savesAgeYoungAdult => 'ヤングアダルト';
+
+  @override
+  String get savesAgeAdult => '大人';
+
+  @override
+  String get savesAgeElder => 'シニア';
+
+  @override
+  String get savesGenderMale => '男性';
+
+  @override
+  String get savesGenderFemale => '女性';
+
+  @override
+  String get savesSkillCooking => '料理';
+
+  @override
+  String get savesSkillMechanical => '修理';
+
+  @override
+  String get savesSkillCharisma => 'カリスマ';
+
+  @override
+  String get savesSkillBody => '身体';
+
+  @override
+  String get savesSkillLogic => '論理';
+
+  @override
+  String get savesSkillCreativity => '創造力';
+
+  @override
+  String get savesSkillCleaning => '掃除';
+
+  @override
+  String get savesPersonalityNeat => 'きれい好き';
+
+  @override
+  String get savesPersonalityOutgoing => '社交的';
+
+  @override
+  String get savesPersonalityActive => '活発';
+
+  @override
+  String get savesPersonalityPlayful => '遊び好き';
+
+  @override
+  String get savesPersonalityNice => '優しい';
+
+  @override
+  String get savesZodiacAries => 'おひつじ座';
+
+  @override
+  String get savesZodiacTaurus => 'おうし座';
+
+  @override
+  String get savesZodiacGemini => 'ふたご座';
+
+  @override
+  String get savesZodiacCancer => 'かに座';
+
+  @override
+  String get savesZodiacLeo => 'しし座';
+
+  @override
+  String get savesZodiacVirgo => 'おとめ座';
+
+  @override
+  String get savesZodiacLibra => 'てんびん座';
+
+  @override
+  String get savesZodiacScorpio => 'さそり座';
+
+  @override
+  String get savesZodiacSagittarius => 'いて座';
+
+  @override
+  String get savesZodiacCapricorn => 'やぎ座';
+
+  @override
+  String get savesZodiacAquarius => 'みずがめ座';
+
+  @override
+  String get savesZodiacPisces => 'うお座';
+
+  @override
+  String get savesAspirationRomance => 'ロマンス';
+
+  @override
+  String get savesAspirationFamily => '家族';
+
+  @override
+  String get savesAspirationFortune => '富';
+
+  @override
+  String get savesAspirationPopularity => '人気';
+
+  @override
+  String get savesAspirationKnowledge => '知識';
+
+  @override
+  String get savesAspirationGrowUp => '成長';
+
+  @override
+  String get savesAspirationPleasure => '快楽';
+
+  @override
+  String get savesAspirationGrilledCheese => 'グリルチーズ';
+
+  @override
+  String get savesRelCrush => '片思い';
+
+  @override
+  String get savesRelLove => '恋人';
+
+  @override
+  String get savesRelEngaged => '婚約中';
+
+  @override
+  String get savesRelMarried => '結婚';
+
+  @override
+  String get savesRelFriends => '友達';
+
+  @override
+  String get savesRelBestFriends => '親友';
+
+  @override
+  String get savesRelSteady => '交際中';
+
+  @override
+  String get savesRelEnemies => '敵';
+
+  @override
+  String get savesPhotoFamilyPortrait => '家族写真';
+
+  @override
+  String get savesPhotoLot => '区画';
+
+  @override
+  String get savesPhotoSim => 'シムのポートレート';
+
+  @override
+  String get savesPhotoSnapshot => 'スナップショット';
+
+  @override
+  String get savesProperty => '資産';
+
+  @override
+  String get savesGhost => 'ゴースト';
+
+  @override
+  String savesCareerLevel(String career, int level) {
+    return '$career · レベル$level';
+  }
+
+  @override
+  String get savesSpeciesLargeDog => '犬';
+
+  @override
+  String get savesSpeciesSmallDog => '小型犬';
+
+  @override
+  String get savesSpeciesCat => '猫';
+
+  @override
+  String get savesOccultVampire => 'ヴァンパイア';
+
+  @override
+  String get savesOccultZombie => 'ゾンビ';
+
+  @override
+  String get savesOccultWerewolf => '人狼';
+
+  @override
+  String get savesOccultPlantSim => 'プラントシム';
+
+  @override
+  String get savesOccultAlien => 'エイリアン';
+
+  @override
+  String get savesOccultServo => 'サーボ';
+
+  @override
+  String get savesOccultWitch => '魔女';
+
+  @override
+  String get savesOccultBigfoot => 'ビッグフット';
+
+  @override
+  String get savesOccultFairy => 'フェアリー';
+
+  @override
+  String get savesOccultGenie => 'ジーニー';
+
+  @override
+  String get savesOccultMermaid => 'マーメイド';
+
+  @override
+  String get savesLotResidential => '住宅区画';
+
+  @override
+  String get savesLotCommunity => '公共区画';
+
+  @override
+  String get savesLotDorm => '寮';
+
+  @override
+  String get savesLotSecretSociety => '秘密結社';
+
+  @override
+  String get savesLotGreekHouse => '学生寮';
+
+  @override
+  String get savesLotHotel => 'ホテル';
+
+  @override
+  String get savesLotSecret => '隠し区画';
+
+  @override
+  String get savesLotBusiness => '店舗';
+
+  @override
+  String get savesLotApartment => 'アパート';
+
+  @override
+  String savesGpa(String gpa) {
+    return 'GPA $gpa';
+  }
+
+  @override
+  String savesSemester(int number) {
+    return '$number学期';
+  }
+
+  @override
+  String savesPredestinedHobby(String hobby) {
+    return '天職は$hobby';
+  }
+
+  @override
+  String get savesHobbyCuisine => '料理';
+
+  @override
+  String get savesHobbyArts => 'アート＆クラフト';
+
+  @override
+  String get savesHobbyFilm => '映画と文学';
+
+  @override
+  String get savesHobbySports => 'スポーツ';
+
+  @override
+  String get savesHobbyGames => 'ゲーム';
+
+  @override
+  String get savesHobbyNature => '自然';
+
+  @override
+  String get savesHobbyTinkering => '工作';
+
+  @override
+  String get savesHobbyFitness => 'フィットネス';
+
+  @override
+  String get savesHobbyScience => '科学';
+
+  @override
+  String get savesHobbyMusic => '音楽とダンス';
+
+  @override
+  String get savesTieMother => '母';
+
+  @override
+  String get savesTieFather => '父';
+
+  @override
+  String get savesTieSpouse => '配偶者';
+
+  @override
+  String savesTieSibling(int count) {
+    return '兄弟姉妹';
+  }
+
+  @override
+  String savesTieChild(int count) {
+    return '子ども';
+  }
+
+  @override
+  String get savesInterestPolitics => '政治';
+
+  @override
+  String get savesInterestMoney => 'お金';
+
+  @override
+  String get savesInterestEnvironment => '環境';
+
+  @override
+  String get savesInterestCrime => '犯罪';
+
+  @override
+  String get savesInterestEntertainment => '娯楽';
+
+  @override
+  String get savesInterestCulture => '文化';
+
+  @override
+  String get savesInterestFood => '料理';
+
+  @override
+  String get savesInterestHealth => '健康';
+
+  @override
+  String get savesInterestFashion => 'ファッション';
+
+  @override
+  String get savesInterestSports => 'スポーツ';
+
+  @override
+  String get savesInterestParanormal => '超常現象';
+
+  @override
+  String get savesInterestTravel => '旅行';
+
+  @override
+  String get savesInterestWork => '仕事';
+
+  @override
+  String get savesInterestWeather => '天気';
+
+  @override
+  String get savesInterestAnimals => '動物';
+
+  @override
+  String get savesInterestSchool => '学校';
+
+  @override
+  String get savesInterestToys => 'おもちゃ';
+
+  @override
+  String get savesInterestSciFi => 'SF';
+
+  @override
+  String get savesInterestMusic => '音楽';
+
+  @override
+  String get savesInterestOutdoors => 'アウトドア';
 
   @override
   String get setupHelpSims1 =>

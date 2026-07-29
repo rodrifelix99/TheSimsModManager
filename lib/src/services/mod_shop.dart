@@ -56,6 +56,7 @@ class ShopMod {
     this.instructions,
     this.imagePaths = const [],
     this.updatedAt,
+    this.downloads = 0,
     this.demoImages = const [],
   });
 
@@ -87,6 +88,14 @@ class ShopMod {
   final List<String> imagePaths;
 
   final DateTime? updatedAt;
+
+  /// How many people have taken this mod. Counted server-side by the
+  /// `recordDownload` function, which this app pings once an install has
+  /// finished and the listing's web page pings on its download button -
+  /// one machine counting once a day either way. Zero on a listing
+  /// published before there was a counter, which is what we honestly
+  /// know rather than a guess at what it missed.
+  final int downloads;
 
   /// Screenshots carried as bytes rather than fetched, which only the
   /// invented listings of the demo library have (see `demo_shop.dart`).
@@ -249,6 +258,9 @@ ShopMod? _parseDocument(Object? row) {
     fileSizeBytes: _int(f['size']) ?? 0,
     imagePaths: images,
     updatedAt: updatedAt,
+    // Absent on every listing published before the counter existed, and
+    // never negative whatever the wire says.
+    downloads: (_int(fields['downloads']) ?? 0).clamp(0, 1 << 40),
   );
 }
 
@@ -401,6 +413,39 @@ ShopMod? parseShopListing(String body) {
   } catch (e) {
     _shopDebug('listing did not parse: ${e.runtimeType}');
     return null;
+  }
+}
+
+/// Says that this machine took [id], so a creator's download count means
+/// people who installed their mod rather than people who looked at it.
+/// Called once an install has actually finished - a failed download is
+/// not a download - and never for a demo listing, which is invented.
+///
+/// The server counts one machine once a day per listing, so pressing
+/// Install again tomorrow is not a second download and reinstalling this
+/// afternoon is not either. It sends the listing id and nothing else: no
+/// account, no machine id, nothing about the library. The address the
+/// request comes from is hashed on arrival purely to recognise a repeat,
+/// which is the same thing the file download itself already reveals.
+///
+/// Fire and forget in every sense - failures are swallowed, the answer is
+/// not read, and nothing in the app waits on it.
+Future<void> reportShopDownload(String id) async {
+  if (!isShopListingId(id)) return;
+  final client = HttpClient()..connectionTimeout = const Duration(seconds: 5);
+  try {
+    final request = await client.postUrl(Uri.parse(
+        'https://thesimsmodmanager.web.app/api/downloads/'
+        '${Uri.encodeComponent(id)}'));
+    request.headers
+        .set(HttpHeaders.userAgentHeader, 'TheSimsModManager/$appVersion');
+    request.contentLength = 0;
+    final response = await request.close().timeout(const Duration(seconds: 10));
+    await response.drain<void>();
+  } catch (e) {
+    _shopDebug('download count for $id failed: ${e.runtimeType}');
+  } finally {
+    client.close(force: true);
   }
 }
 

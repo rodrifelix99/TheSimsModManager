@@ -41,6 +41,7 @@ class ModManagerApp extends StatefulWidget {
     this.fetchShop,
     this.fetchListing,
     this.downloadShop,
+    this.reportDownload,
     this.deepLinks,
     this.onBrightnessChanged,
     this.checkElevated,
@@ -64,6 +65,11 @@ class ModManagerApp extends StatefulWidget {
   final Future<ShopMod?> Function(String id)? fetchListing;
   final Future<void> Function(ShopMod mod, File destination,
       {void Function(int received, int total)? onProgress})? downloadShop;
+
+  /// Reports a finished install so the listing's creator sees it in their
+  /// download count; null means the real endpoint. Injectable so tests
+  /// count nothing.
+  final Future<void> Function(String id)? reportDownload;
 
   /// Addresses the OS handed the app, one per `simsmodmanager://` link
   /// opened. main() feeds this from the platform; tests feed it from a
@@ -92,6 +98,7 @@ class _ModManagerAppState extends State<ModManagerApp> {
       fetchShop: widget.fetchShop,
       fetchListing: widget.fetchListing,
       downloadShop: widget.downloadShop,
+      reportDownload: widget.reportDownload,
       checkElevated: widget.checkElevated);
 
   /// The language and theme currently rendered. Mirrored out of the

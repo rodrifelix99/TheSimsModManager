@@ -14,7 +14,13 @@
 // the block the page's script reads. Nothing about the layout, the styling or
 // the wording lives here, and a site deploy changes the page without this ever
 // being redeployed.
+//
+// The second function here counts downloads; it is unrelated to the page and
+// shares only the constants above it.
 import { onRequest } from 'firebase-functions/v2/https';
+import { getApps, initializeApp } from 'firebase-admin/app';
+import { FieldValue, getFirestore } from 'firebase-admin/firestore';
+import { createHash } from 'node:crypto';
 
 const SITE = 'https://thesimsmodmanager.web.app';
 
@@ -223,5 +229,103 @@ export const modPage = onRequest(
           data: { doc },
         }),
       );
+  },
+);
+
+// ------------------------------------------------------------- the counter
+
+// What a creator gets to see: how many people actually took their mod. Both
+// halves of The Exchange ping this - the app once an install of a listing has
+// finished (lib/src/ui/app_controller.dart), and the mod page when someone uses
+// the plain download button (web/src/scripts/mod-page.ts). Nothing else may
+// write the number: firestore.rules holds `downloads` still against every
+// client, so the only path to it is through here, with the admin SDK.
+
+/// One machine's download of one listing, for as long as this reads the same.
+/// A creator's number should mean "people who took this" rather than "times a
+/// button was pressed", so pressing it twice on the same evening counts once.
+/// Whole days rather than a rolling window because it has to be computable
+/// without reading anything back.
+const dayBucket = () => Math.floor(Date.now() / 86_400_000);
+
+/// The hit records exist only to answer "seen this one already", and the day
+/// in the key means one older than yesterday can never be matched again.
+/// Deleted by Firestore's TTL policy on the `hits` collection group (set it on
+/// the `expiresAt` field); without the policy they pile up harmlessly, so
+/// nothing here depends on them going away.
+const HIT_TTL_MS = 3 * 86_400_000;
+
+let firestore;
+function db() {
+  if (!firestore) {
+    if (getApps().length === 0) initializeApp();
+    firestore = getFirestore();
+  }
+  return firestore;
+}
+
+/// Who is asking, as something we can compare without keeping. The address and
+/// the user agent go in, a hash comes out: enough to recognise the same
+/// machine twice today, and not an IP address sitting in the database.
+function hitKey(request, id) {
+  const forwarded = String(request.headers['x-forwarded-for'] ?? '');
+  const address = (forwarded.split(',')[0] || request.ip || '').trim();
+  const agent = String(request.headers['user-agent'] ?? '');
+  return createHash('sha256')
+    .update(`${address}\n${agent}\n${id}\n${dayBucket()}`)
+    .digest('base64url')
+    .slice(0, 32);
+}
+
+export const recordDownload = onRequest(
+  { region: 'us-central1', memory: '256MiB', maxInstances: 10, invoker: 'public' },
+  async (request, response) => {
+    response.set('Cache-Control', 'no-store');
+    if (request.method !== 'POST') {
+      response.status(405).json({ error: 'POST' });
+      return;
+    }
+
+    const segments = request.path.split('/').filter(Boolean);
+    const id = segments[segments.length - 1] ?? '';
+    if (!LISTING_ID.test(id)) {
+      response.status(400).json({ error: 'id' });
+      return;
+    }
+
+    try {
+      const listing = db().collection('mods').doc(id);
+      const snap = await listing.get();
+      // An unpublished draft is not on any shelf, so a ping naming one is
+      // either stale or made up. Same answer as a listing that never existed.
+      if (!snap.exists || snap.get('published') !== true) {
+        response.status(404).json({ error: 'listing' });
+        return;
+      }
+
+      // create() is the whole guard: it fails if this machine already counted
+      // for this listing today, and it is one write either way.
+      try {
+        await listing.collection('hits').doc(hitKey(request, id)).create({
+          at: FieldValue.serverTimestamp(),
+          expiresAt: new Date(Date.now() + HIT_TTL_MS),
+        });
+      } catch (error) {
+        if (error?.code === 6 /* ALREADY_EXISTS */) {
+          response.status(200).json({ counted: false });
+          return;
+        }
+        throw error;
+      }
+
+      await listing.update({ downloads: FieldValue.increment(1) });
+      response.status(200).json({ counted: true });
+    } catch (error) {
+      // A count that did not happen is not worth telling the caller about -
+      // neither the app nor the page has anything to do with the answer, and
+      // the download itself already worked.
+      console.error(error);
+      response.status(200).json({ counted: false });
+    }
   },
 );

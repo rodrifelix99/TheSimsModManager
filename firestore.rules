@@ -19,7 +19,7 @@ service cloud.firestore {
               'createdAt', 'updatedAt'])
           && data.keys().hasOnly(['name', 'gameId', 'version', 'description',
               'instructions', 'authorUid', 'authorName', 'file', 'images',
-              'published', 'createdAt', 'updatedAt'])
+              'published', 'createdAt', 'updatedAt', 'downloads'])
           && data.name is string
           && data.name.size() >= 1 && data.name.size() <= 100
           && data.gameId in ['sims1', 'sims2', 'sims3', 'sims4', 'simsmedieval']
@@ -41,6 +41,10 @@ service cloud.firestore {
           && data.file.name.size() >= 1 && data.file.name.size() <= 200
           && data.file.size is int && data.file.size > 0
           && data.images is list && data.images.size() <= 10
+          // Written only by the recordDownload function, with the admin SDK.
+          // Shape is checked here; who may move it, below.
+          && (!('downloads' in data)
+              || (data.downloads is int && data.downloads >= 0))
           && data.published is bool
           && data.createdAt is timestamp
           && data.updatedAt is timestamp;
@@ -54,13 +58,30 @@ service cloud.firestore {
               && request.auth.uid == resource.data.authorUid);
       allow create: if creator()
           && request.resource.data.authorUid == request.auth.uid
-          && validMod(request.resource.data);
+          && validMod(request.resource.data)
+          // A new listing starts at nothing. Nobody arrives with a number.
+          && request.resource.data.get('downloads', 0) == 0;
       allow update: if creator()
           && resource.data.authorUid == request.auth.uid
           && request.resource.data.authorUid == request.auth.uid
-          && validMod(request.resource.data);
+          && validMod(request.resource.data)
+          // The count is not the creator's to edit. The portal saves with
+          // update() and never sends the field, so the stored value merges
+          // through untouched and this holds however long the edit took -
+          // which is the point: an equality check against a value read
+          // minutes ago would fail every time a download landed mid-edit.
+          && request.resource.data.get('downloads', 0)
+              == resource.data.get('downloads', 0);
       allow delete: if creator()
           && resource.data.authorUid == request.auth.uid;
+
+      // Which machines have already been counted today. Written by the
+      // recordDownload function with the admin SDK, which does not pass
+      // through here; nothing else has any business reading it, and the
+      // entries are hashes of an address precisely so that stays true.
+      match /hits/{hitId} {
+        allow read, write: if false;
+      }
     }
   }
 }

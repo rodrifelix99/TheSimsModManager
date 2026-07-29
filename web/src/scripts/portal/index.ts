@@ -15,6 +15,7 @@ import {
 import {
   collection,
   deleteDoc,
+  deleteField,
   doc,
   getDoc,
   getDocs,
@@ -22,6 +23,7 @@ import {
   query,
   serverTimestamp,
   setDoc,
+  updateDoc,
   where,
 } from 'firebase/firestore';
 import {
@@ -60,6 +62,11 @@ interface Listing {
   published: boolean;
   createdAt: unknown;
   updatedAt: unknown;
+  /// How many people have taken this mod. Counted by the recordDownload
+  /// function and read-only here - firestore.rules refuses a save that moves
+  /// it, which is why an edit below saves with update() rather than set().
+  /// Absent on listings published before any of this existed.
+  downloads?: number;
 }
 
 const $ = (id: string) => document.getElementById(id)!;
@@ -220,6 +227,20 @@ function shareButton(id: string): HTMLButtonElement {
   return button;
 }
 
+/// How many people have taken this mod, on the card and again in the tally.
+/// Real downloads only: the app pings once an install finishes and the mod
+/// page when its download button is used, both through recordDownload, which
+/// counts one machine once a day. Nothing seeds it and nothing estimates it,
+/// so a new listing honestly reads 0.
+function downloadStat(count: number): HTMLElement {
+  const stat = document.createElement('span');
+  stat.className = 'dlstat';
+  const number = document.createElement('b');
+  number.textContent = count.toLocaleString(document.documentElement.lang);
+  stat.append(number, ' ' + s('portal.mods.downloads'));
+  return stat;
+}
+
 function modCard(id: string, mod: Listing): HTMLElement {
   const card = document.createElement('article');
   card.className = 'modcard' + (mod.published ? '' : ' draft');
@@ -267,7 +288,11 @@ function modCard(id: string, mod: Listing): HTMLElement {
   // A draft has no page to point at yet; only a published listing does.
   if (mod.published) actions.append(shareButton(id));
 
-  body.append(line, meta, actions);
+  body.append(line, meta);
+  // Nobody can have taken a draft, so the number would only ever read 0 and
+  // say nothing. It appears when the mod goes on the shelves.
+  if (mod.published) body.append(downloadStat(mod.downloads ?? 0));
+  body.append(actions);
   card.append(cover, body);
   return card;
 }
@@ -338,6 +363,10 @@ async function loadMods() {
   const total = document.createElement('b');
   total.textContent = String(listings.length);
   tally.append(total, ' ' + s('portal.mods.listings'));
+  // The number worth leading with, once there is one. Drafts contribute
+  // nothing by definition, so this is the sum over what is on the shelves.
+  const downloads = listings.reduce((sum, [, mod]) => sum + (mod.downloads ?? 0), 0);
+  if (downloads > 0) tally.append(' · ', downloadStat(downloads));
 
   for (const [id, mod] of listings) list.append(modCard(id, mod));
   applyFilter();
@@ -649,8 +678,19 @@ function wireEditor() {
         updatedAt: serverTimestamp(),
       };
       const notes = area('f-notes').value.trim();
-      if (notes) data.instructions = notes;
-      await setDoc(doc(db, 'mods', id), data);
+      const listing = doc(db, 'mods', id);
+      if (existing) {
+        // An edit saves with update(), not set(): `downloads` belongs to the
+        // recordDownload function, and merging it through untouched is the
+        // only way a save can be legal however long the editing took. The
+        // price is that cleared instructions need saying out loud - set()
+        // dropped a missing key for free.
+        await updateDoc(listing, { ...data, instructions: notes || deleteField() });
+      } else {
+        if (notes) data.instructions = notes;
+        data.downloads = 0;
+        await setDoc(listing, data);
+      }
       await loadMods();
     } catch (error) {
       setError('editor-error', s('portal.editor.saveFailed', reason(error)));

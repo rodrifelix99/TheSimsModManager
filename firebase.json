@@ -41,6 +41,10 @@
     ],
     "rewrites": [
       {
+        "source": "/api/downloads/**",
+        "function": { "functionId": "recordDownload", "region": "us-central1" }
+      },
+      {
         "source": "/m/**",
         "function": { "functionId": "modPage", "region": "us-central1" }
       },

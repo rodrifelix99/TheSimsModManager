@@ -43,6 +43,20 @@ async function fetched(): Promise<unknown | null> {
   }
 }
 
+/// Says that somebody took this file, so the creator's count means people
+/// rather than page views. Same endpoint the app pings after an install, and
+/// it counts one machine once a day, so a second press is not a second
+/// download. sendBeacon because the click is navigating away: a plain fetch
+/// races the unload and loses. Nothing waits on it and nothing reads the
+/// answer - a count that did not happen must not cost anyone their download.
+function countDownload(id: string) {
+  try {
+    navigator.sendBeacon(`/api/downloads/${encodeURIComponent(id)}`);
+  } catch {
+    /* no beacon, or the browser refused it */
+  }
+}
+
 function gallery(mod: Listing) {
   const cover = $('mod-cover') as HTMLImageElement;
   const thumbs = $('mod-thumbs');
@@ -91,6 +105,15 @@ function paint(mod: Listing) {
     show('mod-updated-fact');
   }
 
+  // Worth showing once somebody has actually taken it. A fresh listing reading
+  // "0" says nothing a creator wants said on the page they are sharing.
+  if (mod.downloads > 0) {
+    $('mod-downloads').textContent = mod.downloads.toLocaleString(
+      document.documentElement.lang,
+    );
+    show('mod-downloads-fact');
+  }
+
   // The one address the app answers to. It opens the listing; it never
   // installs on its own.
   ($('mod-install') as HTMLAnchorElement).href = `simsmodmanager://mod/${mod.id}`;
@@ -98,6 +121,7 @@ function paint(mod: Listing) {
   download.href = fileUrl(mod.file.path);
   download.setAttribute('download', mod.file.name);
   download.textContent = s('mod.downloadFile', fmtSize(mod.file.size));
+  download.addEventListener('click', () => countDownload(mod.id));
 
   gallery(mod);
   if (renderProse($('mod-description'), mod.description)) show('mod-about');

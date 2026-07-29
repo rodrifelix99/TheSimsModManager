@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
-import 'package:intl/intl.dart' show DateFormat;
+import 'package:intl/intl.dart' show DateFormat, NumberFormat;
 
 import '../core/game.dart';
 import '../services/mod_shop.dart';
@@ -592,12 +592,25 @@ class ShopView extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            formatBytes(mod.fileSizeBytes),
-                            style: TextStyle(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w700,
-                              color: t.muted,
+                          Flexible(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    formatBytes(mod.fileSizeBytes),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: t.muted,
+                                    ),
+                                  ),
+                                ),
+                                if (mod.downloads > 0)
+                                  _downloadCount(t, mod, leading: ' · '),
+                              ],
                             ),
                           ),
                           _installButton(t, c, l, mod, compact: true),
@@ -611,6 +624,28 @@ class ShopView extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  /// How many people have taken this mod, on the card next to its size.
+  /// Only ever drawn above zero: a listing nobody has downloaded yet says
+  /// more by saying nothing, and every listing published before there was
+  /// a counter reads zero for reasons that are ours rather than the
+  /// creator's.
+  Widget _downloadCount(GameTheme t, ShopMod mod, {String leading = ''}) {
+    final style = TextStyle(
+      fontSize: 11.5,
+      fontWeight: FontWeight.w700,
+      color: t.muted,
+    );
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (leading.isNotEmpty) Text(leading, style: style),
+        Icon(Icons.file_download_outlined, size: 12.5, color: t.muted),
+        const SizedBox(width: 2),
+        Text(_count(mod.downloads), style: style),
+      ],
     );
   }
 
@@ -762,6 +797,17 @@ class ShopView extends StatelessWidget {
 
   // ----------------------------------------------------------------- detail
 
+  /// A count with the reader's own thousands separator. Same fallback as
+  /// [_updatedDate]: widget tests never run main(), so the symbols for
+  /// the active locale may not have been loaded.
+  String _count(int value) {
+    try {
+      return NumberFormat.decimalPattern().format(value);
+    } catch (_) {
+      return NumberFormat.decimalPattern('en').format(value);
+    }
+  }
+
   String _updatedDate(ShopMod mod) {
     final d = mod.updatedAt;
     if (d == null) return '';
@@ -884,6 +930,7 @@ class ShopView extends StatelessWidget {
       if (mod.version.isNotEmpty) (l.factVersion, mod.version),
       (l.factSize, formatBytes(mod.fileSizeBytes)),
       if (mod.updatedAt != null) (l.factModified, _updatedDate(mod)),
+      if (mod.downloads > 0) (l.factDownloads, _count(mod.downloads)),
     ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
