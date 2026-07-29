@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
+import 'package:sims_mod_manager/src/core/app_message.dart';
 import 'package:sims_mod_manager/src/core/game.dart';
 import 'package:sims_mod_manager/src/core/game_adapter.dart';
 import 'package:sims_mod_manager/src/core/mod.dart';
@@ -179,6 +180,22 @@ void main() {
     expect(mod.name, 'new_sofa.package');
     expect(File(mod.path).existsSync(), isTrue);
     expect(source.existsSync(), isTrue, reason: 'install copies, not moves');
+  });
+
+  test('installing a file the game cannot read is refused, not copied',
+      () async {
+    // The picker's extension filter is advisory on Windows, so a stray
+    // file can reach installMod; it used to be copied and then crash the
+    // null-check on toMod (seen in error tracking on v2.1.3).
+    final outside = await Directory.systemTemp.createTemp('mod_source');
+    addTearDown(() => outside.delete(recursive: true));
+    final source = File(p.join(outside.path, 'readme.txt'))
+      ..writeAsStringSync('not a mod');
+
+    await expectLater(adapter.installMod(tempDir, source),
+        throwsA(isA<ModContentException>()));
+    expect(File(p.join(tempDir.path, 'readme.txt')).existsSync(), isFalse,
+        reason: 'a refused file must not land in the mods folder');
   });
 
   test('remove deletes the file from disk', () async {

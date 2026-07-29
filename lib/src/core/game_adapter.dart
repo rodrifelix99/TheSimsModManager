@@ -317,6 +317,14 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
   @override
   Future<Mod> installMod(Directory modsDir, File source,
       {InstallPlacement placement = const SortedPlacement()}) async {
+    // The file picker filters by extension but does not enforce it
+    // (Windows lets a name be typed past the filter), so a file this game
+    // cannot read can arrive here. Refuse it before it lands in the mods
+    // folder as a file the library would never list.
+    if (toMod(source) == null) {
+      throw ModContentException.noModFiles(
+          modFileExtensions, p.basename(source.path));
+    }
     final dir = await resolvePlacement(modsDir, placement);
     await dir.create(recursive: true);
     final target = p.join(dir.path, p.basename(source.path));

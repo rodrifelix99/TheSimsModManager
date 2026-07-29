@@ -279,8 +279,45 @@ void main() {
         ['grunge_sofa.package', 'The system cannot find the path specified']);
     final failed = spy.eventProperties[spy.events.indexOf('mod_install_failed')];
     expect(failed['reason'], 'not_found');
-    expect(spy.exceptions, hasLength(1),
-        reason: 'a filesystem failure on install is worth investigating');
+    expect(spy.exceptions, isEmpty,
+        reason: 'a vanished path is a verdict on the machine, and the '
+            'failure tally already counts it under its own reason');
+  });
+
+  test('a refused write on install stays out of error tracking', () async {
+    final source = File(p.join(modsDir.parent.path, 'grunge_sofa.package'))
+      ..writeAsStringSync('sofa');
+    addTearDown(source.deleteSync);
+    final spy = _SpyAnalytics();
+    final c = await makeController(analytics: spy);
+    adapter.installFailure = PathAccessException(
+        r'C:\Program Files\Mods\sofa.package',
+        const OSError('Access is denied', 5),
+        'Cannot copy file');
+
+    await c.installFiles([source]);
+
+    expect(c.lastError?.key, 'errorNoWriteAccess');
+    expect(spy.exceptions, isEmpty,
+        reason: 'environmental failures are not app bugs');
+    final failed = spy.eventProperties[spy.events.indexOf('mod_install_failed')];
+    expect(failed['reason'], 'access_denied');
+  });
+
+  test('an unexpected install failure is still reported to error tracking',
+      () async {
+    final source = File(p.join(modsDir.parent.path, 'grunge_sofa.package'))
+      ..writeAsStringSync('sofa');
+    addTearDown(source.deleteSync);
+    final spy = _SpyAnalytics();
+    final c = await makeController(analytics: spy);
+    adapter.installFailure = StateError('install went sideways');
+
+    await c.installFiles([source]);
+
+    expect(spy.exceptions, hasLength(1));
+    final failed = spy.eventProperties[spy.events.indexOf('mod_install_failed')];
+    expect(failed['reason'], 'unknown');
   });
 
   test('an archive with nothing installable is a verdict, not a bug',

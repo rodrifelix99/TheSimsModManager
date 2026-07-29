@@ -1754,8 +1754,16 @@ class AppController extends ChangeNotifier {
       // A ModContentException is the adapter reporting that the archive or
       // folder held nothing this game can use, an ArchiveExtractionException
       // that the archive wouldn't open at all - verdicts on the file, not
-      // bugs to investigate.
-      if (e is! ModContentException && e is! ArchiveExtractionException) {
+      // bugs to investigate. A refused or vanished path is the same kind
+      // of verdict on the machine (the game holding a file open, a cloud
+      // drive offloading one, Program Files ACLs): the banner already
+      // words it and mod_install_failed counts it under its own reason,
+      // so reporting it as an exception too only buries real bugs - the
+      // same bargain _reportModActionFailure strikes for toggle/remove.
+      if (e is! ModContentException &&
+          e is! ArchiveExtractionException &&
+          e is! PathAccessException &&
+          e is! PathNotFoundException) {
         analytics.captureException(e, stack, mechanism: 'installFiles');
       }
       analytics.capture('mod_install_failed', {
