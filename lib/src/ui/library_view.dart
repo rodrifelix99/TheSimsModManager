@@ -135,7 +135,11 @@ class LibraryView extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 14),
-              _searchField(t, c, l),
+              // Flexible rather than its natural 210: the search box is
+              // the one thing up here that can give width back, and a
+              // window narrower than kMinWindowSize (which macOS used to
+              // hand us) overflowed this row rather than shrinking.
+              Flexible(child: _searchField(t, c, l)),
               const SizedBox(width: 14),
               _viewToggle(t, c, l),
               const SizedBox(width: 6),
@@ -443,8 +447,8 @@ class LibraryView extends StatelessWidget {
   }
 
   Widget _searchField(GameTheme t, AppController c, L l) {
-    return SizedBox(
-      width: 210,
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 210),
       child: TextField(
         onChanged: c.setQuery,
         style: TextStyle(

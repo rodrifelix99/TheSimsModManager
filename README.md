@@ -197,6 +197,10 @@ A good chunk of this app exists because someone with more patience than me answe
 
 And to everyone who reported a bug with a screenshot and their real folder layout attached: that saves more time than it looks like it does.
 
+## Where AI fits in
+
+Claude turns up in this repo's contributor list now and then. It writes comments, docstrings, and paragraphs like this one - the spots where "correct and clear" is the whole job since English and clear documentation is not native to me. It has never touched the DBPF parser, the sims3pack offset math, or the conflict detector; those are mine, line by line, and I can walk you through any of them if you ask. I don't merge code I can't explain myself, full stop. Longer version, with the two bugs that taught me why that matters: [Say no to vibe coding](https://www.tumblr.com/thesimsmodmanager/823165940293369856/say-no-to-vibe-coding).
+
 ## Roadmap
 
 SimCity support · more games via the adapter system. See the

@@ -288,4 +288,38 @@ void main() {
     expect(overflows, isEmpty,
         reason: 'the five-game sidebar overflowed at $kMinWindowSize');
   });
+
+  // Everything above assumes the floor holds. It did not: minimumSize maps
+  // to setContentMinSize on macOS, which never grows a window that opened
+  // smaller, and the macOS runner takes its frame from the nib - 800x600,
+  // Flutter's stock size. So the shipped app ran 140px under its own
+  // minimum and the library header overflowed by 9.9px on a width no test
+  // reached. main() now grows the window before showing it, but the floor
+  // is enforced by a plugin against an OS, so the layout should survive
+  // losing that argument rather than depend on winning it.
+  testWidgets('the library survives a window below the minimum',
+      (tester) async {
+    tester.view.physicalSize = _stockMacOSWindowSize;
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final registry = GameRegistry([_FakeAdapter(tempDir)]);
+    final settings = await SettingsStore.load();
+
+    await tester.runAsync(() async {
+      await tester
+          .pumpWidget(ModManagerApp(registry: registry, settings: settings));
+    });
+    await pumpUntil(tester, find.text('Fake Game Library'));
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(find.text('cozy sofa'), findsOneWidget,
+        reason: 'the grid must still build cards below the minimum');
+    expect(overflows, isEmpty,
+        reason: 'library overflowed at $_stockMacOSWindowSize');
+  });
 }
+
+/// What the macOS runner's nib hands the app when nothing resizes it:
+/// Flutter's stock frame, and comfortably under [kMinWindowSize].
+const _stockMacOSWindowSize = Size(800, 600);

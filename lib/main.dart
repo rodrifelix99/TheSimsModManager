@@ -70,6 +70,24 @@ Future<void> main() async {
     if (translucentSidebar) {
       await _setWindowEffect(_startingBrightness(settings));
     }
+    // minimumSize only constrains resizing: on macOS it becomes
+    // setContentMinSize, which leaves a window that already opened
+    // smaller exactly where it is. The macOS runner takes its frame from
+    // the nib - 800x600, Flutter's stock size - so the app opened 140px
+    // under its own floor and the library header overflowed there, on a
+    // width no test covers because nothing was supposed to reach it.
+    // Grow-only: a window the user pulled wider stays wider.
+    final size = await windowManager.getSize();
+    if (size.width < kMinWindowSize.width ||
+        size.height < kMinWindowSize.height) {
+      await windowManager.setSize(Size(
+        size.width < kMinWindowSize.width ? kMinWindowSize.width : size.width,
+        size.height < kMinWindowSize.height
+            ? kMinWindowSize.height
+            : size.height,
+      ));
+      await windowManager.center();
+    }
     await windowManager.show();
     await windowManager.focus();
   }));
