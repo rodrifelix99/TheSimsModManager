@@ -673,7 +673,7 @@ class LJa extends L {
   String get translatorsTitle => '翻訳';
 
   @override
-  String get translatorsDesc => 'アプリが10か国語で使えるのは、訳してくれたシマーたちのおかげです。';
+  String get translatorsDesc => 'アプリが11か国語で使えるのは、訳してくれたシマーたちのおかげです。';
 
   @override
   String get folderNotFound => '見つかりません。フォルダを選んでください';

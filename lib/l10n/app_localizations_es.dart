@@ -725,7 +725,7 @@ class LEs extends L {
 
   @override
   String get translatorsDesc =>
-      'La app habla diez idiomas gracias a estos simmers.';
+      'La app habla once idiomas gracias a estos simmers.';
 
   @override
   String get folderNotFound => 'No encontrada. Elige una carpeta';

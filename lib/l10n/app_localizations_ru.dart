@@ -747,7 +747,7 @@ class LRu extends L {
 
   @override
   String get translatorsDesc =>
-      'Приложение говорит на десяти языках благодаря этим симмерам.';
+      'Приложение говорит на одиннадцати языках благодаря этим симмерам.';
 
   @override
   String get folderNotFound => 'Не найдена. Выбери папку';

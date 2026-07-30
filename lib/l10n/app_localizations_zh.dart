@@ -664,7 +664,7 @@ class LZh extends L {
   String get translatorsTitle => '翻译者';
 
   @override
-  String get translatorsDesc => '这个应用能有十种语言，全靠这些模拟人生玩家。';
+  String get translatorsDesc => '这个应用能有十一种语言，全靠这些模拟人生玩家。';
 
   @override
   String get folderNotFound => '没找到。请选择一个文件夹';

@@ -746,7 +746,7 @@ class LPl extends L {
 
   @override
   String get translatorsDesc =>
-      'Aplikacja mówi w dziesięciu językach dzięki tym simmerom.';
+      'Aplikacja mówi w jedenastu językach dzięki tym simmerom.';
 
   @override
   String get folderNotFound => 'Nie znaleziono. Wybierz folder';

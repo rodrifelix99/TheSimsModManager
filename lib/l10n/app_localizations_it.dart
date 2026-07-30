@@ -724,7 +724,7 @@ class LIt extends L {
 
   @override
   String get translatorsDesc =>
-      'L’app parla dieci lingue grazie a questi simmer.';
+      'L’app parla undici lingue grazie a questi simmer.';
 
   @override
   String get folderNotFound => 'Non trovata. Scegli una cartella';

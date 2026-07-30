@@ -153,8 +153,8 @@ More detail in [docs/architecture.md](docs/architecture.md).
 
 ## Languages
 
-The app (and the website) speak ten languages. English and Portuguese are
-mine; the other eight were done by simmers who actually play in them, which
+The app speaks eleven languages, the website ten. English and Portuguese are
+mine; the other nine were done by simmers who actually play in them, which
 is why they use each scene's own modding slang instead of a dictionary
 translation:
 
@@ -170,6 +170,7 @@ translation:
 | Русский | verasimka |
 | Polski | kasia_pxl |
 | 日本語 | mochi_simjp |
+| Ελληνικά | [friendofbellas](https://www.tumblr.com/friendofbellas) |
 
 Spotted something that reads wrong in your language, or want to add one that
 isn't here? The strings live in [lib/l10n](lib/l10n) (app) and

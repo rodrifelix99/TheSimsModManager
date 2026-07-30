@@ -23,6 +23,7 @@ const appLanguages = <({String code, String name, String by})>[
   (code: 'ru', name: 'Русский', by: 'verasimka'),
   (code: 'pl', name: 'Polski', by: 'kasia_pxl'),
   (code: 'ja', name: '日本語', by: 'mochi_simjp'),
+  (code: 'el', name: 'Ελληνικά', by: 'friendofbellas'),
 ];
 
 /// What [MaterialApp.supportedLocales] gets, in [appLanguages] order rather

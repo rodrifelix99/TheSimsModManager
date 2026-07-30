@@ -723,7 +723,7 @@ class LPt extends L {
 
   @override
   String get translatorsDesc =>
-      'O app fala dez idiomas graças a estes simmers.';
+      'O app fala onze idiomas graças a estes simmers.';
 
   @override
   String get folderNotFound => 'Não encontrada. Escolha uma pasta';

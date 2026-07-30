@@ -1,5 +1,5 @@
-// The website in web/ ships in the same ten languages as the app, from flat
-// dot-key dictionaries in web/src/i18n. Astro fails the build on a key that is
+// The website in web/ ships in ten of the app's languages (every one but
+// Greek), from flat dot-key dictionaries in web/src/i18n. Astro fails the build on a key that is
 // missing outright, so what is left to pin here is what it cannot see: a
 // translation file drifting from the English one, a key nobody draws any more,
 // and the two files the retired GitHub Pages site still has to serve.

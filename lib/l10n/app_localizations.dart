@@ -6,6 +6,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
 import 'app_localizations_de.dart';
+import 'app_localizations_el.dart';
 import 'app_localizations_en.dart';
 import 'app_localizations_es.dart';
 import 'app_localizations_fr.dart';
@@ -102,6 +103,7 @@ abstract class L {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('de'),
+    Locale('el'),
     Locale('en'),
     Locale('es'),
     Locale('fr'),
@@ -1190,7 +1192,7 @@ abstract class L {
   /// No description provided for @translatorsDesc.
   ///
   /// In en, this message translates to:
-  /// **'The app speaks ten languages thanks to these simmers.'**
+  /// **'The app speaks eleven languages thanks to these simmers.'**
   String get translatorsDesc;
 
   /// No description provided for @folderNotFound.
@@ -2597,6 +2599,7 @@ class _LDelegate extends LocalizationsDelegate<L> {
   @override
   bool isSupported(Locale locale) => <String>[
         'de',
+        'el',
         'en',
         'es',
         'fr',
@@ -2617,6 +2620,8 @@ L lookupL(Locale locale) {
   switch (locale.languageCode) {
     case 'de':
       return LDe();
+    case 'el':
+      return LEl();
     case 'en':
       return LEn();
     case 'es':

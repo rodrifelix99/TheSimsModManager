@@ -726,7 +726,7 @@ class LFr extends L {
 
   @override
   String get translatorsDesc =>
-      'L’appli parle dix langues grâce à ces simmers.';
+      'L’appli parle onze langues grâce à ces simmers.';
 
   @override
   String get folderNotFound => 'Introuvable. Choisis un dossier';
