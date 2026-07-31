@@ -120,6 +120,146 @@ Uint8List? bmpToPng(Uint8List bmp) {
   }
 }
 
+/// The biggest icon stored the old way inside [bytes], as a PNG.
+///
+/// Windows icons predate PNG-in-resources: they are device-independent
+/// bitmaps whose declared height is doubled, the colour image followed by
+/// a transparency mask. The Sims 3's earliest packs still ship theirs
+/// that way (The Sims 3 High-End Loft Stuff has no PNG in its definition
+/// DLL at all), so [embeddedPngs] finds nothing and this is the fallback.
+///
+/// Only 32-bit icons are read, which is every icon big enough to want:
+/// the older paletted sizes beside them are 16 and 32 pixels across.
+/// Returns null when there is nothing convincing in [bytes].
+Uint8List? largestEmbeddedIcon(Uint8List bytes, {int maxSize = 512}) {
+  final data = ByteData.sublistView(bytes);
+  var bestAt = -1;
+  var bestSize = 0;
+  for (var at = 0; at + _dibHeaderBytes <= bytes.length; at++) {
+    // A BITMAPINFOHEADER announces its own length first, and it is 40.
+    if (bytes[at] != 40 ||
+        bytes[at + 1] != 0 ||
+        bytes[at + 2] != 0 ||
+        bytes[at + 3] != 0) {
+      continue;
+    }
+    final width = data.getInt32(at + 4, Endian.little);
+    final height = data.getInt32(at + 8, Endian.little);
+    final planes = data.getUint16(at + 12, Endian.little);
+    final bits = data.getUint16(at + 14, Endian.little);
+    // The doubled height is what makes this an icon rather than any
+    // other bitmap that happens to sit in the file, and together with
+    // the plane and depth checks it is a narrow enough target that a
+    // false positive would have to be built on purpose.
+    if (planes != 1 || bits != 32 || width <= 0 || width > maxSize) continue;
+    if (height != width * 2) continue;
+    if (at + _dibHeaderBytes + width * width * 4 > bytes.length) continue;
+    if (width > bestSize) {
+      bestSize = width;
+      bestAt = at;
+    }
+  }
+  if (bestAt < 0) return null;
+  return _iconToPng(bytes, bestAt + _dibHeaderBytes, bestSize);
+}
+
+const _dibHeaderBytes = 40;
+
+/// Converts one 32-bit icon image to a PNG. Its rows run bottom to top
+/// and its channels are stored blue first, both of which this undoes.
+Uint8List _iconToPng(Uint8List bytes, int start, int size) {
+  final out = Uint8List(size * size * 4);
+  var opaque = false;
+  var to = 0;
+  for (var y = 0; y < size; y++) {
+    var from = start + (size - 1 - y) * size * 4;
+    for (var x = 0; x < size; x++) {
+      out[to++] = bytes[from + 2];
+      out[to++] = bytes[from + 1];
+      out[to++] = bytes[from];
+      final alpha = bytes[from + 3];
+      out[to++] = alpha;
+      if (alpha != 0) opaque = true;
+      from += 4;
+    }
+  }
+  // An icon of this depth may still carry no alpha at all and lean on the
+  // mask below it for its shape. Drawn as it stands that is a completely
+  // transparent square, so take it as the opaque image it means.
+  if (!opaque) {
+    for (var i = 3; i < out.length; i += 4) {
+      out[i] = 255;
+    }
+  }
+  return encodePng(size, size, out, hasAlpha: true);
+}
+
+const _pngSignature = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+
+/// Every whole PNG sitting inside [bytes], in the order they appear.
+///
+/// For pulling artwork out of a file that is not an image at all: The
+/// Sims 3 ships each pack's icon inside the little `Sims3EP01GDF.dll`
+/// beside that pack's executable, as Windows resources. Rather than
+/// teach the app the PE resource format for one icon per pack, this
+/// finds the images by their own signature and reads each one's chunk
+/// table to its end - so what comes out is a complete PNG, not bytes
+/// that happen to start like one.
+///
+/// [limit] caps how many are collected: these blobs are scanned for
+/// artwork, and a handful of candidates is always enough to pick from.
+List<Uint8List> embeddedPngs(Uint8List bytes, {int limit = 16}) {
+  final found = <Uint8List>[];
+  var at = 0;
+  while (at + _pngSignature.length <= bytes.length && found.length < limit) {
+    var matches = true;
+    for (var i = 0; i < _pngSignature.length; i++) {
+      if (bytes[at + i] != _pngSignature[i]) {
+        matches = false;
+        break;
+      }
+    }
+    if (!matches) {
+      at++;
+      continue;
+    }
+    final end = _pngEnd(bytes, at);
+    if (end == null) {
+      // A signature with no readable chunk table behind it is some other
+      // file's bytes that happen to line up; step over it and carry on.
+      at += _pngSignature.length;
+      continue;
+    }
+    // Copied rather than viewed: a view keeps the whole blob it was found
+    // in alive, and these are icons pulled out of megabyte DLLs that are
+    // then held for as long as the pack list is on screen.
+    found.add(Uint8List.fromList(Uint8List.sublistView(bytes, at, end)));
+    at = end;
+  }
+  return found;
+}
+
+/// Where the PNG starting at [start] ends, by walking its chunks to the
+/// IEND marker; null when the table runs off the end or makes no sense.
+/// Walked rather than searched for the IEND bytes directly, because that
+/// same eight-byte run can occur inside compressed image data.
+int? _pngEnd(Uint8List bytes, int start) {
+  final data = ByteData.sublistView(bytes);
+  var at = start + _pngSignature.length;
+  while (at + 12 <= bytes.length) {
+    final length = data.getUint32(at); // chunk lengths are big-endian
+    final end = at + 12 + length;
+    if (length < 0 || end > bytes.length) return null;
+    final isEnd = bytes[at + 4] == 0x49 && // 'IEND'
+        bytes[at + 5] == 0x45 &&
+        bytes[at + 6] == 0x4E &&
+        bytes[at + 7] == 0x44;
+    if (isEnd) return end;
+    at = end;
+  }
+  return null;
+}
+
 List<int> _be32(int value) =>
     [value >> 24 & 0xFF, value >> 16 & 0xFF, value >> 8 & 0xFF, value & 0xFF];
 

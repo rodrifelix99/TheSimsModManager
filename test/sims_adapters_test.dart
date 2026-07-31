@@ -135,6 +135,99 @@ void main() {
     });
   });
 
+  group('game folders the name pass cannot read', () {
+    test('finds a folder written in another script by what it holds', () async {
+      // A folder name spelled in kana says nothing the regex can use, so
+      // the tray and the version stamp answer instead.
+      make(['Electronic Arts', 'ザ・シムズ4', 'Tray']);
+      makeFile(['Electronic Arts', 'ザ・シムズ4', 'GameVersion.txt']);
+      make(['Electronic Arts', 'ザ・シムズ4', 'Mods']);
+      final adapter = Sims4Adapter(documentsOverride: docs);
+
+      final dir = await adapter.resolveModsDirectory();
+
+      expect(dir, isNotNull);
+      expect(dir!.path, contains('ザ・シムズ4'));
+    });
+
+    test('finds a game folder sitting outside any known vendor folder',
+        () async {
+      // "EA" is not a vendor folder we know, and the fallback walks one
+      // level, so nothing here is reachable.
+      make(['EA', 'ザ・シムズ4', 'Tray']);
+      makeFile(['EA', 'ザ・シムズ4', 'GameVersion.txt']);
+      make(['EA', 'ザ・シムズ4', 'Mods']);
+      final adapter = Sims4Adapter(documentsOverride: docs);
+
+      expect(await adapter.findGameFolder(), isNull,
+          reason: 'two levels down is past what the fallback walks');
+
+      // Moved to Documents itself, as a hand-moved folder ends up.
+      make(['ザ・シムズ4', 'Tray']);
+      makeFile(['ザ・シムズ4', 'GameVersion.txt']);
+      make(['ザ・シムズ4', 'Mods']);
+
+      final dir = await adapter.resolveModsDirectory();
+      expect(dir, isNotNull);
+      expect(p.dirname(dir!.path), p.join(docs.path, 'ザ・シムズ4'));
+    });
+
+    test('one marker is not enough', () async {
+      make(['Electronic Arts', 'Something Else', 'Tray']);
+      make(['Electronic Arts', 'Something Else', 'Mods']);
+      final adapter = Sims4Adapter(documentsOverride: docs);
+
+      expect(await adapter.findGameFolder(), isNull);
+    });
+
+    test('never overrules a name, so entries cannot claim each other',
+        () async {
+      // A Sims 3 folder holding Options.ini next to Mods is exactly the
+      // overlap the marker list is picked to survive - but the name pass
+      // has already spoken for it either way.
+      make(['Electronic Arts', 'The Sims 3', 'Mods', 'Packages']);
+      makeFile(['Electronic Arts', 'The Sims 3', 'Options.ini']);
+      make(['Electronic Arts', 'The Sims 3', 'DCCache']);
+
+      expect(
+          await Sims4Adapter(documentsOverride: docs).findGameFolder(), isNull);
+      final sims3 =
+          await Sims3Adapter(documentsOverride: docs).findGameFolder();
+      expect(sims3, isNotNull);
+      expect(p.basename(sims3!.path), 'The Sims 3');
+    });
+
+    test('the fallback stands down as soon as a name matches', () async {
+      make(['Electronic Arts', 'The Sims 4', 'Mods']);
+      make(['Electronic Arts', 'Backup', 'Tray']);
+      makeFile(['Electronic Arts', 'Backup', 'GameVersion.txt']);
+      final adapter = Sims4Adapter(documentsOverride: docs);
+
+      final folders = await adapter.gameDataFolders();
+
+      expect(folders, hasLength(1));
+      expect(p.basename(folders.single.path), 'The Sims 4');
+    });
+
+    test('Sims 2 and Sims 3 have markers of their own', () async {
+      make(['Electronic Arts', 'Симс 3', 'DCCache']);
+      make(['Electronic Arts', 'Симс 3', 'InstalledWorlds']);
+      make(['Electronic Arts', 'Симс 3', 'Mods', 'Packages']);
+      make(['EA Games', '模拟人生2', 'Neighborhoods']);
+      make(['EA Games', '模拟人生2', 'Storytelling']);
+      make(['EA Games', '模拟人生2', 'Downloads']);
+
+      expect(
+          (await Sims3Adapter(documentsOverride: docs).resolveModsDirectory())
+              ?.path,
+          contains('Симс 3'));
+      expect(
+          (await Sims2Adapter(documentsOverride: docs).resolveModsDirectory())
+              ?.path,
+          contains('模拟人生2'));
+    });
+  });
+
   group('Sims 2', () {
     test('finds the Ultimate Collection folder name', () async {
       make(['EA Games', 'The Sims™ 2 Ultimate Collection', 'Downloads']);

@@ -38,9 +38,13 @@ that re-themes itself to match the game you're managing.
   pull out embedded artwork and a content breakdown (CAS parts, textures,
   tuning...), so your library looks like a library, not a file list.
 - **Library** with search, category filters (Package/Script/Object/...),
-  grid and list layouts, and live Total/Enabled/Disabled/Conflicts stats.
+  grid and list layouts, sorting by name, date or size (with the option to
+  keep disabled mods at the bottom), and live
+  Total/Enabled/Disabled/Conflicts stats.
 - **One-click enable/disable**: disabling renames the file with a
   `.disabled` suffix so the game's loader skips it; nothing is ever deleted.
+  You can pick the suffix yourself to match another manager, and mods
+  something else disabled (CC Magic's `.off`) show up in the library too.
 - **Conflict warnings**: enabled mods are badged when they share a file
   name, when two versions of the same mod are installed side by side, and
   when their packages actually share DBPF resource keys (the real thing:
@@ -62,6 +66,10 @@ that re-themes itself to match the game you're managing.
 - **Saves**: read-only insight into your save files - households, funds,
   photo albums, and world stats like population, net worth, life stages
   and top skills, without opening the game.
+- **Packs**: every expansion, game pack, stuff pack and kit installed
+  next to the game, with its artwork and its size on disk. The Sims 4 and
+  The Sims 3 can be switched off from here without moving a single file;
+  nothing is ever uninstalled.
 
 <div align="center">
 
@@ -105,6 +113,27 @@ by what each save format actually holds.
 <img src="web/public/images/save-stats-ts2.png" alt="Saves screen for The Sims 2 showing world stats: total Sims, households, net worth, size on disk, photos and a life-stage breakdown" width="800">
 
 <sub>World stats for the whole save: population, net worth, life stages, even the highest skill in the save.</sub>
+
+</div>
+
+## Packs
+
+The publisher's own content, listed beside your mods: expansions, game packs,
+stuff packs and kits, each with its artwork, its code and what it takes up on
+disk. Where a game has a safe way to run without one, there's a switch. The
+Sims 4 writes the same `packstoskipmount` line its own Pack Selection screen
+uses; The Sims 3 takes the pack out of the registry the launcher reads
+(Windows, administrator rights); the Sims 2 switches sit behind an
+experimental opt-in in Settings, because a neighborhood played with a pack can
+break when it's opened without one. The Sims 1 merged its expansions into the
+base game, so there the screen is a list. Either way nothing is moved or
+uninstalled, and the game picks the change up on its next start.
+
+<div align="center">
+
+<img src="web/public/images/packs-list.png" alt="Packs screen for The Sims 4 listing expansion packs with their icons, code and size, each with an on/off switch" width="800">
+
+<sub>A pack you switch off stays installed; the game just stops loading it. Useful for a lighter game, or for finding out which pack a mod is really fighting with.</sub>
 
 </div>
 
@@ -153,7 +182,7 @@ More detail in [docs/architecture.md](docs/architecture.md).
 
 ## Languages
 
-The app speaks eleven languages, the website ten. English and Portuguese are
+The app and the website speak eleven languages. English and Portuguese are
 mine; the other nine were done by simmers who actually play in them, which
 is why they use each scene's own modding slang instead of a dictionary
 translation:

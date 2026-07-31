@@ -133,6 +133,11 @@
   "viewGrid": "Grid",
   "viewList": "List",
   "viewFolders": "Folders",
+  "sortTooltip": "Sort",
+  "sortByName": "Name (A–Z)",
+  "sortByRecent": "Recently changed",
+  "sortBySize": "Biggest first",
+  "sortDisabledLast": "Disabled ones last",
   "libraryRefresh": "Refresh",
   "libraryRootFolder": "Mods folder",
   "install": "Install",
@@ -309,6 +314,11 @@
   "prefConfirmDeleteDesc": "Ask before a mod file is deleted from disk",
   "prefShowDisabledTitle": "Show disabled mods",
   "prefShowDisabledDesc": "Keep disabled mods visible in the library instead of hiding them",
+  "prefDisabledSuffixTitle": "Disabled mod marker",
+  "prefDisabledSuffixDesc": "What gets added to a file name when you switch a mod off. Change it to match another manager (CC Magic uses .off); the app reads both either way, and mods you already disabled keep the name they have",
+  "prefDisabledSuffixInvalid": "Needs to be a dot and a few letters or numbers, like .off",
+  "prefExperimentalPacksTitle": "Experimental pack switches",
+  "prefExperimentalPacksDesc": "Let this game’s packs be switched off. Untested on this release, and a neighbourhood played with a pack can break without it — back your saves up first",
   "prefScanArtworkTitle": "Scan inside mods",
   "prefScanArtworkDesc": "Look inside mod files while the library loads for embedded artwork, content details and mods that override the same resources",
   "prefSoundEffectsTitle": "UI sound effects",
@@ -498,12 +508,61 @@
   },
   "errorShopListingNotFound": "That mod isn’t on The Exchange any more. It may have been taken down.",
   "errorShopListingUnknownGame": "That mod is for a game this version of the app doesn’t know yet. Try updating.",
+  "errorPackToggleFailed": "Couldn’t switch {pack}. Close the game and try again.",
+  "@errorPackToggleFailed": {
+    "placeholders": { "pack": { "type": "String" } }
+  },
+  "errorPackNoUserData": "Couldn’t find the game’s own settings folder, so there’s nowhere to note which packs to skip. Run the game once first.",
+  "errorPackNeedsAdmin": "Windows wouldn’t let the app change that. Restart it as an administrator and try again.",
+  "errorPackNotSupported": "Packs can’t be switched on this system.",
+  "errorPackIsTheGame": "That’s the pack the game actually runs from, so it has to stay on.",
+  "errorPackToggleRefused": "Couldn’t change that pack. Close the game and try again.",
 
   "eraClassic": "Classic",
   "eraNightlife": "Nightlife",
   "eraAmbitions": "Ambitions",
   "eraModern": "Modern",
   "eraMedieval": "Medieval",
+
+  "navPacks": "Packs",
+  "packsScanning": "Looking for your packs…",
+  "packsEmptyTitle": "No packs found",
+  "packsEmptyBody": "Either {game} isn't installed where the app can see it, or there are no packs alongside it yet.",
+  "@packsEmptyBody": {
+    "placeholders": { "game": { "type": "String" } }
+  },
+  "packsRescan": "Check again",
+  "packsSummary": "{count, plural, =1{1 pack installed} other{{count} packs installed}}",
+  "@packsSummary": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "packsSummaryWithOff": "{count, plural, =1{1 pack on} other{{count} packs on}}, {off} switched off",
+  "@packsSummaryWithOff": {
+    "placeholders": { "count": { "type": "int" }, "off": { "type": "int" } }
+  },
+  "packsOff": "Off",
+  "packsInstalled": "Installed",
+  "packsNeedAdmin": "Switching these packs on and off needs administrator rights, because that’s where the game keeps its list. Restart the app as an administrator to change them — drag and drop stops working while you do, so it’s worth switching back afterwards.",
+  "packsExperimentalTitle": "Switching these off is experimental",
+  "packsExperimentalOff": "It works the way it always has for this game, but nobody has tested it on this release — and a neighbourhood you’ve played with a pack can break when you open it without one. Listing is safe. Turn on experimental pack switches in Settings if you want to try it anyway.",
+  "packsExperimentalOn": "Back up your neighbourhoods first. A neighbourhood you’ve played with a pack can break when you open it without one, and there’s no undoing that from here — switching the pack back on doesn’t always bring the save back.",
+  "packsRestartNotice": "Restart {game} for this to take effect. Your packs stay installed either way.",
+  "@packsRestartNotice": {
+    "placeholders": { "game": { "type": "String" } }
+  },
+  "packsAllOwnedSims4": "{expansions} expansions. {gamePacks} game packs. Sure you bought them all.",
+  "@packsAllOwnedSims4": {
+    "description": "Easter egg on the packs screen, shown only to a Sims 4 install holding every expansion and game pack. Give it its own joke in each language rather than translating this one, and keep the numbers away from anything that has to agree with them.",
+    "placeholders": {
+      "expansions": { "type": "String" },
+      "gamePacks": { "type": "String" }
+    }
+  },
+  "packKindExpansions": "Expansion packs",
+  "packKindGamePacks": "Game packs",
+  "packKindStuffPacks": "Stuff packs",
+  "packKindKits": "Kits",
+  "packKindFreePacks": "Free packs",
 
   "navSaves": "Saves",
   "savesScanning": "Reading your saves…",

@@ -138,7 +138,23 @@ class Analytics {
     if (previous == null) {
       capture('app_installed');
     } else if (previous != appVersion) {
-      capture('app_updated', {'previous_version': previous});
+      // How the file was fetched, recorded when the update button was
+      // pressed. This is the only place a download can be called a
+      // success: the app opens a browser rather than fetching the file,
+      // so nothing knows it worked until the new version is running.
+      // `unknown` covers an update from anywhere else - a package
+      // manager, a re-download, someone else's mirror.
+      capture('app_updated', {
+        'previous_version': previous,
+        'via': settings.lastUpdatePath ?? 'unknown',
+      });
+      // Cleared here and nowhere else. Clearing on every launch would
+      // throw away the answer whenever someone presses the button, keeps
+      // using the app, and installs later - and a download slow enough to
+      // be put off is exactly the one worth measuring.
+      if (settings.lastUpdatePath != null) {
+        await settings.clearLastUpdatePath();
+      }
     }
     if (previous != appVersion) await settings.setLastRunVersion(appVersion);
     capture('app_opened', {

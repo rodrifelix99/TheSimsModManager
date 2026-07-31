@@ -247,6 +247,21 @@ class LEn extends L {
   String get viewFolders => 'Folders';
 
   @override
+  String get sortTooltip => 'Sort';
+
+  @override
+  String get sortByName => 'Name (A–Z)';
+
+  @override
+  String get sortByRecent => 'Recently changed';
+
+  @override
+  String get sortBySize => 'Biggest first';
+
+  @override
+  String get sortDisabledLast => 'Disabled ones last';
+
+  @override
   String get libraryRefresh => 'Refresh';
 
   @override
@@ -670,6 +685,24 @@ class LEn extends L {
       'Keep disabled mods visible in the library instead of hiding them';
 
   @override
+  String get prefDisabledSuffixTitle => 'Disabled mod marker';
+
+  @override
+  String get prefDisabledSuffixDesc =>
+      'What gets added to a file name when you switch a mod off. Change it to match another manager (CC Magic uses .off); the app reads both either way, and mods you already disabled keep the name they have';
+
+  @override
+  String get prefDisabledSuffixInvalid =>
+      'Needs to be a dot and a few letters or numbers, like .off';
+
+  @override
+  String get prefExperimentalPacksTitle => 'Experimental pack switches';
+
+  @override
+  String get prefExperimentalPacksDesc =>
+      'Let this game’s packs be switched off. Untested on this release, and a neighbourhood played with a pack can break without it — back your saves up first';
+
+  @override
   String get prefScanArtworkTitle => 'Scan inside mods';
 
   @override
@@ -1003,6 +1036,30 @@ class LEn extends L {
       'That mod is for a game this version of the app doesn’t know yet. Try updating.';
 
   @override
+  String errorPackToggleFailed(String pack) {
+    return 'Couldn’t switch $pack. Close the game and try again.';
+  }
+
+  @override
+  String get errorPackNoUserData =>
+      'Couldn’t find the game’s own settings folder, so there’s nowhere to note which packs to skip. Run the game once first.';
+
+  @override
+  String get errorPackNeedsAdmin =>
+      'Windows wouldn’t let the app change that. Restart it as an administrator and try again.';
+
+  @override
+  String get errorPackNotSupported => 'Packs can’t be switched on this system.';
+
+  @override
+  String get errorPackIsTheGame =>
+      'That’s the pack the game actually runs from, so it has to stay on.';
+
+  @override
+  String get errorPackToggleRefused =>
+      'Couldn’t change that pack. Close the game and try again.';
+
+  @override
   String get eraClassic => 'Classic';
 
   @override
@@ -1016,6 +1073,91 @@ class LEn extends L {
 
   @override
   String get eraMedieval => 'Medieval';
+
+  @override
+  String get navPacks => 'Packs';
+
+  @override
+  String get packsScanning => 'Looking for your packs…';
+
+  @override
+  String get packsEmptyTitle => 'No packs found';
+
+  @override
+  String packsEmptyBody(String game) {
+    return 'Either $game isn\'t installed where the app can see it, or there are no packs alongside it yet.';
+  }
+
+  @override
+  String get packsRescan => 'Check again';
+
+  @override
+  String packsSummary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count packs installed',
+      one: '1 pack installed',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String packsSummaryWithOff(int count, int off) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count packs on',
+      one: '1 pack on',
+    );
+    return '$_temp0, $off switched off';
+  }
+
+  @override
+  String get packsOff => 'Off';
+
+  @override
+  String get packsInstalled => 'Installed';
+
+  @override
+  String get packsNeedAdmin =>
+      'Switching these packs on and off needs administrator rights, because that’s where the game keeps its list. Restart the app as an administrator to change them — drag and drop stops working while you do, so it’s worth switching back afterwards.';
+
+  @override
+  String get packsExperimentalTitle => 'Switching these off is experimental';
+
+  @override
+  String get packsExperimentalOff =>
+      'It works the way it always has for this game, but nobody has tested it on this release — and a neighbourhood you’ve played with a pack can break when you open it without one. Listing is safe. Turn on experimental pack switches in Settings if you want to try it anyway.';
+
+  @override
+  String get packsExperimentalOn =>
+      'Back up your neighbourhoods first. A neighbourhood you’ve played with a pack can break when you open it without one, and there’s no undoing that from here — switching the pack back on doesn’t always bring the save back.';
+
+  @override
+  String packsRestartNotice(String game) {
+    return 'Restart $game for this to take effect. Your packs stay installed either way.';
+  }
+
+  @override
+  String packsAllOwnedSims4(String expansions, String gamePacks) {
+    return '$expansions expansions. $gamePacks game packs. Sure you bought them all.';
+  }
+
+  @override
+  String get packKindExpansions => 'Expansion packs';
+
+  @override
+  String get packKindGamePacks => 'Game packs';
+
+  @override
+  String get packKindStuffPacks => 'Stuff packs';
+
+  @override
+  String get packKindKits => 'Kits';
+
+  @override
+  String get packKindFreePacks => 'Free packs';
 
   @override
   String get navSaves => 'Saves';

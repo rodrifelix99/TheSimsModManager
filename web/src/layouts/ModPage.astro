@@ -22,7 +22,7 @@ const { locale } = Astro.props;
 const t = useTranslations(locale);
 const home = localePath(locale);
 // The id sentinel rides inside `base`, so one substitution fixes the canonical,
-// og:url, all ten hreflang alternates and the language picker's target at once.
+// og:url, all eleven hreflang alternates and the language picker's target at once.
 const base = 'm/__MOD_ID__';
 ---
 

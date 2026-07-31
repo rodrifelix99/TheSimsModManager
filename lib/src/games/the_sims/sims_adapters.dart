@@ -4,17 +4,24 @@ import 'dart:isolate';
 import 'package:path/path.dart' as p;
 
 import '../../core/app_message.dart';
+import '../../core/documents_dir.dart';
 import '../../core/game.dart';
 import '../../core/game_adapter.dart';
+import '../../core/game_pack.dart';
 import '../../core/install_destination.dart';
 import '../../core/install_path.dart';
 import '../../core/mod.dart';
 import '../../core/mod_archive.dart';
 import '../../core/resource_cfg.dart';
 import '../../core/save_game.dart';
+import 'demo_packs.dart';
+import 'sims1_packs.dart';
 import 'sims1_saves.dart';
+import 'sims2_packs.dart';
 import 'sims2_saves.dart';
+import 'sims3_packs.dart';
 import 'sims3_saves.dart';
+import 'sims4_packs.dart';
 import 'sims4_saves.dart';
 import 'sims3pack.dart';
 
@@ -33,14 +40,14 @@ import 'sims3pack.dart';
 
 const _series = 'The Sims';
 
-/// The user's Documents folder, where Sims 2/3/4 keep their user data.
+/// The user's Documents folder, where Sims 2/3/4 keep their user data -
+/// the best of the candidates [documentsDirs] found, or null when the
+/// machine has none of them. Only for the one thing that needs a single
+/// answer: proposing a folder to create. Everything that looks for an
+/// existing game folder scans them all.
 Future<Directory?> documentsDir({Directory? override}) async {
-  if (override != null) return await override.exists() ? override : null;
-  final home = Platform.environment['USERPROFILE'] ?? // Windows
-      Platform.environment['HOME']; // macOS / Linux
-  if (home == null) return null;
-  final docs = Directory(p.join(home, 'Documents'));
-  return await docs.exists() ? docs : null;
+  final dirs = await documentsDirs(override: override);
+  return dirs.isEmpty ? null : dirs.first;
 }
 
 /// Documents folders inside Wine/Proton prefixes under [home], for the
@@ -384,23 +391,45 @@ abstract class DocumentsSimsAdapter extends FolderBasedGameAdapter {
         normalized.endsWith(gameNumber);
   }
 
-  /// Documents folders to scan for user data: the native one plus, on
-  /// Linux, any Wine/Proton prefix Documents (Steam Deck & co.), native
-  /// first.
+  /// Files and folders this game's user-data folder holds whatever it is
+  /// called, for the fallback pass below. Each one has to belong to this
+  /// game alone - the numbered entries sit next to each other under the
+  /// same vendor folder - and two of them have to be there, so a folder
+  /// that merely borrowed a name cannot claim the game.
+  List<String> get gameDataMarkers;
+
+  /// Documents folders to scan for user data: every folder that could be
+  /// Documents (see [documentsDirs] - OneDrive moves it) plus, on Linux,
+  /// any Wine/Proton prefix Documents (Steam Deck & co.), native first.
   Future<List<Directory>> _documentsDirs() async {
     final dirs = <Directory>[];
-    final docs = await documentsDir(override: documentsOverride);
-    if (docs != null) dirs.add(docs);
+    dirs.addAll(await documentsDirs(override: documentsOverride));
     final home = homeOverride ??
         (Platform.isLinux ? Platform.environment['HOME'] : null);
     if (home != null) dirs.addAll(await winePrefixDocumentsDirs(home));
     return dirs;
   }
 
+  /// Whether [dir] holds this game's user data, told by what is inside it
+  /// rather than by its name - the same bargain the install-folder games
+  /// make. Only asked of folders whose name says nothing ([matchesGameFolder]
+  /// answers for every name spelled "sims", including the other entries'),
+  /// so this is what finds a folder written in a script the name pass
+  /// cannot read, or one the user renamed.
+  Future<bool> holdsGameData(Directory dir) async {
+    var hits = 0;
+    for (final marker in gameDataMarkers) {
+      final type = await FileSystemEntity.type(p.join(dir.path, marker));
+      if (type != FileSystemEntityType.notFound && ++hits == 2) return true;
+    }
+    return false;
+  }
+
   /// User-data folders for this game, best match first.
   Future<List<Directory>> gameDataFolders() async {
+    final docsDirs = await _documentsDirs();
     final found = <Directory>[];
-    for (final docs in await _documentsDirs()) {
+    for (final docs in docsDirs) {
       for (final vendor in vendorFolders) {
         final parent = Directory(p.join(docs.path, vendor));
         if (!await parent.exists()) continue;
@@ -413,6 +442,11 @@ abstract class DocumentsSimsAdapter extends FolderBasedGameAdapter {
         }
       }
     }
+    // Nothing named for the game anywhere: ask the folders themselves.
+    // Second pass rather than part of the first, because it costs a
+    // listing of Documents and a handful of stats per folder in it, and
+    // on the machines where the name pass works it would buy nothing.
+    if (found.isEmpty) found.addAll(await _unnamedGameDataFolders(docsDirs));
     // Exact canonical name first, then shorter (plainer) names; on ties
     // keep the scan order, which puts the native Documents install ahead
     // of same-named prefix ones (List.sort alone isn't stable).
@@ -426,6 +460,35 @@ abstract class DocumentsSimsAdapter extends FolderBasedGameAdapter {
       return a.key - b.key;
     });
     return [for (final entry in indexed) entry.value];
+  }
+
+  /// Game folders whose name gave nothing away, found by [holdsGameData].
+  /// Looks one level under each known vendor folder and one level under
+  /// Documents itself, which is where a hand-moved folder and an unknown
+  /// vendor folder both end up.
+  ///
+  /// A name spelled "sims" in any language is [matchesGameFolder]'s to
+  /// judge and is skipped here, so a numbered entry can never be mistaken
+  /// for its neighbour however much the two have in common.
+  Future<List<Directory>> _unnamedGameDataFolders(
+      List<Directory> docsDirs) async {
+    final found = <Directory>[];
+    for (final docs in docsDirs) {
+      final parents = <Directory>[
+        docs,
+        for (final vendor in vendorFolders) Directory(p.join(docs.path, vendor)),
+      ];
+      for (final parent in parents) {
+        if (!await parent.exists()) continue;
+        await for (final entity in parent.list().handleError((Object _) {})) {
+          if (entity is! Directory) continue;
+          final name = p.basename(entity.path).toLowerCase();
+          if (name.contains('sims')) continue;
+          if (await holdsGameData(entity)) found.add(entity);
+        }
+      }
+    }
+    return found;
   }
 
   @override
@@ -460,7 +523,26 @@ abstract class DocumentsSimsAdapter extends FolderBasedGameAdapter {
 }
 
 class Sims4Adapter extends DocumentsSimsAdapter {
-  const Sims4Adapter({super.documentsOverride, super.homeOverride});
+  const Sims4Adapter({
+    super.documentsOverride,
+    super.homeOverride,
+    this.installOverride,
+    this.programFilesOverride,
+    this.scanRootsOverride,
+  });
+
+  /// Test hook / future settings hook: where the game itself is installed.
+  /// Mods never go here - this is for the packs, which are the publisher's
+  /// own folders next to the game's binaries rather than anything in
+  /// Documents.
+  final Directory? installOverride;
+
+  /// Test hook: pretend these are the Program Files roots.
+  final List<String>? programFilesOverride;
+
+  /// Test hook: pretend these are the drives to scan (an empty list keeps
+  /// a test off the real machine's disks).
+  final List<String>? scanRootsOverride;
 
   @override
   Game get game =>
@@ -484,6 +566,12 @@ class Sims4Adapter extends DocumentsSimsAdapter {
 
   @override
   List<String> get modsSegments => const ['Mods'];
+
+  /// The gallery tray and the version stamp are Sims 4's alone; Options.ini
+  /// it shares with Sims 3, so it can only ever be the second hit.
+  @override
+  List<String> get gameDataMarkers =>
+      const ['Tray', 'GameVersion.txt', 'Options.ini'];
 
   @override
   String get setupHelpKey => 'sims4';
@@ -544,6 +632,101 @@ class Sims4Adapter extends DocumentsSimsAdapter {
   @override
   Future<List<SaveGame>> listSaveGames() =>
       scanSavesIn(gameDataFolders, 'saves', scanSims4Saves);
+
+  /// Where the game itself is installed, which is nowhere near where its
+  /// mods live: Documents holds the user's data, the packs sit beside the
+  /// binaries under whichever launcher's folder installed them. Launcher
+  /// locations are checked before the signature scan is paid for, the
+  /// same bargain [InstallFolderSimsAdapter] makes.
+  Future<Directory?> findInstallFolder() async {
+    final override = installOverride;
+    if (override != null) return await override.exists() ? override : null;
+    for (final dir in await _knownInstallLocations()) {
+      if (await dir.exists()) return dir;
+    }
+    final scanned = await scanForInstalls(game.id, _looksLikeInstall,
+        rootsOverride: scanRootsOverride);
+    return scanned.isEmpty ? null : scanned.first;
+  }
+
+  /// Steam keeps the game in whichever library it was installed to; the
+  /// EA App and Origin use fixed English names under Program Files.
+  Future<List<Directory>> _knownInstallLocations() async => [
+        for (final library in await steamLibraries())
+          Directory(p.join(library, 'steamapps', 'common', canonicalFolderName)),
+        for (final root in programFilesRoots(override: programFilesOverride))
+          for (final vendor in const [
+            'EA Games',
+            'Origin Games',
+            'Electronic Arts',
+          ])
+            Directory(p.join(root, vendor, canonicalFolderName)),
+      ];
+
+  /// The game's own executable, since folder names are localized and a
+  /// repack invents its own. macOS ships the same install as a bundle.
+  Future<bool> _looksLikeInstall(Directory dir) async =>
+      await File(p.join(dir.path, 'Game', 'Bin', 'TS4_x64.exe')).exists() ||
+      await File(p.join(dir.path, 'Game', 'Bin', 'TS4.exe')).exists() ||
+      await Directory(p.join(dir.path, '$canonicalFolderName.app')).exists();
+
+  /// The game's own settings file, which is where it records the packs it
+  /// has been told to skip. Sits in the user-data folder next to
+  /// `Options.ini` and the saves.
+  Future<File?> _userSettingsFile() async {
+    for (final dir in await gameDataFolders()) {
+      final file = File(p.join(dir.path, 'UserSetting.ini'));
+      if (await file.exists()) return file;
+    }
+    return null;
+  }
+
+  @override
+  Future<List<GamePack>> listPacks() async {
+    try {
+      final install = await findInstallFolder();
+      if (install == null) return const [];
+      return await listSims4Packs(
+          installDir: install, userSettings: await _userSettingsFile());
+    } catch (_) {
+      // A pack list that cannot be read is an empty shelf, not an error
+      // over the library.
+      return const [];
+    }
+  }
+
+  @override
+  List<GamePack> demoPacks() => demoSims4Packs;
+
+  @override
+  AppMessage? packCollectionNote(List<GamePack> packs) =>
+      sims4CollectionNote(packs);
+
+  @override
+  bool get hasPacks => true;
+
+  /// The game has switched packs off itself since patch 1.117, and it
+  /// does it by writing one line this app can write too.
+  @override
+  bool get canTogglePacks => true;
+
+  @override
+  Future<void> setPackEnabled(GamePack pack, {required bool enabled}) async {
+    // Written where the game already keeps the setting; when it has never
+    // been run far enough to write one, the conventional path next to the
+    // saves is where the game will look for it.
+    final existing = await _userSettingsFile();
+    final target = existing ??
+        await () async {
+          final dirs = await gameDataFolders();
+          if (dirs.isEmpty) return null;
+          return File(p.join(dirs.first.path, 'UserSetting.ini'));
+        }();
+    if (target == null) {
+      throw const PackActionException(AppMessage('errorPackNoUserData'));
+    }
+    await setSims4PackEnabled(target, pack.code, enabled: enabled);
+  }
 }
 
 class Sims3Adapter extends DocumentsSimsAdapter {
@@ -572,6 +755,13 @@ class Sims3Adapter extends DocumentsSimsAdapter {
 
   @override
   List<String> get modsSegments => const ['Mods', 'Packages'];
+
+  /// The store-content and world folders: Sims 4 has none of them, and
+  /// Medieval - the other Sims 3-engine game - ships no worlds to install
+  /// or cache.
+  @override
+  List<String> get gameDataMarkers =>
+      const ['DCCache', 'InstalledWorlds', 'WorldCaches', 'DCBackup'];
 
   /// The well-known stale caches (per NRaas/MTS guides): the game
   /// rebuilds them on launch, but new or removed CC only shows up
@@ -627,6 +817,45 @@ class Sims3Adapter extends DocumentsSimsAdapter {
   @override
   Future<List<SaveGame>> listSaveGames() => scanSavesIn(gameDataFolders,
       'Saves', (path) => scanSims3Saves(path, extension: '.sims3'));
+
+  /// Every expansion and stuff pack, read out of the registry the game
+  /// registers itself in. Off the UI thread: each pack's icon comes out
+  /// of a two-megabyte DLL, and twenty of those is real work.
+  @override
+  Future<List<GamePack>> listPacks() async {
+    if (!Platform.isWindows) return const [];
+    try {
+      final root = packsInstallOverride?.path;
+      return await Isolate.run(() =>
+          listSims3Packs(installRoot: root == null ? null : Directory(root)));
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  /// Test hook: the install folder to look in for pack folders the
+  /// registry never mentioned.
+  Directory? get packsInstallOverride => null;
+
+  @override
+  List<GamePack> demoPacks() => demoSims3Packs;
+
+  @override
+  bool get hasPacks => Platform.isWindows;
+
+  /// The launcher goes by which packs have a registry key, so one can be
+  /// taken out of its sight and put back without moving a file.
+  @override
+  bool get canTogglePacks => Platform.isWindows;
+
+  /// Those keys live in HKEY_LOCAL_MACHINE, which a normal process may
+  /// read and may not write.
+  @override
+  bool get packToggleNeedsAdmin => true;
+
+  @override
+  Future<void> setPackEnabled(GamePack pack, {required bool enabled}) =>
+      Isolate.run(() => setSims3PackEnabled(pack.code, enabled: enabled));
 }
 
 class Sims2Adapter extends DocumentsSimsAdapter {
@@ -651,6 +880,13 @@ class Sims2Adapter extends DocumentsSimsAdapter {
   @override
   List<String> get modsSegments => const ['Downloads'];
 
+  /// Sims 2 keeps its own vocabulary: neighborhoods rather than worlds,
+  /// SimCity 4 terrain imports, the storytelling album. None of it appears
+  /// in a later game's folder.
+  @override
+  List<String> get gameDataMarkers =>
+      const ['Neighborhoods', 'Storytelling', 'SC4Terrains', 'Collections'];
+
   /// Re-releases use folder names the number-suffix rule would miss:
   /// the Ultimate Collection ("The Sims 2 Ultimate Collection") and the
   /// 2025 Legacy Collection ("The Sims 2 Legacy" / "The Sims 2 Legacy
@@ -671,6 +907,38 @@ class Sims2Adapter extends DocumentsSimsAdapter {
   @override
   Future<List<SaveGame>> listSaveGames() =>
       scanSavesIn(gameDataFolders, 'Neighborhoods', scanSims2Saves);
+
+  /// The Legacy Collection records its packs in the user's own hive, so
+  /// unlike The Sims 3 this needs no special rights to read or write.
+  @override
+  Future<List<GamePack>> listPacks() async {
+    if (!Platform.isWindows) return const [];
+    try {
+      return await Isolate.run(listSims2Packs);
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  @override
+  List<GamePack> demoPacks() => demoSims2Packs;
+
+  @override
+  bool get hasPacks => Platform.isWindows;
+
+  @override
+  bool get canTogglePacks => Platform.isWindows;
+
+  /// Taking a pack out of the load order is what AnyGameStarter has done
+  /// since 2007, but nobody has published doing it to this release, and
+  /// a neighborhood opened without a pack it was played with is how
+  /// Sims 2 saves get lost.
+  @override
+  bool get packToggleIsExperimental => true;
+
+  @override
+  Future<void> setPackEnabled(GamePack pack, {required bool enabled}) =>
+      Isolate.run(() => setSims2PackEnabled(pack.code, enabled: enabled));
 }
 
 /// Shared resolution for the games whose mods live inside the install
@@ -841,18 +1109,18 @@ class SimsMedievalAdapter extends InstallFolderSimsAdapter {
   /// numbered ones are excluded above.
   @override
   Future<List<File>> findCacheFiles() async {
-    final docs = await documentsDir(override: documentsOverride);
-    if (docs == null) return const [];
-    final vendor = Directory(p.join(docs.path, 'Electronic Arts'));
-    if (!await vendor.exists()) return const [];
     final found = <File>[];
-    await for (final entity in vendor.list().handleError((Object _) {})) {
-      if (entity is! Directory) continue;
-      final name = p.basename(entity.path).toLowerCase().replaceAll('™', '');
-      if (_numberedSims.hasMatch(name)) continue;
-      for (final cache in _cacheFileNames) {
-        final file = File(p.join(entity.path, cache));
-        if (await file.exists()) found.add(file);
+    for (final docs in await documentsDirs(override: documentsOverride)) {
+      final vendor = Directory(p.join(docs.path, 'Electronic Arts'));
+      if (!await vendor.exists()) continue;
+      await for (final entity in vendor.list().handleError((Object _) {})) {
+        if (entity is! Directory) continue;
+        final name = p.basename(entity.path).toLowerCase().replaceAll('™', '');
+        if (_numberedSims.hasMatch(name)) continue;
+        for (final cache in _cacheFileNames) {
+          final file = File(p.join(entity.path, cache));
+          if (await file.exists()) found.add(file);
+        }
       }
     }
     return found;
@@ -928,6 +1196,11 @@ class SimsMedievalAdapter extends InstallFolderSimsAdapter {
   @override
   Future<List<SaveGame>> listSaveGames() => scanSavesIn(
       _saveDataFolders, 'Saves', (path) => scanSims3Saves(path, extension: '.tsm'));
+
+  /// No packs screen. This game had exactly one add-on ever, Pirates &
+  /// Nobles, and it shares the base game's patch level - so a copy with
+  /// it is a different install rather than a setting, and a whole screen
+  /// to say "you have it" is a worse answer than no screen at all.
 }
 
 /// The original The Sims routes custom content by file type (per the
@@ -1333,4 +1606,22 @@ class Sims1Adapter extends InstallFolderSimsAdapter {
     }
     return mods;
   }
+
+  /// The expansions, read off the flag files the game keeps for them.
+  /// Listed and never switchable: every one of them installed itself
+  /// into the base game's own folders, so there is nothing to hide.
+  @override
+  Future<List<GamePack>> listPacks() async {
+    for (final install in await installCandidates()) {
+      final packs = await listSims1Packs(install);
+      if (packs.isNotEmpty) return packs;
+    }
+    return const [];
+  }
+
+  @override
+  List<GamePack> demoPacks() => demoSims1Packs;
+
+  @override
+  bool get hasPacks => true;
 }

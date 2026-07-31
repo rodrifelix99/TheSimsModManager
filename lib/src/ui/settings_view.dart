@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 
 import '../app_version.dart';
+import '../core/game_adapter.dart' show defaultDisabledSuffix;
+import '../services/reachability.dart' show debugReachabilityScenarios;
 import '../services/sfx.dart';
 import 'app_controller.dart';
 import 'game_theme.dart';
@@ -102,6 +104,8 @@ class SettingsView extends StatelessWidget {
                   ),
                 ),
                 _divider(t),
+                _SuffixRow(theme: t, controller: c),
+                _divider(t),
                 _prefRow(
                   t,
                   title: l.prefScanArtworkTitle,
@@ -111,6 +115,25 @@ class SettingsView extends StatelessWidget {
                   // library (on) or clears the cached artwork (off).
                   onToggle: () => c.setScanArtwork(!s.scanArtwork),
                 ),
+                // Only where it could do anything: the games whose packs
+                // switch safely never look at this, and offering it on
+                // them would read as a warning about them too.
+                if (c.packsAreExperimental) ...[
+                  _divider(t),
+                  _prefRow(
+                    t,
+                    title: l.prefExperimentalPacksTitle,
+                    desc: l.prefExperimentalPacksDesc,
+                    value: s.experimentalPackToggles,
+                    onToggle: () => c.setPref(
+                      () => s.setExperimentalPackToggles(
+                          !s.experimentalPackToggles),
+                      sound: _toggleSound(s.experimentalPackToggles),
+                      setting: 'experimentalPackToggles',
+                      value: !s.experimentalPackToggles,
+                    ),
+                  ),
+                ],
                 _divider(t),
                 _prefRow(
                   t,
@@ -428,13 +451,35 @@ class SettingsView extends StatelessWidget {
             _sectionLabel(t, 'DEVELOPER'),
             Container(
               decoration: _cardDecoration(t),
-              child: _prefRow(
-                t,
-                title: 'Demo library',
-                desc: 'Fill every game with invented mods, for screenshots. '
-                    'Nothing is written to disk.',
-                value: c.demoLibrary,
-                onToggle: () => c.setDemoLibrary(!c.demoLibrary),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _prefRow(
+                    t,
+                    title: 'Demo library',
+                    desc: 'Fill every game with invented mods, for '
+                        'screenshots. Nothing is written to disk.',
+                    value: c.demoLibrary,
+                    onToggle: () => c.setDemoLibrary(!c.demoLibrary),
+                  ),
+                  _divider(t),
+                  _pickerRow(
+                    t,
+                    title: 'Reachability',
+                    desc: 'Pretend our services answer, or do not, whatever '
+                        'this machine can actually reach. The answer is '
+                        'never reported or stored; the choice below stays '
+                        'picked until you change it, restart or not.',
+                    selected: c.settings.debugReachability ?? '',
+                    options: [
+                      (value: '', label: 'Ask the network'),
+                      for (final scenario in debugReachabilityScenarios)
+                        (value: scenario.id, label: scenario.label),
+                    ],
+                    onSelected: (value) =>
+                        c.setDebugReachability(value.isEmpty ? null : value),
+                  ),
+                ],
               ),
             ),
           ],
@@ -618,7 +663,7 @@ class SettingsView extends StatelessWidget {
       current ? UiSound.toggleOff : UiSound.toggleOn;
 
   /// The title-over-description column every card row leads with.
-  Widget _rowLabel(GameTheme t, String title, String desc) => Column(
+  static Widget _rowLabel(GameTheme t, String title, String desc) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
@@ -678,6 +723,133 @@ class SettingsView extends StatelessWidget {
             inactiveColor: t.switchOff,
             shadow: t.shadow,
             onChanged: onToggle,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The marker disabling a mod appends to its file name. A field rather
+/// than a list of choices because the value belongs to whatever other
+/// tool the user runs alongside this one, and we don't get to know them
+/// all: CC Magic writes `.off`, and the next one will write something
+/// else. Empty goes back to the app's own.
+class _SuffixRow extends StatefulWidget {
+  const _SuffixRow({required this.theme, required this.controller});
+
+  final GameTheme theme;
+  final AppController controller;
+
+  @override
+  State<_SuffixRow> createState() => _SuffixRowState();
+}
+
+class _SuffixRowState extends State<_SuffixRow> {
+  late final TextEditingController _text =
+      TextEditingController(text: widget.controller.settings.disabledSuffix);
+  final FocusNode _focus = FocusNode();
+
+  /// Whether what's in the box right now would break the library. Shown
+  /// under the field instead of swallowing the change silently, which
+  /// would read as the setting not working.
+  bool _refused = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Committing on the way out as well as on Enter: a field that quietly
+    // forgets what was typed into it is worse than one that asks twice.
+    _focus.addListener(() {
+      if (!_focus.hasFocus) _commit();
+    });
+  }
+
+  @override
+  void dispose() {
+    _text.dispose();
+    _focus.dispose();
+    super.dispose();
+  }
+
+  void _commit() {
+    final typed = _text.text.trim();
+    final ok = typed.isEmpty || widget.controller.canUseDisabledSuffix(typed);
+    if (ok) {
+      _text.text = typed;
+      widget.controller.setDisabledSuffix(typed);
+    }
+    if (_refused != !ok) setState(() => _refused = !ok);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = widget.theme;
+    final l = L.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SettingsView._rowLabel(
+                    t, l.prefDisabledSuffixTitle, l.prefDisabledSuffixDesc),
+                if (_refused) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    l.prefDisabledSuffixInvalid,
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: t.warning,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(width: 16),
+          SizedBox(
+            width: 132,
+            child: TextField(
+              controller: _text,
+              focusNode: _focus,
+              onSubmitted: (_) => _commit(),
+              style: TextStyle(
+                fontFamily: 'monospace',
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: t.text,
+              ),
+              cursorColor: t.accent,
+              decoration: InputDecoration(
+                hintText: defaultDisabledSuffix,
+                hintStyle: TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: t.muted,
+                ),
+                isDense: true,
+                filled: true,
+                fillColor: t.surfaceAlt,
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(
+                      color: _refused ? t.warning : t.border, width: 1.5),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(
+                      color: _refused ? t.warning : t.accent, width: 1.5),
+                ),
+              ),
+            ),
           ),
         ],
       ),

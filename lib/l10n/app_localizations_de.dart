@@ -248,6 +248,21 @@ class LDe extends L {
   String get viewFolders => 'Ordner';
 
   @override
+  String get sortTooltip => 'Sortieren';
+
+  @override
+  String get sortByName => 'Name (A–Z)';
+
+  @override
+  String get sortByRecent => 'Zuletzt geändert';
+
+  @override
+  String get sortBySize => 'Größte zuerst';
+
+  @override
+  String get sortDisabledLast => 'Deaktivierte ans Ende';
+
+  @override
   String get libraryRefresh => 'Aktualisieren';
 
   @override
@@ -677,6 +692,24 @@ class LDe extends L {
       'Lässt deaktivierte Mods in der Bibliothek sichtbar, statt sie auszublenden';
 
   @override
+  String get prefDisabledSuffixTitle => 'Markierung für deaktivierte Mods';
+
+  @override
+  String get prefDisabledSuffixDesc =>
+      'Was an den Dateinamen gehängt wird, wenn du einen Mod ausschaltest. Stell es passend zu einem anderen Manager ein (CC Magic nutzt .off); die App liest sowieso beides, und schon deaktivierte Mods behalten ihren Namen';
+
+  @override
+  String get prefDisabledSuffixInvalid =>
+      'Muss ein Punkt und ein paar Buchstaben oder Zahlen sein, etwa .off';
+
+  @override
+  String get prefExperimentalPacksTitle => 'Experimentelle Pack-Schalter';
+
+  @override
+  String get prefExperimentalPacksDesc =>
+      'Lässt die Packs dieses Spiels ausschalten. Mit dieser Ausgabe ungetestet, und eine mit einem Pack gespielte Nachbarschaft kann ohne es kaputtgehen - sichere vorher deine Spielstände';
+
+  @override
   String get prefScanArtworkTitle => 'In die Mods reinschauen';
 
   @override
@@ -1011,6 +1044,31 @@ class LDe extends L {
       'Dieser Mod ist für ein Spiel, das diese Version der App noch nicht kennt. Probier mal ein Update.';
 
   @override
+  String errorPackToggleFailed(String pack) {
+    return '$pack ließ sich nicht umschalten. Schließ das Spiel und probier es nochmal.';
+  }
+
+  @override
+  String get errorPackNoUserData =>
+      'Der Einstellungsordner des Spiels ist nicht auffindbar, also gibt es nirgends zu vermerken, welche Packs übersprungen werden sollen. Starte das Spiel erst einmal.';
+
+  @override
+  String get errorPackNeedsAdmin =>
+      'Windows hat die App das nicht ändern lassen. Starte sie als Administrator neu und probier es nochmal.';
+
+  @override
+  String get errorPackNotSupported =>
+      'Auf diesem System lassen sich Packs nicht an- und ausschalten.';
+
+  @override
+  String get errorPackIsTheGame =>
+      'Das ist das Pack, aus dem das Spiel startet, es muss also an bleiben.';
+
+  @override
+  String get errorPackToggleRefused =>
+      'Dieses Pack ließ sich nicht ändern. Schließ das Spiel und probier es nochmal.';
+
+  @override
   String get eraClassic => 'Klassisch';
 
   @override
@@ -1024,6 +1082,91 @@ class LDe extends L {
 
   @override
   String get eraMedieval => 'Mittelalter';
+
+  @override
+  String get navPacks => 'Packs';
+
+  @override
+  String get packsScanning => 'Deine Packs werden gesucht…';
+
+  @override
+  String get packsEmptyTitle => 'Keine Packs gefunden';
+
+  @override
+  String packsEmptyBody(String game) {
+    return 'Entweder ist $game nicht dort installiert, wo die App nachsehen kann, oder es liegen noch keine Packs daneben.';
+  }
+
+  @override
+  String get packsRescan => 'Nochmal nachsehen';
+
+  @override
+  String packsSummary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Packs installiert',
+      one: '1 Pack installiert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String packsSummaryWithOff(int count, int off) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Packs an',
+      one: '1 Pack an',
+    );
+    return '$_temp0, $off ausgeschaltet';
+  }
+
+  @override
+  String get packsOff => 'Aus';
+
+  @override
+  String get packsInstalled => 'Installiert';
+
+  @override
+  String get packsNeedAdmin =>
+      'Diese Packs an- und auszuschalten braucht Administratorrechte, denn dort führt das Spiel seine Liste. Starte die App als Administrator neu, um sie zu ändern - Drag and Drop geht so lange nicht, es lohnt sich also, danach zurückzuwechseln.';
+
+  @override
+  String get packsExperimentalTitle => 'Die auszuschalten ist experimentell';
+
+  @override
+  String get packsExperimentalOff =>
+      'Es funktioniert so, wie es bei diesem Spiel immer funktioniert hat, aber niemand hat es mit dieser Ausgabe getestet - und eine Nachbarschaft, die du mit einem Pack gespielt hast, kann kaputtgehen, wenn du sie ohne öffnest. Nur anzusehen ist gefahrlos. Schalte die experimentellen Pack-Schalter in den Einstellungen frei, wenn du es trotzdem versuchen willst.';
+
+  @override
+  String get packsExperimentalOn =>
+      'Sichere vorher deine Nachbarschaften. Eine Nachbarschaft, die du mit einem Pack gespielt hast, kann kaputtgehen, wenn du sie ohne öffnest, und von hier aus lässt sich das nicht rückgängig machen: das Pack wieder anzuschalten holt den Spielstand nicht immer zurück.';
+
+  @override
+  String packsRestartNotice(String game) {
+    return 'Starte $game neu, damit das wirkt. Deine Packs bleiben so oder so installiert.';
+  }
+
+  @override
+  String packsAllOwnedSims4(String expansions, String gamePacks) {
+    return '$expansions Erweiterungspacks. $gamePacks Gameplay-Packs. Alle gekauft, na klar.';
+  }
+
+  @override
+  String get packKindExpansions => 'Erweiterungspacks';
+
+  @override
+  String get packKindGamePacks => 'Gameplay-Packs';
+
+  @override
+  String get packKindStuffPacks => 'Accessoires-Packs';
+
+  @override
+  String get packKindKits => 'Kits';
+
+  @override
+  String get packKindFreePacks => 'Gratis-Packs';
 
   @override
   String get navSaves => 'Spielstände';

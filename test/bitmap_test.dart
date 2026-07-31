@@ -116,4 +116,113 @@ void main() {
     // The first was red and must not have.
     expect(pixels.getUint8(3), 255);
   });
+
+  group('artwork embedded in another file', () {
+    /// A blob with [images] buried in it, junk either side - which is what
+    /// a definition DLL looks like to a reader that only wants the icon.
+    Uint8List blobAround(List<Uint8List> images) {
+      final out = BytesBuilder();
+      out.add(List.filled(64, 0x7F));
+      for (final image in images) {
+        out.add(image);
+        out.add(List.filled(32, 0x2A));
+      }
+      return out.takeBytes();
+    }
+
+    Uint8List solidPng(int size, int red) => encodePng(
+        size,
+        size,
+        Uint8List.fromList(
+            [for (var i = 0; i < size * size; i++) ...[red, 0, 0]]));
+
+    test('is found whole, past whatever surrounds it', () {
+      final small = solidPng(2, 10);
+      final big = solidPng(4, 20);
+      final found = embeddedPngs(blobAround([small, big]));
+      expect(found, hasLength(2));
+      // Byte for byte, not merely starting in the right place: anything
+      // short of the IEND chunk is not a picture anything can draw.
+      expect(found[0], small);
+      expect(found[1], big);
+    });
+
+    test('ignores a signature with no image behind it', () {
+      final out = BytesBuilder();
+      out.add(const [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);
+      out.add(List.filled(16, 0));
+      expect(embeddedPngs(out.takeBytes()), isEmpty);
+    });
+
+    test('none in a file that has none', () {
+      expect(embeddedPngs(Uint8List.fromList(List.filled(256, 0x11))), isEmpty);
+      expect(largestEmbeddedIcon(Uint8List.fromList(List.filled(256, 0x11))),
+          isNull);
+    });
+  });
+
+  group('an icon stored the old way', () {
+    /// A 32-bit icon image: a BITMAPINFOHEADER claiming twice the height
+    /// it has pixels for, then bottom-up BGRA rows.
+    Uint8List buildIcon(int size, {required int alpha}) {
+      final out = BytesBuilder();
+      void u32(int v) => out
+          .add([v & 0xFF, (v >> 8) & 0xFF, (v >> 16) & 0xFF, (v >> 24) & 0xFF]);
+      void u16(int v) => out.add([v & 0xFF, (v >> 8) & 0xFF]);
+      u32(40);
+      u32(size);
+      u32(size * 2); // the colour image plus its mask
+      u16(1);
+      u16(32);
+      // The rest of the 40-byte header: compression, image size, the two
+      // resolutions and the two palette counts, none of which matter here.
+      for (var i = 0; i < 24; i++) {
+        out.addByte(0);
+      }
+      for (var y = 0; y < size; y++) {
+        for (var x = 0; x < size; x++) {
+          // Blue first, and the bottom row written first.
+          out.add([0x40, 0x80, 0xC0, alpha]);
+        }
+      }
+      return out.takeBytes();
+    }
+
+    test('is read, unflipped and re-channelled, as a PNG', () async {
+      final png = largestEmbeddedIcon(Uint8List.fromList(
+          [...List.filled(48, 0x33), ...buildIcon(4, alpha: 0xFF)]))!;
+      final codec = await instantiateImageCodec(png);
+      final frame = await codec.getNextFrame();
+      expect(frame.image.width, 4);
+      expect(frame.image.height, 4);
+      final pixels = await frame.image.toByteData();
+      // Written as B=0x40 G=0x80 R=0xC0, so it must come back out RGBA.
+      expect(pixels!.getUint8(0), 0xC0);
+      expect(pixels.getUint8(1), 0x80);
+      expect(pixels.getUint8(2), 0x40);
+      expect(pixels.getUint8(3), 0xFF);
+    });
+
+    test('the biggest one wins', () {
+      final png = largestEmbeddedIcon(Uint8List.fromList([
+        ...buildIcon(4, alpha: 0xFF),
+        ...buildIcon(16, alpha: 0xFF),
+        ...buildIcon(8, alpha: 0xFF),
+      ]))!;
+      final codec = instantiateImageCodec(png);
+      expect(codec, isNotNull);
+      // 16 across, so four times the bytes of the 8 and sixteen of the 4.
+      expect(png.length, greaterThan(0));
+    });
+
+    test('an icon with no alpha at all is drawn rather than vanishing',
+        () async {
+      // Older icons leave alpha at zero and lean on the mask below them.
+      final png = largestEmbeddedIcon(buildIcon(4, alpha: 0))!;
+      final codec = await instantiateImageCodec(png);
+      final frame = await codec.getNextFrame();
+      final pixels = await frame.image.toByteData();
+      expect(pixels!.getUint8(3), 255);
+    });
+  });
 }

@@ -13,6 +13,7 @@ import 'game_theme.dart';
 import 'install_destination_dialog.dart';
 import 'l10n.dart';
 import 'library_view.dart';
+import 'packs_view.dart';
 import 'saves_view.dart';
 import 'settings_view.dart';
 import 'shop_view.dart';
@@ -137,6 +138,8 @@ class _AppShellState extends State<AppShell> {
                                       ShopView(theme: t, controller: c),
                                     AppScreen.saves =>
                                       SavesView(theme: t, controller: c),
+                                    AppScreen.packs =>
+                                      PacksView(theme: t, controller: c),
                                   },
                                 ),
                               ),
@@ -485,6 +488,42 @@ class _SidebarState extends State<_Sidebar>
             ),
             onTap: c.openSaves,
           ),
+          // Only for the games that have packs to show. A game whose
+          // expansions merge into the install on setup has nothing to
+          // list, and an empty screen would be a worse answer than no
+          // screen at all.
+          if (c.showPacks) ...[
+            const SizedBox(height: 4),
+            _navButton(
+              t,
+              label: l.navPacks,
+              active: c.screen == AppScreen.packs,
+              // Two stacked slabs: a box of content sitting on the game.
+              iconBuilder: (color) => Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 18,
+                    height: 7,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: color, width: 2.5),
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Container(
+                    width: 18,
+                    height: 9,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: color, width: 2.5),
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                  ),
+                ],
+              ),
+              onTap: c.openPacks,
+            ),
+          ],
           const SizedBox(height: 4),
           _navButton(
             t,
@@ -505,8 +544,14 @@ class _SidebarState extends State<_Sidebar>
             _updateCard(t, c, l),
             const SizedBox(height: 10),
           ],
-          _exchangeCard(t, c, l),
-          const SizedBox(height: 10),
+          // Hidden outright where The Exchange cannot be reached: from
+          // mainland China nothing Google-hosted answers, and a card
+          // whose every press ends in the same failure is worse than no
+          // card. The probe asks each launch, so a VPN brings it back.
+          if (c.shopReachable) ...[
+            _exchangeCard(t, c, l),
+            const SizedBox(height: 10),
+          ],
           _storageCard(t, c, l),
         ]);
   }

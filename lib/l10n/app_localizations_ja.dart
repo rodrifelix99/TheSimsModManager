@@ -231,6 +231,21 @@ class LJa extends L {
   String get viewFolders => 'フォルダ';
 
   @override
+  String get sortTooltip => '並べ替え';
+
+  @override
+  String get sortByName => '名前（A–Z）';
+
+  @override
+  String get sortByRecent => '最近変更した順';
+
+  @override
+  String get sortBySize => 'サイズが大きい順';
+
+  @override
+  String get sortDisabledLast => '無効にしたものを最後に';
+
+  @override
   String get libraryRefresh => '更新';
 
   @override
@@ -625,6 +640,23 @@ class LJa extends L {
   String get prefShowDisabledDesc => '無効にした MOD を隠さず、ライブラリに残して表示します';
 
   @override
+  String get prefDisabledSuffixTitle => '無効化マーカー';
+
+  @override
+  String get prefDisabledSuffixDesc =>
+      'MOD をオフにしたときにファイル名の末尾へ付く文字列です。ほかのマネージャーに合わせて変更できます（CC Magic は .off）。どちらの書き方もアプリは読み取れますし、すでに無効にした MOD は今の名前のままです';
+
+  @override
+  String get prefDisabledSuffixInvalid => 'ドットのあとに英数字を数文字、たとえば .off のように入力してね';
+
+  @override
+  String get prefExperimentalPacksTitle => '実験的なパックスイッチ';
+
+  @override
+  String get prefExperimentalPacksDesc =>
+      'このゲームのパックをオフにできるようにする。この版では未検証で、あるパックで遊んだ近所はそれなしだと壊れることがある - 先にセーブのバックアップを';
+
+  @override
   String get prefScanArtworkTitle => 'MOD の中身をスキャン';
 
   @override
@@ -939,6 +971,28 @@ class LJa extends L {
       'このMODは、今のバージョンのアプリがまだ知らないゲーム向けだよ。アップデートしてみて。';
 
   @override
+  String errorPackToggleFailed(String pack) {
+    return '$pack を切り替えられなかったよ。ゲームを閉じてもう一度試してみて。';
+  }
+
+  @override
+  String get errorPackNoUserData =>
+      'ゲーム自身の設定フォルダが見つからないから、どのパックを飛ばすか書き込む場所がないんだ。先にゲームを一度起動してみて。';
+
+  @override
+  String get errorPackNeedsAdmin =>
+      'Windows がアプリにその変更を許可しなかったよ。管理者として起動し直してもう一度試してみて。';
+
+  @override
+  String get errorPackNotSupported => 'このシステムではパックのオンオフはできないんだ。';
+
+  @override
+  String get errorPackIsTheGame => 'それはゲームの起動元になっているパックだから、オンのままにしておく必要があるよ。';
+
+  @override
+  String get errorPackToggleRefused => 'そのパックを変えられなかったよ。ゲームを閉じてもう一度試してみて。';
+
+  @override
   String get eraClassic => 'クラシック';
 
   @override
@@ -952,6 +1006,79 @@ class LJa extends L {
 
   @override
   String get eraMedieval => '中世';
+
+  @override
+  String get navPacks => 'パック';
+
+  @override
+  String get packsScanning => 'パックを探しています…';
+
+  @override
+  String get packsEmptyTitle => 'パックが見つかりません';
+
+  @override
+  String packsEmptyBody(String game) {
+    return '$game がアプリから見える場所にインストールされていないか、まだ隣にパックが入っていないみたい。';
+  }
+
+  @override
+  String get packsRescan => 'もう一度調べる';
+
+  @override
+  String packsSummary(int count) {
+    return '$count 個のパックがインストール済み';
+  }
+
+  @override
+  String packsSummaryWithOff(int count, int off) {
+    return '$count 個がオン、$off 個がオフ';
+  }
+
+  @override
+  String get packsOff => 'オフ';
+
+  @override
+  String get packsInstalled => 'インストール済み';
+
+  @override
+  String get packsNeedAdmin =>
+      'このパックのオンオフには管理者権限が必要なんだ。ゲームがそこに一覧を持っているからだよ。変えるにはアプリを管理者として起動し直してね - その間はドラッグ＆ドロップが使えなくなるから、終わったら戻すのがおすすめ。';
+
+  @override
+  String get packsExperimentalTitle => 'オフにするのは実験的な機能だよ';
+
+  @override
+  String get packsExperimentalOff =>
+      'このゲームで昔から使われてきたやり方と同じだけど、この版で試した人はいないんだ。あるパックで遊んだ近所は、それなしで開くと壊れることがあるよ。見るだけなら安全。それでも試したいなら、設定で実験的なパックスイッチをオンにしてね。';
+
+  @override
+  String get packsExperimentalOn =>
+      '先に近所のバックアップを取ってね。あるパックで遊んだ近所は、それなしで開くと壊れることがあって、ここからは元に戻せないんだ。パックをオンに戻しても、セーブが必ず戻るとは限らないよ。';
+
+  @override
+  String packsRestartNotice(String game) {
+    return '$game を再起動すると反映されるよ。パック自体はそのまま残るから安心して。';
+  }
+
+  @override
+  String packsAllOwnedSims4(String expansions, String gamePacks) {
+    return '拡張パック$expansions個、ゲームパック$gamePacks個。全部ちゃんと買ったんだよね。';
+  }
+
+  @override
+  String get packKindExpansions => '拡張パック';
+
+  @override
+  String get packKindGamePacks => 'ゲームパック';
+
+  @override
+  String get packKindStuffPacks => 'アイテムパック';
+
+  @override
+  String get packKindKits => 'キット';
+
+  @override
+  String get packKindFreePacks => '無料パック';
 
   @override
   String get navSaves => 'セーブ';

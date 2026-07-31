@@ -5,6 +5,7 @@ import 'package:path/path.dart' as p;
 
 import 'app_message.dart';
 import 'game.dart';
+import 'game_pack.dart';
 import 'install_destination.dart';
 import 'install_path.dart';
 import 'mod.dart';
@@ -13,15 +14,62 @@ import 'package_insight.dart';
 import 'resource_cfg.dart';
 import 'save_game.dart';
 
-/// Suffix appended to a mod file to hide it from the game without deleting it.
-const disabledSuffix = '.disabled';
+/// What gets appended to a mod file to hide it from the game without
+/// deleting it, until something sets [disabledSuffix] otherwise.
+const defaultDisabledSuffix = '.disabled';
 
-/// [path] without the [disabledSuffix] (unchanged when it isn't there),
-/// so a mod keeps one identity across toggles.
-String enabledPathOf(String path) =>
-    path.toLowerCase().endsWith(disabledSuffix)
-        ? path.substring(0, path.length - disabledSuffix.length)
-        : path;
+/// The same idea in another manager's dialect, always recognized whatever
+/// this app is set to write. CC Magic marks a package `.off`, and a lot of
+/// Sims 3 libraries have been through it; without this those files match
+/// no mod extension and the library simply doesn't mention them.
+const foreignDisabledSuffixes = ['.off'];
+
+String _disabledSuffix = defaultDisabledSuffix;
+List<String> _knownSuffixes = _buildKnownSuffixes(defaultDisabledSuffix);
+
+/// The marker [FolderBasedGameAdapter.setEnabled] appends when it disables
+/// a mod. Settable rather than const because a library the user also feeds
+/// to another manager has to be marked in a way that manager reads; what is
+/// *recognized* never narrows with it (see [disabledSuffixes]), so changing
+/// this leaves everything already disabled exactly where it is.
+String get disabledSuffix => _disabledSuffix;
+
+set disabledSuffix(String value) {
+  final wanted = value.trim();
+  _disabledSuffix =
+      isValidDisabledSuffix(wanted) ? wanted : defaultDisabledSuffix;
+  _knownSuffixes = _buildKnownSuffixes(_disabledSuffix);
+}
+
+/// Every marker a file on disk might be carrying, lowercase and longest
+/// first so a suffix ending in another one is still matched whole.
+List<String> get disabledSuffixes => _knownSuffixes;
+
+List<String> _buildKnownSuffixes(String own) => <String>{
+      own.toLowerCase(),
+      defaultDisabledSuffix,
+      ...foreignDisabledSuffixes,
+    }.toList()
+  ..sort((a, b) => b.length.compareTo(a.length));
+
+/// Whether [value] can serve as the marker: a dot and then something a
+/// file name can carry on every platform. Deliberately narrow - this is
+/// typed into a text field, and a marker holding a path separator would
+/// send the rename into another folder.
+bool isValidDisabledSuffix(String value) =>
+    RegExp(r'^\.[A-Za-z0-9_-]{1,15}$').hasMatch(value);
+
+/// [path] without whichever marker it carries (unchanged when it carries
+/// none), so a mod keeps one identity across toggles.
+String enabledPathOf(String path) {
+  final lower = path.toLowerCase();
+  for (final suffix in _knownSuffixes) {
+    if (lower.endsWith(suffix)) {
+      return path.substring(0, path.length - suffix.length);
+    }
+  }
+  return path;
+}
 
 /// Why an action on a mod file failed for a reason that isn't an app bug:
 /// the user's environment got in the way (game running, file moved). Lets
@@ -188,6 +236,72 @@ abstract class GameAdapter {
   /// saves can't be located, and for games without a save reader yet.
   /// Runs off the UI thread and must never throw.
   Future<List<SaveGame>> listSaveGames() async => const [];
+
+  /// The publisher's own packs installed beside this game - expansions,
+  /// stuff packs, kits - as the install describes them.
+  ///
+  /// Empty for a game whose expansions cannot be told apart once
+  /// installed (The Sims 1 merges them into shared folders), for one
+  /// that isn't installed, and for one whose adapter has no pack reader
+  /// yet. Runs off the UI thread and must never throw.
+  Future<List<GamePack>> listPacks() async => const [];
+
+  /// What a well-stocked copy of this game would have on the packs shelf,
+  /// for the invented screenshot library. Never asks the disk, and only
+  /// ever read when demo mode is on (a debug-only setting).
+  ///
+  /// It invents what is *installed*, not what the app can do about it:
+  /// [hasPacks], [canTogglePacks] and the rest still answer for the real
+  /// machine, so a shot never shows a switch this platform doesn't have.
+  List<GamePack> demoPacks() => const [];
+
+  /// A remark about the collection itself, for a shelf worth one. Null on
+  /// nearly every machine, and nothing acts on it: this is an easter egg
+  /// rather than a capability.
+  ///
+  /// Carries an [AppMessage] like every other wording core hands up, so
+  /// the joke gets told in the language the user is reading.
+  AppMessage? packCollectionNote(List<GamePack> packs) => null;
+
+  /// Whether [listPacks] can say anything at all about this game, known
+  /// without going to the disk so the UI can decide whether to offer the
+  /// screen at all. False means the packs screen is not a thing this
+  /// game has, rather than one that happens to be empty today - which is
+  /// the honest answer for a game whose expansions merge on install.
+  bool get hasPacks => false;
+
+  /// Whether [setPackEnabled] can actually turn a pack off for this game.
+  ///
+  /// Listing and toggling are separate capabilities on purpose: a game
+  /// can be perfectly able to say what it has installed and have no safe
+  /// way to run without one of them, and the UI reads this to decide
+  /// whether it is drawing a switch or a fact.
+  bool get canTogglePacks => false;
+
+  /// Whether switching a pack off works for this game but has never been
+  /// shown to be safe, so the app must not offer it until the user has
+  /// asked for it and been told why. True for The Sims 2, whose engine
+  /// runs happily on a subset of its packs and whose neighborhoods are
+  /// the series' most reliable way to lose a save.
+  bool get packToggleIsExperimental => false;
+
+  /// Whether [setPackEnabled] needs the app to be running as
+  /// administrator. True for the games that keep their pack list in a
+  /// part of the machine a normal process may read but not write - The
+  /// Sims 3 records its packs in HKEY_LOCAL_MACHINE. The UI asks up
+  /// front so it can say so, rather than letting a switch snap back.
+  bool get packToggleNeedsAdmin => false;
+
+  /// Tells the game to load [pack] or leave it alone from now on.
+  ///
+  /// Never touches the pack's own files: what changes is the game's own
+  /// record of what it should load, so the pack is still installed and
+  /// the switch is reversible. Takes effect the next time the game
+  /// starts, and callers are expected to have told the user that.
+  /// Only ever called when [canTogglePacks] is true.
+  Future<void> setPackEnabled(GamePack pack, {required bool enabled}) async {
+    throw UnsupportedError('${game.id} cannot toggle packs');
+  }
 }
 
 /// Default implementation for games whose mods are plain files in a folder,
@@ -310,6 +424,34 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
   /// from the interface for the same reason as [installDestinations].
   @override
   Future<List<SaveGame>> listSaveGames() async => const [];
+
+  /// No packs, and nothing to toggle, until a subclass knows this game's.
+  /// Repeated from the interface for the same reason as above.
+  @override
+  Future<List<GamePack>> listPacks() async => const [];
+
+  @override
+  List<GamePack> demoPacks() => const [];
+
+  @override
+  AppMessage? packCollectionNote(List<GamePack> packs) => null;
+
+  @override
+  bool get hasPacks => false;
+
+  @override
+  bool get canTogglePacks => false;
+
+  @override
+  bool get packToggleNeedsAdmin => false;
+
+  @override
+  bool get packToggleIsExperimental => false;
+
+  @override
+  Future<void> setPackEnabled(GamePack pack, {required bool enabled}) async {
+    throw UnsupportedError('${game.id} cannot toggle packs');
+  }
 
   /// Where an install actually writes: the folder the user chose, when
   /// they chose one and this game has it, and the mods folder otherwise.

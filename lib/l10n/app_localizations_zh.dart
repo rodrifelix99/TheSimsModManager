@@ -230,6 +230,21 @@ class LZh extends L {
   String get viewFolders => '文件夹';
 
   @override
+  String get sortTooltip => '排序';
+
+  @override
+  String get sortByName => '名称（A–Z）';
+
+  @override
+  String get sortByRecent => '最近修改';
+
+  @override
+  String get sortBySize => '从大到小';
+
+  @override
+  String get sortDisabledLast => '已停用的排在最后';
+
+  @override
   String get libraryRefresh => '刷新';
 
   @override
@@ -617,6 +632,23 @@ class LZh extends L {
   String get prefShowDisabledDesc => '让已停用的 MOD 继续留在库里，而不是把它们藏起来';
 
   @override
+  String get prefDisabledSuffixTitle => '停用标记';
+
+  @override
+  String get prefDisabledSuffixDesc =>
+      '停用某个 MOD 时，会加在文件名末尾的后缀。可以改成别的管理器用的写法（CC Magic 用 .off）；两种写法应用都认得，已经停用的 MOD 也会保留现在的文件名';
+
+  @override
+  String get prefDisabledSuffixInvalid => '要以点开头，后面跟几个字母或数字，比如 .off';
+
+  @override
+  String get prefExperimentalPacksTitle => '实验性内容包开关';
+
+  @override
+  String get prefExperimentalPacksDesc =>
+      '允许关闭这款游戏的内容包。在这个版本上未经验证，用某个包玩过的街区缺少它可能会坏掉 - 请先备份存档';
+
+  @override
   String get prefScanArtworkTitle => '扫描 MOD 内部';
 
   @override
@@ -926,6 +958,26 @@ class LZh extends L {
   String get errorShopListingUnknownGame => '这个模组对应的游戏，当前版本的应用还不认识。更新一下试试。';
 
   @override
+  String errorPackToggleFailed(String pack) {
+    return '没能切换 $pack。关掉游戏再试一次。';
+  }
+
+  @override
+  String get errorPackNoUserData => '找不到游戏自己的设置文件夹，也就没地方记下要跳过哪些内容包。先把游戏运行一次吧。';
+
+  @override
+  String get errorPackNeedsAdmin => 'Windows 不允许应用做这个改动。以管理员身份重启后再试一次。';
+
+  @override
+  String get errorPackNotSupported => '这个系统上无法开关内容包。';
+
+  @override
+  String get errorPackIsTheGame => '游戏就是从这个包启动的，所以它必须保持开启。';
+
+  @override
+  String get errorPackToggleRefused => '没能改动这个包。关掉游戏再试一次。';
+
+  @override
   String get eraClassic => '经典';
 
   @override
@@ -939,6 +991,79 @@ class LZh extends L {
 
   @override
   String get eraMedieval => '中世纪';
+
+  @override
+  String get navPacks => '内容包';
+
+  @override
+  String get packsScanning => '正在查找你的内容包…';
+
+  @override
+  String get packsEmptyTitle => '没有找到内容包';
+
+  @override
+  String packsEmptyBody(String game) {
+    return '可能是《$game》没装在应用能看到的位置，也可能是旁边还没有任何内容包。';
+  }
+
+  @override
+  String get packsRescan => '重新检查';
+
+  @override
+  String packsSummary(int count) {
+    return '已安装 $count 个内容包';
+  }
+
+  @override
+  String packsSummaryWithOff(int count, int off) {
+    return '$count 个已开启，$off 个已关闭';
+  }
+
+  @override
+  String get packsOff => '已关闭';
+
+  @override
+  String get packsInstalled => '已安装';
+
+  @override
+  String get packsNeedAdmin =>
+      '开关这些内容包需要管理员权限，因为游戏的清单就存在那里。以管理员身份重启应用才能改动 - 这期间拖放会失效，改完之后建议再切回来。';
+
+  @override
+  String get packsExperimentalTitle => '关闭它们还是实验性功能';
+
+  @override
+  String get packsExperimentalOff =>
+      '它的原理和这款游戏一直以来的做法一样，但没人在这个版本上验证过，而且用某个包玩过的街区，在缺少它的时候打开可能会坏掉。只是查看不会有事。如果还是想试，就在设置里打开实验性内容包开关。';
+
+  @override
+  String get packsExperimentalOn =>
+      '先备份你的街区。用某个包玩过的街区，缺少它时打开可能会坏掉，而且这在这里撤不回来 - 把包重新打开也不一定能把存档救回来。';
+
+  @override
+  String packsRestartNotice(String game) {
+    return '重启《$game》后才会生效。你的内容包不管怎样都还在。';
+  }
+
+  @override
+  String packsAllOwnedSims4(String expansions, String gamePacks) {
+    return '$expansions个资料片，$gamePacks个游戏包。当然都是买的。';
+  }
+
+  @override
+  String get packKindExpansions => '资料片';
+
+  @override
+  String get packKindGamePacks => '游戏包';
+
+  @override
+  String get packKindStuffPacks => '物品组合包';
+
+  @override
+  String get packKindKits => '套件';
+
+  @override
+  String get packKindFreePacks => '免费内容包';
 
   @override
   String get navSaves => '存档';

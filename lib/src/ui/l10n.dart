@@ -2,6 +2,7 @@ import 'dart:ui' show Locale;
 
 import '../../l10n/app_localizations.dart';
 import '../core/app_message.dart';
+import '../core/game_pack.dart';
 
 export '../../l10n/app_localizations.dart' show L;
 
@@ -55,6 +56,29 @@ extension AppText on L {
         'Floor' => categoryFloor,
         _ => key,
       };
+
+  /// What to call a whole shelf of packs of one tier. Plural because it
+  /// only ever heads a section; a pack says which tier it is by sitting
+  /// under one.
+  String packKindPlural(GamePackKind kind) => switch (kind) {
+        GamePackKind.expansion => packKindExpansions,
+        GamePackKind.gamePack => packKindGamePacks,
+        GamePackKind.stuff => packKindStuffPacks,
+        GamePackKind.kit => packKindKits,
+        GamePackKind.free => packKindFreePacks,
+      };
+
+  /// What a game has to say about a collection, for the shelves that have
+  /// earned a remark. Unlike everything else here an unknown key draws
+  /// nothing rather than falling back to itself: a stray `packsAllOwned`
+  /// on screen is worse than the joke going untold.
+  String? packNote(AppMessage message) {
+    String arg(int i) => i < message.args.length ? message.args[i] : '';
+    return switch (message.key) {
+      'packsAllOwnedSims4' => packsAllOwnedSims4(arg(0), arg(1)),
+      _ => null,
+    };
+  }
 
   String contentLabel(String key) => switch (key) {
         'CAS parts' => contentCasParts,
@@ -114,6 +138,12 @@ extension AppText on L {
       'shopNeedsFolder' => shopNeedsFolder(arg(0)),
       'shopListingNotFound' => errorShopListingNotFound,
       'shopListingUnknownGame' => errorShopListingUnknownGame,
+      'errorPackToggleFailed' => errorPackToggleFailed(arg(0)),
+      'errorPackNoUserData' => errorPackNoUserData,
+      'errorPackNeedsAdmin' => errorPackNeedsAdmin,
+      'errorPackNotSupported' => errorPackNotSupported,
+      'errorPackIsTheGame' => errorPackIsTheGame,
+      'errorPackToggleRefused' => errorPackToggleRefused,
       _ => '$message',
     };
   }

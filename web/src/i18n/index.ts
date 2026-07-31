@@ -1,9 +1,10 @@
-// The ten languages the site ships, and how a page reaches its strings.
+// The eleven languages the site ships, and how a page reaches its strings.
 //
 // The dictionaries are flat dot-key JSON, one file per language, and English is
 // the template: every other file has to carry exactly its keys (test/site_test.dart
 // pins that). Values may contain markup, so most of them are drawn with set:html.
 import de from './de.json';
+import el from './el.json';
 import en from './en.json';
 import es from './es.json';
 import fr from './fr.json';
@@ -15,7 +16,7 @@ import ru from './ru.json';
 import zh from './zh.json';
 
 /// English is the site root rather than /en/, but it is still a locale here.
-export const locales = ['en', 'zh', 'es', 'pt', 'fr', 'de', 'it', 'ru', 'pl', 'ja'] as const;
+export const locales = ['en', 'zh', 'es', 'pt', 'fr', 'de', 'it', 'ru', 'pl', 'ja', 'el'] as const;
 
 export type Locale = (typeof locales)[number];
 
@@ -33,6 +34,7 @@ export const localeNames: Record<Locale, string> = {
   ru: 'Русский',
   pl: 'Polski',
   ja: '日本語',
+  el: 'Ελληνικά',
 };
 
 const dictionaries: Record<Locale, Record<string, string>> = {
@@ -46,6 +48,7 @@ const dictionaries: Record<Locale, Record<string, string>> = {
   ru,
   pl,
   ja,
+  el,
 };
 
 export interface Translate {
@@ -127,7 +130,7 @@ export function localePath(locale: Locale, base = ''): string {
   return locale === defaultLocale ? `/${base}` : `/${locale}/${base}`;
 }
 
-/// The nine non-English routes a [lang] page builds.
+/// The ten non-English routes a [lang] page builds.
 export function translatedRoutes() {
   return locales
     .filter((code) => code !== defaultLocale)

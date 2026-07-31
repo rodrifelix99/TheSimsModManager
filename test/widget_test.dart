@@ -760,4 +760,47 @@ void main() {
       expect(find.textContaining('running as administrator'), findsNothing);
     });
   });
+
+  testWidgets('the sort menu sinks the disabled mods to the bottom',
+      (tester) async {
+    tester.view.physicalSize = const Size(1280, 824);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    SharedPreferences.setMockInitialValues({'soundEffects': false});
+    final tempDir = Directory.systemTemp.createTempSync('mod_manager_sort_ui');
+    addTearDown(() => tempDir.deleteSync(recursive: true));
+    // Named so that the switched-off one leads the library while the
+    // order is alphabetical, and has to move to prove anything.
+    File(p.join(tempDir.path, 'aaa.package$disabledSuffix'))
+        .writeAsStringSync('bytes');
+    File(p.join(tempDir.path, 'zzz.package')).writeAsStringSync('bytes');
+
+    final registry = GameRegistry([_FakeAdapter(tempDir)]);
+    final settings = await SettingsStore.load();
+    await tester.runAsync(() async {
+      await tester
+          .pumpWidget(ModManagerApp(registry: registry, settings: settings));
+    });
+    await _until(tester, find.text('aaa'));
+    await tester.pump(const Duration(milliseconds: 400));
+
+    double reading(String title) => tester.getTopLeft(find.text(title)).dx;
+    expect(reading('aaa'), lessThan(reading('zzz')));
+
+    // Frames rather than one long pump: the menu route ignores pointers
+    // until its own animation reports itself finished, which takes a
+    // frame after the clock says it should have.
+    Future<void> frames() async {
+      for (var i = 0; i < 6; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    }
+
+    await tester.tap(find.byTooltip('Sort'));
+    await frames();
+    await tester.tap(find.text('Disabled ones last'));
+    await frames();
+
+    expect(reading('zzz'), lessThan(reading('aaa')));
+  });
 }

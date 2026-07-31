@@ -8,6 +8,7 @@ import '../core/deep_link.dart';
 import '../core/game_registry.dart';
 import '../services/analytics.dart';
 import '../services/mod_shop.dart';
+import '../services/reachability.dart';
 import '../services/settings_store.dart';
 import 'app_controller.dart';
 import 'l10n.dart';
@@ -45,6 +46,7 @@ class ModManagerApp extends StatefulWidget {
     this.deepLinks,
     this.onBrightnessChanged,
     this.checkElevated,
+    this.probeServices,
   });
 
   final GameRegistry registry;
@@ -86,6 +88,11 @@ class ModManagerApp extends StatefulWidget {
   /// runner, which is the only way to cover it at all.
   final Future<bool> Function()? checkElevated;
 
+  /// Whether our own services answer from this machine; null means
+  /// really ask them. Injectable so a test can have the blocked case,
+  /// which is otherwise only reachable from inside a country.
+  final Future<Reachability> Function(String? mirrorBase)? probeServices;
+
   @override
   State<ModManagerApp> createState() => _ModManagerAppState();
 }
@@ -99,7 +106,8 @@ class _ModManagerAppState extends State<ModManagerApp> {
       fetchListing: widget.fetchListing,
       downloadShop: widget.downloadShop,
       reportDownload: widget.reportDownload,
-      checkElevated: widget.checkElevated);
+      checkElevated: widget.checkElevated,
+      probeServices: widget.probeServices);
 
   /// The language and theme currently rendered. Mirrored out of the
   /// controller rather than read from it during build: this widget sits

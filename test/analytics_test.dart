@@ -383,4 +383,54 @@ void main() {
     expect(analytics.enabled, isFalse);
     expect(analytics.isEnabled('update-check', fallback: true), isTrue);
   });
+
+  test('an update records how the download was fetched, then forgets it',
+      () async {
+    // The click wrote this on the previous run; this launch is where the
+    // download either worked or didn't, so this is where it is reported.
+    final settings = await freshStore({
+      'analytics.lastRunVersion': '0.0.1',
+      'update.path': 'mirror',
+    });
+    final post = RecordingPost();
+    final analytics = Analytics(settings: settings, post: post.call);
+    await analytics.init();
+    await analytics.flush();
+
+    final updated = post.events.firstWhere((e) => e['event'] == 'app_updated');
+    expect((updated['properties'] as Map)['via'], 'mirror');
+    // Cleared, or the next update would be credited to this click.
+    expect(settings.lastUpdatePath, isNull);
+  });
+
+  test('an update nobody pressed the button for reads as unknown', () async {
+    // A package manager, a re-download, someone else's mirror.
+    final settings = await freshStore({'analytics.lastRunVersion': '0.0.1'});
+    final post = RecordingPost();
+    final analytics = Analytics(settings: settings, post: post.call);
+    await analytics.init();
+    await analytics.flush();
+
+    final updated = post.events.firstWhere((e) => e['event'] == 'app_updated');
+    expect((updated['properties'] as Map)['via'], 'unknown');
+  });
+
+  test('a launch with no update keeps the marker for the update that follows',
+      () async {
+    // Pressed the button, then reopened the app before running the
+    // installer. Clearing here would report the eventual update as
+    // `unknown`, and a download slow enough to be put off is exactly the
+    // one worth measuring.
+    final settings = await freshStore({
+      'analytics.lastRunVersion': appVersion,
+      'update.path': 'mirror',
+    });
+    final post = RecordingPost();
+    final analytics = Analytics(settings: settings, post: post.call);
+    await analytics.init();
+    await analytics.flush();
+
+    expect(post.eventNames, isNot(contains('app_updated')));
+    expect(settings.lastUpdatePath, 'mirror');
+  });
 }

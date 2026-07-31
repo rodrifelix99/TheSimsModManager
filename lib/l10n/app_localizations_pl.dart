@@ -258,6 +258,21 @@ class LPl extends L {
   String get viewFolders => 'Foldery';
 
   @override
+  String get sortTooltip => 'Sortuj';
+
+  @override
+  String get sortByName => 'Nazwa (A–Z)';
+
+  @override
+  String get sortByRecent => 'Ostatnio zmienione';
+
+  @override
+  String get sortBySize => 'Najpierw największe';
+
+  @override
+  String get sortDisabledLast => 'Wyłączone na końcu';
+
+  @override
   String get libraryRefresh => 'Odśwież';
 
   @override
@@ -695,6 +710,25 @@ class LPl extends L {
       'Zostawia wyłączone mody widoczne w bibliotece, zamiast je chować';
 
   @override
+  String get prefDisabledSuffixTitle => 'Znacznik wyłączonych modów';
+
+  @override
+  String get prefDisabledSuffixDesc =>
+      'To, co dopisuje się do nazwy pliku, gdy wyłączasz moda. Zmień, żeby pasowało do innego menedżera (CC Magic używa .off); aplikacja i tak czyta oba, a już wyłączone mody zachowują swoje nazwy';
+
+  @override
+  String get prefDisabledSuffixInvalid =>
+      'Musi być kropka i kilka liter albo cyfr, na przykład .off';
+
+  @override
+  String get prefExperimentalPacksTitle =>
+      'Eksperymentalne przełączniki pakietów';
+
+  @override
+  String get prefExperimentalPacksDesc =>
+      'Pozwala wyłączać pakiety tej gry. Niesprawdzone na tym wydaniu, a okolica ograna z pakietem może się bez niego zepsuć - najpierw zrób kopię zapisów';
+
+  @override
   String get prefScanArtworkTitle => 'Zaglądaj do środka modów';
 
   @override
@@ -1031,6 +1065,31 @@ class LPl extends L {
       'Ten mod jest do gry, której ta wersja apki jeszcze nie zna. Spróbuj zaktualizować.';
 
   @override
+  String errorPackToggleFailed(String pack) {
+    return 'Nie udało się przełączyć $pack. Zamknij grę i spróbuj jeszcze raz.';
+  }
+
+  @override
+  String get errorPackNoUserData =>
+      'Nie znalazłem folderu z ustawieniami gry, więc nie ma gdzie zapisać, które pakiety pominąć. Odpal najpierw grę raz.';
+
+  @override
+  String get errorPackNeedsAdmin =>
+      'Windows nie pozwolił apce tego zmienić. Uruchom ją jako administrator i spróbuj jeszcze raz.';
+
+  @override
+  String get errorPackNotSupported =>
+      'W tym systemie nie da się włączać ani wyłączać pakietów.';
+
+  @override
+  String get errorPackIsTheGame =>
+      'To pakiet, z którego uruchamia się gra, więc musi zostać włączony.';
+
+  @override
+  String get errorPackToggleRefused =>
+      'Nie udało się zmienić tego pakietu. Zamknij grę i spróbuj jeszcze raz.';
+
+  @override
   String get eraClassic => 'Klasyka';
 
   @override
@@ -1044,6 +1103,95 @@ class LPl extends L {
 
   @override
   String get eraMedieval => 'Średniowiecze';
+
+  @override
+  String get navPacks => 'Pakiety';
+
+  @override
+  String get packsScanning => 'Szukam twoich pakietów…';
+
+  @override
+  String get packsEmptyTitle => 'Nie znaleziono pakietów';
+
+  @override
+  String packsEmptyBody(String game) {
+    return 'Albo $game nie jest zainstalowana tam, gdzie apka może ją znaleźć, albo nie ma jeszcze przy niej żadnych pakietów.';
+  }
+
+  @override
+  String get packsRescan => 'Sprawdź ponownie';
+
+  @override
+  String packsSummary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Zainstalowanych $count pakietu',
+      many: 'Zainstalowanych $count pakietów',
+      few: 'Zainstalowane $count pakiety',
+      one: 'Zainstalowany $count pakiet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String packsSummaryWithOff(int count, int off) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pakietu włączonych',
+      many: '$count pakietów włączonych',
+      few: '$count pakiety włączone',
+      one: '$count pakiet włączony',
+    );
+    return '$_temp0, $off wyłączonych';
+  }
+
+  @override
+  String get packsOff => 'Wyłączony';
+
+  @override
+  String get packsInstalled => 'Zainstalowany';
+
+  @override
+  String get packsNeedAdmin =>
+      'Włączanie i wyłączanie tych pakietów wymaga uprawnień administratora, bo właśnie tam gra trzyma swoją listę. Uruchom apkę jako administrator, żeby je zmieniać - w międzyczasie przeciąganie i upuszczanie przestaje działać, więc warto potem wrócić.';
+
+  @override
+  String get packsExperimentalTitle => 'Wyłączanie ich jest eksperymentalne';
+
+  @override
+  String get packsExperimentalOff =>
+      'Działa tak, jak zawsze działało w tej grze, ale nikt nie sprawdzał tego na tym wydaniu, a okolica, w którą grałeś z pakietem, może się zepsuć, gdy otworzysz ją bez niego. Samo oglądanie jest bezpieczne. Włącz eksperymentalne przełączniki w Ustawieniach, jeśli mimo to chcesz spróbować.';
+
+  @override
+  String get packsExperimentalOn =>
+      'Najpierw zrób kopię swoich okolic. Okolica, w którą grałeś z pakietem, może się zepsuć, gdy otworzysz ją bez niego, a stąd się tego nie cofnie - ponowne włączenie pakietu nie zawsze przywraca zapis.';
+
+  @override
+  String packsRestartNotice(String game) {
+    return 'Uruchom $game ponownie, żeby to zadziałało. Pakiety i tak zostają zainstalowane.';
+  }
+
+  @override
+  String packsAllOwnedSims4(String expansions, String gamePacks) {
+    return 'Dodatki: $expansions. Pakiety rozgrywki: $gamePacks. Wszystko kupione, jasne.';
+  }
+
+  @override
+  String get packKindExpansions => 'Dodatki';
+
+  @override
+  String get packKindGamePacks => 'Pakiety rozgrywki';
+
+  @override
+  String get packKindStuffPacks => 'Akcesoria';
+
+  @override
+  String get packKindKits => 'Zestawy';
+
+  @override
+  String get packKindFreePacks => 'Darmowe pakiety';
 
   @override
   String get navSaves => 'Zapisy';

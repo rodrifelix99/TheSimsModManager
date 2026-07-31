@@ -34,7 +34,7 @@ const BUCKET = 'thesimsmodmanager.firebasestorage.app';
 const API_KEY = 'AIzaSyDsC3_mQFDUXj6pmKMw1_xf4_XigC82smE';
 
 /// The site's languages. English is the root, the rest sit under their code.
-const LOCALES = ['en', 'zh', 'es', 'pt', 'fr', 'de', 'it', 'ru', 'pl', 'ja'];
+const LOCALES = ['en', 'zh', 'es', 'pt', 'fr', 'de', 'it', 'ru', 'pl', 'ja', 'el'];
 
 /// This arrives out of a URL a stranger wrote and is about to become a path.
 const LISTING_ID = /^[A-Za-z0-9_-]{1,64}$/;

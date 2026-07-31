@@ -257,6 +257,21 @@ class LRu extends L {
   String get viewFolders => 'Папки';
 
   @override
+  String get sortTooltip => 'Сортировка';
+
+  @override
+  String get sortByName => 'По названию (А–Я)';
+
+  @override
+  String get sortByRecent => 'Недавно изменённые';
+
+  @override
+  String get sortBySize => 'Сначала большие';
+
+  @override
+  String get sortDisabledLast => 'Выключенные в конце';
+
+  @override
   String get libraryRefresh => 'Обновить';
 
   @override
@@ -696,6 +711,25 @@ class LRu extends L {
       'Оставляет выключенные моды видимыми в библиотеке, а не прячет их';
 
   @override
+  String get prefDisabledSuffixTitle => 'Метка выключенных модов';
+
+  @override
+  String get prefDisabledSuffixDesc =>
+      'То, что дописывается к имени файла, когда ты выключаешь мод. Поменяй, чтобы совпадало с другим менеджером (CC Magic ставит .off); приложение всё равно читает оба варианта, а уже выключенные моды сохраняют свои имена';
+
+  @override
+  String get prefDisabledSuffixInvalid =>
+      'Нужна точка и несколько букв или цифр, например .off';
+
+  @override
+  String get prefExperimentalPacksTitle =>
+      'Экспериментальные переключатели наборов';
+
+  @override
+  String get prefExperimentalPacksDesc =>
+      'Позволяет выключать наборы этой игры. На этом издании не проверялось, а район, в который играли с набором, без него может сломаться - сначала сделай копию сохранений';
+
+  @override
   String get prefScanArtworkTitle => 'Заглядывать внутрь модов';
 
   @override
@@ -1032,6 +1066,31 @@ class LRu extends L {
       'Этот мод для игры, которую эта версия приложения ещё не знает. Попробуй обновиться.';
 
   @override
+  String errorPackToggleFailed(String pack) {
+    return 'Не получилось переключить $pack. Закрой игру и попробуй ещё раз.';
+  }
+
+  @override
+  String get errorPackNoUserData =>
+      'Не нашли папку с настройками игры, так что негде отметить, какие наборы пропускать. Запусти игру разок сначала.';
+
+  @override
+  String get errorPackNeedsAdmin =>
+      'Windows не дала приложению это изменить. Перезапусти его от имени администратора и попробуй ещё раз.';
+
+  @override
+  String get errorPackNotSupported =>
+      'На этой системе наборы включать и выключать нельзя.';
+
+  @override
+  String get errorPackIsTheGame =>
+      'Это тот набор, из которого запускается игра, так что он должен остаться включённым.';
+
+  @override
+  String get errorPackToggleRefused =>
+      'Не получилось изменить этот набор. Закрой игру и попробуй ещё раз.';
+
+  @override
   String get eraClassic => 'Классика';
 
   @override
@@ -1045,6 +1104,95 @@ class LRu extends L {
 
   @override
   String get eraMedieval => 'Средневековье';
+
+  @override
+  String get navPacks => 'Наборы';
+
+  @override
+  String get packsScanning => 'Ищем твои наборы…';
+
+  @override
+  String get packsEmptyTitle => 'Наборы не найдены';
+
+  @override
+  String packsEmptyBody(String game) {
+    return 'Либо $game установлена не там, где приложение может её найти, либо рядом с ней пока нет наборов.';
+  }
+
+  @override
+  String get packsRescan => 'Проверить заново';
+
+  @override
+  String packsSummary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Установлено $count набора',
+      many: 'Установлено $count наборов',
+      few: 'Установлено $count набора',
+      one: 'Установлен $count набор',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String packsSummaryWithOff(int count, int off) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count набора включено',
+      many: '$count наборов включено',
+      few: '$count набора включено',
+      one: '$count набор включён',
+    );
+    return '$_temp0, $off выключено';
+  }
+
+  @override
+  String get packsOff => 'Выключен';
+
+  @override
+  String get packsInstalled => 'Установлен';
+
+  @override
+  String get packsNeedAdmin =>
+      'Чтобы включать и выключать эти наборы, нужны права администратора - именно там игра хранит свой список. Перезапусти приложение от имени администратора, чтобы их менять: пока так, перетаскивание не работает, так что потом лучше вернуться обратно.';
+
+  @override
+  String get packsExperimentalTitle => 'Выключать их - дело экспериментальное';
+
+  @override
+  String get packsExperimentalOff =>
+      'Работает так же, как всегда работало в этой игре, но на этом издании никто не проверял, а район, в который ты играл с набором, может сломаться, если открыть его без него. Просто смотреть безопасно. Включи экспериментальные переключатели в Настройках, если всё равно хочешь попробовать.';
+
+  @override
+  String get packsExperimentalOn =>
+      'Сначала сделай копию своих районов. Район, в который ты играл с набором, может сломаться, если открыть его без него, и отсюда это уже не отменить: обратно включённый набор не всегда возвращает сохранение.';
+
+  @override
+  String packsRestartNotice(String game) {
+    return 'Перезапусти $game, чтобы это сработало. Наборы в любом случае остаются установленными.';
+  }
+
+  @override
+  String packsAllOwnedSims4(String expansions, String gamePacks) {
+    return 'Дополнений: $expansions. Игровых наборов: $gamePacks. Всё куплено, конечно.';
+  }
+
+  @override
+  String get packKindExpansions => 'Дополнения';
+
+  @override
+  String get packKindGamePacks => 'Игровые наборы';
+
+  @override
+  String get packKindStuffPacks => 'Каталоги';
+
+  @override
+  String get packKindKits => 'Комплекты';
+
+  @override
+  String get packKindFreePacks => 'Бесплатные наборы';
 
   @override
   String get navSaves => 'Сохранения';

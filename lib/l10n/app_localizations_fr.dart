@@ -250,6 +250,21 @@ class LFr extends L {
   String get viewFolders => 'Dossiers';
 
   @override
+  String get sortTooltip => 'Trier';
+
+  @override
+  String get sortByName => 'Nom (A–Z)';
+
+  @override
+  String get sortByRecent => 'Modifiés récemment';
+
+  @override
+  String get sortBySize => 'Les plus gros d’abord';
+
+  @override
+  String get sortDisabledLast => 'Les désactivés à la fin';
+
+  @override
   String get libraryRefresh => 'Actualiser';
 
   @override
@@ -675,6 +690,25 @@ class LFr extends L {
       'Garde les mods désactivés visibles dans la bibliothèque au lieu de les cacher';
 
   @override
+  String get prefDisabledSuffixTitle => 'Marqueur des mods désactivés';
+
+  @override
+  String get prefDisabledSuffixDesc =>
+      'Ce qui s’ajoute au nom du fichier quand tu désactives un mod. Change-le pour coller à un autre gestionnaire (CC Magic utilise .off) ; l’appli lit les deux de toute façon, et les mods déjà désactivés gardent le nom qu’ils ont';
+
+  @override
+  String get prefDisabledSuffixInvalid =>
+      'Il faut un point et quelques lettres ou chiffres, comme .off';
+
+  @override
+  String get prefExperimentalPacksTitle =>
+      'Interrupteurs de packs expérimentaux';
+
+  @override
+  String get prefExperimentalPacksDesc =>
+      'Permet de désactiver les packs de ce jeu. Non testé sur cette édition, et un quartier joué avec un pack peut casser sans lui : sauvegarde tes parties d’abord';
+
+  @override
   String get prefScanArtworkTitle => 'Analyser l’intérieur des mods';
 
   @override
@@ -1009,6 +1043,31 @@ class LFr extends L {
       'Ce mod est pour un jeu que cette version de l’appli ne connaît pas encore. Essaie de la mettre à jour.';
 
   @override
+  String errorPackToggleFailed(String pack) {
+    return 'Impossible de changer $pack. Ferme le jeu et réessaie.';
+  }
+
+  @override
+  String get errorPackNoUserData =>
+      'Le dossier de réglages du jeu est introuvable, donc il n’y a nulle part où noter les packs à ignorer. Lance le jeu une fois d’abord.';
+
+  @override
+  String get errorPackNeedsAdmin =>
+      'Windows n’a pas laissé l’appli changer ça. Relance-la en tant qu’administrateur et réessaie.';
+
+  @override
+  String get errorPackNotSupported =>
+      'Sur ce système, les packs ne peuvent pas être activés ou désactivés.';
+
+  @override
+  String get errorPackIsTheGame =>
+      'C’est le pack depuis lequel le jeu démarre, il doit rester actif.';
+
+  @override
+  String get errorPackToggleRefused =>
+      'Impossible de changer ce pack. Ferme le jeu et réessaie.';
+
+  @override
   String get eraClassic => 'Classique';
 
   @override
@@ -1022,6 +1081,91 @@ class LFr extends L {
 
   @override
   String get eraMedieval => 'Médiéval';
+
+  @override
+  String get navPacks => 'Packs';
+
+  @override
+  String get packsScanning => 'Recherche de tes packs…';
+
+  @override
+  String get packsEmptyTitle => 'Aucun pack trouvé';
+
+  @override
+  String packsEmptyBody(String game) {
+    return 'Soit $game n’est pas installé là où l’appli peut le voir, soit il n’y a pas encore de packs à côté.';
+  }
+
+  @override
+  String get packsRescan => 'Vérifier à nouveau';
+
+  @override
+  String packsSummary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count packs installés',
+      one: '1 pack installé',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String packsSummaryWithOff(int count, int off) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count packs actifs',
+      one: '1 pack actif',
+    );
+    return '$_temp0, $off désactivés';
+  }
+
+  @override
+  String get packsOff => 'Désactivé';
+
+  @override
+  String get packsInstalled => 'Installé';
+
+  @override
+  String get packsNeedAdmin =>
+      'Activer et désactiver ces packs demande les droits administrateur, parce que c’est là que le jeu garde sa liste. Relance l’appli en tant qu’administrateur pour y toucher : le glisser-déposer ne marche plus pendant ce temps, donc autant revenir en arrière ensuite.';
+
+  @override
+  String get packsExperimentalTitle => 'Les désactiver est expérimental';
+
+  @override
+  String get packsExperimentalOff =>
+      'Ça marche comme ça a toujours marché sur ce jeu, mais personne ne l’a testé sur cette édition, et un quartier auquel tu as joué avec un pack peut casser si tu l’ouvres sans. Les afficher ne risque rien. Active les interrupteurs expérimentaux dans les Réglages si tu veux quand même essayer.';
+
+  @override
+  String get packsExperimentalOn =>
+      'Sauvegarde tes quartiers d’abord. Un quartier auquel tu as joué avec un pack peut casser si tu l’ouvres sans, et ça ne se défait pas d’ici : réactiver le pack ne ramène pas toujours la partie.';
+
+  @override
+  String packsRestartNotice(String game) {
+    return 'Redémarre $game pour que ça prenne effet. Tes packs restent installés dans tous les cas.';
+  }
+
+  @override
+  String packsAllOwnedSims4(String expansions, String gamePacks) {
+    return '$expansions packs d’extension. $gamePacks packs de jeu. Tous achetés, évidemment.';
+  }
+
+  @override
+  String get packKindExpansions => 'Packs d’extension';
+
+  @override
+  String get packKindGamePacks => 'Packs de jeu';
+
+  @override
+  String get packKindStuffPacks => 'Packs d’objets';
+
+  @override
+  String get packKindKits => 'Kits';
+
+  @override
+  String get packKindFreePacks => 'Packs gratuits';
 
   @override
   String get navSaves => 'Sauvegardes';

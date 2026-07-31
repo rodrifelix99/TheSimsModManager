@@ -247,6 +247,21 @@ class LEl extends L {
   String get viewFolders => 'Φάκελοι';
 
   @override
+  String get sortTooltip => 'Ταξινόμηση';
+
+  @override
+  String get sortByName => 'Όνομα (A–Z)';
+
+  @override
+  String get sortByRecent => 'Άλλαξαν πρόσφατα';
+
+  @override
+  String get sortBySize => 'Πρώτα τα μεγαλύτερα';
+
+  @override
+  String get sortDisabledLast => 'Τα ανενεργά στο τέλος';
+
+  @override
   String get libraryRefresh => 'Ανανέωση';
 
   @override
@@ -677,6 +692,24 @@ class LEl extends L {
       'Να διατηρούνται ορατά τα ανενεργά mod στη βιβλιοθήκη αντί να κρύβονται';
 
   @override
+  String get prefDisabledSuffixTitle => 'Σήμανση ανενεργών mod';
+
+  @override
+  String get prefDisabledSuffixDesc =>
+      'Αυτό που προστίθεται στο όνομα του αρχείου όταν απενεργοποιείς ένα mod. Άλλαξέ το για να ταιριάζει με άλλον διαχειριστή (το CC Magic βάζει .off)· η εφαρμογή διαβάζει ούτως ή άλλως και τα δύο, και όσα mod έχεις ήδη απενεργοποιήσει κρατούν το όνομά τους';
+
+  @override
+  String get prefDisabledSuffixInvalid =>
+      'Χρειάζεται μια τελεία και λίγα γράμματα ή ψηφία, όπως .off';
+
+  @override
+  String get prefExperimentalPacksTitle => 'Πειραματικοί διακόπτες πακέτων';
+
+  @override
+  String get prefExperimentalPacksDesc =>
+      'Επιτρέπει να σβήνεις τα πακέτα αυτού του παιχνιδιού. Αδοκίμαστο σε αυτή την έκδοση, και μια γειτονιά που παίχτηκε με κάποιο πακέτο μπορεί να χαλάσει χωρίς αυτό - κράτα πρώτα αντίγραφα';
+
+  @override
   String get prefScanArtworkTitle => 'Σάρωση εντός των mod';
 
   @override
@@ -1011,6 +1044,31 @@ class LEl extends L {
       'Αυτό το mod είναι για παιχνίδι που δεν γνωρίζει ακόμα αυτή η έκδοση της εφαρμογής. Δοκιμάστε να την ενημερώσετε.';
 
   @override
+  String errorPackToggleFailed(String pack) {
+    return 'Δεν μπόρεσα να αλλάξω το $pack. Κλείσε το παιχνίδι και δοκίμασε ξανά.';
+  }
+
+  @override
+  String get errorPackNoUserData =>
+      'Δεν βρίσκω τον φάκελο ρυθμίσεων του παιχνιδιού, οπότε δεν υπάρχει πού να σημειωθεί ποια πακέτα να παραλειφθούν. Τρέξε πρώτα το παιχνίδι μία φορά.';
+
+  @override
+  String get errorPackNeedsAdmin =>
+      'Τα Windows δεν άφησαν την εφαρμογή να το αλλάξει. Ξεκίνα την ξανά ως διαχειριστής και δοκίμασε πάλι.';
+
+  @override
+  String get errorPackNotSupported =>
+      'Σε αυτό το σύστημα τα πακέτα δεν ανάβουν και δεν σβήνουν.';
+
+  @override
+  String get errorPackIsTheGame =>
+      'Αυτό είναι το πακέτο από το οποίο τρέχει το παιχνίδι, οπότε πρέπει να μείνει αναμμένο.';
+
+  @override
+  String get errorPackToggleRefused =>
+      'Δεν μπόρεσα να αλλάξω αυτό το πακέτο. Κλείσε το παιχνίδι και δοκίμασε ξανά.';
+
+  @override
   String get eraClassic => 'Κλασικό';
 
   @override
@@ -1024,6 +1082,91 @@ class LEl extends L {
 
   @override
   String get eraMedieval => 'Μεσαιωνικό';
+
+  @override
+  String get navPacks => 'Πακέτα';
+
+  @override
+  String get packsScanning => 'Ψάχνω τα πακέτα σου…';
+
+  @override
+  String get packsEmptyTitle => 'Δεν βρέθηκαν πακέτα';
+
+  @override
+  String packsEmptyBody(String game) {
+    return 'Είτε το $game δεν είναι εγκατεστημένο εκεί που μπορεί να το δει η εφαρμογή, είτε δεν υπάρχουν ακόμα πακέτα δίπλα του.';
+  }
+
+  @override
+  String get packsRescan => 'Έλεγχος ξανά';
+
+  @override
+  String packsSummary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count πακέτα εγκατεστημένα',
+      one: '1 πακέτο εγκατεστημένο',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String packsSummaryWithOff(int count, int off) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count πακέτα ενεργά',
+      one: '1 πακέτο ενεργό',
+    );
+    return '$_temp0, $off απενεργοποιημένα';
+  }
+
+  @override
+  String get packsOff => 'Ανενεργό';
+
+  @override
+  String get packsInstalled => 'Εγκατεστημένο';
+
+  @override
+  String get packsNeedAdmin =>
+      'Για να ανάβεις και να σβήνεις αυτά τα πακέτα χρειάζονται δικαιώματα διαχειριστή, γιατί εκεί κρατάει τη λίστα του το παιχνίδι. Ξεκίνα την εφαρμογή ξανά ως διαχειριστής για να τα αλλάξεις - στο μεταξύ το drag and drop σταματάει να δουλεύει, οπότε αξίζει να γυρίσεις πίσω μετά.';
+
+  @override
+  String get packsExperimentalTitle => 'Το να τα σβήνεις είναι πειραματικό';
+
+  @override
+  String get packsExperimentalOff =>
+      'Δουλεύει όπως δούλευε πάντα σε αυτό το παιχνίδι, αλλά κανείς δεν το έχει δοκιμάσει σε αυτή την έκδοση, και μια γειτονιά που έπαιξες με κάποιο πακέτο μπορεί να χαλάσει αν την ανοίξεις χωρίς αυτό. Το να τα βλέπεις είναι ασφαλές. Άνοιξε τους πειραματικούς διακόπτες στις Ρυθμίσεις αν θέλεις να το δοκιμάσεις έτσι κι αλλιώς.';
+
+  @override
+  String get packsExperimentalOn =>
+      'Κράτα πρώτα αντίγραφο των γειτονιών σου. Μια γειτονιά που έπαιξες με κάποιο πακέτο μπορεί να χαλάσει αν την ανοίξεις χωρίς αυτό, και από εδώ δεν αναιρείται - το να ξανανάψεις το πακέτο δεν φέρνει πάντα πίσω το αρχείο.';
+
+  @override
+  String packsRestartNotice(String game) {
+    return 'Κάνε επανεκκίνηση το $game για να ισχύσει. Τα πακέτα σου μένουν εγκατεστημένα έτσι κι αλλιώς.';
+  }
+
+  @override
+  String packsAllOwnedSims4(String expansions, String gamePacks) {
+    return '$expansions πακέτα επέκτασης. $gamePacks πακέτα παιχνιδιού. Τα αγόρασες όλα, φυσικά.';
+  }
+
+  @override
+  String get packKindExpansions => 'Πακέτα επέκτασης';
+
+  @override
+  String get packKindGamePacks => 'Πακέτα παιχνιδιού';
+
+  @override
+  String get packKindStuffPacks => 'Πακέτα αντικειμένων';
+
+  @override
+  String get packKindKits => 'Κιτ';
+
+  @override
+  String get packKindFreePacks => 'Δωρεάν πακέτα';
 
   @override
   String get navSaves => 'Αποθηκευμένα';

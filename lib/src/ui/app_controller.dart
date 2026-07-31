@@ -12,6 +12,7 @@ import '../core/deep_link.dart';
 import '../core/demo_library.dart';
 import '../core/folder_access.dart';
 import '../core/game_adapter.dart';
+import '../core/game_pack.dart';
 import '../core/game_registry.dart';
 import '../core/mod.dart';
 import '../core/install_destination.dart';
@@ -28,10 +29,11 @@ import '../services/disk_space.dart';
 import '../services/elevation.dart';
 import '../services/github.dart';
 import '../services/mod_shop.dart';
+import '../services/reachability.dart';
 import '../services/settings_store.dart';
 import '../services/sfx.dart';
 
-enum AppScreen { library, detail, settings, shop, saves }
+enum AppScreen { library, detail, settings, shop, saves, packs }
 
 /// Which half of the library the Enabled/Disabled stats are showing.
 /// [all] is both, i.e. no narrowing at all.
@@ -42,6 +44,11 @@ enum ModStateFilter { all, enabled, disabled }
 /// in - the shape of the mods directory, which the folder chips can only
 /// filter by, one at a time.
 enum LibraryLayout { grid, list, folders }
+
+/// The order the mods that got past the filters are drawn in. [name] is
+/// the file name A to Z, which is how the library read before there was
+/// anything to choose.
+enum LibrarySort { name, recent, size }
 
 /// The saves screen's sub-tabs. Which ones a save actually offers depends
 /// on what its files gave up ([AppController.availableSavesTabs]): every
@@ -160,6 +167,7 @@ class AppController extends ChangeNotifier {
         downloadShop,
     Future<void> Function(String id)? reportDownload,
     Future<bool> Function()? checkElevated,
+    Future<Reachability> Function(String? mirrorBase)? probeServices,
     int artworkBudgetBytes = defaultArtworkBudgetBytes,
   })  : _artworkBudgetBytes = artworkBudgetBytes,
         _sfx = sfx ?? Sfx(),
@@ -171,10 +179,14 @@ class AppController extends ChangeNotifier {
         _fetchListing = fetchListing ?? fetchShopListing,
         _downloadShop = downloadShop ?? downloadShopFile,
         _reportDownload = reportDownload ?? reportShopDownload,
+        _probeServices = probeServices ?? probeReachability,
         _adapter = registry.byGameId('sims4') ?? registry.adapters.first {
+    // Before anything lists a folder: every read and write of the disabled
+    // marker asks the core layer for it, and the answer is this preference.
+    disabledSuffix = settings.disabledSuffix ?? defaultDisabledSuffix;
     // Remote flags may land after the first frame (announcement banner,
     // kill switches); repaint when they do.
-    this.analytics.onFlagsChanged = notifyListeners;
+    this.analytics.onFlagsChanged = _onFlagsChanged;
   }
 
   final GameRegistry registry;
@@ -215,6 +227,83 @@ class AppController extends ChangeNotifier {
   /// creator's download count comes from; injectable so tests count
   /// nothing and touch no network.
   final Future<void> Function(String id) _reportDownload;
+
+  /// Asks whether our own services answer from this machine; injectable
+  /// for the same reason as [_checkUpdates].
+  final Future<Reachability> Function(String? mirrorBase) _probeServices;
+
+  /// What the last probe found, seeded in [init] from what the previous
+  /// launch stored so the first frame is already right. Everything reads
+  /// as reachable until something says otherwise.
+  Reachability reachability = Reachability.unknown;
+
+  /// Which run of the probe is the one still worth listening to. It is
+  /// never awaited and takes seconds, and a scenario picked or a flag
+  /// landing meanwhile starts another - so the launch probe can answer
+  /// last and overwrite a newer answer with what it set out to find
+  /// before any of that happened.
+  int _reachabilityRun = 0;
+
+  /// Whether to offer The Exchange at all. False hides the sidebar card,
+  /// the shelves and the install buttons rather than letting the user
+  /// find out by pressing them: from mainland China nothing Google-hosted
+  /// answers, and retrying is the one thing that cannot help.
+  bool get shopReachable => reachability.shop;
+
+  /// Whether the website answers - the creator portal and the shareable
+  /// page every listing has.
+  bool get siteReachable => reachability.site;
+
+  /// Whether a release's files can be fetched from where GitHub keeps
+  /// them. False is what sends the update button through [downloadMirror].
+  bool get downloadsReachable => reachability.downloads;
+
+  /// Where to send a download that cannot be fetched from GitHub
+  /// directly, from the `download-mirror` flag's payload
+  /// (`{"base": "https://.../"}`). The base is prepended to the whole
+  /// asset URL, which is the form every GitHub accelerator takes.
+  ///
+  /// Remote rather than built in, because the accelerators this points
+  /// at are run by strangers and go down: a mirror that stops working is
+  /// a payload edit, not a release. Off by default, so nothing is routed
+  /// anywhere until someone sets one.
+  String? get downloadMirror {
+    final payload = analytics.payloadOf('download-mirror');
+    if (payload is! Map) return null;
+    final base = payload['base'];
+    // Anything but https would be handing an installer to plain HTTP.
+    return base is String && base.startsWith('https://') ? base : null;
+  }
+
+  /// The answer a developer picked in Settings instead of asking the
+  /// network, or null to ask it. Null in a release build whatever is
+  /// stored, since [SettingsStore.debugReachability] reads null there.
+  ///
+  /// What a scenario says about the mirror stands even where none is
+  /// configured. Nulling it there collapsed the list into half its
+  /// length - the scenarios pair off differing in that field alone - and
+  /// bought nothing: [updateDownload] refuses a null base before it ever
+  /// reads this. Watching a download actually take the mirror still
+  /// needs a `download-mirror` payload for it to point at.
+  Reachability? get _forcedReachability =>
+      debugReachabilityFor(settings.debugReachability);
+
+  /// Whether [reachability] holds something picked in Settings rather
+  /// than found. Anything that reports or records a reachability-derived
+  /// answer has to ask: an invented one must reach neither.
+  bool get _reachabilityForced => _forcedReachability != null;
+
+  /// Picks one of [debugReachabilityScenarios], or null to go back to
+  /// asking the network - which re-probes, so clearing it restores the
+  /// real answer rather than leaving the last invented one on screen.
+  Future<void> setDebugReachability(String? id) async {
+    final before = reachability;
+    await settings.setDebugReachability(id);
+    await _refreshReachability();
+    // Only when it did not already: two scenarios can describe the same
+    // answer, and the row still has to redraw with the new one ticked.
+    if (reachability == before) notifyListeners();
+  }
 
   GameAdapter _adapter;
   GameAdapter get adapter => _adapter;
@@ -364,6 +453,16 @@ class AppController extends ChangeNotifier {
         _ => LibraryLayout.grid,
       };
 
+  LibrarySort get sort => switch (settings.librarySort) {
+        'recent' => LibrarySort.recent,
+        'size' => LibrarySort.size,
+        _ => LibrarySort.name,
+      };
+
+  /// Whether the switched-off mods sink to the end of the library. Off by
+  /// default: they sort in with the rest, which is where they always were.
+  bool get disabledLast => settings.disabledLast;
+
   /// The language Settings is forcing, or null to follow the OS (which is
   /// what a fresh install does: Flutter resolves the system locale against
   /// the shipped translations and falls back to English).
@@ -476,7 +575,7 @@ class AppController extends ChangeNotifier {
     final q = query.trim().toLowerCase();
     final key = '$_libraryStamp|$category|$folder|$conflictsOnly'
         '|$advisoriesOnly|$tooDeepOnly|$stateFilter'
-        '|${settings.showDisabled}|$q';
+        '|${settings.showDisabled}|${sort.name}|$disabledLast|$q';
     final cached = _filtered;
     if (cached != null && _filteredKey == key) return cached;
     // Asking for the disabled ones outranks the preference that hides
@@ -498,10 +597,55 @@ class AppController extends ChangeNotifier {
                 mod.name.toLowerCase().contains(q) ||
                 humanizeModName(mod.name).toLowerCase().contains(q)))
           mod,
-    ];
+    ]..sort(_compareForLibrary);
     _filtered = result;
     _filteredKey = key;
     return result;
+  }
+
+  /// The library's order: the disabled ones last when that is asked for,
+  /// then whatever [sort] says, then the file name - which every mod has,
+  /// so two mods never come out in an order that depends on the run.
+  /// (Dart's sort isn't stable, so the tiebreak isn't decoration.)
+  int _compareForLibrary(Mod a, Mod b) {
+    if (disabledLast && a.isEnabled != b.isEnabled) return a.isEnabled ? -1 : 1;
+    final ranked = switch (sort) {
+      LibrarySort.name => 0,
+      LibrarySort.recent => _byNewest(a.modifiedAt, b.modifiedAt),
+      // A file whose size never got read sorts with the smallest rather
+      // than jumping the queue.
+      LibrarySort.size => (b.sizeBytes ?? -1).compareTo(a.sizeBytes ?? -1),
+    };
+    return ranked != 0
+        ? ranked
+        : a.name.toLowerCase().compareTo(b.name.toLowerCase());
+  }
+
+  static int _byNewest(DateTime? a, DateTime? b) {
+    if (a == null || b == null) return a == b ? 0 : (a == null ? 1 : -1);
+    return b.compareTo(a);
+  }
+
+  /// Reorders the library. The mods themselves are untouched: this is the
+  /// order they are drawn in, so nothing needs re-reading from disk.
+  Future<void> setSort(LibrarySort value) async {
+    if (value != sort) {
+      playSound(UiSound.cycle);
+      analytics.capture('library_sorted',
+          {'sort': value.name, 'disabled_last': disabledLast});
+    }
+    await settings.setLibrarySort(value.name);
+    notifyListeners();
+  }
+
+  Future<void> setDisabledLast(bool value) async {
+    if (value != disabledLast) {
+      playSound(value ? UiSound.toggleOn : UiSound.toggleOff);
+      analytics.capture(
+          'library_sorted', {'sort': sort.name, 'disabled_last': value});
+    }
+    await settings.setDisabledLast(value);
+    notifyListeners();
   }
 
   /// Category labels present in the current library, 'All' first. A game
@@ -1145,12 +1289,58 @@ class AppController extends ChangeNotifier {
     } catch (_) {}
   }
 
+  /// Where the update button goes, and whether that is a mirror.
+  ///
+  /// GitHub is where every download goes unless it is known not to work
+  /// here - including before anything has been probed at all. The
+  /// release page is the right answer wherever it can be opened: the
+  /// notes are on it and the choice of file is the user's. It is only a
+  /// dead end where the files themselves cannot be fetched, since
+  /// proxying the page would leave every link on it still pointing at
+  /// the host that is refusing - so that case, and only that case, hands
+  /// the mirror this platform's installer directly. A mirror the probe
+  /// could not reach either is no answer: it would swap one dead link
+  /// for another, so the page stays.
+  ({String url, bool mirrored})? get updateDownload {
+    final update = availableUpdate;
+    if (update == null) return null;
+    final mirror = downloadMirror;
+    final asset = update.assetUrl;
+    if (downloadsReachable ||
+        mirror == null ||
+        asset == null ||
+        reachability.mirror == false) {
+      return (url: update.url, mirrored: false);
+    }
+    return (url: '$mirror$asset', mirrored: true);
+  }
+
   void openReleasePage() {
     final update = availableUpdate;
-    if (update == null) return;
-    analytics.capture(
-        'update_download_clicked', {'latest_version': update.version});
-    openUrl(Uri.parse(update.url));
+    final target = updateDownload;
+    if (update == null || target == null) return;
+    // Every one of these is a verdict on a reachability the developer
+    // wrote, when one is forced: which way it routed, what it routed on,
+    // and the path the next launch reads back to say how the update
+    // arrived. The link still opens - that is what was being tested.
+    if (!_reachabilityForced) {
+      analytics.capture('update_download_clicked', {
+        'latest_version': update.version,
+        'mirrored': target.mirrored,
+        // The conditions the routing was decided on, so a click that went
+        // the wrong way can be explained rather than guessed at.
+        'downloads_reachable': downloadsReachable,
+        'mirror_configured': downloadMirror != null,
+        if (reachability.mirror != null)
+          'mirror_reachable': reachability.mirror,
+        'has_platform_asset': update.assetUrl != null,
+      });
+      // Read back by the next launch, where the update either happened or
+      // didn't. That is the only place the answer exists.
+      unawaited(
+          settings.setLastUpdatePath(target.mirrored ? 'mirror' : 'github'));
+    }
+    openUrl(Uri.parse(target.url));
   }
 
   /// Opens the fix link an advisory carries. The event records the kind
@@ -1187,6 +1377,18 @@ class AppController extends ChangeNotifier {
     // Same again: mods sitting in folders the library cannot sweep are
     // only known from here, and the first frame should show them.
     _placedMods = parsePlacedMods(settings.placedModsJson);
+    // And again: what answered last time, so the sidebar doesn't offer
+    // The Exchange for the second the probe takes and then withdraw it.
+    // A forced answer wins here too, or a debug run would open on the
+    // real one and swap a moment later - the exact flicker the stored
+    // answer exists to avoid.
+    reachability = _forcedReachability ??
+        Reachability(
+          shop: settings.shopReachable,
+          site: settings.siteReachable,
+          downloads: settings.downloadsReachable,
+          mirror: settings.mirrorReachable,
+        );
     // Before the refresh, so the first library frame already carries the
     // banner instead of adding it a moment later. It cannot change while
     // the app is open, so it is asked once.
@@ -1195,6 +1397,10 @@ class AppController extends ChangeNotifier {
     _captureLibraryOpened();
     // Not awaited, like the update check below it.
     _refreshAdvisories();
+    // Asked every launch rather than remembered for good: a VPN going up
+    // or down is exactly the change worth noticing, and it costs a few
+    // HEAD requests.
+    _refreshReachability();
     // Not awaited: a network round-trip the library shouldn't wait on;
     // the Settings card and sidebar fill in when the answer arrives.
     // Remote kill switch: skip the check entirely if a release's check
@@ -1205,11 +1411,80 @@ class AppController extends ChangeNotifier {
     // Mod updates, the same way: only worth a fetch when something was
     // installed from the shop, and killable remotely if the catalog ever
     // needs to stop being polled on launch.
+    // Skipped outright where the catalog cannot be reached - the fetch
+    // would spend its whole timeout to learn what the probe already knows.
     if (_shopInstalls.isNotEmpty &&
+        shopReachable &&
         analytics.isEnabled('shop-update-check', fallback: true)) {
       refreshShop();
     }
     await _refreshCounts();
+  }
+
+  /// Remote flags landing after the first frame. Beyond the repaint: a
+  /// `download-mirror` arriving now was not configured when the probe
+  /// ran this launch (a cold start reads cached flags, and the launch a
+  /// mirror is first switched on has none), so the mirror has never been
+  /// asked. Ask it, or [updateDownload] will route to a mirror nothing
+  /// has checked and the event will go up without `mirror_reachable`.
+  void _onFlagsChanged() {
+    notifyListeners();
+    if (downloadMirror != null && reachability.mirror == null) {
+      _refreshReachability();
+    }
+  }
+
+  /// Asks whether our services answer from here and repaints if the
+  /// answer changed. Best-effort and never awaited: the library does not
+  /// wait on it, and a probe that cannot run leaves everything offered.
+  Future<void> _refreshReachability() async {
+    final run = ++_reachabilityRun;
+    final before = reachability;
+    final forced = _forcedReachability;
+    final now = forced ?? await _probeServices(downloadMirror);
+    // Overtaken while it was in flight: something newer has already
+    // answered, and this one would put back what was true before it.
+    // Silent all the way down - reporting it would count a launch twice.
+    if (run != _reachabilityRun) return;
+    // A forced answer reports nothing. It is a developer asking what the
+    // UI does, not what this machine found, and `services_reachable` is
+    // the denominator the whole routing decision is judged on - a
+    // handful of invented blocked launches is exactly the noise that
+    // would make it unreadable.
+    if (forced == null) {
+      // Captured every launch rather than only when it changes: a rate
+      // needs a denominator, and "how many machines could reach GitHub's
+      // files today" is the whole question this turns on.
+      analytics.capture('services_reachable', {
+        'shop': now.shop,
+        'site': now.site,
+        'downloads': now.downloads,
+        if (now.mirror != null) 'mirror': now.mirror,
+        'mirror_configured': downloadMirror != null,
+        'changed': now != before,
+        for (final entry in now.millis.entries) 'ms_${entry.key}': entry.value,
+      });
+    }
+    reachability = now;
+    if (now == before) return;
+    // Nor is it written down. The next launch re-seeds from these, and a
+    // scenario picked once would otherwise be what the app believed
+    // until the probe answered - in the shipped build too, which reads
+    // the same preferences.
+    if (forced == null) {
+      await settings.setShopReachable(now.shop);
+      await settings.setSiteReachable(now.site);
+      await settings.setDownloadsReachable(now.downloads);
+      // Persisted like the rest, or `before` would start every launch with
+      // a null mirror the probe then fills in - which reads as the answer
+      // having changed on every single launch, and leaves the guard in
+      // [updateDownload] with nothing to go on until the probe returns.
+      await settings.setMirrorReachable(now.mirror);
+    }
+    // A shop that just went out of reach cannot stay on screen: the
+    // sidebar card is about to stop being drawn under whoever is on it.
+    if (!now.shop && screen == AppScreen.shop) screen = AppScreen.library;
+    notifyListeners();
   }
 
   Future<void> selectGame(String gameId) async {
@@ -1233,6 +1508,13 @@ class AppController extends ChangeNotifier {
     _selectedSaveIndex = 0;
     _selectedHouseholdIndex = 0;
     savesPhotoIndex = 0;
+    // Same for the packs, and the restart notice goes with them: it was
+    // about the game the user was looking at.
+    gamePacks = null;
+    packCollectionNote = null;
+    packsLoading = false;
+    _packsAreDemo = false;
+    _packsChanged.clear();
     // The Exchange is deliberately left alone: its shelves span every
     // game, so switching the library doesn't re-shelve them.
     await refresh();
@@ -1306,6 +1588,13 @@ class AppController extends ChangeNotifier {
     if (value == settings.demoLibrary) return;
     await settings.setDemoLibrary(value);
     playSound(value ? UiSound.toggleOn : UiSound.toggleOff);
+    // What is on the packs shelf was either invented or read off the
+    // disk, and which of the two it should be has just changed. Dropped
+    // rather than reloaded, so it is read when the screen is next opened.
+    gamePacks = null;
+    packCollectionNote = null;
+    _packsAreDemo = false;
+    _packsChanged.clear();
     await refresh();
     await _refreshCounts();
   }
@@ -1543,6 +1832,37 @@ class AppController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Whether [value] can serve as the disabled marker on this machine:
+  /// the shape core insists on, and nothing one of the installed games
+  /// reads as a mod or an archive - a marker of `.package` would rename
+  /// every mod straight out of the library it is meant to stay in.
+  bool canUseDisabledSuffix(String value) {
+    final wanted = value.trim().toLowerCase();
+    if (!isValidDisabledSuffix(wanted)) return false;
+    return !registry.adapters.any((a) =>
+        a.modFileExtensions.contains(wanted) ||
+        a.containerFileExtensions.contains(wanted));
+  }
+
+  /// Changes what disabling a mod writes at the end of its name; empty or
+  /// null goes back to the app's own. Refuses a marker the library
+  /// couldn't live with rather than half-applying it. Refreshes because
+  /// files carrying the new marker were, until this moment, files the
+  /// library had no reason to look at.
+  Future<void> setDisabledSuffix(String? value) async {
+    final typed = value?.trim();
+    final wanted = typed == null || typed.isEmpty ? null : typed;
+    if (wanted != null && !canUseDisabledSuffix(wanted)) return;
+    if (wanted == settings.disabledSuffix) return;
+    await settings.setDisabledSuffix(wanted);
+    disabledSuffix = wanted ?? defaultDisabledSuffix;
+    playSound(UiSound.select);
+    // The marker itself is the user's own text and stays on their
+    // machine; whether they needed one of their own is the useful part.
+    analytics.capture('disabled_suffix_changed', {'custom': wanted != null});
+    await refresh();
+  }
+
   Future<void> setLayout(LibraryLayout value) async {
     if (value != layout) {
       playSound(UiSound.cycle);
@@ -1661,8 +1981,13 @@ class AppController extends ChangeNotifier {
     for (final relative in recorded) {
       final path = p.normalize(p.join(modsDir.path, relative));
       // Disabling renames the file, so a record points at the name the
-      // mod carries while it is switched on and both are tried here.
-      final mod = adapter.modAt(path) ?? adapter.modAt('$path$disabledSuffix');
+      // mod carries while it is switched on; every marker a file could be
+      // wearing (ours, an older one, another manager's) is tried too.
+      var mod = adapter.modAt(path);
+      for (final suffix in disabledSuffixes) {
+        if (mod != null) break;
+        mod = adapter.modAt('$path$suffix');
+      }
       if (mod == null) {
         // Not there. Only forget it if the folder it lived in is, because
         // otherwise this is a different install (the user re-pointed the
@@ -2314,6 +2639,20 @@ class AppController extends ChangeNotifier {
       analytics.capture('deep_link_failed', {'reason': 'invalid'});
       return;
     }
+    // The Exchange is not on screen anywhere on this machine, so a link
+    // must not put the user on it: the fetch behind it cannot succeed,
+    // and the sidebar has no card to navigate back with. Silent rather
+    // than a banner, which is what hiding the card already decided.
+    if (!shopReachable) {
+      // Unless it was unreachable because someone said so in Settings,
+      // in which case the refusal is the scenario working, not a link
+      // that failed.
+      if (!_reachabilityForced) {
+        analytics.capture(
+            'deep_link_failed', {'reason': 'unreachable', 'listing': id});
+      }
+      return;
+    }
 
     if (screen != AppScreen.shop) playSound(UiSound.open);
     screen = AppScreen.shop;
@@ -2725,6 +3064,197 @@ class AppController extends ChangeNotifier {
     playSound(UiSound.click);
     savesPhotoIndex = index;
     notifyListeners();
+  }
+
+  // =========================================================================
+  // Packs
+
+  /// The current game's installed packs, or null before the first look.
+  /// Cleared on game switch like the saves, so each game's packs are read
+  /// when the screen is first opened rather than on every launch.
+  List<GamePack>? gamePacks;
+
+  bool packsLoading = false;
+
+  /// What the game has to say about this particular collection, which on
+  /// nearly every machine is nothing. Worked out once when the shelf is
+  /// read rather than on every build: it is about what is installed, and
+  /// switching a pack off does not uninstall it.
+  AppMessage? packCollectionNote;
+
+  /// Whether the shelf on screen was invented rather than read off the
+  /// disk, so a switch on it stays in memory the way the demo library's
+  /// mods do.
+  bool _packsAreDemo = false;
+
+  /// Packs the user has switched this session whose new state the running
+  /// game has not picked up yet. The game reads its pack list once at
+  /// startup, so the screen has to say "restart the game" rather than
+  /// pretend the change already happened.
+  final Set<String> _packsChanged = {};
+
+  bool get hasPendingPackChanges => _packsChanged.isNotEmpty;
+
+  /// Whether this game has a packs screen at all. Behind a kill switch
+  /// because the toggle writes into the game's own settings file, and a
+  /// patch that changes how the game reads that file is something we
+  /// would want to stop doing before shipping a fix.
+  bool get showPacks =>
+      _adapter.hasPacks && analytics.isEnabled('pack-manager', fallback: true);
+
+  /// Whether the switches are worth drawing at all. A game whose packs
+  /// need administrator rights the app does not have gets the facts and
+  /// an explanation instead of switches that would snap back, and so
+  /// does one whose switches nobody has turned on yet.
+  bool get canTogglePacks =>
+      _adapter.canTogglePacks &&
+      showPacks &&
+      !packsNeedAdmin &&
+      !packsNeedOptIn;
+
+  /// This game's switches work but have never been shown to be safe, and
+  /// the user has not said they want them anyway.
+  bool get packsNeedOptIn =>
+      _adapter.packToggleIsExperimental && !experimentalPackToggles;
+
+  /// Whether the packs on screen are the experimental kind, opted in or
+  /// not - the warning stands either way, because agreeing to the risk
+  /// does not make it go away.
+  bool get packsAreExperimental => _adapter.packToggleIsExperimental;
+
+  bool get experimentalPackToggles => settings.experimentalPackToggles;
+
+  /// The app is looking at a game it could switch packs for, if only it
+  /// were elevated. Deliberately not a nudge to always run as
+  /// administrator: doing that costs drag and drop from Explorer, which
+  /// Windows refuses to deliver to an elevated window.
+  bool get packsNeedAdmin =>
+      _adapter.packToggleNeedsAdmin && !runningElevated;
+
+  /// The packs the game will load, and the ones it will skip.
+  int get enabledPackCount =>
+      gamePacks?.where((pack) => pack.isEnabled).length ?? 0;
+
+  int get disabledPackCount =>
+      gamePacks?.where((pack) => !pack.isEnabled).length ?? 0;
+
+  void openPacks() {
+    if (screen != AppScreen.packs) {
+      playSound(UiSound.open);
+      analytics.capture('packs_opened', {'game': _adapter.game.id});
+    }
+    screen = AppScreen.packs;
+    if (gamePacks == null && !packsLoading) {
+      _loadPacks();
+    }
+    notifyListeners();
+  }
+
+  /// Re-reads the packs from disk - the refresh button, and how a pack
+  /// installed while the app was open shows up.
+  Future<void> refreshPacks() {
+    playSound(UiSound.click);
+    return _loadPacks();
+  }
+
+  Future<void> _loadPacks() async {
+    final scanned = _adapter;
+    // Demo mode invents what is installed, not what the platform can do
+    // about it: the shelf is filled from the game's own catalog, and
+    // everything that decides whether a switch is drawn at all - this
+    // game can toggle, it needs administrator rights, it needs the
+    // experimental opt-in - is left answering for the real machine. So a
+    // screenshot never shows a switch this copy of the app wouldn't have.
+    // No spinner either; nothing here goes to the disk.
+    if (settings.demoLibrary) {
+      final demo = scanned.demoPacks();
+      if (demo.isNotEmpty) {
+        gamePacks = demo;
+        packCollectionNote = scanned.packCollectionNote(demo);
+        _packsAreDemo = true;
+        packsLoading = false;
+        notifyListeners();
+        return;
+      }
+    }
+    _packsAreDemo = false;
+    packsLoading = true;
+    notifyListeners();
+    List<GamePack> packs = const [];
+    try {
+      packs = await scanned.listPacks();
+    } catch (_) {
+      // The adapter contract says never throw; a surprise here still must
+      // not take the screen down.
+    }
+    // The user may have switched games mid-scan; those results belong to
+    // the game that was asked.
+    if (!identical(scanned, _adapter)) return;
+    gamePacks = packs;
+    packCollectionNote = scanned.packCollectionNote(packs);
+    packsLoading = false;
+    analytics.capture('packs_loaded', {
+      'game': scanned.game.id,
+      'packs': packs.length,
+      'disabled': packs.where((pack) => !pack.isEnabled).length,
+    });
+    notifyListeners();
+  }
+
+  /// Switches one pack on or off. The pack's own files are never touched:
+  /// what changes is the game's record of what to load, so this is
+  /// reversible and takes effect at the game's next start.
+  Future<void> setPackEnabled(GamePack pack, {required bool enabled}) async {
+    if (!_adapter.canTogglePacks ||
+        !pack.canToggle ||
+        pack.isEnabled == enabled) {
+      return;
+    }
+    final packs = gamePacks;
+    if (packs == null) return;
+    playSound(enabled ? UiSound.toggleOn : UiSound.toggleOff);
+    // Optimistic, and put back if the write fails: the switch has to move
+    // under the finger that pressed it.
+    final index = packs.indexWhere((p) => p.code == pack.code);
+    if (index < 0) return;
+    gamePacks = [...packs]..[index] = pack.copyWith(isEnabled: enabled);
+    _packsChanged.add(pack.code);
+    notifyListeners();
+    // An invented pack has no settings file to write and no key to move,
+    // so the switch stops here - as does the restart notice, which is
+    // part of the screen worth photographing. Like every edit to the demo
+    // library it lasts until the shelf is next read.
+    if (_packsAreDemo) return;
+    try {
+      await _adapter.setPackEnabled(pack, enabled: enabled);
+    } catch (error, stack) {
+      // The shelf may have been cleared or rebuilt while the write was in
+      // flight - a game switch, a rescan - so put the pack back where it
+      // sits now rather than where it sat when the switch was pressed.
+      final current = gamePacks;
+      final at = current == null
+          ? -1
+          : current.indexWhere((p) => p.code == pack.code);
+      if (current != null && at >= 0) {
+        gamePacks = [...current]..[at] = pack;
+      }
+      _packsChanged.remove(pack.code);
+      lastError = error is PackActionException
+          ? error.detail
+          : AppMessage('errorPackToggleFailed', [pack.name]);
+      playSound(UiSound.error);
+      if (error is! PackActionException) {
+        analytics.captureException(error, stack);
+      }
+      notifyListeners();
+      return;
+    }
+    analytics.capture('pack_toggled', {
+      'game': _adapter.game.id,
+      'pack': pack.code,
+      'kind': pack.kind.name,
+      'enabled': enabled,
+    });
   }
 
   /// Opens the system file manager at [path] (selecting it when it's a

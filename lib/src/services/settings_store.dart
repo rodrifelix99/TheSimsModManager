@@ -72,6 +72,30 @@ class SettingsStore {
   Future<void> setShowDisabled(bool value) =>
       _prefs.setBool('showDisabled', value);
 
+  /// The marker written at the end of a mod file's name when it is
+  /// switched off, or `null` for the app's own. Stored as typed and
+  /// checked where it is applied: this class knows nothing about mods.
+  String? get disabledSuffix => _prefs.getString('disabledSuffix');
+  Future<void> setDisabledSuffix(String? value) async {
+    if (value == null) {
+      await _prefs.remove('disabledSuffix');
+    } else {
+      await _prefs.setString('disabledSuffix', value);
+    }
+  }
+
+  /// How the library orders the mods a filter left standing: 'name',
+  /// 'recent' or 'size'.
+  String get librarySort => _prefs.getString('librarySort') ?? 'name';
+  Future<void> setLibrarySort(String value) =>
+      _prefs.setString('librarySort', value);
+
+  /// Whether the disabled mods sink below the enabled ones, keeping
+  /// [librarySort] within each half.
+  bool get disabledLast => _prefs.getBool('disabledLast') ?? false;
+  Future<void> setDisabledLast(bool value) =>
+      _prefs.setBool('disabledLast', value);
+
   /// Library layout: 'grid' cards, 'list' rows, or 'folders' (rows under
   /// a header per subfolder). Falls back to the boolean this used to be,
   /// so an install that already picked a side keeps it.
@@ -98,9 +122,73 @@ class SettingsStore {
   Future<void> setScanArtwork(bool value) =>
       _prefs.setBool('scanArtwork', value);
 
+  /// Whether to offer the pack switches for the games where turning one
+  /// off is known to work but has not been proven safe by anybody -
+  /// today The Sims 2, whose neighborhoods are famous for minding.
+  /// Off by default: those packs still list either way, and a library
+  /// that shows what is installed is worth having without the risk.
+  bool get experimentalPackToggles =>
+      _prefs.getBool('experimentalPackToggles') ?? false;
+  Future<void> setExperimentalPackToggles(bool value) =>
+      _prefs.setBool('experimentalPackToggles', value);
+
   bool get soundEffects => _prefs.getBool('soundEffects') ?? true;
   Future<void> setSoundEffects(bool value) =>
       _prefs.setBool('soundEffects', value);
+
+  /// What the last reachability probe found. Stored so the first frame of
+  /// the next launch already knows, rather than offering The Exchange for
+  /// the second the probe takes and then taking it away. All default to
+  /// reachable, so a machine that has never probed keeps everything.
+  bool get shopReachable => _prefs.getBool('reachShop') ?? true;
+  Future<void> setShopReachable(bool value) =>
+      _prefs.setBool('reachShop', value);
+
+  bool get siteReachable => _prefs.getBool('reachSite') ?? true;
+  Future<void> setSiteReachable(bool value) =>
+      _prefs.setBool('reachSite', value);
+
+  bool get downloadsReachable => _prefs.getBool('reachDownloads') ?? true;
+  Future<void> setDownloadsReachable(bool value) =>
+      _prefs.setBool('reachDownloads', value);
+
+  /// The download mirror, which is the one of these that has three
+  /// answers: null means no mirror was configured when the probe last
+  /// ran, so it has never been asked. Kept apart from "unreachable" so a
+  /// launch that has not yet asked cannot read as a refusal.
+  bool? get mirrorReachable => _prefs.getBool('reachMirror');
+  Future<void> setMirrorReachable(bool? value) async {
+    if (value == null) {
+      await _prefs.remove('reachMirror');
+    } else {
+      await _prefs.setBool('reachMirror', value);
+    }
+  }
+
+  /// Which way the last update download was sent, `github` or `mirror`.
+  /// Written when the button is pressed and read back by the next
+  /// launch's update detection: the app opens a browser rather than
+  /// fetching the file itself, so whether a download worked is only ever
+  /// answerable afterwards, by the update having happened.
+  String? get lastUpdatePath => _prefs.getString('update.path');
+  Future<void> setLastUpdatePath(String value) =>
+      _prefs.setString('update.path', value);
+  Future<void> clearLastUpdatePath() => _prefs.remove('update.path');
+
+  /// Forces what the reachability probe "finds", by scenario id. Reads
+  /// null in a release build whatever is stored - the same bargain
+  /// [demoLibrary] makes, and for a sharper reason: the two builds share
+  /// these preferences, so a debug run left on "everything blocked"
+  /// could otherwise open the shipped app with The Exchange missing.
+  String? get debugReachability =>
+      kDebugMode ? _prefs.getString('debugReachability') : null;
+  Future<void> setDebugReachability(String? value) async {
+    if (value == null) {
+      await _prefs.remove('debugReachability');
+    } else {
+      await _prefs.setString('debugReachability', value);
+    }
+  }
 
   /// Fills the library with invented mods for screenshots. Reads false in
   /// a release build whatever is stored, so a debug run of the app can't

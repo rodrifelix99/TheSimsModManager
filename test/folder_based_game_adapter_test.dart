@@ -101,6 +101,56 @@ void main() {
     expect(mods.single.status, ModStatus.disabled);
   });
 
+  test('recognizes another manager\'s marker too', () async {
+    // CC Magic's, on a Sims 3 library the user also feeds to this app.
+    addFile('cool_hair.package.off');
+
+    final mods = await adapter.listMods(tempDir);
+
+    expect(mods.single.name, 'cool_hair.package');
+    expect(mods.single.status, ModStatus.disabled);
+  });
+
+  group('a marker of the user\'s own', () {
+    tearDown(() => disabledSuffix = defaultDisabledSuffix);
+
+    test('is what disabling writes', () async {
+      disabledSuffix = '.off';
+      addFile('lamp.package');
+      final mod = (await adapter.listMods(tempDir)).single;
+
+      final disabled = await adapter.setEnabled(mod, enabled: false);
+
+      expect(p.basename(disabled.path), 'lamp.package.off');
+      expect(disabled.name, 'lamp.package');
+      expect(disabled.status, ModStatus.disabled);
+    });
+
+    test('never hides what the old one disabled', () async {
+      disabledSuffix = '.hidden';
+      addFile('hair.package.disabled');
+      addFile('eyes.package.hidden');
+
+      final mods = await adapter.listMods(tempDir);
+
+      expect(mods.map((m) => m.name), ['eyes.package', 'hair.package']);
+      expect(mods.every((m) => m.status == ModStatus.disabled), isTrue);
+      // And enabling still strips whichever one the file is wearing.
+      final back = await adapter.setEnabled(mods.last, enabled: true);
+      expect(p.basename(back.path), 'hair.package');
+    });
+
+    test('falls back to the default when it is unusable', () {
+      for (final rejected in ['', 'off', '.', '.a/b', '.with space']) {
+        disabledSuffix = rejected;
+        expect(disabledSuffix, defaultDisabledSuffix, reason: rejected);
+        expect(isValidDisabledSuffix(rejected), isFalse, reason: rejected);
+      }
+      expect(isValidDisabledSuffix('.off'), isTrue);
+      expect(isValidDisabledSuffix('.no-load_2'), isTrue);
+    });
+  });
+
   test('disable renames the file, enable renames it back', () async {
     addFile('lamp.package');
     var mod = (await adapter.listMods(tempDir)).single;

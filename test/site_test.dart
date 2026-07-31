@@ -1,5 +1,5 @@
-// The website in web/ ships in ten of the app's languages (every one but
-// Greek), from flat dot-key dictionaries in web/src/i18n. Astro fails the build on a key that is
+// The website in web/ ships in the same eleven languages as the app, from flat
+// dot-key dictionaries in web/src/i18n. Astro fails the build on a key that is
 // missing outright, so what is left to pin here is what it cannot see: a
 // translation file drifting from the English one, a key nobody draws any more,
 // and the two files the retired GitHub Pages site still has to serve.
@@ -8,7 +8,12 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
-const languages = ['zh', 'es', 'pt', 'fr', 'de', 'it', 'ru', 'pl', 'ja'];
+const languages = ['zh', 'es', 'pt', 'fr', 'de', 'it', 'ru', 'pl', 'ja', 'el'];
+
+/// The languages the retired GitHub Pages site was translated into, which is
+/// what its redirect stubs have to cover. Greek arrived after that site was
+/// gone, so it never had an address there to point anywhere.
+const pagesLanguages = ['zh', 'es', 'pt', 'fr', 'de', 'it', 'ru', 'pl', 'ja'];
 
 const siteRoot = 'https://thesimsmodmanager.web.app/';
 
@@ -84,7 +89,8 @@ void main() {
     final pages = {
       'docs/index.html': siteRoot,
       'docs/thanks.html': '${siteRoot}thanks/',
-      for (final code in languages) 'docs/$code/index.html': '$siteRoot$code/',
+      for (final code in pagesLanguages)
+        'docs/$code/index.html': '$siteRoot$code/',
     };
     pages.forEach((path, target) {
       final file = File(path);

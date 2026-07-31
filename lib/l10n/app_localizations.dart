@@ -457,6 +457,36 @@ abstract class L {
   /// **'Folders'**
   String get viewFolders;
 
+  /// No description provided for @sortTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort'**
+  String get sortTooltip;
+
+  /// No description provided for @sortByName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (A–Z)'**
+  String get sortByName;
+
+  /// No description provided for @sortByRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently changed'**
+  String get sortByRecent;
+
+  /// No description provided for @sortBySize.
+  ///
+  /// In en, this message translates to:
+  /// **'Biggest first'**
+  String get sortBySize;
+
+  /// No description provided for @sortDisabledLast.
+  ///
+  /// In en, this message translates to:
+  /// **'Disabled ones last'**
+  String get sortDisabledLast;
+
   /// No description provided for @libraryRefresh.
   ///
   /// In en, this message translates to:
@@ -1099,6 +1129,36 @@ abstract class L {
   /// **'Keep disabled mods visible in the library instead of hiding them'**
   String get prefShowDisabledDesc;
 
+  /// No description provided for @prefDisabledSuffixTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Disabled mod marker'**
+  String get prefDisabledSuffixTitle;
+
+  /// No description provided for @prefDisabledSuffixDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'What gets added to a file name when you switch a mod off. Change it to match another manager (CC Magic uses .off); the app reads both either way, and mods you already disabled keep the name they have'**
+  String get prefDisabledSuffixDesc;
+
+  /// No description provided for @prefDisabledSuffixInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs to be a dot and a few letters or numbers, like .off'**
+  String get prefDisabledSuffixInvalid;
+
+  /// No description provided for @prefExperimentalPacksTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Experimental pack switches'**
+  String get prefExperimentalPacksTitle;
+
+  /// No description provided for @prefExperimentalPacksDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Let this game’s packs be switched off. Untested on this release, and a neighbourhood played with a pack can break without it — back your saves up first'**
+  String get prefExperimentalPacksDesc;
+
   /// No description provided for @prefScanArtworkTitle.
   ///
   /// In en, this message translates to:
@@ -1603,6 +1663,42 @@ abstract class L {
   /// **'That mod is for a game this version of the app doesn’t know yet. Try updating.'**
   String get errorShopListingUnknownGame;
 
+  /// No description provided for @errorPackToggleFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t switch {pack}. Close the game and try again.'**
+  String errorPackToggleFailed(String pack);
+
+  /// No description provided for @errorPackNoUserData.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t find the game’s own settings folder, so there’s nowhere to note which packs to skip. Run the game once first.'**
+  String get errorPackNoUserData;
+
+  /// No description provided for @errorPackNeedsAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Windows wouldn’t let the app change that. Restart it as an administrator and try again.'**
+  String get errorPackNeedsAdmin;
+
+  /// No description provided for @errorPackNotSupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Packs can’t be switched on this system.'**
+  String get errorPackNotSupported;
+
+  /// No description provided for @errorPackIsTheGame.
+  ///
+  /// In en, this message translates to:
+  /// **'That’s the pack the game actually runs from, so it has to stay on.'**
+  String get errorPackIsTheGame;
+
+  /// No description provided for @errorPackToggleRefused.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t change that pack. Close the game and try again.'**
+  String get errorPackToggleRefused;
+
   /// No description provided for @eraClassic.
   ///
   /// In en, this message translates to:
@@ -1632,6 +1728,126 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Medieval'**
   String get eraMedieval;
+
+  /// No description provided for @navPacks.
+  ///
+  /// In en, this message translates to:
+  /// **'Packs'**
+  String get navPacks;
+
+  /// No description provided for @packsScanning.
+  ///
+  /// In en, this message translates to:
+  /// **'Looking for your packs…'**
+  String get packsScanning;
+
+  /// No description provided for @packsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No packs found'**
+  String get packsEmptyTitle;
+
+  /// No description provided for @packsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Either {game} isn\'t installed where the app can see it, or there are no packs alongside it yet.'**
+  String packsEmptyBody(String game);
+
+  /// No description provided for @packsRescan.
+  ///
+  /// In en, this message translates to:
+  /// **'Check again'**
+  String get packsRescan;
+
+  /// No description provided for @packsSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 pack installed} other{{count} packs installed}}'**
+  String packsSummary(int count);
+
+  /// No description provided for @packsSummaryWithOff.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 pack on} other{{count} packs on}}, {off} switched off'**
+  String packsSummaryWithOff(int count, int off);
+
+  /// No description provided for @packsOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get packsOff;
+
+  /// No description provided for @packsInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed'**
+  String get packsInstalled;
+
+  /// No description provided for @packsNeedAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Switching these packs on and off needs administrator rights, because that’s where the game keeps its list. Restart the app as an administrator to change them — drag and drop stops working while you do, so it’s worth switching back afterwards.'**
+  String get packsNeedAdmin;
+
+  /// No description provided for @packsExperimentalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Switching these off is experimental'**
+  String get packsExperimentalTitle;
+
+  /// No description provided for @packsExperimentalOff.
+  ///
+  /// In en, this message translates to:
+  /// **'It works the way it always has for this game, but nobody has tested it on this release — and a neighbourhood you’ve played with a pack can break when you open it without one. Listing is safe. Turn on experimental pack switches in Settings if you want to try it anyway.'**
+  String get packsExperimentalOff;
+
+  /// No description provided for @packsExperimentalOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up your neighbourhoods first. A neighbourhood you’ve played with a pack can break when you open it without one, and there’s no undoing that from here — switching the pack back on doesn’t always bring the save back.'**
+  String get packsExperimentalOn;
+
+  /// No description provided for @packsRestartNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart {game} for this to take effect. Your packs stay installed either way.'**
+  String packsRestartNotice(String game);
+
+  /// Easter egg on the packs screen, shown only to a Sims 4 install holding every expansion and game pack. Give it its own joke in each language rather than translating this one, and keep the numbers away from anything that has to agree with them.
+  ///
+  /// In en, this message translates to:
+  /// **'{expansions} expansions. {gamePacks} game packs. Sure you bought them all.'**
+  String packsAllOwnedSims4(String expansions, String gamePacks);
+
+  /// No description provided for @packKindExpansions.
+  ///
+  /// In en, this message translates to:
+  /// **'Expansion packs'**
+  String get packKindExpansions;
+
+  /// No description provided for @packKindGamePacks.
+  ///
+  /// In en, this message translates to:
+  /// **'Game packs'**
+  String get packKindGamePacks;
+
+  /// No description provided for @packKindStuffPacks.
+  ///
+  /// In en, this message translates to:
+  /// **'Stuff packs'**
+  String get packKindStuffPacks;
+
+  /// No description provided for @packKindKits.
+  ///
+  /// In en, this message translates to:
+  /// **'Kits'**
+  String get packKindKits;
+
+  /// No description provided for @packKindFreePacks.
+  ///
+  /// In en, this message translates to:
+  /// **'Free packs'**
+  String get packKindFreePacks;
 
   /// No description provided for @navSaves.
   ///

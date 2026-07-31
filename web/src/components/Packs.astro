@@ -1,0 +1,28 @@
+---
+import { useTranslations, type Locale } from '../i18n';
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+---
+
+<section id="packs">
+  <div class="wrap">
+    <div class="head">
+      <h2 data-reveal="0" set:html={t('packs.h2')} />
+      <p class="lead" data-reveal="0.05" set:html={t('packs.lead')} />
+    </div>
+
+    <figure class="shot" data-reveal="0">
+      <img
+        src="/images/packs-list.png"
+        alt={t.plain('packs.shotAlt')}
+        width="1600"
+        loading="lazy"
+      />
+      <figcaption set:html={t('packs.cap')} />
+    </figure>
+  </div>
+</section>

@@ -141,6 +141,8 @@ class LibraryView extends StatelessWidget {
               // hand us) overflowed this row rather than shrinking.
               Flexible(child: _searchField(t, c, l)),
               const SizedBox(width: 14),
+              _sortButton(t, c, l),
+              const SizedBox(width: 6),
               _viewToggle(t, c, l),
               const SizedBox(width: 6),
               _refreshButton(t, c, l),
@@ -476,6 +478,85 @@ class LibraryView extends StatelessWidget {
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(11),
             borderSide: BorderSide(color: t.accent, width: 1.5),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// The order the library is drawn in, and whether the switched-off mods
+  /// sink under the rest. One menu because they answer the same question:
+  /// the grouping holds whichever order is picked, so a library sorted by
+  /// date still reads by date within each half.
+  Widget _sortButton(GameTheme t, AppController c, L l) {
+    String label(LibrarySort sort) => switch (sort) {
+          LibrarySort.name => l.sortByName,
+          LibrarySort.recent => l.sortByRecent,
+          LibrarySort.size => l.sortBySize,
+        };
+    PopupMenuItem<void> row(String text, bool checked, VoidCallback onTap) =>
+        PopupMenuItem<void>(
+          onTap: onTap,
+          child: Row(
+            children: [
+              SizedBox(
+                width: 24,
+                child: checked
+                    ? Icon(Icons.check_rounded, size: 16, color: t.accent)
+                    : null,
+              ),
+              // Expanded, because the menu's own width is Material's and
+              // a translated label has nowhere else to go: it wraps to a
+              // second line rather than running off the end.
+              Expanded(
+                child: Text(
+                  text,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: checked ? t.accent : t.text,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+
+    return Tooltip(
+      message: l.sortTooltip,
+      child: PopupMenuButton<void>(
+        tooltip: '',
+        color: t.surface,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: t.border)),
+        itemBuilder: (context) => [
+          for (final sort in LibrarySort.values)
+            row(label(sort), c.sort == sort, () => c.setSort(sort)),
+          const PopupMenuDivider(),
+          row(l.sortDisabledLast, c.disabledLast,
+              () => c.setDisabledLast(!c.disabledLast)),
+        ],
+        child: HoverBuilder(
+          cursor: SystemMouseCursors.click,
+          builder: (context, hovered) => AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            width: 34,
+            height: 40,
+            decoration: BoxDecoration(
+              color: hovered ? t.surface : t.surfaceAlt,
+              border: Border.all(color: t.border),
+              borderRadius: BorderRadius.circular(11),
+            ),
+            child: Icon(
+              Icons.sort_rounded,
+              size: 18,
+              // Lit while the library isn't in the order it opens in, so
+              // an unexpected order says where it came from.
+              color: hovered || c.sort != LibrarySort.name || c.disabledLast
+                  ? t.accent
+                  : t.muted,
+            ),
           ),
         ),
       ),

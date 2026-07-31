@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
+
 import '../app_version.dart';
 import 'debug_log.dart';
 
@@ -29,12 +31,71 @@ const String advisoriesUrl = 'https://thesimsmodmanager.web.app/data/advisories.
 const int _maxAdvisoryBytes = 1 << 20;
 
 class UpdateInfo {
-  const UpdateInfo({required this.version, required this.url});
+  const UpdateInfo({required this.version, required this.url, this.assetUrl});
 
   /// The release's version, without the `v` tag prefix (e.g. `1.2.0`).
   final String version;
 
+  /// The release's page, which is what the update button normally opens:
+  /// the notes are on it and the choice of file is the user's.
   final String url;
+
+  /// This platform's installer, straight from the release. Only used
+  /// when the page would be a dead end - a download mirror has to be
+  /// handed a file, since proxying the page would leave every link on it
+  /// still pointing at the host that cannot be reached. Null when the
+  /// release carries nothing matching this platform.
+  final String? assetUrl;
+}
+
+/// Whether this is the portable Windows build rather than an installed
+/// one. Inno Setup leaves its uninstaller in the install folder; the zip
+/// has nothing beside the executable but the app itself. Windows is the
+/// only platform that ships the same release in two shapes, so nowhere
+/// else has to ask.
+bool isPortableWindowsBuild() =>
+    Platform.isWindows &&
+    !File(p.join(p.dirname(Platform.resolvedExecutable), 'unins000.exe'))
+        .existsSync();
+
+/// The [UpdateInfo.assetUrl] for the machine this is running on, picked
+/// out of a release's `assets` by file name. Deliberately loose about
+/// the macOS extension: the disk image replaced a zip partway through
+/// v2, and an older release should still answer.
+///
+/// On Windows the shape matters as much as the platform. Handing the
+/// installer to someone running the portable copy would install a second
+/// app beside the one they actually use and leave that one stale, and
+/// this is the one path where nobody sees a release page to choose from.
+/// [windowsPortable] overrides the detection, for tests.
+String? assetForThisPlatform(Object? assets, {bool? windowsPortable}) {
+  if (assets is! List) return null;
+  final portable = windowsPortable ?? isPortableWindowsBuild();
+  bool matches(String name) {
+    final lower = name.toLowerCase();
+    if (Platform.isWindows) {
+      return portable
+          ? lower.endsWith('portable.zip')
+          : lower.endsWith('setup.exe');
+    }
+    if (Platform.isMacOS) {
+      return lower.endsWith('.dmg') || lower.endsWith('macos.zip');
+    }
+    return lower.endsWith('.tar.gz');
+  }
+
+  for (final asset in assets) {
+    if (asset is! Map) continue;
+    final name = asset['name'];
+    final url = asset['browser_download_url'];
+    if (name is String &&
+        url is String &&
+        url.startsWith('https://') &&
+        matches(name)) {
+      return url;
+    }
+  }
+  return null;
 }
 
 /// Whether [latest] is a strictly newer `x.y.z` version than [current].
@@ -102,6 +163,7 @@ Future<UpdateInfo?> fetchAvailableUpdate() async {
       url: url is String && url.startsWith('https://')
           ? url
           : 'https://github.com/$githubRepo/releases/latest',
+      assetUrl: assetForThisPlatform(json['assets']),
     );
   } catch (e) {
     debugLog('update', 'check failed: ${e.runtimeType}: $e');
