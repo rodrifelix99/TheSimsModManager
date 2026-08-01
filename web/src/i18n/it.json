@@ -31,7 +31,7 @@
   "features.conflicts.p": "Hai installato la stessa mod due volte, o lasciato la versione vecchia accanto alla nuova? Le segnala entrambe. L’app guarda anche dentro i pacchetti e indica quelli che si sovrascrivono le risorse a vicenda, il vero motivo per cui i CC si rompono.",
   "features.conflicts.art": "Un’altra mod attiva ha lo stesso nome file",
   "features.drop.h3": "Trascina, molla, fatto",
-  "features.drop.p": "Lascia file o cartelle intere sulla finestra e ogni cosa finisce al posto giusto. I download <b>.zip</b>, <b>.rar</b> e <b>.7z</b> li scompatta lei, mantenendo la struttura delle cartelle e lasciando fuori leggimi e screenshot.",
+  "features.drop.p": "Lascia file o cartelle intere sulla finestra e ogni cosa finisce al posto giusto. I download <b>.zip</b>, <b>.rar</b> e <b>.7z</b> li scompatta lei, mantenendo la struttura delle cartelle e lasciando fuori leggimi e screenshot. Funziona anche il formato <b>.sims3pack</b> di The Sims 3.",
   "features.folders.h3": "Le tue cartelle le trova da sola",
   "features.folders.p": "Nomi di cartella tradotti («Los Sims 3»), la Ultimate Collection, i Documenti spostati da OneDrive, più installazioni insieme: le trova, e se no gliele indichi tu.",
   "features.setup.h3": "Prepara le cartelle delle mod come si deve",

@@ -31,7 +31,7 @@
   "features.conflicts.p": "同じ MOD を二重に入れていたり、古いバージョンを新しいものと並べたままだったり。どちらにも印がつきます。さらにパッケージの中身まで見て、互いのリソースを上書きしている MOD を指摘します。CC が壊れる本当の原因はここです。",
   "features.conflicts.art": "他の有効な MOD と同じファイル名です",
   "features.drop.h3": "ドラッグして、離すだけ",
-  "features.drop.p": "ファイルでもフォルダごとでも、ウィンドウに落とせば正しい場所に収まります。<b>.zip</b>・<b>.rar</b>・<b>.7z</b> は自動で展開され、フォルダ構成はそのまま、readme やスクリーンショットは除かれます。",
+  "features.drop.p": "ファイルでもフォルダごとでも、ウィンドウに落とせば正しい場所に収まります。<b>.zip</b>・<b>.rar</b>・<b>.7z</b> は自動で展開され、フォルダ構成はそのまま、readme やスクリーンショットは除かれます。The Sims 3 独自の <b>.sims3pack</b> 形式にも対応しています。",
   "features.folders.h3": "フォルダは自分で見つけます",
   "features.folders.p": "翻訳されたフォルダ名（「Los Sims 3」など）、Ultimate Collection、OneDrive に移動されたドキュメント、同じゲームの複数インストール。全部見つけますし、だめなら手動で指定できます。",
   "features.setup.h3": "MOD フォルダをきちんと用意します",

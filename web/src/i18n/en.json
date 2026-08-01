@@ -31,7 +31,7 @@
   "features.conflicts.p": "Installed the same mod twice, or kept an old version next to the new one? Both get badged. The app also looks inside your packages and flags the ones that override each other's resources, the real reason CC breaks.",
   "features.conflicts.art": "Another enabled mod has the same file name",
   "features.drop.h3": "Drag, drop, done",
-  "features.drop.p": "Drop files or whole folders onto the window and they land in the right place. <b>.zip</b>, <b>.rar</b> and <b>.7z</b> downloads are unpacked for you, folder structure kept, readmes and screenshots left out.",
+  "features.drop.p": "Drop files or whole folders onto the window and they land in the right place. <b>.zip</b>, <b>.rar</b> and <b>.7z</b> downloads are unpacked for you, folder structure kept, readmes and screenshots left out. The Sims 3's own <b>.sims3pack</b> format works too.",
   "features.folders.h3": "Finds your folders for you",
   "features.folders.p": "Localized folder names (\"Los Sims 3\"), the Ultimate Collection, OneDrive-moved Documents, multiple installs: it finds them, or you can point it anywhere.",
   "features.setup.h3": "Sets up mods folders properly",

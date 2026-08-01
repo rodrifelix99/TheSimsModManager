@@ -112,7 +112,7 @@ void main() {
     expect(manifest.libraryContent, isEmpty);
   });
 
-  test('installs the packages inside, into a folder named after the pack',
+  test('installs several packages into a folder named after the pack',
       () async {
     final pack = makePack('cc.sims3pack', [
       _Entry('0xaaa.package', 'CASpart', 'hair bytes'),
@@ -122,14 +122,46 @@ void main() {
 
     final mods = await adapter.installArchive(modsDir, pack);
 
-    expect(mods.map((m) => m.name), ['0xaaa.package', '0xbbb.package']);
+    // Entries are named by GUID in the container; what the library shows
+    // is the one name a person wrote, numbered in manifest order.
+    expect(mods.map((m) => m.name), ['Nice Hair.package', 'Nice Hair-2.package']);
     final folder = p.join(modsDir.path, 'Nice Hair');
-    expect(File(p.join(folder, '0xaaa.package')).readAsStringSync(),
+    expect(File(p.join(folder, 'Nice Hair.package')).readAsStringSync(),
         'hair bytes');
-    expect(File(p.join(folder, '0xbbb.package')).readAsStringSync(),
+    expect(File(p.join(folder, 'Nice Hair-2.package')).readAsStringSync(),
         'sofa bytes');
     // The thumbnail is not a mod file and stays out of the library.
     expect(File(p.join(folder, 'thumb.png')).existsSync(), isFalse);
+  });
+
+  test('a pack holding one mod file installs as that file', () async {
+    // What almost every piece of custom content is: one package, whose
+    // GUID name would be the whole of the library card without this.
+    final pack = makePack('BS_Bikini_TS3.sims3pack',
+        [_Entry('0xe4a3eb.package', 'CASpart', 'a bikini top')],
+        displayName: 'BS_FrillEdgeBandeauBikiniTop_TS3');
+
+    final mods = await adapter.installArchive(modsDir, pack);
+
+    expect(mods.map((m) => m.name), ['BS_FrillEdgeBandeauBikiniTop_TS3.package']);
+    // No folder of its own: one mod is not a set.
+    expect(
+        File(p.join(modsDir.path, 'BS_FrillEdgeBandeauBikiniTop_TS3.package'))
+            .readAsStringSync(),
+        'a bikini top');
+  });
+
+  test('installing the same pack twice leaves one copy', () async {
+    final pack = makePack('cc.sims3pack', [
+      _Entry('0xaaa.package', 'CASpart', 'hair bytes'),
+      _Entry('0xbbb.package', 'object', 'sofa bytes'),
+    ], displayName: 'Nice Hair');
+
+    await adapter.installArchive(modsDir, pack);
+    final again = await adapter.installArchive(modsDir, pack);
+
+    expect(again.map((m) => m.name), ['Nice Hair.package', 'Nice Hair-2.package']);
+    expect(Directory(p.join(modsDir.path, 'Nice Hair')).listSync().length, 2);
   });
 
   test('falls back to the file name when the pack has no title', () async {
@@ -138,10 +170,18 @@ void main() {
 
     await adapter.installArchive(modsDir, pack);
 
-    expect(
-        File(p.join(modsDir.path, 'Some Creator CC', '0xaaa.package'))
-            .existsSync(),
+    expect(File(p.join(modsDir.path, 'Some Creator CC.package')).existsSync(),
         isTrue);
+  });
+
+  test('a title that names a folder installs no folder', () async {
+    final pack = makePack('cc.sims3pack',
+        [_Entry('0xaaa.package', 'object', 'lamp')], displayName: 'Lamps/Tall');
+
+    await adapter.installArchive(modsDir, pack);
+
+    expect(File(p.join(modsDir.path, 'Lamps_Tall.package')).existsSync(), isTrue);
+    expect(Directory(p.join(modsDir.path, 'Lamps')).existsSync(), isFalse);
   });
 
   test('refuses a world, naming it as one', () async {
@@ -238,12 +278,14 @@ void main() {
 
     final mods = await adapter.installArchive(modsDir, pack);
 
-    expect(mods.map((m) => m.name), ['0xaaa.package']);
+    // One entry left, so it lands as the pack itself rather than in a
+    // folder - what is inside is what decides that, not what was declared.
+    expect(mods.map((m) => m.name), ['Test Pack.package']);
   });
 
   test('two packs with the same GUID names keep their own copies', () async {
-    // Every real pack names its packages by GUID, so the folder is what
-    // stops one creator's file from overwriting another's.
+    // Every real pack names its packages by GUID, so what stops one
+    // creator's file from overwriting another's is the pack's own title.
     final first = makePack('one.sims3pack',
         [_Entry('0xaaa.package', 'object', 'first')], displayName: 'Pack One');
     final second = makePack('two.sims3pack',
@@ -252,13 +294,9 @@ void main() {
     await adapter.installArchive(modsDir, first);
     await adapter.installArchive(modsDir, second);
 
-    expect(
-        File(p.join(modsDir.path, 'Pack One', '0xaaa.package'))
-            .readAsStringSync(),
+    expect(File(p.join(modsDir.path, 'Pack One.package')).readAsStringSync(),
         'first');
-    expect(
-        File(p.join(modsDir.path, 'Pack Two', '0xaaa.package'))
-            .readAsStringSync(),
+    expect(File(p.join(modsDir.path, 'Pack Two.package')).readAsStringSync(),
         'second');
   });
 

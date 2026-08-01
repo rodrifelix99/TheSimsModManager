@@ -31,7 +31,7 @@
   "features.conflicts.p": "¿Has instalado el mismo mod dos veces o has dejado la versión antigua junto a la nueva? Los dos quedan marcados. La app también mira dentro de los paquetes y señala los que se sobrescriben recursos entre sí, que es la razón de verdad por la que el CC se rompe.",
   "features.conflicts.art": "Otro mod activo tiene el mismo nombre de archivo",
   "features.drop.h3": "Arrastra, suelta y listo",
-  "features.drop.p": "Suelta archivos o carpetas enteras sobre la ventana y cada cosa acaba en su sitio. Los <b>.zip</b>, <b>.rar</b> y <b>.7z</b> se descomprimen solos, manteniendo la estructura de carpetas y dejando fuera los léeme y las capturas.",
+  "features.drop.p": "Suelta archivos o carpetas enteras sobre la ventana y cada cosa acaba en su sitio. Los <b>.zip</b>, <b>.rar</b> y <b>.7z</b> se descomprimen solos, manteniendo la estructura de carpetas y dejando fuera los léeme y las capturas. El formato propio de Los Sims 3, <b>.sims3pack</b>, también funciona.",
   "features.folders.h3": "Encuentra tus carpetas por ti",
   "features.folders.p": "Nombres de carpeta traducidos («Los Sims 3»), la Ultimate Collection, Documentos movidos por OneDrive, varias instalaciones a la vez: las encuentra, y si no, se la señalas tú.",
   "features.setup.h3": "Prepara bien las carpetas de mods",

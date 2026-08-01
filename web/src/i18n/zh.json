@@ -31,7 +31,7 @@
   "features.conflicts.p": "同一个 MOD 装了两遍，或者新旧版本放在一起？两个都会被标出来。应用还会读取包内数据，找出互相覆盖资源的 MOD，这才是 CC 出问题的真正原因。",
   "features.conflicts.art": "另一个已启用的 MOD 文件名相同",
   "features.drop.h3": "拖进来，放下，搞定",
-  "features.drop.p": "把文件或整个文件夹拖到窗口里，它们会各就各位。<b>.zip</b>、<b>.rar</b> 和 <b>.7z</b> 会自动解压，文件夹结构照旧保留，说明文件和截图会被略过。",
+  "features.drop.p": "把文件或整个文件夹拖到窗口里，它们会各就各位。<b>.zip</b>、<b>.rar</b> 和 <b>.7z</b> 会自动解压，文件夹结构照旧保留，说明文件和截图会被略过。The Sims 3 自己的 <b>.sims3pack</b> 格式也支持。",
   "features.folders.h3": "自己帮你找文件夹",
   "features.folders.p": "本地化的文件夹名（比如「Los Sims 3」）、Ultimate Collection、被 OneDrive 挪走的「文档」、同一游戏的多个安装，它都能找到，实在不行也可以手动指定。",
   "features.setup.h3": "把 MOD 文件夹建对",

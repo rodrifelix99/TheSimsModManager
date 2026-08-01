@@ -199,10 +199,20 @@ String? _tagValue(String xml, String tag) {
 /// a handful of reads, small enough that the event loop keeps turning.
 const _copyChunk = 1 << 20;
 
-/// Unpacks the files in [pack] whose extension is in [fileExtensions] into
-/// a folder of their own under [destination], named after the pack, and
-/// returns them. That folder is what the library shows as a filter chip,
-/// and it is also what keeps two packs' GUID-named packages apart.
+/// Unpacks the files in [pack] whose extension is in [fileExtensions]
+/// under [destination] and returns them.
+///
+/// Everything is named after the pack rather than after the entry: the
+/// exporter names entries by GUID, so the pack's own title is the only
+/// name a person ever wrote, and a library card reading
+/// `0xe4a3eb83c9f5bb1a3192944a69f9c025` is what a file name is for. A pack
+/// carrying one mod file - which is most custom content - lands as that
+/// one file; several land in a folder named after the pack, numbered
+/// `Name-2`, `Name-3`... in manifest order, so the folder is still the
+/// library's filter chip for the set. Two packs that share a title now
+/// share a name too, and the second overwrites the first; that is the same
+/// bargain every other install makes, and it is what keeps reinstalling a
+/// pack from piling up copies of it.
 ///
 /// Refuses the whole pack when the manifest carries content the mod
 /// loader would never read (worlds, lots and the rest of
@@ -230,17 +240,18 @@ Future<List<File>> extractSims3Pack(
   if (wanted.isEmpty) {
     throw ModContentException.noModFiles(fileExtensions, name);
   }
-  // The pack's own name is the folder, so a chip in the library says what
-  // the user installed rather than a GUID. Creator-written, so it goes
-  // through the same sanitising as any other install path.
-  final folder = _folderName(manifest.displayName, name);
+  final title = _packTitle(manifest.displayName, name);
   final handle = await pack.open();
   final taken = <String>{};
   final written = <File>[];
   try {
     for (final entry in wanted) {
-      final target = claimInstallTarget(
-          destination.path, p.join(folder, p.basename(entry.name)), taken);
+      // The GUID is dropped, so two entries can arrive at one path and
+      // neither asked to replace the other - which is the case
+      // claimInstallTarget reads as "the source said overwrite".
+      final named = '$title${p.extension(entry.name)}';
+      final target = claimDistinctInstallTarget(destination.path,
+          wanted.length == 1 ? named : p.join(title, named), taken);
       final file = File(target);
       await file.parent.create(recursive: true);
       final sink = file.openWrite();
@@ -264,9 +275,15 @@ Future<List<File>> extractSims3Pack(
   return written;
 }
 
-/// The subfolder installed files land in: the pack's own title where it
-/// has one, otherwise its file name without the extension.
-String _folderName(String displayName, String fileName) {
-  final title = displayName.trim();
-  return title.isEmpty ? p.basenameWithoutExtension(fileName) : title;
+/// What installed files are named after: the pack's own title where it
+/// has one, otherwise its file name without the extension. Creator-written
+/// either way, so it goes through the same sanitising as any other install
+/// path - and separators are folded first, because this is now a file name
+/// as well as a folder's and a title reading `Hair/Dark` would otherwise
+/// quietly install a folder nobody asked for.
+String _packTitle(String displayName, String fileName) {
+  final title = displayName.trim().isEmpty
+      ? p.basenameWithoutExtension(fileName)
+      : displayName.trim();
+  return title.replaceAll(RegExp(r'[\\/]+'), '_');
 }

@@ -31,7 +31,7 @@
   "features.conflicts.p": "Ten sam mod zainstalowany dwa razy albo stara wersja obok nowej? Oba dostaną znacznik. Aplikacja zagląda też do środka paczek i wskazuje te, które nadpisują sobie nawzajem zasoby: prawdziwy powód, dla którego CC przestaje działać.",
   "features.conflicts.art": "Inny włączony mod ma tę samą nazwę pliku",
   "features.drop.h3": "Przeciągnij, upuść, gotowe",
-  "features.drop.p": "Upuść pliki albo całe foldery na okno, a wszystko wyląduje we właściwym miejscu. Pobrane <b>.zip</b>, <b>.rar</b> i <b>.7z</b> rozpakują się same, ze strukturą folderów, a readme i zrzuty ekranu zostaną pominięte.",
+  "features.drop.p": "Upuść pliki albo całe foldery na okno, a wszystko wyląduje we właściwym miejscu. Pobrane <b>.zip</b>, <b>.rar</b> i <b>.7z</b> rozpakują się same, ze strukturą folderów, a readme i zrzuty ekranu zostaną pominięte. Własny format The Sims 3, <b>.sims3pack</b>, też działa.",
   "features.folders.h3": "Sam znajdzie twoje foldery",
   "features.folders.p": "Przetłumaczone nazwy folderów („Los Sims 3”), Ultimate Collection, Dokumenty przeniesione przez OneDrive, kilka instalacji naraz: znajdzie je, a jak nie, to wskażesz je ręcznie.",
   "features.setup.h3": "Porządnie przygotuje folder na mody",

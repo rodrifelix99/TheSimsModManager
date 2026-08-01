@@ -31,7 +31,7 @@
   "features.conflicts.p": "Denselben Mod zweimal installiert, oder die alte Version neben der neuen liegen gelassen? Beide werden markiert. Die App schaut außerdem in deine Pakete hinein und meldet die, die sich gegenseitig Ressourcen überschreiben. Das ist der eigentliche Grund, warum CC kaputtgeht.",
   "features.conflicts.art": "Ein anderer aktiver Mod hat denselben Dateinamen",
   "features.drop.h3": "Ziehen, ablegen, fertig",
-  "features.drop.p": "Zieh Dateien oder ganze Ordner auf das Fenster, und alles landet an der richtigen Stelle. <b>.zip</b>, <b>.rar</b> und <b>.7z</b> werden für dich entpackt, die Ordnerstruktur bleibt, Readmes und Screenshots bleiben draußen.",
+  "features.drop.p": "Zieh Dateien oder ganze Ordner auf das Fenster, und alles landet an der richtigen Stelle. <b>.zip</b>, <b>.rar</b> und <b>.7z</b> werden für dich entpackt, die Ordnerstruktur bleibt, Readmes und Screenshots bleiben draußen. Auch das eigene <b>.sims3pack</b>-Format von Die Sims 3 wird unterstützt.",
   "features.folders.h3": "Findet deine Ordner selbst",
   "features.folders.p": "Übersetzte Ordnernamen („Los Sims 3“), die Ultimate Collection, ein von OneDrive verschobener Dokumente-Ordner, mehrere Installationen: Die App findet sie, und sonst zeigst du ihr den Weg.",
   "features.setup.h3": "Legt Mods-Ordner richtig an",
