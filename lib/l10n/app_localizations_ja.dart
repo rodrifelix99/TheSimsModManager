@@ -252,6 +252,92 @@ class LJa extends L {
   String get libraryRootFolder => 'Mods フォルダ';
 
   @override
+  String get selectionTooltip => '選択';
+
+  @override
+  String selectionCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 件選択中',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get selectionSelectAll => 'すべて選択';
+
+  @override
+  String get selectionClear => '選択を解除';
+
+  @override
+  String get selectionEnable => '有効にする';
+
+  @override
+  String get selectionDisable => '無効にする';
+
+  @override
+  String selectionProgress(int done, int total) {
+    return '$total 件中 $done 件';
+  }
+
+  @override
+  String selectionDeleteTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'MOD $count 個をアンインストールしますか？',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String selectionDeleteBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 個のファイルをディスクから削除します。元には戻せません。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get selectionMove => '移動先…';
+
+  @override
+  String get newFolder => '新しいフォルダ';
+
+  @override
+  String newFolderIn(String folder) {
+    return '$folder の中に作成';
+  }
+
+  @override
+  String get newFolderHint => 'フォルダ名';
+
+  @override
+  String get create => '作成';
+
+  @override
+  String get move => '移動';
+
+  @override
+  String moveTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'MOD $count 個をどこに移動しますか？',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get moveBody => 'ディスク上でフォルダが変わるだけです。ほかは変わりません（無効のものは無効のまま）。';
+
+  @override
+  String get folderEmptySection => 'まだ何もありません';
+
+  @override
   String get install => 'インストール';
 
   @override
@@ -494,6 +580,16 @@ class LJa extends L {
       'これらのパッケージには同じ識別子のリソースが入っているため、ゲームは最後に読み込んだものだけを残します。パッチ系や上書き系の MOD はわざと他の MOD のリソースを隠すので意図的なこともありますが、無関係な MOD 同士だと片方が黙って効かなくなります。使いたいほうを残して、他は無効にしてください。';
 
   @override
+  String get conflictIgnore => '無視';
+
+  @override
+  String get conflictIgnoreTooltip =>
+      'この競合がわざとなら非表示にできます。Mod は何も変わらず、消えるのは警告だけです。このページか設定からいつでも戻せます。';
+
+  @override
+  String get conflictRestore => '戻す';
+
+  @override
   String advisoryBanner(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -568,6 +664,14 @@ class LJa extends L {
   String get factDownloads => 'ダウンロード数';
 
   @override
+  String get factIgnoredConflicts => '無視中';
+
+  @override
+  String ignoredConflictsCount(int count) {
+    return '競合 $count 件';
+  }
+
+  @override
   String get statusHeading => '状態';
 
   @override
@@ -612,6 +716,11 @@ class LJa extends L {
   @override
   String sectionGameCaches(String game) {
     return 'ゲームのキャッシュ · $game';
+  }
+
+  @override
+  String sectionIgnoredConflicts(String game) {
+    return '無視した競合 · $game';
   }
 
   @override
@@ -748,6 +857,17 @@ class LJa extends L {
 
   @override
   String get clearCaches => 'キャッシュを削除';
+
+  @override
+  String get ignoredConflictsTitle => '無視している競合';
+
+  @override
+  String ignoredConflictsDesc(int count) {
+    return 'アプリに知らせなくていいと伝えた競合が $count 件あります。戻すとライブラリにまた出てきます';
+  }
+
+  @override
+  String get ignoredConflictsReset => '全部戻す';
 
   @override
   String get reportBugTitle => '不具合を報告';
@@ -909,6 +1029,54 @@ class LJa extends L {
   @override
   String errorFileInUseRename(String name) {
     return '「$name」の名前を変更できませんでした。別のプログラムが使用中（ゲームは起動中？）か、書き込み禁止になっています。使っているものを閉じて、もう一度試してね。';
+  }
+
+  @override
+  String errorFileNameTaken(String name) {
+    return 'そのフォルダには「$name」がすでにあります。どちらかの名前を変えてからもう一度どうぞ。';
+  }
+
+  @override
+  String errorFolderNameBad(String name) {
+    return '「$name」はフォルダ名に使えません。スラッシュやシステムの予約文字を含まない名前にしてください。';
+  }
+
+  @override
+  String errorFolderTooDeep(int levels) {
+    return 'ゲームは MOD フォルダの $levels 階層下までしか読み込みません。それより深い場所に置いても読み込まれません。';
+  }
+
+  @override
+  String errorBulkMoveFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'MOD $count 個を移動できませんでした。他のプログラムが使用中（ゲームは起動していませんか？）か、書き込み禁止か、移動先に同じ名前のファイルがあるのかもしれません。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String errorBulkToggleFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'MOD $count 個を切り替えられませんでした。他のプログラムが使用中（ゲームは起動していませんか？）か、書き込み禁止になっているかもしれません。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String errorBulkRemoveFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'MOD $count 個を削除できませんでした。他のプログラムが使用中（ゲームは起動していませんか？）か、書き込み禁止になっているかもしれません。',
+    );
+    return '$_temp0';
   }
 
   @override

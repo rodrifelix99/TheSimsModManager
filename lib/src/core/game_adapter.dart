@@ -72,9 +72,10 @@ String enabledPathOf(String path) {
 }
 
 /// Why an action on a mod file failed for a reason that isn't an app bug:
-/// the user's environment got in the way (game running, file moved). Lets
-/// the UI show a helpful message and keeps these out of error tracking.
-enum ModActionFailure { fileInUse, fileMissing }
+/// the user's environment got in the way (game running, file moved), or
+/// what was asked for would have cost a file ([nameTaken]). Lets the UI
+/// show a helpful message and keeps these out of error tracking.
+enum ModActionFailure { fileInUse, fileMissing, nameTaken }
 
 /// An enable/disable/remove that failed for a known environmental
 /// [reason]. [detail] is what to tell the user about it.
@@ -187,6 +188,21 @@ abstract class GameAdapter {
       {InstallPlacement placement = const SortedPlacement()});
 
   Future<void> removeMod(Mod mod);
+
+  /// Moves [mod] into [destination] and returns it where it now sits.
+  ///
+  /// Nothing about the file changes but which folder holds it - the
+  /// marker it may be wearing included, so a disabled mod arrives
+  /// disabled. Callers are expected to keep this inside the mods folder:
+  /// the folders a game reads for itself (The Sims 1 routes skins and
+  /// walls into the game's own) are the adapter's arrangement rather than
+  /// the user's, and rearranging those is not what this is for.
+  ///
+  /// Refuses rather than overwrites when [destination] already holds a
+  /// file of that name, or renames around it: two same-named mods is
+  /// precisely what the conflict scan exists to warn about, and losing
+  /// one of them silently is worse than saying so.
+  Future<Mod> moveMod(Mod mod, Directory destination);
 
   Future<Mod> setEnabled(Mod mod, {required bool enabled});
 
@@ -565,6 +581,34 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
         throw ModActionException(ModActionFailure.fileInUse, giveUp());
       }
     }
+  }
+
+  @override
+  Future<Mod> moveMod(Mod mod, Directory destination) async {
+    final name = p.basename(mod.path);
+    final target = p.join(destination.path, name);
+    if (p.equals(target, mod.path)) return mod;
+    // Asked before the folder is created, so a refusal leaves nothing
+    // behind. Either kind of entry counts: a folder named like the file
+    // would take the rename just as fatally.
+    if (await File(target).exists() || await Directory(target).exists()) {
+      throw ModActionException(
+          ModActionFailure.nameTaken, AppMessage('fileNameTaken', [name]));
+    }
+    await destination.create(recursive: true);
+    return _retryWhileLocked(() async {
+      try {
+        return toMod(await renameModFile(File(mod.path), target))!;
+      } on FileSystemException {
+        if (!File(mod.path).existsSync()) {
+          throw ModActionException(
+            ModActionFailure.fileMissing,
+            AppMessage('fileMissing', [name]),
+          );
+        }
+        rethrow;
+      }
+    }, giveUp: () => AppMessage('fileInUseRename', [name]));
   }
 
   /// The on-disk delete behind [removeMod]; a seam for tests to simulate

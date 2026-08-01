@@ -1,7 +1,8 @@
 import 'dart:io';
 import 'dart:ui' show Size;
 
-import 'package:flutter/widgets.dart' show Text;
+import 'package:flutter/services.dart' show LogicalKeyboardKey;
+import 'package:flutter/widgets.dart' show EditableText, Text;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -268,6 +269,31 @@ void main() {
         (w.data == p.join('A', 'lamp.package') ||
             w.data == p.join('B', 'lamp.package')));
     expect(row, findsOneWidget);
+
+    // Settling the clash takes the whole warning with it - it was this
+    // mod's only one - and leaves the way back on the mod's own page.
+    await tester.tap(find.text('Ignore'));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(
+        find.text('Another enabled mod has the same file name:'), findsNothing);
+    expect(find.text('IGNORED'), findsOneWidget);
+    expect(find.text('1 conflict'), findsOneWidget);
+
+    // And the library stops flagging either of them. The back button is
+    // the arrow: the sidebar nav says "Library" too.
+    await tester.tap(find.text('←'));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('conflict'), findsNothing);
+
+    // The other copy carries the way back too, wherever the cap put the
+    // pair: both mods were told to keep the same clash quiet.
+    await tester.tap(find.text('lamp').first);
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tap(find.text('Bring back'));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('Another enabled mod has the same file name:'),
+        findsOneWidget);
+    expect(find.text('IGNORED'), findsNothing);
   });
 
   testWidgets('the other three stats filter the library too', (tester) async {
@@ -500,6 +526,149 @@ void main() {
     expect(row('beta mod'), findsOneWidget);
     expect(row('loose mod'), findsOneWidget);
     expect(settings.collapsedFolders('fake'), ['Alpha']);
+  });
+
+  testWidgets('a mod dragged onto a folder header moves into it',
+      (tester) async {
+    tester.view.physicalSize = const Size(1280, 824);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    SharedPreferences.setMockInitialValues(
+        {'soundEffects': false, 'libraryLayout': 'folders'});
+    final tempDir = Directory.systemTemp.createTempSync('mod_manager_ui');
+    addTearDown(() => tempDir.deleteSync(recursive: true));
+    File(p.join(tempDir.path, 'loose_mod.package')).writeAsStringSync('x');
+    final alpha = Directory(p.join(tempDir.path, 'Alpha'))..createSync();
+    File(p.join(alpha.path, 'alpha_mod.package')).writeAsStringSync('x');
+
+    final registry = GameRegistry([_FakeAdapter(tempDir)]);
+    final settings = await SettingsStore.load();
+
+    await tester.runAsync(() async {
+      await tester.pumpWidget(
+          ModManagerApp(registry: registry, settings: settings));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    final row = find.textContaining('loose mod', findRichText: true);
+    await _until(tester, row);
+    final gesture = await tester.startGesture(tester.getCenter(row));
+    await tester.pump(const Duration(milliseconds: 100));
+    // Sideways first, on purpose: a mod is only picked up by a horizontal
+    // drag, so that dragging up or down still scrolls the shelf.
+    await gesture.moveBy(const Offset(60, 0));
+    await tester.pump(const Duration(milliseconds: 100));
+    await gesture.moveTo(tester.getCenter(find.text('Alpha')));
+    await tester.pump(const Duration(milliseconds: 100));
+    // The drop renames a real file, which needs both real time to happen
+    // and frames to be drawn.
+    await gesture.up();
+    final moved = File(p.join(alpha.path, 'loose_mod.package'));
+    for (var i = 0; i < 60 && !moved.existsSync(); i++) {
+      await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 25)));
+      await tester.pump(const Duration(milliseconds: 25));
+    }
+
+    // The file has landed, but the library is told about it a moment
+    // later: the rename's completion reaches the app on the event loop,
+    // which only runs outside the fake-async zone.
+    await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 100)));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(moved.existsSync(), isTrue);
+    expect(File(p.join(tempDir.path, 'loose_mod.package')).existsSync(),
+        isFalse);
+    // The mods folder's own section has nothing left in it, so it goes.
+    expect(find.text('Mods folder'), findsNothing);
+  });
+
+  testWidgets('the selection bar files mods into a folder it just made',
+      (tester) async {
+    tester.view.physicalSize = const Size(1280, 824);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    SharedPreferences.setMockInitialValues({'soundEffects': false});
+    final tempDir = Directory.systemTemp.createTempSync('mod_manager_ui');
+    addTearDown(() => tempDir.deleteSync(recursive: true));
+    File(p.join(tempDir.path, 'cozy_sofa.package')).writeAsStringSync('x');
+
+    final registry = GameRegistry([_FakeAdapter(tempDir)]);
+    final settings = await SettingsStore.load();
+
+    await tester.runAsync(() async {
+      await tester.pumpWidget(
+          ModManagerApp(registry: registry, settings: settings));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await _until(tester, find.text('cozy sofa'));
+
+    // Ctrl-click ticks the mod, which brings the selection bar up in the
+    // stats row's place.
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+    await tester.tap(find.text('cozy sofa'));
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('Total'), findsNothing);
+    expect(find.text('1 selected · 1 B'), findsOneWidget);
+
+    // Its buttons are icons, so the tooltip is what names them.
+    await tester.tap(find.byTooltip('Move to…'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('Move 1 mod where?'), findsOneWidget);
+
+    // Make a folder from inside the dialog; it becomes the destination.
+    await tester.tap(find.text('New folder'));
+    await tester.pump();
+    await tester.enterText(find.byType(EditableText).last, 'CC');
+    await tester.runAsync(() async {
+      await tester.tap(find.text('Create'));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
+    final made = Directory(p.join(tempDir.path, 'CC'));
+    for (var i = 0; i < 60 && !made.existsSync(); i++) {
+      await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 25)));
+      await tester.pump(const Duration(milliseconds: 25));
+    }
+    // Same again: the folder is on disk before the dialog has been told.
+    await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 100)));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(made.existsSync(), isTrue);
+    // The new folder is in the list, and is what Move will use.
+    expect(find.text('CC'), findsOneWidget);
+
+    // The move needs both to make progress: frames for the dialog route to
+    // close, and real time for the rename underneath it.
+    await tester.tap(find.text('Move'));
+    final moved = File(p.join(tempDir.path, 'CC', 'cozy_sofa.package'));
+    for (var i = 0; i < 60 && !moved.existsSync(); i++) {
+      await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 25)));
+      await tester.pump(const Duration(milliseconds: 25));
+    }
+
+    await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 100)));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(moved.existsSync(), isTrue);
+    // The tick followed the file, so the bar is still up and still says
+    // one - a selection is kept by the name a mod carries, and that is
+    // exactly what a move changes.
+    expect(find.text('1 selected · 1 B'), findsOneWidget);
   });
 
   testWidgets('menu folders reorder in place and drag out onto the line',

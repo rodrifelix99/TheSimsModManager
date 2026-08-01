@@ -251,6 +251,92 @@ class LZh extends L {
   String get libraryRootFolder => 'Mods 文件夹';
 
   @override
+  String get selectionTooltip => '选择';
+
+  @override
+  String selectionCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已选 $count 个',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get selectionSelectAll => '全选';
+
+  @override
+  String get selectionClear => '取消选择';
+
+  @override
+  String get selectionEnable => '启用';
+
+  @override
+  String get selectionDisable => '停用';
+
+  @override
+  String selectionProgress(int done, int total) {
+    return '$done/$total';
+  }
+
+  @override
+  String selectionDeleteTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '卸载这 $count 个 MOD？',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String selectionDeleteBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '这 $count 个文件将从磁盘上删除，无法撤销。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get selectionMove => '移动到…';
+
+  @override
+  String get newFolder => '新建文件夹';
+
+  @override
+  String newFolderIn(String folder) {
+    return '建在 $folder 里';
+  }
+
+  @override
+  String get newFolderHint => '文件夹名称';
+
+  @override
+  String get create => '创建';
+
+  @override
+  String get move => '移动';
+
+  @override
+  String moveTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '把这 $count 个 MOD 移到哪里？',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get moveBody => '文件会在磁盘上移动位置，其他什么都不变 —— 已经停用的还是停用状态。';
+
+  @override
+  String get folderEmptySection => '这里还什么都没有';
+
+  @override
   String get install => '安装';
 
   @override
@@ -489,6 +575,16 @@ class LZh extends L {
       '这些包里有标识符相同的资源，所以游戏只会保留最后加载的那一份。这有时是故意的（补丁类和覆盖类 MOD 本来就是要盖住别的 MOD 的资源），但如果两个 MOD 毫不相干，那就意味着其中一个悄悄失效了：留下你想要的那个，把其余的停用。';
 
   @override
+  String get conflictIgnore => '忽略';
+
+  @override
+  String get conflictIgnoreTooltip =>
+      '如果这个冲突是你故意留的，就把它藏起来。模组本身完全不动，消失的只是提示，随时能在这个页面或者设置里恢复。';
+
+  @override
+  String get conflictRestore => '恢复';
+
+  @override
   String advisoryBanner(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -561,6 +657,14 @@ class LZh extends L {
   String get factDownloads => '下载量';
 
   @override
+  String get factIgnoredConflicts => '已忽略';
+
+  @override
+  String ignoredConflictsCount(int count) {
+    return '$count 个冲突';
+  }
+
+  @override
   String get statusHeading => '状态';
 
   @override
@@ -605,6 +709,11 @@ class LZh extends L {
   @override
   String sectionGameCaches(String game) {
     return '游戏缓存 · $game';
+  }
+
+  @override
+  String sectionIgnoredConflicts(String game) {
+    return '已忽略的冲突 · $game';
   }
 
   @override
@@ -739,6 +848,17 @@ class LZh extends L {
 
   @override
   String get clearCaches => '清理缓存';
+
+  @override
+  String get ignoredConflictsTitle => '你忽略掉的冲突';
+
+  @override
+  String ignoredConflictsDesc(int count) {
+    return '你让应用别再提示的 $count 个冲突。恢复之后它们会重新出现在库里';
+  }
+
+  @override
+  String get ignoredConflictsReset => '全部恢复';
 
   @override
   String get reportBugTitle => '反馈问题';
@@ -899,6 +1019,51 @@ class LZh extends L {
   @override
   String errorFileInUseRename(String name) {
     return '「$name」重命名失败：文件被别的程序占用了（游戏还开着？），或者是只读的。先关掉占用它的程序，再试一次。';
+  }
+
+  @override
+  String errorFileNameTaken(String name) {
+    return '那个文件夹里已经有“$name”了。改个名字再试一次吧。';
+  }
+
+  @override
+  String errorFolderNameBad(String name) {
+    return '“$name”不能用作文件夹名。换一个不带斜杠和系统保留字符的名字试试。';
+  }
+
+  @override
+  String errorFolderTooDeep(int levels) {
+    return '游戏只会读取 MOD 文件夹往下 $levels 层，再深的东西永远不会加载。';
+  }
+
+  @override
+  String errorBulkMoveFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '有 $count 个 MOD 没能移动，可能被别的程序占用（游戏还开着吗？）、是只读的，或者目标文件夹里已经有同名文件了。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String errorBulkToggleFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '有 $count 个 MOD 没能切换状态，可能被别的程序占用（游戏还开着吗？）或者是只读的。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String errorBulkRemoveFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '有 $count 个 MOD 没能删除，可能被别的程序占用（游戏还开着吗？）或者是只读的。',
+    );
+    return '$_temp0';
   }
 
   @override

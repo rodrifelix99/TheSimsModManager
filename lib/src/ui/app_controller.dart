@@ -14,8 +14,10 @@ import '../core/folder_access.dart';
 import '../core/game_adapter.dart';
 import '../core/game_pack.dart';
 import '../core/game_registry.dart';
+import '../core/ignored_conflicts.dart';
 import '../core/mod.dart';
 import '../core/install_destination.dart';
+import '../core/install_path.dart';
 import '../core/mod_advisories.dart';
 import '../core/mod_archive.dart';
 import '../core/mod_folder.dart';
@@ -368,6 +370,16 @@ class AppController extends ChangeNotifier {
   /// panel words its warning from this. Keys are exactly [conflictPaths].
   Map<String, ConflictReason> conflictReasons = const {};
 
+  /// Who clashes with whom, minus the pairs the user has settled: mod
+  /// path -> (the other mod's path -> why the two are paired). Everything
+  /// the library says about conflicts comes from here.
+  Map<String, Map<String, ConflictReason>> conflictPairs = const {};
+
+  /// The same before the ignored pairs are taken out, so a mod's page can
+  /// say how many of its clashes are being kept quiet - and so the count
+  /// only ever mentions clashes the scan is still finding.
+  Map<String, Map<String, ConflictReason>> _allConflictPairs = const {};
+
   /// Resource-key overlaps from the package scan: mod path -> (overlapping
   /// mod's path -> shared key count). See [findResourceOverlaps]. Empty
   /// when conflict warnings are off or nothing overlaps.
@@ -550,6 +562,15 @@ class AppController extends ChangeNotifier {
       if (mod.isEnabled) _enabledCount++;
       _totalSizeBytes += mod.sizeBytes ?? 0;
     }
+    // Folders the user made and hasn't filled yet exist nowhere in the
+    // library, so they are put back here: from this point on a chip, a
+    // section and a move target all treat them like any other folder that
+    // happens to be empty.
+    for (final made in _madeFolders) {
+      for (final key in folderAncestry(made)) {
+        _folderCounts.putIfAbsent(key, () => 0);
+      }
+    }
     // Sorting the paths puts each folder straight above its own children.
     _sortedFolders = _folderCounts.keys.toList()
       ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
@@ -562,6 +583,14 @@ class AppController extends ChangeNotifier {
     if (stateFilter == ModStateFilter.enabled && _enabledCount == 0 ||
         stateFilter == ModStateFilter.disabled && disabledCount == 0) {
       stateFilter = ModStateFilter.all;
+    }
+    // A tick on a mod that is no longer in the library would be a bulk
+    // action reaching for a file nothing can find. Whatever renamed one
+    // has already carried its tick over ([_repathSelected]).
+    if (_selected.isNotEmpty) {
+      final present = {for (final mod in value) mod.path};
+      _selected.removeWhere((path) => !present.contains(path));
+      if (!_selected.contains(_selectionAnchor)) _selectionAnchor = null;
     }
     _libraryStamp++;
   }
@@ -705,6 +734,39 @@ class AppController extends ChangeNotifier {
 
   int folderCount(String f) => _folderCounts[f] ?? 0;
 
+  /// Folders the user made in the app which nothing has landed in yet.
+  /// Read from the preference at each [refresh] and dropped as soon as
+  /// the folder isn't on disk (deleted in Explorer, or a different
+  /// install of the game). See [SettingsStore.madeFolders].
+  Set<String> _madeFolders = const {};
+
+  /// Whether [folder] can take mods dropped or moved into it. False for
+  /// the folders that aren't the user's arrangement to begin with: The
+  /// Sims 1's skins and walls live in the game's own folders, and which
+  /// file belongs in which is the adapter's answer rather than a place
+  /// to file things.
+  bool canMoveInto(String folder) => !_externalFolders.contains(folder);
+
+  /// Every folder a move can send a mod to, in chip order, with `null`
+  /// first for the mods folder itself.
+  List<String?> get moveTargets =>
+      [null, ...folders.where(canMoveInto)];
+
+  /// Whether mods can be moved around at all right now: there has to be
+  /// a folder to move them in, and it has to accept files.
+  bool get canMoveMods => modsDir != null && modsDirWritable;
+
+  /// Whether [mod] is somewhere a move can pick it up from - inside the
+  /// mods folder. The Sims 1 routes skins and walls into folders of the
+  /// game's own, and which file belongs in which of those is the
+  /// adapter's answer rather than the user's filing, so a move never
+  /// touches them. Asked before the gesture is offered, since a Move
+  /// button that quietly does nothing is worse than no button.
+  bool canMove(Mod mod) {
+    final root = modsDir?.path;
+    return root != null && p.isWithin(root, mod.path);
+  }
+
   /// The key a collapsed section is remembered under when it is the mods
   /// directory itself, which has no folder name of its own.
   static const rootFolderKey = '';
@@ -723,7 +785,7 @@ class AppController extends ChangeNotifier {
       (byFolder[folderOf(mod)] ??= []).add(mod);
     }
     ModFolderGroup group(String? folder) {
-      final mods = byFolder.remove(folder)!;
+      final mods = byFolder.remove(folder) ?? const <Mod>[];
       return (
         folder: folder,
         mods: mods,
@@ -733,8 +795,13 @@ class AppController extends ChangeNotifier {
 
     final result = [
       if (byFolder.containsKey(null)) group(null),
+      // A folder the user just made draws its own empty section, which is
+      // what makes it somewhere to drag mods to. Only while nothing is
+      // filtered: an empty section under a search would say the folder
+      // holds nothing rather than that nothing in it matched.
       for (final f in folders)
-        if (byFolder.containsKey(f)) group(f),
+        if (byFolder.containsKey(f) || (_madeFolders.contains(f) && !isFiltering))
+          group(f),
       // Anything the chip order somehow missed still has to be drawn:
       // a section the user cannot see is a mod the user cannot reach.
       for (final f in byFolder.keys.toList()) group(f),
@@ -797,20 +864,13 @@ class AppController extends ChangeNotifier {
   /// Why [mod] is flagged: the other enabled mods sharing its file name
   /// (case-insensitive), looking like another version of it, or carrying
   /// the same resource keys inside. Empty when the mod isn't conflicted.
+  /// In library order, so the panel reads the way the shelf does.
   List<Mod> conflictingWith(Mod mod) {
-    if (!conflictPaths.contains(mod.path)) return const [];
-    final name = p.basename(mod.name).toLowerCase();
-    final identity = parseModName(mod.name).identity;
-    final overlapping = resourceOverlaps[mod.path] ?? const {};
+    final partners = conflictPairs[mod.path];
+    if (partners == null || partners.isEmpty) return const [];
     return [
       for (final other in mods)
-        if (other.path != mod.path &&
-            other.isEnabled &&
-            (p.basename(other.name).toLowerCase() == name ||
-                overlapping.containsKey(other.path) ||
-                (conflictPaths.contains(other.path) &&
-                    parseModName(other.name).identity == identity)))
-          other,
+        if (partners.containsKey(other.path)) other,
     ];
   }
 
@@ -867,6 +927,140 @@ class AppController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// The mods ticked for a bulk action, by the path each one carries on
+  /// disk right now - marker and all.
+  ///
+  /// Not the enabled-name path, which reads like the better identity and
+  /// is not one: a folder can hold `hair.package` and `hair.package.disabled`
+  /// at the same time (install over a mod you had switched off), and those
+  /// two collapse onto a single enabled name. One tick would then have
+  /// meant two files, and Delete would have taken both. So the key is the
+  /// real path and every rename carries its tick across by hand
+  /// ([_repathSelected]).
+  final Set<String> _selected = {};
+
+  /// Where a shift-click measures from: the last mod ticked on its own.
+  /// Null once that mod leaves the library, or after a select-all, which
+  /// leaves no single mod the range could start at.
+  String? _selectionAnchor;
+
+  bool get hasSelection => _selected.isNotEmpty;
+
+  int get selectedCount => _selected.length;
+
+  bool isSelected(Mod mod) => _selected.contains(mod.path);
+
+  /// The ticked mods, in library order. Read off [mods] rather than
+  /// [filteredMods]: a selection made before the filters changed is still
+  /// the selection the user made, and a bulk action has to reach all of
+  /// it rather than whatever half is on screen when the button is hit.
+  List<Mod> get selectedMods => [
+        for (final mod in mods)
+          if (_selected.contains(mod.path)) mod,
+      ];
+
+  /// One pass rather than [selectedMods] plus a fold: this is drawn in the
+  /// selection bar, which rebuilds on every notification a batch fires.
+  int get selectedSizeBytes {
+    var total = 0;
+    for (final mod in mods) {
+      if (_selected.contains(mod.path)) total += mod.sizeBytes ?? 0;
+    }
+    return total;
+  }
+
+  /// Whether at least one ticked mod is somewhere a move can pick it up
+  /// from, so the bar can leave the button out rather than offer one that
+  /// does nothing.
+  bool get hasMovableSelection {
+    for (final mod in mods) {
+      if (_selected.contains(mod.path) && canMove(mod)) return true;
+    }
+    return false;
+  }
+
+  /// Whether everything the filters are showing is already ticked, so the
+  /// bar can offer the other half of the deal.
+  bool get allVisibleSelected {
+    final visible = filteredMods;
+    return visible.isNotEmpty &&
+        visible.every((mod) => _selected.contains(mod.path));
+  }
+
+  /// The mods in the order they are actually drawn, which in the folder
+  /// layout means section by section with the rolled-up ones left out.
+  /// What a range has to be measured over: [filteredMods] is one flat run
+  /// in a different order, and it holds mods no section is showing.
+  List<Mod> get visibleMods {
+    if (layout != LibraryLayout.folders) return filteredMods;
+    return [
+      for (final group in folderGroups)
+        if (!isFolderCollapsed(group.folder)) ...group.mods,
+    ];
+  }
+
+  /// Ticks or unticks [mod], and makes it what a following shift-click
+  /// measures from.
+  void toggleSelected(Mod mod) {
+    if (!_selected.remove(mod.path)) _selected.add(mod.path);
+    playSound(UiSound.click);
+    _selectionAnchor = mod.path;
+    notifyListeners();
+  }
+
+  /// Shift-click: [mod] and everything between it and the last mod ticked
+  /// on its own, in the order the library is drawn in - so the range is
+  /// the one on screen rather than the one on disk. Falls back to ticking
+  /// [mod] alone when there is nothing to measure from, which is what the
+  /// first shift-click of a session is.
+  void selectTo(Mod mod) {
+    final anchor = _selectionAnchor;
+    if (anchor == null) return toggleSelected(mod);
+    final visible = visibleMods;
+    final from = visible.indexWhere((m) => m.path == anchor);
+    final to = visible.indexWhere((m) => m.path == mod.path);
+    if (from < 0 || to < 0) return toggleSelected(mod);
+    for (var i = from < to ? from : to; i <= (from < to ? to : from); i++) {
+      _selected.add(visible[i].path);
+    }
+    playSound(UiSound.click);
+    notifyListeners();
+  }
+
+  /// Ticks everything the filters are showing, which is the promise the
+  /// button makes: what is on screen, not what is on disk. Searching for
+  /// "eyelashes" and hitting it is how a hundred files get switched off
+  /// in one go.
+  void selectAllVisible() {
+    final visible = filteredMods;
+    if (visible.isEmpty) return;
+    playSound(UiSound.select);
+    for (final mod in visible) {
+      _selected.add(mod.path);
+    }
+    // No single mod for a range to start at.
+    _selectionAnchor = null;
+    analytics.capture(
+        'mods_select_all', {'game': _adapter.game.id, 'mods': visible.length});
+    notifyListeners();
+  }
+
+  /// Carries a tick from [from] to [to], for the renames that are what
+  /// enabling, disabling and moving a mod all are on disk.
+  void _repathSelected(String from, String to) {
+    if (from == to) return;
+    if (_selected.remove(from)) _selected.add(to);
+    if (_selectionAnchor == from) _selectionAnchor = to;
+  }
+
+  void clearSelection() {
+    if (_selected.isEmpty) return;
+    playSound(UiSound.back);
+    _selected.clear();
+    _selectionAnchor = null;
+    notifyListeners();
+  }
+
   /// Narrows the library to conflicting mods, or back to all of them.
   /// No-op when there's nothing to narrow to.
   void toggleConflictsOnly() {
@@ -884,30 +1078,221 @@ class AppController extends ChangeNotifier {
   /// inexplicably empty list. The remote kill switch can turn the scan
   /// off for everyone if the heuristic ever misbehaves.
   ///
-  /// Two signals feed the flag set: the lexical heuristics
-  /// ([findConflicts]) and real resource-key overlaps from the package
-  /// scan ([findResourceOverlaps], via the insight cache - so with the
-  /// artwork scan off only the lexical pass runs).
+  /// [findConflictPairs] folds both signals: its own lexical heuristics
+  /// and the real resource-key overlaps handed to it
+  /// ([findResourceOverlaps], via the insight cache - so with the artwork
+  /// scan off only the lexical pass runs). What each mod is flagged for
+  /// then follows from the pairs it has left once [_applyIgnored] has
+  /// taken out the ones the user settled.
   void _rescanConflicts() {
     final scan = settings.warnConflicts &&
         analytics.isEnabled('conflict-detection', fallback: true);
     resourceOverlaps = scan ? findResourceOverlaps(mods, insightFor) : const {};
-    // The lexical reasons spread last: a mod both signals flag reports
-    // the more specific lexical one.
-    conflictReasons = !scan
+    _allConflictPairs =
+        scan ? findConflictPairs(mods, resourceOverlaps) : const {};
+    _applyIgnored();
+  }
+
+  /// The scan already in hand, minus the clashes this game's player has
+  /// settled. A mod whose last pair goes stops being flagged at all -
+  /// which is the point of the whole thing: the count, the badge and the
+  /// filter are then about the conflicts that are still a question.
+  ///
+  /// Separate from [_rescanConflicts] because ignoring a clash changes
+  /// none of the things a scan reads: the packages, the library and the
+  /// insight cache are all where they were, so re-running the resource
+  /// pass - the work [refresh] does under the loading screen - would be
+  /// several seconds of frozen window per click.
+  void _applyIgnored() {
+    final ignored = _ignoredKeys();
+    final root = modsDir?.path;
+    // The mods folder is what every record is measured from, so one pass
+    // over the library answers for every pair below instead of two path
+    // resolutions each.
+    _recordPaths = ignored.isEmpty || root == null
         ? const {}
         : {
-            for (final path in resourceOverlaps.keys)
-              path: ConflictReason.resourceOverlap,
-            ...findConflicts(mods),
+            for (final mod in mods)
+              mod.path: p.relative(enabledPathOf(mod.path), from: root),
           };
+    _ignoredByMod = _ignoredRecordsByMod(ignored);
+    conflictPairs = _withoutIgnored(_allConflictPairs);
+    conflictReasons = conflictReasonsOf(conflictPairs);
     conflictPaths = conflictReasons.keys.toSet();
     if (conflictPaths.isEmpty) conflictsOnly = false;
     _libraryStamp++;
   }
 
+  /// Which settled clashes name each mod in the library, by its path.
+  ///
+  /// Read off the records and the library rather than off the pairs: a
+  /// clash the partner cap recorded on one side only ([_maxPartnersPerMod])
+  /// is still one both of its mods were told to keep quiet, and the mod
+  /// whose row is full has to be able to say so and to take it back.
+  Map<String, Set<String>> _ignoredRecordsByMod(Set<String> ignored) {
+    if (ignored.isEmpty || _recordPaths.isEmpty) return const {};
+    final byRecord = <String, String>{
+      for (final entry in _recordPaths.entries) entry.value: entry.key,
+    };
+    final byMod = <String, Set<String>>{};
+    for (final key in ignored) {
+      for (final record in conflictPairPaths(key) ?? const <String>[]) {
+        final path = byRecord[record];
+        if (path != null) byMod.putIfAbsent(path, () => {}).add(key);
+      }
+    }
+    return byMod;
+  }
+
+  Map<String, Map<String, ConflictReason>> _withoutIgnored(
+      Map<String, Map<String, ConflictReason>> pairs) {
+    final ignored = _ignoredKeys();
+    if (ignored.isEmpty || pairs.isEmpty) return pairs;
+    final kept = <String, Map<String, ConflictReason>>{};
+    for (final entry in pairs.entries) {
+      final row = {
+        for (final partner in entry.value.entries)
+          if (!ignored.contains(_pairKey(entry.key, partner.key)))
+            partner.key: partner.value,
+      };
+      if (row.isNotEmpty) kept[entry.key] = row;
+    }
+    return kept;
+  }
+
   /// Why the scan flagged [mod], or null when it didn't.
   ConflictReason? conflictReasonOf(Mod mod) => conflictReasons[mod.path];
+
+  /// Clashes the user has settled, by game id, as the pair keys of
+  /// `core/ignored_conflicts.dart`.
+  Map<String, Set<String>> _ignoredConflicts = {};
+
+  /// The same for the invented library, which is never written down: its
+  /// mods do not exist, and the two builds share these preferences, so a
+  /// screenshot session must not leave records the shipped app reads.
+  /// Dropped with the rest of the invented state when demo mode goes off
+  /// (see [_withDemoMods]), the way the demo shop's install records are.
+  final Map<String, Set<String>> _demoIgnoredConflicts = {};
+
+  /// Each mod's path as its records spell it: relative to the mods folder
+  /// and always the switched-on name. Built once per scan, empty when
+  /// nothing is ignored and there is nothing to match.
+  Map<String, String> _recordPaths = const {};
+
+  /// The settled clashes naming each mod, by its path. See
+  /// [_ignoredRecordsByMod].
+  Map<String, Set<String>> _ignoredByMod = const {};
+
+  Set<String> _ignoredKeys() {
+    final gameId = _adapter.game.id;
+    final real = _ignoredConflicts[gameId] ?? const <String>{};
+    final demo = _demoIgnoredConflicts[gameId] ?? const <String>{};
+    if (demo.isEmpty) return real;
+    return {...real, ...demo};
+  }
+
+  /// The stored key for the clash between two mods, or null when there is
+  /// no mods folder to measure from. Relative and always the switched-on
+  /// name, so the record survives a disable and a whole install moving.
+  String? _pairKey(String path, String other) {
+    final root = modsDir?.path;
+    if (root == null) return null;
+    String record(String of) =>
+        _recordPaths[of] ?? p.relative(enabledPathOf(of), from: root);
+    return conflictPairKey(record(path), record(other));
+  }
+
+  /// How many of [mod]'s clashes are being kept quiet.
+  int ignoredConflictsOf(Mod mod) => _ignoredByMod[mod.path]?.length ?? 0;
+
+  /// Every clash settled for the game on screen, the number Settings
+  /// offers to undo. Counts the records naming a mod that is actually
+  /// here: one whose files have since gone would be a card the user
+  /// cannot act on, offering to bring back a warning nothing would draw.
+  int get ignoredConflictCount =>
+      _ignoredByMod.values.fold(<String>{}, (keys, held) => keys..addAll(held))
+          .length;
+
+  /// Stops reporting the clash between [mod] and [other]. The pair, not
+  /// the mod: whatever else either of them clashes with is still flagged.
+  Future<void> ignoreConflict(Mod mod, Mod other) async {
+    final key = _pairKey(mod.path, other.path);
+    if (key == null) return;
+    final gameId = _adapter.game.id;
+    playSound(UiSound.toggleOff);
+    analytics.capture('conflict_ignored', {
+      'reason': (_allConflictPairs[mod.path]?[other.path] ??
+              ConflictReason.resourceOverlap)
+          .name,
+      'game': gameId,
+    });
+    final invented = isDemoMod(mod) || isDemoMod(other);
+    final bucket = invented ? _demoIgnoredConflicts : _ignoredConflicts;
+    bucket[gameId] = {...?bucket[gameId], key};
+    await _rememberIgnored(persist: !invented);
+  }
+
+  /// Brings back everything [mod] was keeping quiet.
+  Future<void> restoreConflicts(Mod mod) async {
+    final back = _ignoredByMod[mod.path];
+    if (back == null || back.isEmpty) return;
+    playSound(UiSound.toggleOn);
+    analytics.capture('conflicts_restored', {'scope': 'mod'});
+    await _dropIgnored(back);
+  }
+
+  /// Every settled clash for this game, back. The way out from Settings,
+  /// and the only one for a mod whose page shows nothing anymore because
+  /// its last flagged clash was the one that got ignored. Takes the
+  /// records naming mods that are no longer here with it: they are the
+  /// ones nothing else can reach.
+  Future<void> restoreAllConflicts() async {
+    final ignored = _ignoredKeys();
+    if (ignored.isEmpty) return;
+    playSound(UiSound.toggleOn);
+    analytics.capture('conflicts_restored', {'scope': 'game'});
+    await _dropIgnored(ignored);
+  }
+
+  Future<void> _dropIgnored(Set<String> keys, {bool notify = true}) async {
+    final gameId = _adapter.game.id;
+    var persist = false;
+    for (final bucket in [_ignoredConflicts, _demoIgnoredConflicts]) {
+      final held = bucket[gameId];
+      if (held == null) continue;
+      final kept = held.difference(keys);
+      if (kept.length == held.length) continue;
+      persist |= identical(bucket, _ignoredConflicts);
+      if (kept.isEmpty) {
+        bucket.remove(gameId);
+      } else {
+        bucket[gameId] = kept;
+      }
+    }
+    await _rememberIgnored(persist: persist, notify: notify);
+  }
+
+  /// Drops every record naming [mod], for when it is uninstalled - the
+  /// way [_forgetPlaced] and the shop's install record are dropped. A
+  /// kept record would outlive the file and, since a record is a path,
+  /// silently apply to whatever is installed there next.
+  Future<void> _forgetIgnored(Mod mod) async {
+    final held = _ignoredByMod[mod.path];
+    if (held == null || held.isEmpty) return;
+    await _dropIgnored(held, notify: false);
+  }
+
+  Future<void> _rememberIgnored(
+      {required bool persist, bool notify = true}) async {
+    if (persist) {
+      await settings
+          .setIgnoredConflictsJson(encodeIgnoredConflicts(_ignoredConflicts));
+    }
+    // The scan itself is untouched: only which of its clashes are drawn
+    // has changed.
+    _applyIgnored();
+    if (notify) notifyListeners();
+  }
 
   /// Re-derives every per-mod warning from the library as it stands now.
   ///
@@ -1377,6 +1762,9 @@ class AppController extends ChangeNotifier {
     // Same again: mods sitting in folders the library cannot sweep are
     // only known from here, and the first frame should show them.
     _placedMods = parsePlacedMods(settings.placedModsJson);
+    // And the clashes the user has already settled, before the first scan
+    // runs - otherwise the library opens on warnings it was told to drop.
+    _ignoredConflicts = parseIgnoredConflicts(settings.ignoredConflictsJson);
     // And again: what answered last time, so the sidebar doesn't offer
     // The Exchange for the second the probe takes and then withdraw it.
     // A forced answer wins here too, or a debug run would open on the
@@ -1501,6 +1889,9 @@ class AppController extends ChangeNotifier {
     tooDeepOnly = false;
     stateFilter = ModStateFilter.all;
     _selectedModPath = null;
+    // The ticks were on another game's files.
+    _selected.clear();
+    _selectionAnchor = null;
     // Another game's saves are another set of files; they are read when
     // the user next opens the Saves screen, not eagerly on every switch.
     saveGames = null;
@@ -1565,7 +1956,13 @@ class AppController extends ChangeNotifier {
   /// never shadows a file that actually exists.
   List<Mod> _withDemoMods(List<Mod> real) {
     _demoPaths = const {};
-    if (!settings.demoLibrary) return real;
+    if (!settings.demoLibrary) {
+      // The clashes settled on invented mods go with them: they name
+      // files that were never there, and left behind they would count
+      // against the real library in Settings.
+      _demoIgnoredConflicts.clear();
+      return real;
+    }
     final demo = buildDemoLibrary(_adapter, modsDir?.path ?? 'Mods',
         today: _demoAnchor());
     final taken = {for (final mod in real) enabledPathOf(mod.path)};
@@ -1599,20 +1996,25 @@ class AppController extends ChangeNotifier {
     await _refreshCounts();
   }
 
+  /// What an invented mod looks like once switched on or off: the rename
+  /// the disk would have done, done to the snapshot instead.
+  Mod _demoModToggled(Mod mod, bool enabled) => Mod(
+        name: mod.name,
+        path: enabled ? enabledPathOf(mod.path) : '${mod.path}$disabledSuffix',
+        status: enabled ? ModStatus.enabled : ModStatus.disabled,
+        sizeBytes: mod.sizeBytes,
+        category: mod.category,
+        modifiedAt: mod.modifiedAt,
+      );
+
   /// Enable/disable for an invented mod: the same state change the real
   /// path makes on disk, done in memory. Like every edit to the demo
   /// library it lasts until the next refresh, which rebuilds it.
   void _toggleDemoMod(Mod mod) {
     final enabled = !mod.isEnabled;
-    final updated = Mod(
-      name: mod.name,
-      path: enabled ? enabledPathOf(mod.path) : '${mod.path}$disabledSuffix',
-      status: enabled ? ModStatus.enabled : ModStatus.disabled,
-      sizeBytes: mod.sizeBytes,
-      category: mod.category,
-      modifiedAt: mod.modifiedAt,
-    );
+    final updated = _demoModToggled(mod, enabled);
     playSound(enabled ? UiSound.toggleOn : UiSound.toggleOff);
+    _repathSelected(mod.path, updated.path);
     _setMods([for (final m in mods) m.path == mod.path ? updated : m]);
     if (_selectedModPath == mod.path) _selectedModPath = updated.path;
     _rescanWarnings();
@@ -1665,6 +2067,9 @@ class AppController extends ChangeNotifier {
       // being found and on which expansions are in it.
       hasInstallChoice = dir != null &&
           (await _adapter.installDestinations(dir)).length > 1;
+      // Before the library is built: _setMods folds these into the folder
+      // counts, so a folder made and not yet filled keeps its chip.
+      _madeFolders = dir == null ? const {} : await _readMadeFolders(dir);
       _setMods(_withDemoMods(dir == null
           ? const []
           : await _withPlacedMods(_adapter, dir, await _adapter.listMods(dir))));
@@ -1873,12 +2278,15 @@ class AppController extends ChangeNotifier {
   }
 
   Future<void> toggleMod(Mod mod) async {
+    if (bulkRunning) return;
     if (isDemoMod(mod)) return _toggleDemoMod(mod);
     try {
       final updated = await _adapter.setEnabled(mod, enabled: !mod.isEnabled);
       playSound(updated.isEnabled ? UiSound.toggleOn : UiSound.toggleOff);
       analytics.capture(updated.isEnabled ? 'mod_enabled' : 'mod_disabled',
           {'game': _adapter.game.id, 'category': mod.category});
+      // The file was renamed; the tick on it has to follow.
+      _repathSelected(mod.path, updated.path);
       _setMods([for (final m in mods) m.path == mod.path ? updated : m]);
       if (_selectedModPath == mod.path) _selectedModPath = updated.path;
       _rescanWarnings();
@@ -1913,6 +2321,7 @@ class AppController extends ChangeNotifier {
   }
 
   Future<void> removeMod(Mod mod) async {
+    if (bulkRunning) return;
     if (isDemoMod(mod)) return _removeDemoMod(mod);
     AppMessage? error;
     try {
@@ -1936,8 +2345,515 @@ class AppController extends ChangeNotifier {
     if (error == null) {
       await _forgetShopFile(mod);
       await _forgetPlaced(_adapter, modsDir, mod);
+      await _forgetIgnored(mod);
     }
     await _refreshKeepingError(error);
+  }
+
+  /// How far the running bulk action has got, as (done, total); null when
+  /// none is running, which is also how the selection bar knows whether
+  /// to draw its buttons or a progress strip.
+  (int, int)? bulkProgress;
+
+  bool get bulkRunning => bulkProgress != null;
+
+  bool _bulkCancelled = false;
+
+  /// Stops the batch after the file it is on. What has already happened
+  /// stays done: these are renames and deletes on the user's disk, and an
+  /// undo is not something the app can honestly offer.
+  void cancelBulk() {
+    if (bulkRunning) _bulkCancelled = true;
+  }
+
+  /// Walks [targets] through [step], keeping [bulkProgress] current
+  /// without a rebuild per file - a selection of thousands would spend
+  /// longer drawing the counter than moving the files - and stopping
+  /// early once [cancelBulk] has been called. Returns how many it got
+  /// through.
+  Future<int> _runBatch<T>(
+      List<T> targets, Future<void> Function(T) step) async {
+    _bulkCancelled = false;
+    bulkProgress = (0, targets.length);
+    notifyListeners();
+    // A hundred repaints whatever the size of the batch.
+    final every = (targets.length / 100).ceil();
+    var done = 0;
+    try {
+      for (final target in targets) {
+        if (_bulkCancelled) break;
+        await step(target);
+        done++;
+        if (done % every == 0) {
+          bulkProgress = (done, targets.length);
+          notifyListeners();
+        }
+      }
+    } finally {
+      // In a finally because bulkRunning is what locks out every other
+      // mod action: a step that threw its way out of here would leave
+      // the app refusing to toggle, delete or move anything at all until
+      // it was restarted, with a progress strip on screen and a Cancel
+      // button read by nothing.
+      bulkProgress = null;
+    }
+    return done;
+  }
+
+  /// The same verdict [_reportModActionFailure] reaches, for one file
+  /// inside a batch: no sound and no per-file event, because a selection
+  /// of three hundred would fire three hundred of each. Only ever called
+  /// for the first failure of a batch - a batch that refuses one file
+  /// usually refuses the rest for the same reason, and the reports after
+  /// the first say nothing the first didn't.
+  AppMessage _bulkFailure(Object e, StackTrace stack,
+      {required String action}) {
+    if (e is! ModActionException) {
+      analytics.captureException(e, stack, mechanism: '${action}Selected');
+    }
+    return errorMessage(e);
+  }
+
+  /// One banner for a whole batch: the file's own reason when a single
+  /// one refused, and a tally under [key] when several did. Those
+  /// messages name the file they are about, and thirty file names is not
+  /// something anybody reads.
+  AppMessage? _batchError(AppMessage? first, int failed, String key) =>
+      switch (failed) {
+        0 => null,
+        1 => first,
+        _ => AppMessage(key, ['$failed']),
+      };
+
+  /// Switches every selected mod on or off.
+  ///
+  /// One pass over the disk and one rebuild at the end, rather than a
+  /// loop over [toggleMod]: that path rebuilds every derived count and
+  /// re-runs the conflict scan per file, which for a selection of
+  /// hundreds is minutes of frozen window for seconds of actual work.
+  Future<void> setSelectedEnabled(bool enabled) async {
+    if (bulkRunning) return;
+    final targets = [
+      for (final mod in selectedMods)
+        if (mod.isEnabled != enabled) mod,
+    ];
+    if (targets.isEmpty) return;
+    final updated = <String, Mod>{};
+    var failed = 0;
+    AppMessage? failure;
+    await _runBatch(targets, (mod) async {
+      if (isDemoMod(mod)) {
+        updated[mod.path] = _demoModToggled(mod, enabled);
+        return;
+      }
+      try {
+        updated[mod.path] = await _adapter.setEnabled(mod, enabled: enabled);
+      } catch (e, stack) {
+        failure ??= _bulkFailure(e, stack, action: 'toggle');
+        failed++;
+      }
+    });
+    if (updated.isNotEmpty) {
+      // Before _setMods, which drops ticks it no longer recognises: every
+      // one of these files was just renamed.
+      for (final entry in updated.entries) {
+        _repathSelected(entry.key, entry.value.path);
+      }
+      _setMods([for (final mod in mods) updated[mod.path] ?? mod]);
+      final open = _selectedModPath;
+      if (open != null && updated.containsKey(open)) {
+        _selectedModPath = updated[open]!.path;
+      }
+      _rescanWarnings();
+      modCounts[_adapter.game.id] = mods.length;
+    }
+    playSound(failed > 0
+        ? UiSound.error
+        : enabled
+            ? UiSound.toggleOn
+            : UiSound.toggleOff);
+    analytics.capture('mods_bulk_toggled', {
+      'game': _adapter.game.id,
+      'enabled': enabled,
+      'mods': updated.length,
+      'failed': failed,
+    });
+    final error = _batchError(failure, failed, 'bulkToggleFailed');
+    if (failed > 0) {
+      // Something refused, which means the folder is not what the app
+      // thought it was - a file moved, deleted or locked by another
+      // window. Re-read it rather than leave those mods on screen in a
+      // state they no longer have, which is what toggleMod does for one.
+      await _refreshKeepingError(error);
+      return;
+    }
+    lastError = error;
+    notifyListeners();
+  }
+
+  /// Deletes every selected mod. Each one drops out of the shop, placed
+  /// and ignored-conflict records the way a single uninstall does; the
+  /// library is re-read once at the end rather than once per file.
+  Future<void> removeSelected() async {
+    if (bulkRunning) return;
+    final targets = selectedMods;
+    if (targets.isEmpty) return;
+    var failed = 0;
+    var bytes = 0;
+    AppMessage? failure;
+    final removed = <String>{};
+    final invented = <String>{};
+    await _runBatch(targets, (mod) async {
+      if (isDemoMod(mod)) {
+        invented.add(mod.path);
+        removed.add(mod.path);
+        bytes += mod.sizeBytes ?? 0;
+        return;
+      }
+      try {
+        await _adapter.removeMod(mod);
+      } catch (e, stack) {
+        failure ??= _bulkFailure(e, stack, action: 'remove');
+        failed++;
+        return;
+      }
+      // The file is gone; that is recorded before the records that named
+      // it are updated, because a preference that refuses to save must
+      // not report a delete that happened as a delete that didn't - and
+      // leave the library still listing a file nothing can open.
+      removed.add(mod.path);
+      bytes += mod.sizeBytes ?? 0;
+      try {
+        await _forgetShopFile(mod);
+        await _forgetPlaced(_adapter, modsDir, mod);
+        await _forgetIgnored(mod);
+      } catch (e, stack) {
+        analytics.captureException(e, stack, mechanism: 'removeSelectedRecords');
+      }
+    });
+    playSound(failed > 0 ? UiSound.error : UiSound.uninstall);
+    analytics.capture('mods_bulk_removed', {
+      'game': _adapter.game.id,
+      'mods': removed.length,
+      'failed': failed,
+      'size_mb': (bytes / (1024 * 1024)).round(),
+    });
+    _selected.removeWhere(removed.contains);
+    if (invented.isNotEmpty) {
+      // _demoPaths is keyed by enabled name; the removals are real paths.
+      final gone = {for (final path in invented) enabledPathOf(path)};
+      _demoPaths = {..._demoPaths}..removeWhere(gone.contains);
+    }
+    final open = _selectedModPath;
+    if (open != null && removed.contains(open)) {
+      _selectedModPath = null;
+      screen = AppScreen.library;
+    }
+    final error = _batchError(failure, failed, 'bulkRemoveFailed');
+    if (removed.length > invented.length) {
+      await _refreshKeepingError(error);
+      return;
+    }
+    // Nothing left the disk, so nothing has to be re-read - and a refresh
+    // would rebuild the invented library and bring these back. (It still
+    // does when a batch held real files too, exactly as it does today
+    // when a demo mod is removed and a real one follows it.)
+    _setMods([
+      for (final mod in mods)
+        if (!removed.contains(mod.path)) mod,
+    ]);
+    _rescanWarnings();
+    modCounts[_adapter.game.id] = mods.length;
+    modSizes[_adapter.game.id] = totalSizeBytes;
+    lastError = error;
+    notifyListeners();
+  }
+
+  /// The folders on record as made-and-still-empty, minus any that are
+  /// no longer on disk. A folder that has gone was deleted outside the
+  /// app, or the mods folder now points at another copy of the game;
+  /// either way there is nothing left to draw a chip for.
+  Future<Set<String>> _readMadeFolders(Directory root) async {
+    final saved = settings.madeFolders(_adapter.game.id);
+    if (saved.isEmpty) return const {};
+    final kept = <String>{
+      for (final folder in saved)
+        if (Directory(p.joinAll([root.path, ...folderSegments(folder)]))
+            .existsSync())
+          folder,
+    };
+    if (kept.length != saved.length) {
+      await settings.setMadeFolders(_adapter.game.id, kept.toList());
+    }
+    return kept;
+  }
+
+  /// Makes [name] a subfolder of [parent] - a folder key, or null for the
+  /// mods folder itself - and returns its key, or null when it was
+  /// refused with the banner saying why.
+  ///
+  /// The folder is remembered ([SettingsStore.madeFolders]) because
+  /// everything the library knows about folders it works out from where
+  /// the mods are: a folder made a second ago holds nothing, and would
+  /// leave the screen before anything could be put in it.
+  Future<String?> createFolder(String? parent, String name) async {
+    final root = modsDir;
+    if (root == null) return null;
+    final typed = name.trim();
+    final clean = sanitizeComponent(typed, windows: Platform.isWindows);
+    // One level at a time. A separator would quietly make two folders,
+    // and neither of them would be the one the user thought they named.
+    if (clean.isEmpty ||
+        clean == '.' ||
+        clean == '..' ||
+        typed.contains('/') ||
+        typed.contains(r'\')) {
+      return _refuseFolder(AppMessage('folderNameBad', [typed]));
+    }
+    final key = parent == null ? clean : '$parent$folderSeparator$clean';
+    // The game reads a fixed number of levels into the mods folder and
+    // nothing below them. Offering to make a folder past that would be
+    // the app building, by hand, the very state its too-deep banner
+    // exists to warn about.
+    final limit = modDepthLimit;
+    if (limit != null && folderSegments(key).length > limit) {
+      return _refuseFolder(AppMessage('folderTooDeep', ['$limit']));
+    }
+    // The invented library never touches the disk, and the mods folder it
+    // is drawn in may be one this machine has no game for - borrowed from
+    // defaultModsPath so the shot has a library in it. So a folder made
+    // for a screenshot is made in memory only, and goes with the next
+    // refresh like every other edit to the demo library. It must not be
+    // written down either: these preferences are shared with the release
+    // build, and madeFolders has no debug-only guard the way demoLibrary
+    // does.
+    final pretend = settings.demoLibrary;
+    if (!pretend) {
+      try {
+        await Directory(p.joinAll([root.path, ...folderSegments(key)]))
+            .create(recursive: true);
+      } catch (e, stack) {
+        analytics.captureException(e, stack, mechanism: 'createFolder');
+        return _refuseFolder(errorMessage(e));
+      }
+    }
+    playSound(UiSound.install);
+    // The name is the user's own; how deep they went is the useful part.
+    analytics.capture('folder_created', {
+      'game': _adapter.game.id,
+      'depth': folderSegments(key).length,
+    });
+    if (!_folderCounts.containsKey(key)) {
+      _madeFolders = {..._madeFolders, key};
+      if (!pretend) {
+        await settings.setMadeFolders(_adapter.game.id, _madeFolders.toList());
+      }
+      // The chips and the folder sections are both built off the library,
+      // so it has to be rebuilt for the new folder to turn up in them.
+      _setMods(mods);
+      _folderGroups = null;
+    }
+    notifyListeners();
+    return key;
+  }
+
+  String? _refuseFolder(AppMessage why) {
+    lastError = why;
+    playSound(UiSound.error);
+    notifyListeners();
+    return null;
+  }
+
+  /// Moves [targets] into [folder] - a folder key, or null for the mods
+  /// folder itself - and puts the records that named them by where they
+  /// sat back in step.
+  ///
+  /// [method] is for tracking only: which gesture asked (`selection`,
+  /// `drag`, `detail`).
+  Future<void> moveMods(List<Mod> targets, String? folder,
+      {required String method}) async {
+    if (bulkRunning) return;
+    final root = modsDir;
+    if (root == null || targets.isEmpty) return;
+    if (folder != null && !canMoveInto(folder)) return;
+    final destination = folder == null
+        ? root
+        : Directory(p.joinAll([root.path, ...folderSegments(folder)]));
+    final movable = [
+      for (final mod in targets)
+        // Both ends inside the mods folder ([canMove]), and not already
+        // where it is being sent.
+        if (canMove(mod) && !p.equals(p.dirname(mod.path), destination.path))
+          mod,
+    ];
+    if (movable.isEmpty) {
+      // Nothing to do. Silent on purpose, and only reachable as such:
+      // what cannot be moved is never offered the gesture ([canMove]
+      // gates the tick, the drag and both Move buttons), so the case
+      // left here is a mod already sitting in the folder it was sent to,
+      // which is not a failure worth a banner.
+      return;
+    }
+    var failed = 0;
+    AppMessage? failure;
+    final moved = <(Mod, Mod)>[];
+    await _runBatch(movable, (mod) async {
+      try {
+        final to = isDemoMod(mod)
+            ? _demoModMoved(mod, destination)
+            : await _adapter.moveMod(mod, destination);
+        moved.add((mod, to));
+      } catch (e, stack) {
+        failure ??= _bulkFailure(e, stack, action: 'move');
+        failed++;
+      }
+    });
+    if (moved.isNotEmpty) {
+      // All of this before _setMods, which prunes anything whose path it
+      // no longer recognises - and every one of these mods has a new one.
+      _repathInsights(moved);
+      _repathSelection(moved);
+      await _repathRecords(moved);
+      final byOldPath = {for (final (from, to) in moved) from.path: to};
+      final open = _selectedModPath;
+      if (open != null && byOldPath.containsKey(open)) {
+        _selectedModPath = byOldPath[open]!.path;
+      }
+      _setMods([for (final mod in mods) byOldPath[mod.path] ?? mod]);
+      // Depth is what a move changes most obviously: a mod can land
+      // below the level the game reads, or climb back out of it.
+      _findTooDeepMods();
+      _rescanWarnings();
+      _folderGroups = null;
+      modSizes[_adapter.game.id] = totalSizeBytes;
+    }
+    playSound(failed > 0 ? UiSound.error : UiSound.install);
+    analytics.capture('mods_moved', {
+      'game': _adapter.game.id,
+      'method': method,
+      'mods': moved.length,
+      'failed': failed,
+      'to_root': folder == null,
+    });
+    final error = _batchError(failure, failed, 'bulkMoveFailed');
+    if (failed > 0) {
+      // Same bargain as the bulk toggle: a refusal means the folder is
+      // not what the app thought it was, so re-read it rather than leave
+      // those mods drawn where they no longer are.
+      await _refreshKeepingError(error);
+      return;
+    }
+    lastError = error;
+    notifyListeners();
+  }
+
+  /// An invented mod's move: the rename the disk would have done, done to
+  /// the snapshot. Like every edit to the demo library it lasts until the
+  /// next refresh, which builds it again from scratch.
+  Mod _demoModMoved(Mod mod, Directory destination) {
+    final moved = Mod(
+      name: mod.name,
+      path: p.join(destination.path, p.basename(mod.path)),
+      status: mod.status,
+      sizeBytes: mod.sizeBytes,
+      category: mod.category,
+      modifiedAt: mod.modifiedAt,
+    );
+    _demoPaths = {..._demoPaths}
+      ..remove(enabledPathOf(mod.path))
+      ..add(enabledPathOf(moved.path));
+    return moved;
+  }
+
+  /// Carries the scan results across with the files. A move keeps a
+  /// file's size and date, so only the path part of the key changes -
+  /// and without this a tidy-up would send every mod it touched back
+  /// through the artwork scan on the next launch.
+  void _repathInsights(List<(Mod, Mod)> moved) {
+    for (final (from, to) in moved) {
+      final was = _insightKey(from);
+      // containsKey, not a null check: "scanned and found nothing" is a
+      // cached answer of its own and worth keeping too.
+      if (_insights.containsKey(was)) {
+        _insights[_insightKey(to)] = _insights.remove(was);
+      }
+    }
+  }
+
+  /// Ticks follow their mods. A selection is kept by the path a mod sits
+  /// at, which is exactly what a move changes, so without this "move
+  /// these thirty" would end with nothing selected.
+  void _repathSelection(List<(Mod, Mod)> moved) {
+    for (final (from, to) in moved) {
+      _repathSelected(from.path, to.path);
+    }
+  }
+
+  /// Rewrites the records that name a mod by where it sits.
+  ///
+  /// The shop's install records and the settled clashes are both kept as
+  /// paths relative to the mods folder, so a tidy-up that skipped this
+  /// would quietly cost the user the update badge on everything they
+  /// moved, and every conflict they had already decided about.
+  Future<void> _repathRecords(List<(Mod, Mod)> moved) async {
+    final root = modsDir?.path;
+    if (root == null) return;
+    final renamed = {
+      for (final (from, to) in moved)
+        p.relative(enabledPathOf(from.path), from: root):
+            p.relative(enabledPathOf(to.path), from: root),
+    };
+    await _repathShopInstalls(renamed);
+    await _repathIgnored(renamed);
+  }
+
+  Future<void> _repathShopInstalls(Map<String, String> renamed) async {
+    if (_shopInstalls.isEmpty) return;
+    final gameId = _adapter.game.id;
+    var changed = false;
+    final updated = <String, ShopInstall>{};
+    for (final entry in _shopInstalls.entries) {
+      final install = entry.value;
+      if (install.gameId != gameId || !install.files.any(renamed.containsKey)) {
+        updated[entry.key] = install;
+        continue;
+      }
+      changed = true;
+      updated[entry.key] = install
+          .copyWith(files: [for (final f in install.files) renamed[f] ?? f]);
+    }
+    if (!changed) return;
+    _shopInstalls = updated;
+    await settings.setShopInstallsJson(encodeShopInstalls(_shopInstalls));
+    _rebuildShopUpdates();
+  }
+
+  Future<void> _repathIgnored(Map<String, String> renamed) async {
+    final gameId = _adapter.game.id;
+    var persist = false;
+    var changed = false;
+    for (final bucket in [_ignoredConflicts, _demoIgnoredConflicts]) {
+      final held = bucket[gameId];
+      if (held == null || held.isEmpty) continue;
+      final rebuilt = <String>{};
+      var touched = false;
+      for (final key in held) {
+        final paths = conflictPairPaths(key);
+        if (paths == null) {
+          rebuilt.add(key);
+          continue;
+        }
+        final a = renamed[paths[0]] ?? paths[0];
+        final b = renamed[paths[1]] ?? paths[1];
+        touched |= a != paths[0] || b != paths[1];
+        rebuilt.add(conflictPairKey(a, b));
+      }
+      if (!touched) continue;
+      changed = true;
+      bucket[gameId] = rebuilt;
+      persist |= identical(bucket, _ignoredConflicts);
+    }
+    if (changed) await _rememberIgnored(persist: persist, notify: false);
   }
 
   /// Where [adapter]'s mods live right now: the folder already loaded for

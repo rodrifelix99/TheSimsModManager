@@ -334,6 +334,33 @@ html[data-theme='dark'] .dl-card[data-platform='macos'] img { filter: invert(1);
 .dl-card.recommended .get:hover { filter: brightness(1.07); }
 .dl-note { margin-top: 24px; text-align: center; font-size: 13.5px; font-weight: 600; color: var(--muted); }
 
+/* The SmartScreen heads-up, shown once the installer is on its way down. The
+   form is the only child so a click that lands on the dialog itself came from
+   the backdrop; padding here would swallow it. */
+.ss-note {
+  /* The reset up in tokens.css zeroes the margin the browser centres a modal
+     dialog with, so it has to be asked for again here. */
+  margin: auto; padding: 0;
+  width: min(430px, calc(100vw - 32px)); max-height: calc(100vh - 32px); overflow: auto;
+  border: 1px solid var(--border); border-radius: 20px;
+  background: var(--surface); color: var(--text);
+  box-shadow: 0 40px 80px -44px rgba(0, 0, 0, .8);
+}
+.ss-note::backdrop { background: rgba(6, 20, 17, .55); }
+.ss-note[open] { animation: rise .3s cubic-bezier(.22, 1, .36, 1) both; }
+.ss-note form { padding: 20px; text-align: center; }
+.ss-note img { width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border); }
+.ss-note h3 { margin-top: 16px; font-size: 17px; font-weight: 900; }
+.ss-note p { margin-top: 6px; font-size: 13.5px; font-weight: 600; color: var(--muted); }
+.ss-note p b { color: var(--text); }
+.ss-note button {
+  margin-top: 18px; width: 100%; padding: 11px 0; border: 0; border-radius: 13px;
+  font: inherit; font-size: 14.5px; font-weight: 900; color: #fff; cursor: pointer;
+  background: linear-gradient(120deg, var(--accent), var(--accent2));
+  transition: filter .2s ease;
+}
+.ss-note button:hover { filter: brightness(1.07); }
+
 /* ---------- games ---------- */
 .games-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
 .game-card { padding: 24px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); transition: transform .18s ease, box-shadow .18s ease, background .5s ease; }

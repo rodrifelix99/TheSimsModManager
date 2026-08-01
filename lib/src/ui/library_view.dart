@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 
 import '../core/mod.dart';
@@ -11,6 +12,7 @@ import 'game_theme.dart';
 import 'install_destination_dialog.dart';
 import 'l10n.dart';
 import 'mod_presentation.dart';
+import 'move_folder_dialog.dart';
 import 'scan_backdrop.dart';
 import 'widgets.dart';
 
@@ -145,6 +147,10 @@ class LibraryView extends StatelessWidget {
               const SizedBox(width: 6),
               _viewToggle(t, c, l),
               const SizedBox(width: 6),
+              if (c.canMoveMods) ...[
+                _newFolderButton(t, c, l),
+                const SizedBox(width: 6),
+              ],
               _refreshButton(t, c, l),
               const SizedBox(width: 14),
               _installButton(t, c, l),
@@ -161,13 +167,29 @@ class LibraryView extends StatelessWidget {
         if (c.advisoryCount > 0) _advisoryBanner(t, c, l),
         Padding(
           padding: const EdgeInsets.fromLTRB(28, 16, 28, 14),
-          child: Row(
+          // The selection bar is a row of its own under the filters rather
+          // than a replacement for them. It cost a downward nudge of the
+          // shelf while something is ticked, and bought back the two
+          // things the swap had taken away: the folder chips, which are
+          // where a dragged selection lands in the grid and list layouts,
+          // and the filters themselves, which are how a selection gets
+          // narrowed down in the first place.
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(child: _FilterChips(theme: t, controller: c)),
-              _totalStat(t, c, l),
-              _stateStat(t, c, l, ModStateFilter.enabled),
-              _stateStat(t, c, l, ModStateFilter.disabled),
-              _conflictStat(t, c, l),
+              Row(
+                children: [
+                  Expanded(child: _FilterChips(theme: t, controller: c)),
+                  _totalStat(t, c, l),
+                  _stateStat(t, c, l, ModStateFilter.enabled),
+                  _stateStat(t, c, l, ModStateFilter.disabled),
+                  _conflictStat(t, c, l),
+                ],
+              ),
+              if (c.hasSelection) ...[
+                const SizedBox(height: 10),
+                _SelectionBar(theme: t, controller: c),
+              ],
             ],
           ),
         ),
@@ -643,6 +665,36 @@ class LibraryView extends StatelessWidget {
     );
   }
 
+  /// Makes a subfolder inside whichever folder chip is selected, which is
+  /// also where the next install would land - so what you are looking at
+  /// is what you are filing into, here as there.
+  Widget _newFolderButton(GameTheme t, AppController c, L l) {
+    return Tooltip(
+      message: l.newFolder,
+      child: HoverBuilder(
+        cursor: SystemMouseCursors.click,
+        builder: (context, hovered) => GestureDetector(
+          onTap: () => askForNewFolder(context, c, theme: t),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            width: 34,
+            height: 40,
+            decoration: BoxDecoration(
+              color: hovered ? t.surface : t.surfaceAlt,
+              border: Border.all(color: t.border),
+              borderRadius: BorderRadius.circular(11),
+            ),
+            child: Icon(
+              Icons.create_new_folder_outlined,
+              size: 18,
+              color: hovered ? t.accent : t.muted,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _installButton(GameTheme t, AppController c, L l) {
     return HoverBuilder(
       cursor: SystemMouseCursors.click,
@@ -900,6 +952,373 @@ class LibraryView extends StatelessWidget {
   }
 }
 
+/// What clicking a mod does. Ctrl (Cmd on a Mac) ticks it, shift extends
+/// the range from the last one ticked on its own, and a plain click opens
+/// it - unless something is already ticked, in which case it ticks this
+/// one too. Once the library is in selection mode a click that walked off
+/// to a detail page instead would leave the selection behind it, which is
+/// not what anyone means by it.
+void _tapMod(AppController c, Mod mod) {
+  final keys = HardwareKeyboard.instance;
+  if (keys.isShiftPressed) return c.selectTo(mod);
+  if (keys.isControlPressed || keys.isMetaPressed) return c.toggleSelected(mod);
+  if (c.hasSelection) return c.toggleSelected(mod);
+  c.openMod(mod);
+}
+
+/// What a drag of mods between folders carries: the mod it started on,
+/// and nothing else.
+///
+/// The whole selection is worked out at the drop rather than packed in
+/// here, because a `Draggable`'s data is an ordinary constructor argument
+/// - built during every `build`, for every card on screen, whether or not
+/// anything is ever dragged. Reading the selection there cost a walk of
+/// the entire library per card per frame.
+///
+/// A type of its own so the folder chips' existing `DragTarget<String>`,
+/// which rearranges the chips themselves, can never catch one.
+class _ModDrag {
+  const _ModDrag(this.mod);
+
+  final Mod mod;
+
+  /// What this drag is actually carrying, asked once, when it lands: the
+  /// whole selection when the mod it started on is part of one.
+  List<Mod> mods(AppController c) =>
+      c.isSelected(mod) ? c.selectedMods : [mod];
+}
+
+/// Makes [child] a drag source for [mod] - for the whole selection when
+/// [mod] is part of one, so dragging any of thirty ticked mods moves the
+/// thirty.
+///
+/// `affinity: Axis.horizontal` is what keeps this out of the library's
+/// way: a drag up or down scrolls the shelf exactly as it always did, and
+/// only a sideways one picks a mod up.
+Widget _draggableMod(
+  AppController c,
+  GameTheme t,
+  L l,
+  Mod mod, {
+  required Widget child,
+}) {
+  // A mod the app has no business moving is not offered the gesture: the
+  // games that keep files in folders of their own (The Sims 1's skins and
+  // walls) would take the drag and then refuse it.
+  if (!c.canMoveMods || !c.canMove(mod)) return child;
+  return Draggable<_ModDrag>(
+    data: _ModDrag(mod),
+    affinity: Axis.horizontal,
+    dragAnchorStrategy: pointerDragAnchorStrategy,
+    feedback: _dragFeedback(c, t, l, mod),
+    childWhenDragging: Opacity(opacity: .35, child: child),
+    child: child,
+  );
+}
+
+/// What travels under the pointer: the mod's own name for one, and the
+/// count for a selection, so a drag says how much it is carrying.
+Widget _dragFeedback(AppController c, GameTheme t, L l, Mod mod) {
+  final count = c.isSelected(mod) ? c.selectedCount : 1;
+  return Material(
+    type: MaterialType.transparency,
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      constraints: const BoxConstraints(maxWidth: 260),
+      decoration: BoxDecoration(
+        color: t.accent,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: t.shadow.withValues(alpha: .4),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.drive_file_move_outlined,
+              size: 15, color: Colors.white),
+          const SizedBox(width: 7),
+          Flexible(
+            child: Text(
+              count == 1 ? modTitle(mod) : l.selectionCount(count),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+/// Wraps [child] as somewhere mods can be dropped: [folder] as a folder
+/// key, or null for the mods folder itself. [highlight] draws the state
+/// where a drop would land here.
+Widget _folderDropTarget(
+  AppController c,
+  String? folder, {
+  required Widget child,
+  required Widget Function(Widget child) highlight,
+}) {
+  return DragTarget<_ModDrag>(
+    onWillAcceptWithDetails: (details) =>
+        c.canMoveMods && (folder == null || c.canMoveInto(folder)),
+    onAcceptWithDetails: (details) =>
+        c.moveMods(details.data.mods(c), folder, method: 'drag'),
+    builder: (context, candidates, __) =>
+        candidates.isEmpty ? child : highlight(child),
+  );
+}
+
+/// The tick on a mod's card or row. Drawn under the pointer, and on
+/// everything once anything is selected, so a library mid-selection reads
+/// as a set of boxes rather than as mods that happen to be highlighted.
+class _SelectTick extends StatelessWidget {
+  const _SelectTick(
+      {required this.theme, required this.controller, required this.mod});
+
+  final GameTheme theme;
+  final AppController controller;
+  final Mod mod;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = theme;
+    final selected = controller.isSelected(mod);
+    return Tooltip(
+      message: L.of(context).selectionTooltip,
+      waitDuration: const Duration(milliseconds: 600),
+      child: HoverBuilder(
+        cursor: SystemMouseCursors.click,
+        builder: (context, hovered) => GestureDetector(
+          onTap: () => controller.toggleSelected(mod),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 140),
+            width: 20,
+            height: 20,
+            decoration: BoxDecoration(
+              color: selected
+                  ? t.accent
+                  : Colors.black.withValues(alpha: hovered ? .45 : .3),
+              border: Border.all(
+                  color: Colors.white.withValues(alpha: .85), width: 1.5),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: selected
+                ? const Icon(Icons.check_rounded, size: 13, color: Colors.white)
+                : null,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// What the header's stats give way to once anything is ticked: what the
+/// selection holds, and everything that can be done to all of it at once.
+///
+/// The actions are icons with tooltips, like the sort and view buttons in
+/// the header above, and for a harder reason than matching them: five
+/// labelled verbs is more width than a minimum-size window has once they
+/// are translated - "Απενεργοποίηση" alone is twice "Disable" - and a bar
+/// whose labels come and go with the window is worse than one that never
+/// had them.
+class _SelectionBar extends StatelessWidget {
+  const _SelectionBar({required this.theme, required this.controller});
+
+  final GameTheme theme;
+  final AppController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = theme;
+    final c = controller;
+    final l = L.of(context);
+    final progress = c.bulkProgress;
+    return Container(
+      height: 42,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: t.tint,
+        border: Border.all(color: t.accent, width: 1.5),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.check_circle_rounded, size: 18, color: t.accent),
+          const SizedBox(width: 9),
+          Expanded(
+            child: Text(
+              '${l.selectionCount(c.selectedCount)}'
+              ' · ${formatBytes(c.selectedSizeBytes)}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                color: t.text,
+              ),
+            ),
+          ),
+          if (progress != null)
+            ..._working(t, c, l, progress)
+          else
+            ..._actions(context, t, c, l),
+        ],
+      ),
+    );
+  }
+
+  /// Mid-batch: how far along it is, and the way out. Cancelling stops
+  /// the next file rather than putting back the ones already done - these
+  /// are renames and deletes on disk, and the bar doesn't pretend
+  /// otherwise.
+  List<Widget> _working(
+      GameTheme t, AppController c, L l, (int, int) progress) {
+    return [
+      SizedBox(
+        width: 96,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: progress.$2 == 0 ? null : progress.$1 / progress.$2,
+            color: t.accent,
+            backgroundColor: t.surface,
+            minHeight: 5,
+          ),
+        ),
+      ),
+      const SizedBox(width: 10),
+      Text(
+        l.selectionProgress(progress.$1, progress.$2),
+        style: TextStyle(
+          fontSize: 12.5,
+          fontWeight: FontWeight.w700,
+          color: t.muted,
+        ),
+      ),
+      _action(t, l.cancel, Icons.stop_rounded, t.muted, c.cancelBulk),
+    ];
+  }
+
+  List<Widget> _actions(
+      BuildContext context, GameTheme t, AppController c, L l) {
+    return [
+      if (!c.allVisibleSelected)
+        _action(t, l.selectionSelectAll, Icons.select_all_rounded, t.text,
+            c.selectAllVisible),
+      _action(t, l.selectionEnable, Icons.check_rounded, t.accent,
+          () => c.setSelectedEnabled(true)),
+      _action(t, l.selectionDisable, Icons.block_rounded, t.muted,
+          () => c.setSelectedEnabled(false)),
+      // Only when something in the selection can actually go somewhere:
+      // a Move button that opens a dialog and then quietly does nothing
+      // is worse than no Move button.
+      if (c.canMoveMods && c.hasMovableSelection)
+        _action(
+            t,
+            l.selectionMove,
+            Icons.drive_file_move_outlined,
+            t.text,
+            () => askWhereToMove(context, c,
+                theme: t,
+                mods: [for (final mod in c.selectedMods) if (c.canMove(mod)) mod],
+                method: 'selection')),
+      _action(t, l.uninstall, Icons.delete_outline_rounded, t.warning,
+          () => _confirmRemove(context, t, c, l)),
+      _action(t, l.selectionClear, Icons.close_rounded, t.muted,
+          c.clearSelection),
+    ];
+  }
+
+  Widget _action(GameTheme t, String label, IconData icon, Color color,
+      VoidCallback onTap) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 6),
+      child: Tooltip(
+        message: label,
+        waitDuration: const Duration(milliseconds: 400),
+        child: HoverBuilder(
+          cursor: SystemMouseCursors.click,
+          builder: (context, hovered) => GestureDetector(
+            onTap: onTap,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              width: 32,
+              height: 30,
+              decoration: BoxDecoration(
+                color: hovered ? color.withValues(alpha: .13) : t.surface,
+                border: Border.all(
+                    color: hovered ? color.withValues(alpha: .55) : t.border),
+                borderRadius: BorderRadius.circular(9),
+              ),
+              child: Icon(icon, size: 16, color: color),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmRemove(
+      BuildContext context, GameTheme t, AppController c, L l) async {
+    final count = c.selectedCount;
+    var confirmed = true;
+    if (c.settings.confirmDelete) {
+      c.playSound(UiSound.alert);
+      confirmed = await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              backgroundColor: t.surface,
+              shape:
+                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: Text(
+                l.selectionDeleteTitle(count),
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 18,
+                  color: t.text,
+                ),
+              ),
+              content: Text(
+                l.selectionDeleteBody(count),
+                style: TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w600,
+                  color: t.muted,
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: Text(l.cancel,
+                      style: TextStyle(
+                          color: t.muted, fontWeight: FontWeight.w800)),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  style: FilledButton.styleFrom(backgroundColor: t.warning),
+                  child: Text(l.uninstall,
+                      style: const TextStyle(fontWeight: FontWeight.w800)),
+                ),
+              ],
+            ),
+          ) ??
+          false;
+    }
+    if (confirmed) await c.removeSelected();
+  }
+}
+
 /// One line of the folder view: a section header, or a mod belonging to
 /// the header above it. Exactly one of the two is set.
 typedef _FolderRow = ({ModFolderGroup? group, Mod? mod});
@@ -920,6 +1339,22 @@ class _FolderHeader extends StatelessWidget {
     final c = controller;
     final l = L.of(context);
     final folder = group.folder;
+    return _folderDropTarget(
+      c,
+      folder,
+      highlight: (child) => DecoratedBox(
+        decoration: BoxDecoration(
+          color: t.tint,
+          border: Border.all(color: t.accent, width: 1.5),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: child,
+      ),
+      child: _header(t, c, l, folder),
+    );
+  }
+
+  Widget _header(GameTheme t, AppController c, L l, String? folder) {
     final collapsed = c.isFolderCollapsed(folder);
     return HoverBuilder(
       cursor: SystemMouseCursors.click,
@@ -962,7 +1397,11 @@ class _FolderHeader extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               Text(
-                '${group.mods.length} · ${formatBytes(group.sizeBytes)}',
+                // A folder the user just made says so rather than reading
+                // "0 · 0 B", which looks like something went wrong.
+                group.mods.isEmpty
+                    ? l.folderEmptySection
+                    : '${group.mods.length} · ${formatBytes(group.sizeBytes)}',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
@@ -1064,10 +1503,37 @@ class _FilterChipsState extends State<_FilterChips> {
         icon: cat == 'All' ? null : Icons.description_rounded,
       );
 
-  /// A folder chip is also a drag source and a drop target: dropping
-  /// folder A onto folder B moves A into B's position. Categories are
-  /// neither, so the arrangement never touches the other filters.
+  /// A folder chip is also a drag source and two kinds of drop target:
+  /// dropping folder A onto folder B moves A into B's position, and
+  /// dropping *mods* onto it files them there. The two payloads are
+  /// different types, so neither drag can ever be taken for the other.
+  /// Categories are none of this, so the arrangement never touches the
+  /// other filters.
   Widget _folderChip(GameTheme t, AppController c, String f) {
+    return _folderDropTarget(
+      c,
+      f,
+      highlight: (child) => Stack(
+        children: [
+          child,
+          Positioned.fill(
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: t.accent.withValues(alpha: .2),
+                  border: Border.all(color: t.accent, width: 2),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+      child: _reorderableFolderChip(t, c, f),
+    );
+  }
+
+  Widget _reorderableFolderChip(GameTheme t, AppController c, String f) {
     final chip = _chip(
       t,
       folderChipLabel(f),
@@ -1406,16 +1872,41 @@ class _GridCard extends StatelessWidget {
     final t = theme;
     final c = controller;
     final l = L.of(context);
+    final selected = c.isSelected(mod);
+    // An advisory outranks a conflict: somebody has confirmed this one is
+    // broken, where a conflict is only two files that look alike. A
+    // waiting update is the mildest of the three and only speaks when the
+    // others have nothing to say.
+    final badge = switch ((
+      c.advisoryOf(mod) != null,
+      c.isConflicted(mod),
+      c.shopUpdateForMod(mod) != null,
+    )) {
+      (true, _, _) => ConflictBadge(theme: t, label: l.advisoryBadge),
+      (false, true, _) => ConflictBadge(theme: t),
+      (false, false, true) => ConflictBadge(
+          theme: t, label: l.shopUpdateBadge, color: t.accent, icon: '↓'),
+      _ => null,
+    };
+    return _draggableMod(c, t, l, mod, child: _card(context, t, c, l, badge, selected));
+  }
+
+  Widget _card(BuildContext context, GameTheme t, AppController c, L l,
+      Widget? badge, bool selected) {
+    final mod = this.mod;
     return HoverBuilder(
       cursor: SystemMouseCursors.click,
       builder: (context, hovered) => GestureDetector(
-        onTap: () => c.openMod(mod),
+        onTap: () => _tapMod(c, mod),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
           transform: Matrix4.translationValues(0, hovered ? -3 : 0, 0),
           decoration: BoxDecoration(
-            color: t.surface,
-            border: Border.all(color: hovered ? t.accent : t.border),
+            color: selected ? t.tint : t.surface,
+            border: Border.all(
+              color: selected || hovered ? t.accent : t.border,
+              width: selected ? 1.5 : 1,
+            ),
             borderRadius: BorderRadius.circular(15),
             boxShadow: hovered
                 ? [
@@ -1463,31 +1954,19 @@ class _GridCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    if (c.isConflicted(mod) ||
-                        c.advisoryOf(mod) != null ||
-                        c.shopUpdateForMod(mod) != null)
+                    if (badge != null || hovered || c.hasSelection)
                       Positioned(
                         left: 10,
                         top: 10,
-                        // An advisory outranks a conflict here: somebody
-                        // has confirmed this one is broken, where a
-                        // conflict is only two files that look alike. A
-                        // waiting update is the mildest of the three and
-                        // only speaks when the others have nothing to say.
-                        child: switch ((
-                          c.advisoryOf(mod) != null,
-                          c.isConflicted(mod)
-                        )) {
-                          (true, _) =>
-                            ConflictBadge(theme: t, label: l.advisoryBadge),
-                          (false, true) => ConflictBadge(theme: t),
-                          _ => ConflictBadge(
-                              theme: t,
-                              label: l.shopUpdateBadge,
-                              color: t.accent,
-                              icon: '↓',
-                            ),
-                        },
+                        child: Row(
+                          children: [
+                            if (hovered || c.hasSelection) ...[
+                              _SelectTick(theme: t, controller: c, mod: mod),
+                              const SizedBox(width: 7),
+                            ],
+                            if (badge != null) badge,
+                          ],
+                        ),
                       ),
                     Positioned(
                       right: 9,
@@ -1603,17 +2082,26 @@ class _ListRow extends StatelessWidget {
     final t = theme;
     final c = controller;
     final l = L.of(context);
+    final selected = c.isSelected(mod);
+    return _draggableMod(c, t, l, mod, child: _row(t, c, l, selected));
+  }
+
+  Widget _row(GameTheme t, AppController c, L l, bool selected) {
+    final mod = this.mod;
     return HoverBuilder(
       cursor: SystemMouseCursors.click,
       builder: (context, hovered) => GestureDetector(
-        onTap: () => c.openMod(mod),
+        onTap: () => _tapMod(c, mod),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 160),
           transform: Matrix4.translationValues(hovered ? 3 : 0, 0, 0),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
-            color: t.surface,
-            border: Border.all(color: hovered ? t.accent : t.border),
+            color: selected ? t.tint : t.surface,
+            border: Border.all(
+              color: selected || hovered ? t.accent : t.border,
+              width: selected ? 1.5 : 1,
+            ),
             borderRadius: BorderRadius.circular(13),
           ),
           child: Row(
@@ -1621,11 +2109,26 @@ class _ListRow extends StatelessWidget {
               SizedBox(
                 width: 52,
                 height: 52,
-                child: ModThumb(
-                  seed: mod.name,
-                  bytes: c.thumbnailOf(mod),
-                  decodeWidth: 128, // a 52px row thumbnail
-                  borderRadius: BorderRadius.circular(10),
+                // The tick sits on the thumbnail rather than beside it:
+                // a box that appears on hover and takes width of its own
+                // would shift every row under the pointer.
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: ModThumb(
+                        seed: mod.name,
+                        bytes: c.thumbnailOf(mod),
+                        decodeWidth: 128, // a 52px row thumbnail
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    if (hovered || c.hasSelection)
+                      Positioned(
+                        left: 3,
+                        top: 3,
+                        child: _SelectTick(theme: t, controller: c, mod: mod),
+                      ),
+                  ],
                 ),
               ),
               const SizedBox(width: 14),

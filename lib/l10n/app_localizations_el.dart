@@ -268,6 +268,98 @@ class LEl extends L {
   String get libraryRootFolder => 'Φάκελος για mod';
 
   @override
+  String get selectionTooltip => 'Επιλογή';
+
+  @override
+  String selectionCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count επιλεγμένα',
+      one: '1 επιλεγμένο',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get selectionSelectAll => 'Επιλογή όλων';
+
+  @override
+  String get selectionClear => 'Καθαρισμός';
+
+  @override
+  String get selectionEnable => 'Ενεργοποίηση';
+
+  @override
+  String get selectionDisable => 'Απενεργοποίηση';
+
+  @override
+  String selectionProgress(int done, int total) {
+    return '$done από $total';
+  }
+
+  @override
+  String selectionDeleteTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Απεγκατάσταση $count mods;',
+      one: 'Απεγκατάσταση 1 mod;',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String selectionDeleteBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Και τα $count αρχεία θα διαγραφούν από τον δίσκο. Δεν υπάρχει αναίρεση.',
+      one: 'Το αρχείο θα διαγραφεί από τον δίσκο. Δεν υπάρχει αναίρεση.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get selectionMove => 'Μετακίνηση σε…';
+
+  @override
+  String get newFolder => 'Νέος φάκελος';
+
+  @override
+  String newFolderIn(String folder) {
+    return 'Μέσα στο $folder';
+  }
+
+  @override
+  String get newFolderHint => 'Όνομα φακέλου';
+
+  @override
+  String get create => 'Δημιουργία';
+
+  @override
+  String get move => 'Μετακίνηση';
+
+  @override
+  String moveTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Πού να πάνε τα $count mods;',
+      one: 'Πού να πάει το 1 mod;',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get moveBody =>
+      'Τα αρχεία αλλάζουν φάκελο στον δίσκο. Τίποτα άλλο δεν αλλάζει - ό,τι είναι ανενεργό μένει ανενεργό.';
+
+  @override
+  String get folderEmptySection => 'Δεν υπάρχει τίποτα εδώ ακόμα';
+
+  @override
   String get install => 'Εγκατάσταση';
 
   @override
@@ -535,6 +627,16 @@ class LEl extends L {
       'Αυτά τα πακέτα περιέχουν πόρους με τα ίδια αναγνωριστικά και ως εκ τούτου το παιχνίδι διατηρεί μόνο το αντίγραφο που φορτώνει τελευταίο. Αυτό μπορεί να είναι εσκεμμένο - τα patch mod και τα override mod επικαλύπτουν τους πόρους άλλων mod επίτηδες - ωστόσο σε περίπτωση που τα mod δεν σχετίζονται μεταξύ τους, σημαίνει ότι κάποιο από αυτά σταματάει να λειτουργεί χωρίς προειδοποίηση: κρατήστε αυτό που προτιμάτε και απενεργοποιήστε τα υπόλοιπα.';
 
   @override
+  String get conflictIgnore => 'Αγνόηση';
+
+  @override
+  String get conflictIgnoreTooltip =>
+      'Αν αυτή η ασυμβατότητα είναι σκόπιμη, κρύψτε την. Το mod δεν αλλάζει σε τίποτα, και μπορείτε να επαναφέρετε την προειδοποίηση από αυτή τη σελίδα ή από τις ρυθμίσεις.';
+
+  @override
+  String get conflictRestore => 'Επαναφορά';
+
+  @override
   String advisoryBanner(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -611,6 +713,20 @@ class LEl extends L {
   String get factDownloads => 'Λήψεις';
 
   @override
+  String get factIgnoredConflicts => 'Αγνοημένες';
+
+  @override
+  String ignoredConflictsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ασυμβατότητες',
+      one: '1 ασυμβατότητα',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get statusHeading => 'Κατάσταση';
 
   @override
@@ -662,6 +778,11 @@ class LEl extends L {
   @override
   String sectionGameCaches(String game) {
     return 'CACHE ΤΟΥ ΠΑΙΧΝΙΔΙΟΥ · $game';
+  }
+
+  @override
+  String sectionIgnoredConflicts(String game) {
+    return 'ΑΓΝΟΗΜΕΝΕΣ ΑΣΥΜΒΑΤΟΤΗΤΕΣ · $game';
   }
 
   @override
@@ -818,6 +939,25 @@ class LEl extends L {
 
   @override
   String get clearCaches => 'Διαγραφή των cache';
+
+  @override
+  String get ignoredConflictsTitle => 'Ασυμβατότητες που αγνοείτε';
+
+  @override
+  String ignoredConflictsDesc(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count ασυμβατότητες που ζητήσατε να μην αναφέρονται. Επαναφέρετέ τες για να ξαναεμφανιστούν στη βιβλιοθήκη',
+      one:
+          'Μία ασυμβατότητα που ζητήσατε να μην αναφέρεται. Επαναφέρετέ την για να ξαναεμφανιστεί στη βιβλιοθήκη',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get ignoredConflictsReset => 'Επαναφορά όλων';
 
   @override
   String get reportBugTitle => 'Αναφορά bug';
@@ -981,6 +1121,54 @@ class LEl extends L {
   @override
   String errorFileInUseRename(String name) {
     return 'Το «$name» δεν μετονομάστηκε - το χρησιμοποιεί άλλο πρόγραμμα (μήπως τρέχει το παιχνίδι;) ή είναι προστατευμένο από εγγραφή. Κλείστε ό,τι το χρησιμοποιεί και δοκιμάστε ξανά.';
+  }
+
+  @override
+  String errorFileNameTaken(String name) {
+    return 'Υπάρχει ήδη ένα «$name» σε εκείνον τον φάκελο. Μετονόμασε το ένα από τα δύο και ξαναδοκίμασε.';
+  }
+
+  @override
+  String errorFolderNameBad(String name) {
+    return 'Το «$name» δεν κάνει για όνομα φακέλου. Δοκίμασε ένα χωρίς καθέτους και χωρίς χαρακτήρες που κρατάει για τον εαυτό του το σύστημα.';
+  }
+
+  @override
+  String errorFolderTooDeep(int levels) {
+    return 'Το παιχνίδι κοιτάζει μόνο $levels φακέλους βαθιά μέσα στον φάκελο των mods, οπότε ό,τι βάλεις πιο κάτω δεν θα φορτώσει ποτέ.';
+  }
+
+  @override
+  String errorBulkMoveFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mods δεν μετακινήθηκαν',
+      one: '1 mod δεν μετακινήθηκε',
+    );
+    return '$_temp0 - μπορεί να τα χρησιμοποιεί άλλο πρόγραμμα (τρέχει το παιχνίδι;), να είναι μόνο για ανάγνωση, ή να υπάρχει ήδη αρχείο με το ίδιο όνομα στον φάκελο.';
+  }
+
+  @override
+  String errorBulkToggleFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mods δεν άλλαξαν',
+      one: '1 mod δεν άλλαξε',
+    );
+    return '$_temp0 - μπορεί να τα χρησιμοποιεί άλλο πρόγραμμα (τρέχει το παιχνίδι;) ή να είναι μόνο για ανάγνωση.';
+  }
+
+  @override
+  String errorBulkRemoveFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mods δεν διαγράφηκαν',
+      one: '1 mod δεν διαγράφηκε',
+    );
+    return '$_temp0 - μπορεί να τα χρησιμοποιεί άλλο πρόγραμμα (τρέχει το παιχνίδι;) ή να είναι μόνο για ανάγνωση.';
   }
 
   @override

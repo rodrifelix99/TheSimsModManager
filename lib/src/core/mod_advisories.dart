@@ -204,7 +204,7 @@ String? fingerprintOf(PackageInsight? insight) {
 /// Enabled mods that the published list has something to say about:
 /// path -> the advisory covering it.
 ///
-/// Only enabled mods are matched, like [findConflicts]: the warning is
+/// Only enabled mods are matched, like the conflict scan: the warning is
 /// about what the game is loading right now, so disabling the culprit is
 /// what makes it go away.
 ///

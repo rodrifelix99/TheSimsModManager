@@ -327,6 +327,23 @@ class SettingsView extends StatelessWidget {
               color: t.muted,
             ),
           ),
+          // The way back for a clash the user settled on a mod whose page
+          // now shows nothing about it - which is most of them, since the
+          // last ignored pair takes the whole warning panel with it.
+          if (c.ignoredConflictCount > 0) ...[
+            const SizedBox(height: 24),
+            _sectionLabel(t, l.sectionIgnoredConflicts(c.adapter.game.name)),
+            Container(
+              decoration: _cardDecoration(t),
+              child: _linkRow(
+                t,
+                title: l.ignoredConflictsTitle,
+                desc: l.ignoredConflictsDesc(c.ignoredConflictCount),
+                buttonLabel: l.ignoredConflictsReset,
+                onTap: c.restoreAllConflicts,
+              ),
+            ),
+          ],
           // Only games with a stale-cache problem (Sims 3, Medieval)
           // report cache files; for everyone else the card is absent.
           if (c.cacheFiles.isNotEmpty) ...[

@@ -116,6 +116,21 @@ class SettingsStore {
   Future<void> setCollapsedFolders(String gameId, List<String> folders) =>
       _prefs.setStringList(_collapsedFoldersKey(gameId), folders);
 
+  static String _madeFoldersKey(String gameId) => 'madeFolders.$gameId';
+
+  /// Folders the user made in the app. Everything else the library knows
+  /// about folders it works out from where the mods are, which is why
+  /// these have to be written down: a folder made a moment ago holds
+  /// nothing, and would go off screen before anything could be put in
+  /// it. Dropped again once the folder isn't on disk any more.
+  List<String> madeFolders(String gameId) =>
+      _prefs.getStringList(_madeFoldersKey(gameId)) ?? const [];
+
+  Future<void> setMadeFolders(String gameId, List<String> folders) =>
+      folders.isEmpty
+          ? _prefs.remove(_madeFoldersKey(gameId))
+          : _prefs.setStringList(_madeFoldersKey(gameId), folders);
+
   /// Look inside mod files for embedded artwork and content summaries
   /// while the library loads (the slow part of the loading screen).
   bool get scanArtwork => _prefs.getBool('scanArtwork') ?? true;
@@ -257,6 +272,13 @@ class SettingsStore {
   String? get placedModsJson => _prefs.getString('placedMods');
   Future<void> setPlacedModsJson(String value) =>
       _prefs.setString('placedMods', value);
+
+  /// Clashes the user told the app to stop reporting, as JSON: game id ->
+  /// the pairs of mods, each path relative to that game's mods folder.
+  /// See `core/ignored_conflicts.dart` for why a pair rather than a mod.
+  String? get ignoredConflictsJson => _prefs.getString('ignoredConflicts');
+  Future<void> setIgnoredConflictsJson(String value) =>
+      _prefs.setString('ignoredConflicts', value);
 
   /// Whether an install asks where to put things, for the games that read
   /// mods from more than one folder. On by default: the app's guess is

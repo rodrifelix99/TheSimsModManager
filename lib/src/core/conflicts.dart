@@ -8,6 +8,10 @@ import 'package_insight.dart';
 /// warning from this, so what the user reads is always the reason the
 /// scan actually had - it used to re-derive the reason lexically and
 /// could drift out of step with the heuristics below.
+///
+/// Declared most specific first: a clash both a lexical heuristic and the
+/// resource scan caught is reported as the lexical one, and [mostSpecificConflict]
+/// is that rule.
 enum ConflictReason {
   /// Another enabled mod carries the same file name.
   duplicateName,
@@ -20,8 +24,20 @@ enum ConflictReason {
   resourceOverlap,
 }
 
-/// Enabled mods that look like they clash with another enabled mod, and
-/// why, on two heuristics:
+/// The sharpest of [reasons] - see [ConflictReason]'s declaration order.
+ConflictReason mostSpecificConflict(Iterable<ConflictReason> reasons) =>
+    reasons.reduce((a, b) => a.index <= b.index ? a : b);
+
+/// Which enabled mods clash with which, and why: path -> (the other mod's
+/// path -> the reason those two are paired).
+///
+/// Pairs rather than a flat list of flagged mods, because a clash is
+/// always between two files and the user can settle one of them without
+/// settling the rest (`core/ignored_conflicts.dart`). What a mod is
+/// flagged *for* then follows from the pairs it has left, which is what
+/// [conflictReasonsOf] derives.
+///
+/// Three signals feed it. Two are lexical, cheap and computed here:
 ///
 /// 1. Duplicate file names (case-insensitive) - the same mod
 ///    installed twice in different subfolders, or two creators' packages
@@ -33,13 +49,46 @@ enum ConflictReason {
 ///    marker; a versioned file next to an unversioned one is too
 ///    ambiguous to flag.
 ///
-/// A mod both heuristics catch reports the name clash - the more
-/// specific signal. Cheap and lexical (no package resource parsing), so
-/// it's a warning, not a verdict. [findResourceOverlaps] is the real
-/// thing: it compares the actual resource keys inside each package.
-Map<String, ConflictReason> findConflicts(List<Mod> mods) {
+/// The third is [overlaps], the real signal: packages that carry the same
+/// resource keys, read off the DBPF index by [findResourceOverlaps]. Pass
+/// `const {}` for the lexical pass alone (which is what the library falls
+/// back to with the package scan switched off).
+///
+/// Lexical pairs are recorded first and against their own budget of
+/// [_maxPartnersPerMod]; the overlaps then fill up to twice that. Sharing
+/// one budget meant a mod with 32 same-named siblings lost the package
+/// that really overrides its resources, which is the sharper signal of
+/// the two and the one the scan went to the trouble of reading.
+Map<String, Map<String, ConflictReason>> findConflictPairs(
+  List<Mod> mods,
+  Map<String, Map<String, int>> overlaps,
+) {
   final enabled = mods.where((m) => m.isEnabled).toList();
-  final flagged = <String, ConflictReason>{};
+  final pairs = <String, Map<String, ConflictReason>>{};
+
+  void pair(String path, String other, ConflictReason reason, int budget) {
+    if (path == other) return;
+    final row = pairs.putIfAbsent(path, () => {});
+    final had = row[other];
+    if (had == null && row.length >= budget) return;
+    row[other] = had == null ? reason : mostSpecificConflict([had, reason]);
+  }
+
+  // Only the first few members of a group can ever be recorded as anyone's
+  // partner, so the walk is bounded by the cap rather than by the size of
+  // the group: one basename across a whole CC dump is a group of
+  // thousands, and squaring it on every rescan froze the window on each
+  // toggle.
+  void pairAll(List<Mod> group, ConflictReason reason) {
+    final partners = group.length > _maxPartnersPerMod + 1
+        ? group.sublist(0, _maxPartnersPerMod + 1)
+        : group;
+    for (final mod in group) {
+      for (final other in partners) {
+        pair(mod.path, other.path, reason, _maxPartnersPerMod);
+      }
+    }
+  }
 
   final byName = <String, List<Mod>>{};
   final byIdentity = <String, List<Mod>>{};
@@ -49,27 +98,38 @@ Map<String, ConflictReason> findConflicts(List<Mod> mods) {
     byIdentity.putIfAbsent(infoOf[mod.path]!.identity, () => []).add(mod);
   }
 
+  for (final group in byName.values) {
+    if (group.length > 1) pairAll(group, ConflictReason.duplicateName);
+  }
   for (final group in byIdentity.values) {
     if (group.length < 2) continue;
     final versions = {
       for (final mod in group)
         if (infoOf[mod.path]!.version != null) infoOf[mod.path]!.version,
     };
-    if (versions.length > 1) {
-      for (final mod in group) {
-        flagged[mod.path] = ConflictReason.versionPair;
+    if (versions.length > 1) pairAll(group, ConflictReason.versionPair);
+  }
+  for (final entry in overlaps.entries) {
+    if (!infoOf.containsKey(entry.key)) continue;
+    for (final other in entry.value.keys) {
+      if (infoOf.containsKey(other)) {
+        pair(entry.key, other, ConflictReason.resourceOverlap,
+            _maxPartnersPerMod * 2);
       }
     }
   }
-  for (final group in byName.values) {
-    if (group.length > 1) {
-      for (final mod in group) {
-        flagged[mod.path] = ConflictReason.duplicateName;
-      }
-    }
-  }
-  return flagged;
+  return pairs;
 }
+
+/// What each flagged mod is flagged for, from the pairs it has: the
+/// sharpest reason among them.
+Map<String, ConflictReason> conflictReasonsOf(
+        Map<String, Map<String, ConflictReason>> pairs) =>
+    {
+      for (final entry in pairs.entries)
+        if (entry.value.isNotEmpty)
+          entry.key: mostSpecificConflict(entry.value.values),
+    };
 
 /// DBPF resource types excluded from overlap detection: bookkeeping the
 /// editor or the launcher writes into a package, never content the game
@@ -99,14 +159,17 @@ const _ignoredOverlapTypes = <int>{
 /// per combination of its owners, so one popular key in a large library
 /// is enough to grow the overlap map beyond what the machine has. Real
 /// duplicates still surface - the same file installed twice is caught by
-/// name in [findConflicts].
+/// name in [findConflictPairs].
 const _maxOwnersPerKey = 16;
 
-/// Most overlap partners recorded for one mod. The detail panel lists
-/// them for the user to review, which stops being useful long before this
-/// many, and the cap is what keeps the map's size linear in the size of
-/// the library. Rows that fill up simply stop growing, so a mod can be
-/// listed as another's partner without the reverse holding.
+/// Most partners recorded for one mod, per signal: the overlap map allows
+/// this many, and [findConflictPairs] allows this many lexical ones and
+/// twice this many in total. The detail panel lists them for the user to
+/// review, which stops being useful long before this many, and the cap is
+/// what keeps both maps' size linear in the size of the library. Rows
+/// that fill up simply stop growing, so a mod can be listed as another's
+/// partner without the reverse holding - which is why what a mod has been
+/// told to ignore is answered from the records rather than from its row.
 const _maxPartnersPerMod = 32;
 
 /// Enabled mods whose packages carry the same resource keys, from the

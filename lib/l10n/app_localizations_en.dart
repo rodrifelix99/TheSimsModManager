@@ -268,6 +268,97 @@ class LEn extends L {
   String get libraryRootFolder => 'Mods folder';
 
   @override
+  String get selectionTooltip => 'Select';
+
+  @override
+  String selectionCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count selected',
+      one: '1 selected',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get selectionSelectAll => 'Select all';
+
+  @override
+  String get selectionClear => 'Clear';
+
+  @override
+  String get selectionEnable => 'Enable';
+
+  @override
+  String get selectionDisable => 'Disable';
+
+  @override
+  String selectionProgress(int done, int total) {
+    return '$done of $total';
+  }
+
+  @override
+  String selectionDeleteTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Uninstall $count mods?',
+      one: 'Uninstall 1 mod?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String selectionDeleteBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'All $count files will be deleted from disk. There’s no undo.',
+      one: 'The file will be deleted from disk. There’s no undo.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get selectionMove => 'Move to…';
+
+  @override
+  String get newFolder => 'New folder';
+
+  @override
+  String newFolderIn(String folder) {
+    return 'Inside $folder';
+  }
+
+  @override
+  String get newFolderHint => 'Folder name';
+
+  @override
+  String get create => 'Create';
+
+  @override
+  String get move => 'Move';
+
+  @override
+  String moveTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Move $count mods where?',
+      one: 'Move 1 mod where?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get moveBody =>
+      'The files move on disk. Nothing else about them changes - anything switched off stays off.';
+
+  @override
+  String get folderEmptySection => 'Nothing in here yet';
+
+  @override
   String get install => 'Install';
 
   @override
@@ -529,6 +620,16 @@ class LEn extends L {
       'These packages contain resources with the same identifiers, so the game only keeps the copy it loads last. That can be intentional (patch and override mods shadow another mod\'s resources on purpose), but for unrelated mods it means one of them silently stops working: keep the one you want and disable the rest.';
 
   @override
+  String get conflictIgnore => 'Ignore';
+
+  @override
+  String get conflictIgnoreTooltip =>
+      'If this conflict is on purpose, hide it. Nothing about the mod changes, and you can bring the warning back from this page or from Settings.';
+
+  @override
+  String get conflictRestore => 'Bring back';
+
+  @override
   String advisoryBanner(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -604,6 +705,20 @@ class LEn extends L {
   String get factDownloads => 'Downloads';
 
   @override
+  String get factIgnoredConflicts => 'Ignored';
+
+  @override
+  String ignoredConflictsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count conflicts',
+      one: '1 conflict',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get statusHeading => 'Status';
 
   @override
@@ -655,6 +770,11 @@ class LEn extends L {
   @override
   String sectionGameCaches(String game) {
     return 'GAME CACHES · $game';
+  }
+
+  @override
+  String sectionIgnoredConflicts(String game) {
+    return 'IGNORED CONFLICTS · $game';
   }
 
   @override
@@ -810,6 +930,25 @@ class LEn extends L {
 
   @override
   String get clearCaches => 'Clear caches';
+
+  @override
+  String get ignoredConflictsTitle => 'Conflicts you\'re ignoring';
+
+  @override
+  String ignoredConflictsDesc(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count conflicts you told the app to stop reporting. Bring them back to see them in the library again',
+      one:
+          'One conflict you told the app to stop reporting. Bring it back to see it in the library again',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get ignoredConflictsReset => 'Bring them back';
 
   @override
   String get reportBugTitle => 'Report a bug';
@@ -973,6 +1112,54 @@ class LEn extends L {
   @override
   String errorFileInUseRename(String name) {
     return '“$name” couldn’t be renamed - it’s in use by another program (is the game running?) or write-protected. Close anything using it and try again.';
+  }
+
+  @override
+  String errorFileNameTaken(String name) {
+    return '“$name” is already in that folder. Rename one of the two and try again.';
+  }
+
+  @override
+  String errorFolderNameBad(String name) {
+    return '“$name” won’t work as a folder name. Try one without slashes or characters your system keeps for itself.';
+  }
+
+  @override
+  String errorFolderTooDeep(int levels) {
+    return 'The game only looks $levels folders deep inside the mods folder, so nothing you put below that would ever load.';
+  }
+
+  @override
+  String errorBulkMoveFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mods couldn’t be moved',
+      one: '1 mod couldn’t be moved',
+    );
+    return '$_temp0 - they may be in use by another program (is the game running?), write-protected, or already in that folder under the same name.';
+  }
+
+  @override
+  String errorBulkToggleFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mods couldn’t be switched over',
+      one: '1 mod couldn’t be switched over',
+    );
+    return '$_temp0 - they may be in use by another program (is the game running?) or write-protected.';
+  }
+
+  @override
+  String errorBulkRemoveFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mods couldn’t be deleted',
+      one: '1 mod couldn’t be deleted',
+    );
+    return '$_temp0 - they may be in use by another program (is the game running?) or write-protected.';
   }
 
   @override

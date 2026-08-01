@@ -279,6 +279,108 @@ class LPl extends L {
   String get libraryRootFolder => 'Folder Mods';
 
   @override
+  String get selectionTooltip => 'Zaznacz';
+
+  @override
+  String selectionCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'zaznaczono $count',
+      many: 'zaznaczono $count',
+      few: 'zaznaczono $count',
+      one: 'zaznaczono $count',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get selectionSelectAll => 'Zaznacz wszystko';
+
+  @override
+  String get selectionClear => 'Wyczyść zaznaczenie';
+
+  @override
+  String get selectionEnable => 'Włącz';
+
+  @override
+  String get selectionDisable => 'Wyłącz';
+
+  @override
+  String selectionProgress(int done, int total) {
+    return '$done z $total';
+  }
+
+  @override
+  String selectionDeleteTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Odinstalować $count moda?',
+      many: 'Odinstalować $count modów?',
+      few: 'Odinstalować $count mody?',
+      one: 'Odinstalować $count mod?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String selectionDeleteBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Wszystkie $count pliku zostanie usuniętych z dysku. Nie da się tego cofnąć.',
+      many:
+          'Wszystkie $count plików zostanie usuniętych z dysku. Nie da się tego cofnąć.',
+      few:
+          'Wszystkie $count pliki zostaną usunięte z dysku. Nie da się tego cofnąć.',
+      one: 'Plik zostanie usunięty z dysku. Nie da się tego cofnąć.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get selectionMove => 'Przenieś do…';
+
+  @override
+  String get newFolder => 'Nowy folder';
+
+  @override
+  String newFolderIn(String folder) {
+    return 'W folderze $folder';
+  }
+
+  @override
+  String get newFolderHint => 'Nazwa folderu';
+
+  @override
+  String get create => 'Utwórz';
+
+  @override
+  String get move => 'Przenieś';
+
+  @override
+  String moveTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Gdzie przenieść $count moda?',
+      many: 'Gdzie przenieść $count modów?',
+      few: 'Gdzie przenieść $count mody?',
+      one: 'Gdzie przenieść $count mod?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get moveBody =>
+      'Pliki przeniosą się do innego folderu na dysku. Nic poza tym się nie zmienia - co wyłączone, zostaje wyłączone.';
+
+  @override
+  String get folderEmptySection => 'Nic tu jeszcze nie ma';
+
+  @override
   String get install => 'Zainstaluj';
 
   @override
@@ -551,6 +653,16 @@ class LPl extends L {
       'Te paczki zawierają zasoby o tych samych identyfikatorach, więc gra zostawi tylko tę kopię, którą wczyta na końcu. Czasem tak ma być (mody-łatki i override celowo przykrywają zasoby innego moda), ale przy modach, które nie mają ze sobą nic wspólnego, oznacza to, że jeden po cichu przestaje działać: zostaw ten, na którym ci zależy, a resztę wyłącz.';
 
   @override
+  String get conflictIgnore => 'Zignoruj';
+
+  @override
+  String get conflictIgnoreTooltip =>
+      'Jeśli ten konflikt jest celowy, schowaj go. Przy modzie nic się nie zmienia, a ostrzeżenie przywrócisz na tej stronie albo w ustawieniach.';
+
+  @override
+  String get conflictRestore => 'Przywróć';
+
+  @override
   String advisoryBanner(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -628,6 +740,22 @@ class LPl extends L {
   String get factDownloads => 'Pobrania';
 
   @override
+  String get factIgnoredConflicts => 'Zignorowane';
+
+  @override
+  String ignoredConflictsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count konfliktu',
+      many: '$count konfliktów',
+      few: '$count konflikty',
+      one: '$count konflikt',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get statusHeading => 'Status';
 
   @override
@@ -681,6 +809,11 @@ class LPl extends L {
   @override
   String sectionGameCaches(String game) {
     return 'PAMIĘĆ PODRĘCZNA GRY · $game';
+  }
+
+  @override
+  String sectionIgnoredConflicts(String game) {
+    return 'ZIGNOROWANE KONFLIKTY · $game';
   }
 
   @override
@@ -840,6 +973,29 @@ class LPl extends L {
 
   @override
   String get clearCaches => 'Wyczyść pamięć podręczną';
+
+  @override
+  String get ignoredConflictsTitle => 'Konflikty, które ignorujesz';
+
+  @override
+  String ignoredConflictsDesc(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count konfliktu, o których apka ma już nie przypominać. Przywróć je, a znowu pokażą się w bibliotece',
+      many:
+          '$count konfliktów, o których apka ma już nie przypominać. Przywróć je, a znowu pokażą się w bibliotece',
+      few:
+          '$count konflikty, o których apka ma już nie przypominać. Przywróć je, a znowu pokażą się w bibliotece',
+      one:
+          '$count konflikt, o którym apka ma już nie przypominać. Przywróć go, a znowu pokaże się w bibliotece',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get ignoredConflictsReset => 'Przywróć wszystkie';
 
   @override
   String get reportBugTitle => 'Zgłoś błąd';
@@ -1003,6 +1159,60 @@ class LPl extends L {
   @override
   String errorFileInUseRename(String name) {
     return 'Nie udało się zmienić nazwy „$name”: plik jest używany przez inny program (gra jest włączona?) albo chroniony przed zapisem. Zamknij wszystko, co go używa, i spróbuj ponownie.';
+  }
+
+  @override
+  String errorFileNameTaken(String name) {
+    return 'W tym folderze już jest „$name”. Zmień nazwę jednego z nich i spróbuj jeszcze raz.';
+  }
+
+  @override
+  String errorFolderNameBad(String name) {
+    return '„$name” nie nadaje się na nazwę folderu. Spróbuj bez ukośników i znaków, które system rezerwuje dla siebie.';
+  }
+
+  @override
+  String errorFolderTooDeep(int levels) {
+    return 'Gra zagląda tylko $levels foldery w głąb folderu z modami - nic głębiej nigdy się nie wczyta.';
+  }
+
+  @override
+  String errorBulkMoveFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count moda nie dało się przenieść',
+      many: '$count modów nie dało się przenieść',
+      few: '$count modów nie dało się przenieść',
+      one: '$count moda nie dało się przenieść',
+    );
+    return '$_temp0 - może używa ich inny program (gra jest włączona?), są tylko do odczytu, albo w folderze jest już plik o tej nazwie.';
+  }
+
+  @override
+  String errorBulkToggleFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count moda nie dało się przełączyć',
+      many: '$count modów nie dało się przełączyć',
+      few: '$count modów nie dało się przełączyć',
+      one: '$count moda nie dało się przełączyć',
+    );
+    return '$_temp0 - może używa ich inny program (gra jest włączona?) albo są tylko do odczytu.';
+  }
+
+  @override
+  String errorBulkRemoveFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count moda nie dało się usunąć',
+      many: '$count modów nie dało się usunąć',
+      few: '$count modów nie dało się usunąć',
+      one: '$count moda nie dało się usunąć',
+    );
+    return '$_temp0 - może używa ich inny program (gra jest włączona?) albo są tylko do odczytu.';
   }
 
   @override

@@ -17,6 +17,11 @@ PackageInsight? Function(Mod) _insights(Map<String, List<ResourceKey>> keys) =>
       return k == null ? null : PackageInsight(keys: k);
     };
 
+/// What the lexical pass alone flags, which is what the library falls
+/// back to with the package scan off.
+Map<String, ConflictReason> _flagged(List<Mod> mods) =>
+    conflictReasonsOf(findConflictPairs(mods, const {}));
+
 void main() {
   test('flags enabled mods sharing a file name', () {
     final mods = [
@@ -25,7 +30,7 @@ void main() {
       _mod('sofa.package', r'C:\mods\sofa.package'),
     ];
 
-    final conflicts = findConflicts(mods);
+    final conflicts = _flagged(mods);
 
     expect(conflicts, {
       r'C:\mods\hair.package': ConflictReason.duplicateName,
@@ -39,7 +44,7 @@ void main() {
       _mod('hair.package', r'C:\mods\sub\hair.package'),
     ];
 
-    expect(findConflicts(mods), hasLength(2));
+    expect(_flagged(mods), hasLength(2));
   });
 
   test('disabled duplicates do not conflict', () {
@@ -49,7 +54,7 @@ void main() {
           enabled: false),
     ];
 
-    expect(findConflicts(mods), isEmpty);
+    expect(_flagged(mods), isEmpty);
   });
 
   test('flags two versions of the same mod', () {
@@ -59,7 +64,7 @@ void main() {
       _mod('sofa.package', r'C:\mods\sofa.package'),
     ];
 
-    expect(findConflicts(mods), {
+    expect(_flagged(mods), {
       r'C:\mods\CoolHair_v1.package': ConflictReason.versionPair,
       r'C:\mods\sub\CoolHair_v2.package': ConflictReason.versionPair,
     });
@@ -71,7 +76,7 @@ void main() {
       _mod('Cool Hair 1.37.package', r'C:\mods\Cool Hair 1.37.package'),
     ];
 
-    expect(findConflicts(mods), hasLength(2));
+    expect(_flagged(mods), hasLength(2));
   });
 
   test('a versioned mod next to an unversioned one is not flagged', () {
@@ -80,7 +85,7 @@ void main() {
       _mod('CoolHair_v2.package', r'C:\mods\CoolHair_v2.package'),
     ];
 
-    expect(findConflicts(mods), isEmpty);
+    expect(_flagged(mods), isEmpty);
   });
 
   test('a disabled old version does not conflict with the new one', () {
@@ -90,7 +95,7 @@ void main() {
           enabled: false),
     ];
 
-    expect(findConflicts(mods), isEmpty);
+    expect(_flagged(mods), isEmpty);
   });
 
   test('same version twice falls under the duplicate-name rule only', () {
@@ -99,7 +104,7 @@ void main() {
       _mod('CoolHair_v2.package', r'C:\mods\sub\CoolHair_v2.package'),
     ];
 
-    final conflicts = findConflicts(mods);
+    final conflicts = _flagged(mods);
     expect(conflicts, hasLength(2));
     expect(conflicts.values,
         everyElement(ConflictReason.duplicateName));
@@ -111,7 +116,122 @@ void main() {
       _mod('WarmSofa_v2.package', r'C:\mods\WarmSofa_v2.package'),
     ];
 
-    expect(findConflicts(mods), isEmpty);
+    expect(_flagged(mods), isEmpty);
+  });
+
+  group('findConflictPairs', () {
+    test('pairs every mod in a duplicate-name group with the others', () {
+      final mods = [
+        _mod('hair.package', r'C:\mods\hair.package'),
+        _mod('hair.package', r'C:\mods\sub\hair.package'),
+        _mod('hair.package', r'C:\mods\other\hair.package'),
+        _mod('sofa.package', r'C:\mods\sofa.package'),
+      ];
+
+      final pairs = findConflictPairs(mods, const {});
+
+      expect(pairs.keys, hasLength(3));
+      expect(pairs[r'C:\mods\hair.package'], {
+        r'C:\mods\sub\hair.package': ConflictReason.duplicateName,
+        r'C:\mods\other\hair.package': ConflictReason.duplicateName,
+      });
+      expect(pairs, isNot(contains(r'C:\mods\sofa.package')));
+    });
+
+    test('a mod is never paired with itself', () {
+      final mods = [_mod('hair.package', r'C:\mods\hair.package')];
+
+      expect(findConflictPairs(mods, const {}), isEmpty);
+    });
+
+    test('overlaps join the pairs, and a lexical reason wins the pair', () {
+      final a = _mod('hair.package', r'C:\mods\hair.package');
+      final b = _mod('hair.package', r'C:\mods\sub\hair.package');
+      final c = _mod('sofa.package', r'C:\mods\sofa.package');
+
+      final pairs = findConflictPairs([a, b, c], {
+        a.path: {b.path: 4, c.path: 2},
+        b.path: {a.path: 4},
+        c.path: {a.path: 2},
+      });
+
+      // The same name is the sharper thing to say about a and b, even
+      // though their packages really do share resources too.
+      expect(pairs[a.path], {
+        b.path: ConflictReason.duplicateName,
+        c.path: ConflictReason.resourceOverlap,
+      });
+      expect(pairs[c.path], {a.path: ConflictReason.resourceOverlap});
+      expect(conflictReasonsOf(pairs), {
+        a.path: ConflictReason.duplicateName,
+        b.path: ConflictReason.duplicateName,
+        c.path: ConflictReason.resourceOverlap,
+      });
+    });
+
+    test('an overlap naming a disabled mod is dropped', () {
+      final a = _mod('a.package', r'C:\mods\a.package');
+      final off = _mod('b.package', r'C:\mods\b.package.disabled',
+          enabled: false);
+
+      final pairs = findConflictPairs([a, off], {
+        a.path: {off.path: 3},
+        off.path: {a.path: 3},
+      });
+
+      expect(pairs, isEmpty);
+    });
+
+    test('pair rows stop growing at the partner cap', () {
+      final many = [
+        for (var i = 0; i < 40; i++)
+          _mod('same.package', 'C:\\mods\\m$i\\same.package'),
+      ];
+
+      final pairs = findConflictPairs(many, const {});
+
+      expect(pairs, hasLength(40));
+      for (final row in pairs.values) {
+        expect(row.length, lessThanOrEqualTo(32));
+      }
+    });
+
+    // A group of thousands - one basename across a whole CC dump - used
+    // to be paired with itself squared, on the UI thread, on every
+    // toggle. Only the first few members can ever be recorded, so the
+    // walk is bounded by the cap.
+    test('a huge duplicate-name group stays cheap', () {
+      final many = [
+        for (var i = 0; i < 3000; i++)
+          _mod('merged.package', 'C:\\mods\\g$i\\merged.package'),
+      ];
+
+      final watch = Stopwatch()..start();
+      final pairs = findConflictPairs(many, const {});
+      watch.stop();
+
+      expect(pairs, hasLength(3000));
+      expect(watch.elapsedMilliseconds, lessThan(200));
+    });
+
+    // The overlaps are the signal the scan went to the trouble of
+    // reading; 32 same-named siblings must not push them out.
+    test('name twins do not crowd out a real overlap', () {
+      final many = [
+        for (var i = 0; i < 33; i++)
+          _mod('mesh.package', 'C:\\mods\\m$i\\mesh.package'),
+      ];
+      final override = _mod('override.package', r'C:\mods\override.package');
+
+      final pairs = findConflictPairs([...many, override], {
+        many.first.path: {override.path: 40},
+        override.path: {many.first.path: 40},
+      });
+
+      expect(pairs[many.first.path], contains(override.path));
+      expect(pairs[many.first.path]![override.path],
+          ConflictReason.resourceOverlap);
+    });
   });
 
   group('findResourceOverlaps', () {

@@ -133,6 +133,16 @@ extension AppText on L {
       'fileInUseDelete' => errorFileInUseDelete(arg(0)),
       'fileInUseRename' => errorFileInUseRename(arg(0)),
       'fileMissing' => errorFileMissing(arg(0)),
+      // A batch says how many refused rather than naming them: the count
+      // travels as a string like every other argument core hands up.
+      'bulkToggleFailed' =>
+        errorBulkToggleFailed(int.tryParse(arg(0)) ?? 0),
+      'bulkRemoveFailed' =>
+        errorBulkRemoveFailed(int.tryParse(arg(0)) ?? 0),
+      'bulkMoveFailed' => errorBulkMoveFailed(int.tryParse(arg(0)) ?? 0),
+      'fileNameTaken' => errorFileNameTaken(arg(0)),
+      'folderNameBad' => errorFolderNameBad(arg(0)),
+      'folderTooDeep' => errorFolderTooDeep(int.tryParse(arg(0)) ?? 0),
       'errorNoWriteAccess' => errorNoWriteAccess(arg(0)),
       'shopDownloadFailed' => errorShopDownload(arg(0)),
       'shopNeedsFolder' => shopNeedsFolder(arg(0)),

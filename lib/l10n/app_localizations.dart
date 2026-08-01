@@ -499,6 +499,114 @@ abstract class L {
   /// **'Mods folder'**
   String get libraryRootFolder;
 
+  /// No description provided for @selectionTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Select'**
+  String get selectionTooltip;
+
+  /// No description provided for @selectionCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 selected} other{{count} selected}}'**
+  String selectionCount(int count);
+
+  /// No description provided for @selectionSelectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get selectionSelectAll;
+
+  /// No description provided for @selectionClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get selectionClear;
+
+  /// No description provided for @selectionEnable.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable'**
+  String get selectionEnable;
+
+  /// No description provided for @selectionDisable.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable'**
+  String get selectionDisable;
+
+  /// No description provided for @selectionProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total}'**
+  String selectionProgress(int done, int total);
+
+  /// No description provided for @selectionDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Uninstall 1 mod?} other{Uninstall {count} mods?}}'**
+  String selectionDeleteTitle(int count);
+
+  /// No description provided for @selectionDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{The file will be deleted from disk. There’s no undo.} other{All {count} files will be deleted from disk. There’s no undo.}}'**
+  String selectionDeleteBody(int count);
+
+  /// No description provided for @selectionMove.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to…'**
+  String get selectionMove;
+
+  /// No description provided for @newFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'New folder'**
+  String get newFolder;
+
+  /// No description provided for @newFolderIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Inside {folder}'**
+  String newFolderIn(String folder);
+
+  /// No description provided for @newFolderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder name'**
+  String get newFolderHint;
+
+  /// No description provided for @create.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get create;
+
+  /// No description provided for @move.
+  ///
+  /// In en, this message translates to:
+  /// **'Move'**
+  String get move;
+
+  /// No description provided for @moveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Move 1 mod where?} other{Move {count} mods where?}}'**
+  String moveTitle(int count);
+
+  /// No description provided for @moveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The files move on disk. Nothing else about them changes - anything switched off stays off.'**
+  String get moveBody;
+
+  /// No description provided for @folderEmptySection.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing in here yet'**
+  String get folderEmptySection;
+
   /// No description provided for @install.
   ///
   /// In en, this message translates to:
@@ -883,6 +991,24 @@ abstract class L {
   /// **'These packages contain resources with the same identifiers, so the game only keeps the copy it loads last. That can be intentional (patch and override mods shadow another mod\'s resources on purpose), but for unrelated mods it means one of them silently stops working: keep the one you want and disable the rest.'**
   String get conflictResourcesBody;
 
+  /// No description provided for @conflictIgnore.
+  ///
+  /// In en, this message translates to:
+  /// **'Ignore'**
+  String get conflictIgnore;
+
+  /// No description provided for @conflictIgnoreTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'If this conflict is on purpose, hide it. Nothing about the mod changes, and you can bring the warning back from this page or from Settings.'**
+  String get conflictIgnoreTooltip;
+
+  /// No description provided for @conflictRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Bring back'**
+  String get conflictRestore;
+
   /// No description provided for @advisoryBanner.
   ///
   /// In en, this message translates to:
@@ -1003,6 +1129,18 @@ abstract class L {
   /// **'Downloads'**
   String get factDownloads;
 
+  /// No description provided for @factIgnoredConflicts.
+  ///
+  /// In en, this message translates to:
+  /// **'Ignored'**
+  String get factIgnoredConflicts;
+
+  /// No description provided for @ignoredConflictsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 conflict} other{{count} conflicts}}'**
+  String ignoredConflictsCount(int count);
+
   /// No description provided for @statusHeading.
   ///
   /// In en, this message translates to:
@@ -1080,6 +1218,12 @@ abstract class L {
   /// In en, this message translates to:
   /// **'GAME CACHES · {game}'**
   String sectionGameCaches(String game);
+
+  /// No description provided for @sectionIgnoredConflicts.
+  ///
+  /// In en, this message translates to:
+  /// **'IGNORED CONFLICTS · {game}'**
+  String sectionIgnoredConflicts(String game);
 
   /// No description provided for @sectionFeedback.
   ///
@@ -1326,6 +1470,24 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Clear caches'**
   String get clearCaches;
+
+  /// No description provided for @ignoredConflictsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Conflicts you\'re ignoring'**
+  String get ignoredConflictsTitle;
+
+  /// No description provided for @ignoredConflictsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{One conflict you told the app to stop reporting. Bring it back to see it in the library again} other{{count} conflicts you told the app to stop reporting. Bring them back to see them in the library again}}'**
+  String ignoredConflictsDesc(int count);
+
+  /// No description provided for @ignoredConflictsReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Bring them back'**
+  String get ignoredConflictsReset;
 
   /// No description provided for @reportBugTitle.
   ///
@@ -1584,6 +1746,42 @@ abstract class L {
   /// In en, this message translates to:
   /// **'“{name}” couldn’t be renamed - it’s in use by another program (is the game running?) or write-protected. Close anything using it and try again.'**
   String errorFileInUseRename(String name);
+
+  /// No description provided for @errorFileNameTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” is already in that folder. Rename one of the two and try again.'**
+  String errorFileNameTaken(String name);
+
+  /// No description provided for @errorFolderNameBad.
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” won’t work as a folder name. Try one without slashes or characters your system keeps for itself.'**
+  String errorFolderNameBad(String name);
+
+  /// No description provided for @errorFolderTooDeep.
+  ///
+  /// In en, this message translates to:
+  /// **'The game only looks {levels} folders deep inside the mods folder, so nothing you put below that would ever load.'**
+  String errorFolderTooDeep(int levels);
+
+  /// No description provided for @errorBulkMoveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 mod couldn’t be moved} other{{count} mods couldn’t be moved}} - they may be in use by another program (is the game running?), write-protected, or already in that folder under the same name.'**
+  String errorBulkMoveFailed(int count);
+
+  /// No description provided for @errorBulkToggleFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 mod couldn’t be switched over} other{{count} mods couldn’t be switched over}} - they may be in use by another program (is the game running?) or write-protected.'**
+  String errorBulkToggleFailed(int count);
+
+  /// No description provided for @errorBulkRemoveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 mod couldn’t be deleted} other{{count} mods couldn’t be deleted}} - they may be in use by another program (is the game running?) or write-protected.'**
+  String errorBulkRemoveFailed(int count);
 
   /// No description provided for @errorFileMissing.
   ///

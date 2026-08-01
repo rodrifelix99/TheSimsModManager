@@ -73,6 +73,23 @@ const cards = [
   </div>
 </section>
 
+<!-- Opened by download.ts the moment the installer starts downloading. The card
+     says the same thing above the button, but that is read after the click if
+     at all, and SmartScreen is where people give up. -->
+<dialog id="smartscreen-note" class="ss-note" aria-labelledby="ss-note-h">
+  <form method="dialog">
+    <img
+      src="/images/systems/windows-smartscreen.webp"
+      alt={t.plain('download.smartscreen.alt')}
+      width="550"
+      height="390"
+    />
+    <h3 id="ss-note-h" set:html={t('download.smartscreen.h')} />
+    <p set:html={t('download.smartscreen.p')} />
+    <button set:html={t('download.smartscreen.close')} />
+  </form>
+</dialog>
+
 <script
   type="application/json"
   id="page-strings"

@@ -268,6 +268,97 @@ class LEs extends L {
   String get libraryRootFolder => 'Carpeta Mods';
 
   @override
+  String get selectionTooltip => 'Seleccionar';
+
+  @override
+  String selectionCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count seleccionados',
+      one: '1 seleccionado',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get selectionSelectAll => 'Seleccionar todo';
+
+  @override
+  String get selectionClear => 'Deseleccionar';
+
+  @override
+  String get selectionEnable => 'Activar';
+
+  @override
+  String get selectionDisable => 'Desactivar';
+
+  @override
+  String selectionProgress(int done, int total) {
+    return '$done de $total';
+  }
+
+  @override
+  String selectionDeleteTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '¿Desinstalar $count mods?',
+      one: '¿Desinstalar 1 mod?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String selectionDeleteBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Los $count archivos se borrarán del disco. No hay vuelta atrás.',
+      one: 'El archivo se borrará del disco. No hay vuelta atrás.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get selectionMove => 'Mover a…';
+
+  @override
+  String get newFolder => 'Nueva carpeta';
+
+  @override
+  String newFolderIn(String folder) {
+    return 'Dentro de $folder';
+  }
+
+  @override
+  String get newFolderHint => 'Nombre de la carpeta';
+
+  @override
+  String get create => 'Crear';
+
+  @override
+  String get move => 'Mover';
+
+  @override
+  String moveTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '¿Adónde movemos los $count mods?',
+      one: '¿Adónde movemos el mod?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get moveBody =>
+      'Los archivos cambian de carpeta en el disco. Nada más cambia: lo que esté desactivado sigue desactivado.';
+
+  @override
+  String get folderEmptySection => 'Aquí todavía no hay nada';
+
+  @override
   String get install => 'Instalar';
 
   @override
@@ -532,6 +623,16 @@ class LEs extends L {
       'Estos paquetes contienen recursos con los mismos identificadores, así que el juego solo conserva la copia que carga en último lugar. Puede ser a propósito (los mods de parche y de sobrescritura tapan los recursos de otro mod aposta), pero entre mods que no tienen nada que ver significa que uno de ellos deja de funcionar sin avisar: quédate con el que quieras y desactiva el resto.';
 
   @override
+  String get conflictIgnore => 'Ignorar';
+
+  @override
+  String get conflictIgnoreTooltip =>
+      'Si este conflicto es a propósito, escóndelo. El mod no cambia en nada, y puedes recuperar el aviso desde esta página o desde los ajustes.';
+
+  @override
+  String get conflictRestore => 'Recuperar';
+
+  @override
   String advisoryBanner(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -608,6 +709,20 @@ class LEs extends L {
   String get factDownloads => 'Descargas';
 
   @override
+  String get factIgnoredConflicts => 'Ignorados';
+
+  @override
+  String ignoredConflictsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count conflictos',
+      one: '1 conflicto',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get statusHeading => 'Estado';
 
   @override
@@ -659,6 +774,11 @@ class LEs extends L {
   @override
   String sectionGameCaches(String game) {
     return 'CACHÉ DEL JUEGO · $game';
+  }
+
+  @override
+  String sectionIgnoredConflicts(String game) {
+    return 'CONFLICTOS IGNORADOS · $game';
   }
 
   @override
@@ -816,6 +936,25 @@ class LEs extends L {
 
   @override
   String get clearCaches => 'Borrar caché';
+
+  @override
+  String get ignoredConflictsTitle => 'Conflictos que estás ignorando';
+
+  @override
+  String ignoredConflictsDesc(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count conflictos que le dijiste a la app que dejara de avisarte. Recupéralos para volver a verlos en la biblioteca',
+      one:
+          'Un conflicto que le dijiste a la app que dejara de avisarte. Recupéralo para volver a verlo en la biblioteca',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get ignoredConflictsReset => 'Recuperarlos';
 
   @override
   String get reportBugTitle => 'Informar de un fallo';
@@ -979,6 +1118,54 @@ class LEs extends L {
   @override
   String errorFileInUseRename(String name) {
     return 'No se pudo renombrar «$name»: lo está usando otro programa (¿tienes el juego abierto?) o está protegido contra escritura. Cierra lo que lo esté usando y vuelve a intentarlo.';
+  }
+
+  @override
+  String errorFileNameTaken(String name) {
+    return 'En esa carpeta ya hay un “$name”. Cambia el nombre de uno de los dos e inténtalo otra vez.';
+  }
+
+  @override
+  String errorFolderNameBad(String name) {
+    return '“$name” no vale como nombre de carpeta. Prueba con uno sin barras ni caracteres que reserve tu sistema.';
+  }
+
+  @override
+  String errorFolderTooDeep(int levels) {
+    return 'El juego solo mira $levels carpetas hacia dentro de la carpeta de mods, así que nada de lo que pongas más abajo se cargaría.';
+  }
+
+  @override
+  String errorBulkMoveFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mods no se pudieron mover',
+      one: '1 mod no se pudo mover',
+    );
+    return '$_temp0: puede que otro programa los esté usando (¿tienes el juego abierto?), que estén protegidos contra escritura o que ya haya un archivo con ese nombre en la carpeta.';
+  }
+
+  @override
+  String errorBulkToggleFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mods no se pudieron cambiar',
+      one: '1 mod no se pudo cambiar',
+    );
+    return '$_temp0: puede que otro programa los esté usando (¿tienes el juego abierto?) o que estén protegidos contra escritura.';
+  }
+
+  @override
+  String errorBulkRemoveFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mods no se pudieron borrar',
+      one: '1 mod no se pudo borrar',
+    );
+    return '$_temp0: puede que otro programa los esté usando (¿tienes el juego abierto?) o que estén protegidos contra escritura.';
   }
 
   @override

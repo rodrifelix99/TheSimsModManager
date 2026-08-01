@@ -11,6 +11,7 @@ import 'app_controller.dart';
 import 'game_theme.dart';
 import 'l10n.dart';
 import 'mod_presentation.dart' show modDate, modTitle, modVersion;
+import 'move_folder_dialog.dart';
 import 'widgets.dart';
 
 /// Full page for one mod: artwork, enable toggle, facts, file details.
@@ -184,6 +185,22 @@ class DetailView extends StatelessWidget {
           border: t.accent,
           onTap: () => c.revealInFileManager(mod.path),
         ),
+        // Not for a mod the app has no business moving - The Sims 1 keeps
+        // skins and walls in folders of the game's own, and which file
+        // belongs in which of those is the adapter's answer.
+        if (c.canMoveMods && c.canMove(mod)) ...[
+          const SizedBox(height: 10),
+          _outlineButton(
+            t,
+            label: l.selectionMove,
+            color: t.text,
+            background: Colors.transparent,
+            border: t.border,
+            hoverBackground: t.surfaceAlt,
+            onTap: () => askWhereToMove(context, c,
+                theme: t, mods: [mod], method: 'detail'),
+          ),
+        ],
         const SizedBox(height: 10),
         _outlineButton(
           t,
@@ -417,6 +434,7 @@ class DetailView extends StatelessWidget {
       if (shared == 0) return relPath(other);
       return '${relPath(other)} - ${l.sharedResources(shared)}';
     }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
@@ -471,23 +489,32 @@ class DetailView extends StatelessWidget {
           for (final other in others)
             Padding(
               padding: const EdgeInsets.only(left: 26, top: 2),
-              child: HoverBuilder(
-                cursor: SystemMouseCursors.click,
-                builder: (context, hovered) => GestureDetector(
-                  onTap: () => c.openMod(other),
-                  child: Text(
-                    rowLabel(other),
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w700,
-                      color: t.onWarningTint,
-                      decoration: hovered
-                          ? TextDecoration.underline
-                          : TextDecoration.none,
-                      decorationColor: t.onWarningTint,
+              child: Row(
+                children: [
+                  Flexible(
+                    child: HoverBuilder(
+                      cursor: SystemMouseCursors.click,
+                      builder: (context, hovered) => GestureDetector(
+                        onTap: () => c.openMod(other),
+                        child: Text(
+                          rowLabel(other),
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
+                            color: t.onWarningTint,
+                            decoration: hovered
+                                ? TextDecoration.underline
+                                : TextDecoration.none,
+                            decorationColor: t.onWarningTint,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                  const SizedBox(width: 10),
+                  _ignoreConflictButton(
+                      t, l, () => c.ignoreConflict(mod, other)),
+                ],
               ),
             ),
           const SizedBox(height: 8),
@@ -502,6 +529,102 @@ class DetailView extends StatelessWidget {
               height: 1.5,
               fontWeight: FontWeight.w600,
               color: t.onWarningTint,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// "Ignore": settles one clash of the pair it sits on. Small and quiet
+  /// next to the mod it belongs to, because it is an answer about that
+  /// one row and not about the warning as a whole.
+  Widget _ignoreConflictButton(GameTheme t, L l, VoidCallback onTap) {
+    return Tooltip(
+      message: l.conflictIgnoreTooltip,
+      child: HoverBuilder(
+        cursor: SystemMouseCursors.click,
+        builder: (context, hovered) => GestureDetector(
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: hovered
+                  ? t.warning.withValues(alpha: .18)
+                  : Colors.transparent,
+              border: Border.all(color: t.warning.withValues(alpha: .45)),
+              borderRadius: BorderRadius.circular(7),
+            ),
+            child: Text(
+              l.conflictIgnore,
+              style: TextStyle(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w800,
+                color: t.onWarningTint,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// "You're ignoring N of this mod's clashes": the way back, on the mod
+  /// it was settled from. Drawn only when the scan is still finding those
+  /// clashes, so it says nothing about a mod whose partner has gone.
+  Widget _ignoredConflictsFact(
+      GameTheme t, AppController c, L l, Mod mod, int count) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+      decoration: BoxDecoration(
+        color: t.surfaceAlt,
+        border: Border.all(color: t.border),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l.factIgnoredConflicts.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: .5,
+                    color: t.muted,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  l.ignoredConflictsCount(count),
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w800,
+                    color: t.text,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          HoverBuilder(
+            cursor: SystemMouseCursors.click,
+            builder: (context, hovered) => GestureDetector(
+              onTap: () => c.restoreConflicts(mod),
+              child: Text(
+                l.conflictRestore,
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w800,
+                  color: t.accent,
+                  decoration:
+                      hovered ? TextDecoration.underline : TextDecoration.none,
+                  decorationColor: t.accent,
+                ),
+              ),
             ),
           ),
         ],
@@ -643,6 +766,10 @@ class DetailView extends StatelessWidget {
             _fact(t, l.factModified, modDate(mod)),
           ],
         ),
+        if (c.ignoredConflictsOf(mod) case final ignored when ignored > 0) ...[
+          const SizedBox(height: 12),
+          _ignoredConflictsFact(t, c, l, mod, ignored),
+        ],
         ..._contentsSection(t, c, l, mod),
         const SizedBox(height: 22),
         Text(

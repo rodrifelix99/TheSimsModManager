@@ -29,6 +29,21 @@ interface Asset {
   browser_download_url: string;
 }
 
+// The Windows installer is unsigned, so SmartScreen hides Run anyway behind
+// More info and a fair few people stop right there. Whatever starts that
+// download opens the screenshot of it; the anchor keeps doing its own job.
+function armSmartScreenNote(triggers: Element[]) {
+  const note = document.getElementById('smartscreen-note');
+  if (!(note instanceof HTMLDialogElement) || !note.showModal) return;
+  for (const trigger of triggers) {
+    trigger.addEventListener('click', () => note.showModal());
+  }
+  // A click on the backdrop is reported against the dialog itself.
+  note.addEventListener('click', (event) => {
+    if (event.target === note) note.close();
+  });
+}
+
 export async function fillDownloads() {
   const block = document.getElementById('page-strings');
   if (!block?.textContent) return;
@@ -72,15 +87,26 @@ export async function fillDownloads() {
   const badge = document.getElementById('hero-version');
   if (version && badge) badge.textContent = ' · ' + version;
 
+  // Only what really points at the installer earns the note: with the API
+  // unreachable the buttons still lead to the releases page, where nothing has
+  // been downloaded yet.
+  const installer = links['windows-setup']
+    ? [...document.querySelectorAll('.dl-card[data-platform="windows-setup"] a.get')]
+    : [];
+
   const platform = detectPlatform();
   const hero = document.getElementById('hero-download');
   const label = document.getElementById('hero-download-label');
-  if (!(hero instanceof HTMLAnchorElement) || !label) return;
-  if (platform && links[platform]) {
-    hero.href = links[platform].browser_download_url;
-    label.textContent = osLabels[platform] || strings.download;
-    document.querySelector(`.dl-card[data-platform="${platform}"]`)?.classList.add('recommended');
-  } else {
-    label.textContent = strings.download;
+  if (hero instanceof HTMLAnchorElement && label) {
+    if (platform && links[platform]) {
+      hero.href = links[platform].browser_download_url;
+      label.textContent = osLabels[platform] || strings.download;
+      document.querySelector(`.dl-card[data-platform="${platform}"]`)?.classList.add('recommended');
+      if (platform === 'windows-setup') installer.push(hero);
+    } else {
+      label.textContent = strings.download;
+    }
   }
+
+  armSmartScreenNote(installer);
 }

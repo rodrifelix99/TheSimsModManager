@@ -278,6 +278,105 @@ class LRu extends L {
   String get libraryRootFolder => 'Папка Mods';
 
   @override
+  String get selectionTooltip => 'Выбрать';
+
+  @override
+  String selectionCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'выбрано $count',
+      many: 'выбрано $count',
+      few: 'выбрано $count',
+      one: 'выбран $count',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get selectionSelectAll => 'Выбрать все';
+
+  @override
+  String get selectionClear => 'Снять выбор';
+
+  @override
+  String get selectionEnable => 'Включить';
+
+  @override
+  String get selectionDisable => 'Выключить';
+
+  @override
+  String selectionProgress(int done, int total) {
+    return '$done из $total';
+  }
+
+  @override
+  String selectionDeleteTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Удалить $count мода?',
+      many: 'Удалить $count модов?',
+      few: 'Удалить $count мода?',
+      one: 'Удалить $count мод?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String selectionDeleteBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Все $count файла будут удалены с диска. Отменить это нельзя.',
+      many: 'Все $count файлов будут удалены с диска. Отменить это нельзя.',
+      few: 'Все $count файла будут удалены с диска. Отменить это нельзя.',
+      one: 'Файл будет удалён с диска. Отменить это нельзя.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get selectionMove => 'Переместить в…';
+
+  @override
+  String get newFolder => 'Новая папка';
+
+  @override
+  String newFolderIn(String folder) {
+    return 'Внутри $folder';
+  }
+
+  @override
+  String get newFolderHint => 'Название папки';
+
+  @override
+  String get create => 'Создать';
+
+  @override
+  String get move => 'Переместить';
+
+  @override
+  String moveTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Куда переместить $count мода?',
+      many: 'Куда переместить $count модов?',
+      few: 'Куда переместить $count мода?',
+      one: 'Куда переместить $count мод?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get moveBody =>
+      'Файлы переедут в другую папку на диске. Больше ничего не меняется: что выключено, останется выключенным.';
+
+  @override
+  String get folderEmptySection => 'Тут пока пусто';
+
+  @override
   String get install => 'Установить';
 
   @override
@@ -551,6 +650,16 @@ class LRu extends L {
       'В этих пакетах есть ресурсы с одинаковыми идентификаторами, поэтому игра оставит только ту копию, что загрузилась последней. Иногда так и задумано: моды-патчи и override-моды намеренно перекрывают ресурсы другого мода, но для не связанных между собой модов это значит, что один из них молча перестаёт работать: оставь тот, который нужен, а остальные выключи.';
 
   @override
+  String get conflictIgnore => 'Игнорировать';
+
+  @override
+  String get conflictIgnoreTooltip =>
+      'Если этот конфликт задуман, спрячь его. С модом ничего не случится: исчезнет только предупреждение, а вернуть его можно на этой странице или в настройках.';
+
+  @override
+  String get conflictRestore => 'Вернуть';
+
+  @override
   String advisoryBanner(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -628,6 +737,22 @@ class LRu extends L {
   String get factDownloads => 'Скачиваний';
 
   @override
+  String get factIgnoredConflicts => 'Скрыто';
+
+  @override
+  String ignoredConflictsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count конфликта',
+      many: '$count конфликтов',
+      few: '$count конфликта',
+      one: '$count конфликт',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get statusHeading => 'Состояние';
 
   @override
@@ -681,6 +806,11 @@ class LRu extends L {
   @override
   String sectionGameCaches(String game) {
     return 'КЭШ ИГРЫ · $game';
+  }
+
+  @override
+  String sectionIgnoredConflicts(String game) {
+    return 'СКРЫТЫЕ КОНФЛИКТЫ · $game';
   }
 
   @override
@@ -841,6 +971,29 @@ class LRu extends L {
 
   @override
   String get clearCaches => 'Очистить кэш';
+
+  @override
+  String get ignoredConflictsTitle => 'Конфликты, о которых не напоминать';
+
+  @override
+  String ignoredConflictsDesc(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count конфликта, о которых приложение больше не напоминает. Верни их, и они снова появятся в библиотеке',
+      many:
+          '$count конфликтов, о которых приложение больше не напоминает. Верни их, и они снова появятся в библиотеке',
+      few:
+          '$count конфликта, о которых приложение больше не напоминает. Верни их, и они снова появятся в библиотеке',
+      one:
+          '$count конфликт, о котором приложение больше не напоминает. Верни его, и он снова появится в библиотеке',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get ignoredConflictsReset => 'Вернуть все';
 
   @override
   String get reportBugTitle => 'Сообщить об ошибке';
@@ -1004,6 +1157,60 @@ class LRu extends L {
   @override
   String errorFileInUseRename(String name) {
     return 'Не удалось переименовать «$name»: файл занят другой программой (игра запущена?) или защищён от записи. Закрой всё, что его использует, и попробуй снова.';
+  }
+
+  @override
+  String errorFileNameTaken(String name) {
+    return 'В этой папке уже есть «$name». Переименуй один из файлов и попробуй снова.';
+  }
+
+  @override
+  String errorFolderNameBad(String name) {
+    return '«$name» не годится в качестве имени папки. Попробуй без слешей и символов, которые система оставляет себе.';
+  }
+
+  @override
+  String errorFolderTooDeep(int levels) {
+    return 'Игра заглядывает в папку модов только на $levels уровня вглубь - всё, что ниже, никогда не загрузится.';
+  }
+
+  @override
+  String errorBulkMoveFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count мода не удалось переместить',
+      many: '$count модов не удалось переместить',
+      few: '$count мода не удалось переместить',
+      one: '$count мод не удалось переместить',
+    );
+    return '$_temp0 - их может занимать другая программа (игра ещё запущена?), они защищены от записи, или в папке уже лежит файл с таким именем.';
+  }
+
+  @override
+  String errorBulkToggleFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count мода не удалось переключить',
+      many: '$count модов не удалось переключить',
+      few: '$count мода не удалось переключить',
+      one: '$count мод не удалось переключить',
+    );
+    return '$_temp0 - их может занимать другая программа (игра ещё запущена?) или они защищены от записи.';
+  }
+
+  @override
+  String errorBulkRemoveFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count мода не удалось удалить',
+      many: '$count модов не удалось удалить',
+      few: '$count мода не удалось удалить',
+      one: '$count мод не удалось удалить',
+    );
+    return '$_temp0 - их может занимать другая программа (игра ещё запущена?) или они защищены от записи.';
   }
 
   @override

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:ui' show Locale, Size;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show LogicalKeyboardKey;
 import 'package:flutter/widgets.dart' show Directionality, Localizations;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -335,14 +336,63 @@ void main() {
       });
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
+      // Loading the library is real IO on a real disk: a fixed wait that
+      // is generous when this test runs alone is a coin toss with the
+      // rest of the suite running beside it, and everything below here
+      // needs the mod on screen. Alternate real time (where the IO gets
+      // on with it) and frames (where the result is drawn) until it is.
+      final sofa = find.text('cozy sofa');
+      for (var i = 0; i < 200 && sofa.evaluate().isEmpty; i++) {
+        await tester.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 25)));
+        await tester.pump(const Duration(milliseconds: 25));
+      }
+      expect(sofa, findsOneWidget, reason: 'library in ${language.name}');
       expect(overflows, isEmpty, reason: 'library in ${language.name}');
+
+      final strings = await L.delegate.load(Locale(language.code));
+
+      // The selection bar drops in under the filters, carrying the count
+      // in words as well as five buttons; ctrl-click is how the library
+      // gets into it. Finding one of its buttons is what says it worked -
+      // a modifier that never registered would leave this test passing
+      // on a bar it never drew.
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+      await tester.tap(find.text('cozy sofa'));
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.byTooltip(strings.selectionClear), findsOneWidget,
+          reason: 'selection bar in ${language.name}');
+      expect(overflows, isEmpty, reason: 'selection in ${language.name}');
+
+      // The move dialog, and the folder name field inside it - the two
+      // wordiest things the folder half of this draws.
+      await tester.tap(find.byTooltip(strings.selectionMove));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text(strings.moveBody), findsOneWidget);
+      expect(overflows, isEmpty, reason: 'move dialog in ${language.name}');
+      await tester.tap(find.text(strings.newFolder));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(overflows, isEmpty, reason: 'new folder in ${language.name}');
+      await tester.tap(find.text(strings.cancel).last);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      // Back out of the selection, so the tap below opens the mod rather
+      // than ticking a second one.
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+      await tester.tap(find.text('cozy sofa'));
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+      await tester.pump();
 
       await tester.tap(find.text('cozy sofa'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
       expect(overflows, isEmpty, reason: 'mod details in ${language.name}');
 
-      final strings = await L.delegate.load(Locale(language.code));
       await tester.tap(find.text(strings.navSettings).last);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));

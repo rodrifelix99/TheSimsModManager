@@ -162,7 +162,8 @@ void main() {
     });
 
     test('plants clashes the conflict scan finds', () {
-      final conflicts = findConflicts(demo.mods);
+      final conflicts =
+          conflictReasonsOf(findConflictPairs(demo.mods, const {}));
       expect(conflicts, isNotEmpty);
       // Both kinds: a duplicate file name and two versions side by side.
       final names = [
