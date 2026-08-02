@@ -8,6 +8,7 @@ import 'package:intl/intl.dart' show NumberFormat;
 
 import 'game_theme.dart';
 import 'l10n.dart';
+import 'plumbob_icons.dart';
 
 /// Rebuilds with `hovered: true` while the pointer is over the child.
 class HoverBuilder extends StatefulWidget {
@@ -57,34 +58,21 @@ ButtonStyle accentButtonStyle(GameTheme t) => OutlinedButton.styleFrom(
       textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
     );
 
-/// The app's rotated-diamond plumbob mark with the accent glow, drawn at
-/// [size]. One widget for the sidebar and the about card, whose two
-/// hand-built copies had drifted a constant at a time.
+/// The selected game's own plumbob art, drawn at [size] tall. One widget
+/// for the sidebar, the about card and the shop's empty state, whose
+/// hand-built rotated squares this replaced had drifted a constant at a
+/// time and could never carry a game's actual plumbob shape and color.
 class BrandMark extends StatelessWidget {
-  const BrandMark({super.key, required this.theme, this.size = 26});
+  const BrandMark({super.key, required this.gameId, this.size = 26});
 
-  final GameTheme theme;
+  final String gameId;
   final double size;
 
   @override
   Widget build(BuildContext context) {
-    return Transform.rotate(
-      angle: math.pi / 4,
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          gradient: theme.accentGradient,
-          borderRadius: BorderRadius.circular(size * .27),
-          boxShadow: [
-            BoxShadow(
-              color: theme.accent.withValues(alpha: .5),
-              blurRadius: 14,
-              offset: const Offset(0, 5),
-            ),
-          ],
-        ),
-      ),
+    return SizedBox(
+      height: size,
+      child: Image.asset(plumbobAsset(gameId), fit: BoxFit.contain),
     );
   }
 }

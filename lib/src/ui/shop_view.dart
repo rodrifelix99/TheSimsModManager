@@ -383,7 +383,7 @@ class ShopView extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              BrandMark(theme: t, size: 34),
+              BrandMark(gameId: c.adapter.game.id, size: 34),
               const SizedBox(height: 22),
               Text(
                 l.shopEmptyTitle,

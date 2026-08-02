@@ -130,8 +130,11 @@ void main() {
     expect(find.text('by plumbob_pat'), findsOneWidget);
 
     // One click: download lands in the temp scratch, installs into the
-    // mods folder, and the button flips to Installed.
-    await tester.tap(find.text('Install'));
+    // mods folder, and the button flips to Installed. The tap's
+    // onPressed fires refresh()'s unawaited disk-space check, a real
+    // Process.run - runAsync keeps its timer out of the fake-async zone.
+    await tester.runAsync(() => tester.tap(find.text('Install')));
+    await tester.pump();
     await _until(tester, find.text('Installed'));
 
     expect(File(p.join(tempDir.path, 'camera_fix.package')).existsSync(),

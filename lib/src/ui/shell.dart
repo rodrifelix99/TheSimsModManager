@@ -387,19 +387,7 @@ class _Sidebar extends StatefulWidget {
   State<_Sidebar> createState() => _SidebarState();
 }
 
-class _SidebarState extends State<_Sidebar>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _bob = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 1700),
-  )..repeat(reverse: true);
-
-  @override
-  void dispose() {
-    _bob.dispose();
-    super.dispose();
-  }
-
+class _SidebarState extends State<_Sidebar> {
   @override
   Widget build(BuildContext context) {
     final t = widget.theme;
@@ -438,7 +426,7 @@ class _SidebarState extends State<_Sidebar>
     return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _logo(t, l),
+          _logo(t, c.adapter.game.id, l),
           const SizedBox(height: 18),
           Padding(
             padding: const EdgeInsets.fromLTRB(6, 0, 6, 8),
@@ -830,23 +818,12 @@ class _SidebarState extends State<_Sidebar>
     );
   }
 
-  Widget _logo(GameTheme t, L l) {
+  Widget _logo(GameTheme t, String gameId, L l) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Row(
         children: [
-          SizedBox(
-            width: 30,
-            height: 30,
-            child: AnimatedBuilder(
-              animation: _bob,
-              builder: (context, child) => Transform.translate(
-                offset: Offset(0, -2 + 4 * _bob.value),
-                child: child,
-              ),
-              child: Center(child: BrandMark(theme: t, size: 22)),
-            ),
-          ),
+          BrandMark(gameId: gameId, size: 30),
           const SizedBox(width: 12),
           Flexible(
             child: Column(

@@ -400,7 +400,7 @@ class SettingsView extends StatelessWidget {
             decoration: _cardDecoration(t),
             child: Row(
               children: [
-                BrandMark(theme: t, size: 26),
+                BrandMark(gameId: c.adapter.game.id, size: 26),
                 const SizedBox(width: 20),
                 Expanded(
                   child: Column(
