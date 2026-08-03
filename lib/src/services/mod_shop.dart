@@ -607,13 +607,23 @@ Future<void> reportShopDownload(String id) async {
 /// (received, total) - total is 0 when the server didn't say. Unlike the
 /// fetches above this throws on failure: the caller is an install the
 /// user just asked for, and "nothing happened" is not an answer it can
-/// show. A partial file is deleted before the error travels on.
+/// show.
+///
+/// **The bytes land beside [destination] and are moved onto it only once
+/// the whole file is here.** Writing into it directly would truncate it
+/// on the first byte and delete it on a failure, which costs nothing
+/// when the destination is a scratch file an install just made - and
+/// costs the user their file when the Save-as dialog let them pick one
+/// they already had. The move replaces an existing file on every
+/// platform, so overwriting still works; it just needs the download to
+/// have succeeded first.
 Future<void> downloadShopFile(
   ShopMod mod,
   File destination, {
   void Function(int received, int total)? onProgress,
 }) async {
   final client = HttpClient()..connectionTimeout = const Duration(seconds: 15);
+  final partial = File('${destination.path}.part');
   IOSink? sink;
   try {
     final request = await client.getUrl(mod.downloadUri);
@@ -628,15 +638,27 @@ Future<void> downloadShopFile(
         ? response.contentLength
         : mod.fileSizeBytes;
     await destination.parent.create(recursive: true);
-    sink = destination.openWrite();
+    sink = partial.openWrite();
     var received = 0;
+    // Every chunk off the socket is a repaint of the whole window if it
+    // is passed straight on (the shell hangs off one notifier), and a
+    // 500 MB file arrives in tens of thousands of them. A percent at a
+    // time is all a progress ring can show anyway; the last chunk always
+    // reports, so the bar still ends full.
+    final step = total > 0 ? (total ~/ 100).clamp(1, 1 << 30) : 256 * 1024;
+    var reported = 0;
     await for (final chunk in response.timeout(const Duration(minutes: 2))) {
       sink.add(chunk);
       received += chunk.length;
-      onProgress?.call(received, total);
+      if (received - reported >= step) {
+        reported = received;
+        onProgress?.call(received, total);
+      }
     }
     await sink.close();
     sink = null;
+    if (reported != received) onProgress?.call(received, total);
+    await partial.rename(destination.path);
   } catch (e) {
     // This one travels on to the caller, but only as far as a worded
     // error banner - the exception itself stops here.
@@ -645,7 +667,7 @@ Future<void> downloadShopFile(
       await sink?.close();
     } catch (_) {}
     try {
-      if (await destination.exists()) await destination.delete();
+      if (await partial.exists()) await partial.delete();
     } catch (_) {}
     rethrow;
   } finally {

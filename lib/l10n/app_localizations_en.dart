@@ -145,6 +145,19 @@ class LEn extends L {
   }
 
   @override
+  String get shopSaveFile => 'Download';
+
+  @override
+  String get shopSaving => 'Downloading…';
+
+  @override
+  String get shopSaved => 'Saved';
+
+  @override
+  String get shopSaveHint =>
+      'Install drops the files straight into your mods folder. Download just saves the file, wherever you want it.';
+
+  @override
   String get shopVariationPick => 'Pick a variation';
 
   @override
@@ -1212,6 +1225,11 @@ class LEn extends L {
   @override
   String errorShopDownload(String name) {
     return '“$name” couldn’t be downloaded from The Exchange. Check your connection and try again.';
+  }
+
+  @override
+  String errorShopNoModFiles(String name) {
+    return 'There’s nothing this game can install inside “$name”. It might not be a mod at all - use Download to save the file wherever you want it.';
   }
 
   @override

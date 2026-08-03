@@ -39,6 +39,9 @@ import { fmtSize, loadStrings, s } from '../strings';
 import { gameNames } from '../../data/games';
 import { revealOnScroll } from '../reveal';
 
+// Also written into firestore.rules, which is what actually refuses the
+// eleventh; this copy is what the editor counts on to say so out loud.
+// test/site_test.dart holds the two to each other.
 const MAX_IMAGES = 10;
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 const MAX_FILE_BYTES = 500 * 1024 * 1024;
@@ -510,14 +513,26 @@ function renderImages() {
 }
 
 function takeImages() {
+  // Past the tenth, a picked file used to be dropped without a word, so a
+  // creator who chose twelve at once had two of them simply never arrive.
+  let overflow = false;
+  let refused = '';
   for (const file of input('f-images').files ?? []) {
-    if (keptImages.length + newImages.length >= MAX_IMAGES) break;
+    if (keptImages.length + newImages.length >= MAX_IMAGES) {
+      overflow = true;
+      continue;
+    }
     if (file.size > MAX_IMAGE_BYTES) {
-      setError('editor-error', s('portal.editor.imageTooBig', file.name));
+      refused = s('portal.editor.imageTooBig', file.name);
       continue;
     }
     newImages.push(file);
   }
+  // One pick can hit both, and they are different things to go and fix -
+  // a file to resize, and a count to bring down - so saying only the
+  // count would leave the oversized one looking like it went in.
+  const full = overflow ? s('portal.editor.imagesFull', String(MAX_IMAGES)) : '';
+  setError('images-error', [refused, full].filter(Boolean).join(' '));
   input('f-images').value = '';
   renderImages();
 }
@@ -574,6 +589,7 @@ async function openEditor(id: string | null) {
   newFile = null;
   coverUrl = null;
   setError('editor-error', '');
+  setError('images-error', '');
   ($('form-editor') as HTMLFormElement).reset();
   $('file-picked').classList.add('hidden');
   $('editor-title').textContent = s(id ? 'portal.editor.editTitle' : 'portal.editor.newTitle');

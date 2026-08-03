@@ -74,6 +74,23 @@ void main() {
     expect(unused, isEmpty, reason: 'nothing in web/src draws these');
   });
 
+  test('the portal and the rules agree on how many screenshots fit', () {
+    // The cap is written twice: the portal stops picking at it and now says
+    // the number out loud, and firestore.rules is what actually refuses the
+    // eleventh. Drift either way and a creator reads a confident promise the
+    // save then breaks, with only a permission error to explain it.
+    final portal = File('web/src/scripts/portal/index.ts').readAsStringSync();
+    final rules = File('firestore.rules').readAsStringSync();
+    final inPortal =
+        RegExp(r'const MAX_IMAGES = (\d+);').firstMatch(portal)?.group(1);
+    final inRules =
+        RegExp(r'data\.images\.size\(\) <= (\d+)').firstMatch(rules)?.group(1);
+    expect(inPortal, isNotNull, reason: 'MAX_IMAGES in portal/index.ts');
+    expect(inRules, isNotNull, reason: 'the images cap in firestore.rules');
+    expect(inPortal, inRules,
+        reason: 'the portal promises a number the rules do not enforce');
+  });
+
   test('the retired Pages site still serves the advisory feed', () {
     // Apps up to v1.2.x read the list from the old address, and GitHub Pages
     // cannot redirect a JSON file. web/scripts/mirror-advisories.mjs copies it;

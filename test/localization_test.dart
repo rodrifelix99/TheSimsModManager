@@ -15,9 +15,12 @@ import 'package:sims_mod_manager/src/core/mod.dart';
 import 'package:sims_mod_manager/src/core/package_insight.dart';
 import 'package:sims_mod_manager/src/core/save_game.dart';
 import 'package:sims_mod_manager/src/games/the_sims/sims_adapters.dart';
+import 'package:sims_mod_manager/src/services/mod_shop.dart';
 import 'package:sims_mod_manager/src/services/settings_store.dart';
 import 'package:sims_mod_manager/src/ui/app.dart';
 import 'package:sims_mod_manager/src/ui/l10n.dart';
+
+import 'until.dart';
 
 class _FakeAdapter extends FolderBasedGameAdapter {
   _FakeAdapter(this.dir);
@@ -269,7 +272,7 @@ void main() {
           .pumpWidget(ModManagerApp(registry: registry, settings: settings));
       await Future<void>.delayed(const Duration(milliseconds: 200));
     });
-    await tester.pump();
+    await until(tester, find.text('Fake Game-Bibliothek'));
     await tester.pump(const Duration(milliseconds: 400));
 
     expect(find.text('Fake Game-Bibliothek'), findsOneWidget);
@@ -334,19 +337,11 @@ void main() {
             fetchShop: () async => const []));
         await Future<void>.delayed(const Duration(milliseconds: 200));
       });
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 500));
-      // Loading the library is real IO on a real disk: a fixed wait that
-      // is generous when this test runs alone is a coin toss with the
-      // rest of the suite running beside it, and everything below here
-      // needs the mod on screen. Alternate real time (where the IO gets
-      // on with it) and frames (where the result is drawn) until it is.
+      // Everything below here needs the mod on screen, and loading the
+      // library is real IO on a real disk.
       final sofa = find.text('cozy sofa');
-      for (var i = 0; i < 200 && sofa.evaluate().isEmpty; i++) {
-        await tester.runAsync(
-            () => Future<void>.delayed(const Duration(milliseconds: 25)));
-        await tester.pump(const Duration(milliseconds: 25));
-      }
+      await until(tester, sofa);
+      await tester.pump(const Duration(milliseconds: 500));
       expect(sofa, findsOneWidget, reason: 'library in ${language.name}');
       expect(overflows, isEmpty, reason: 'library in ${language.name}');
 
@@ -417,6 +412,79 @@ void main() {
       await tester.tap(find.text(strings.savesTabStats));
       await tester.pump(const Duration(milliseconds: 500));
       expect(overflows, isEmpty, reason: 'saves stats in ${language.name}');
+    });
+  }
+
+  // The sweep above stocks no listings, because the shop's wordiest
+  // layout is its empty state - which leaves a listing's own page, the
+  // one screen carrying two buttons side by side and a line of prose
+  // under them, drawn in English only. Its own pass rather than a
+  // listing added up there, so neither layout costs the other its
+  // coverage.
+  for (final language in appLanguages) {
+    testWidgets('${language.name} fits a listing page at the minimum size',
+        (tester) async {
+      tester.view.physicalSize = kMinWindowSize;
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      SharedPreferences.setMockInitialValues({
+        'soundEffects': false,
+        'localeCode': language.code,
+      });
+      final tempDir = Directory.systemTemp.createTempSync('mod_manager_shop');
+      addTearDown(() => tempDir.deleteSync(recursive: true));
+
+      final overflows = <String>[];
+      final priorOnError = FlutterError.onError;
+      FlutterError.onError = (details) {
+        final text = details.exceptionAsString();
+        if (text.contains('overflowed')) {
+          overflows.add(text.split('\n').first);
+        } else {
+          priorOnError?.call(details);
+        }
+      };
+      addTearDown(() => FlutterError.onError = priorOnError);
+
+      final settings = await SettingsStore.load();
+      await tester.runAsync(() async {
+        await tester.pumpWidget(ModManagerApp(
+          registry: GameRegistry([_FakeAdapter(tempDir)]),
+          settings: settings,
+          fetchShop: () async => [
+            const ShopMod(
+              id: 'l1',
+              gameId: 'fake',
+              name: 'Cozy Sofa',
+              version: '1.0',
+              description: 'A sofa.',
+              instructions: 'Unzip it.',
+              authorName: 'plumbob_pat',
+              authorUid: 'u1',
+              fileName: 'cozy_sofa.package',
+              filePath: 'mods/u1/l1/cozy_sofa.package',
+              fileSizeBytes: 11,
+            ),
+          ],
+        ));
+        await Future<void>.delayed(const Duration(milliseconds: 200));
+      });
+      final strings = await L.delegate.load(Locale(language.code));
+      await until(tester, find.text(strings.libraryTitle('Fake Game')));
+      await tester.pump(const Duration(milliseconds: 500));
+
+      await tester.tap(find.text(strings.navShop).last);
+      await until(tester, find.text('Cozy Sofa'));
+      await tester.pump(const Duration(milliseconds: 500));
+
+      // Onto the listing's own page: Install and Download share a row
+      // there, with the line explaining the difference under them.
+      await tester.tap(find.text('Cozy Sofa').last);
+      await until(tester, find.text(strings.shopSaveFile));
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text(strings.shopSaveFile), findsOneWidget,
+          reason: 'listing page in ${language.name}');
+      expect(overflows, isEmpty, reason: 'listing page in ${language.name}');
     });
   }
 }

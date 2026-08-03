@@ -313,6 +313,30 @@ abstract class L {
   /// **'{count, plural, =1{1 variation} other{{count} variations}}'**
   String shopVariations(int count);
 
+  /// No description provided for @shopSaveFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get shopSaveFile;
+
+  /// No description provided for @shopSaving.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading…'**
+  String get shopSaving;
+
+  /// No description provided for @shopSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get shopSaved;
+
+  /// No description provided for @shopSaveHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Install drops the files straight into your mods folder. Download just saves the file, wherever you want it.'**
+  String get shopSaveHint;
+
   /// No description provided for @shopVariationPick.
   ///
   /// In en, this message translates to:
@@ -1848,6 +1872,12 @@ abstract class L {
   /// In en, this message translates to:
   /// **'“{name}” couldn’t be downloaded from The Exchange. Check your connection and try again.'**
   String errorShopDownload(String name);
+
+  /// No description provided for @errorShopNoModFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'There’s nothing this game can install inside “{name}”. It might not be a mod at all - use Download to save the file wherever you want it.'**
+  String errorShopNoModFiles(String name);
 
   /// No description provided for @errorShopListingNotFound.
   ///

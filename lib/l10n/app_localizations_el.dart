@@ -145,6 +145,19 @@ class LEl extends L {
   }
 
   @override
+  String get shopSaveFile => 'Λήψη';
+
+  @override
+  String get shopSaving => 'Γίνεται λήψη…';
+
+  @override
+  String get shopSaved => 'Αποθηκεύτηκε';
+
+  @override
+  String get shopSaveHint =>
+      'Η εγκατάσταση βάζει τα αρχεία κατευθείαν στον φάκελο mod σας. Η λήψη απλώς αποθηκεύει το αρχείο, όπου θέλετε.';
+
+  @override
   String get shopVariationPick => 'Διαλέξτε παραλλαγή';
 
   @override
@@ -1221,6 +1234,11 @@ class LEl extends L {
   @override
   String errorShopDownload(String name) {
     return 'Το «$name» δεν κατέβηκε από το The Exchange. Ελέγξτε τη σύνδεσή σας και δοκιμάστε ξανά.';
+  }
+
+  @override
+  String errorShopNoModFiles(String name) {
+    return 'Μέσα στο «$name» δεν υπάρχει κάτι που να μπορεί να εγκαταστήσει αυτό το παιχνίδι. Μπορεί να μην είναι καν mod - χρησιμοποιήστε τη Λήψη για να αποθηκεύσετε το αρχείο όπου θέλετε.';
   }
 
   @override

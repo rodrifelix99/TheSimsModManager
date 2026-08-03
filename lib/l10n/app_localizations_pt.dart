@@ -145,6 +145,19 @@ class LPt extends L {
   }
 
   @override
+  String get shopSaveFile => 'Baixar';
+
+  @override
+  String get shopSaving => 'Baixando…';
+
+  @override
+  String get shopSaved => 'Salvo';
+
+  @override
+  String get shopSaveHint =>
+      'Instalar joga os arquivos direto na sua pasta de mods. Baixar só salva o arquivo, onde você quiser.';
+
+  @override
   String get shopVariationPick => 'Escolhe a variação';
 
   @override
@@ -1217,6 +1230,11 @@ class LPt extends L {
   @override
   String errorShopDownload(String name) {
     return '“$name” não pôde ser baixado do The Exchange. Confira sua conexão e tente de novo.';
+  }
+
+  @override
+  String errorShopNoModFiles(String name) {
+    return 'Não tem nada que este jogo consiga instalar dentro de “$name”. Pode nem ser um mod - usa Baixar para salvar o arquivo onde você quiser.';
   }
 
   @override

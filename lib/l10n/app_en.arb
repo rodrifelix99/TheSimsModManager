@@ -64,6 +64,10 @@
   "@shopVariations": {
     "placeholders": { "count": { "type": "int" } }
   },
+  "shopSaveFile": "Download",
+  "shopSaving": "Downloading…",
+  "shopSaved": "Saved",
+  "shopSaveHint": "Install drops the files straight into your mods folder. Download just saves the file, wherever you want it.",
   "shopVariationPick": "Pick a variation",
   "shopBack": "Back to the shelves",
   "shopCopyLink": "Copy link",
@@ -588,6 +592,10 @@
   "elevatedNoDropBanner": "You’re running as administrator, so Windows won’t let you drag files onto the window. Use the Install button instead - that still works.",
   "errorShopDownload": "“{name}” couldn’t be downloaded from The Exchange. Check your connection and try again.",
   "@errorShopDownload": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "errorShopNoModFiles": "There’s nothing this game can install inside “{name}”. It might not be a mod at all - use Download to save the file wherever you want it.",
+  "@errorShopNoModFiles": {
     "placeholders": { "name": { "type": "String" } }
   },
   "errorShopListingNotFound": "That mod isn’t on The Exchange any more. It may have been taken down.",

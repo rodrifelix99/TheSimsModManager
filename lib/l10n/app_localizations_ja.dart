@@ -141,6 +141,19 @@ class LJa extends L {
   }
 
   @override
+  String get shopSaveFile => 'ダウンロード';
+
+  @override
+  String get shopSaving => 'ダウンロード中…';
+
+  @override
+  String get shopSaved => '保存しました';
+
+  @override
+  String get shopSaveHint =>
+      'インストールはファイルをMODフォルダーに直接入れます。ダウンロードは好きな場所にファイルを保存するだけです。';
+
+  @override
   String get shopVariationPick => 'バリエーションを選ぶ';
 
   @override
@@ -1128,6 +1141,11 @@ class LJa extends L {
   @override
   String errorShopDownload(String name) {
     return '「$name」をThe Exchangeからダウンロードできませんでした。接続を確認して、もう一度試してみてください。';
+  }
+
+  @override
+  String errorShopNoModFiles(String name) {
+    return '「$name」の中に、このゲームがインストールできるものが入ってないみたい。MODじゃないのかも。ダウンロードを使えば好きな場所にファイルを保存できるよ。';
   }
 
   @override

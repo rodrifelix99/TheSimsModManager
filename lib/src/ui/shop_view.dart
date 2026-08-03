@@ -533,8 +533,11 @@ class ShopView extends StatelessWidget {
                 child: Stack(
                   children: [
                     Positioned.fill(
-                      child: _cover(mod,
-                          const BorderRadius.vertical(top: Radius.circular(14))),
+                      child: _cover(
+                          mod,
+                          const BorderRadius.vertical(
+                              top: Radius.circular(14)),
+                          fit: BoxFit.cover),
                     ),
                     // Which game this is for, since the shelves mix them.
                     // Redundant while one game is filtered, so it goes.
@@ -673,8 +676,11 @@ class ShopView extends StatelessWidget {
                 child: Stack(
                   children: [
                     Positioned.fill(
-                      child: _cover(lead,
-                          const BorderRadius.vertical(top: Radius.circular(14))),
+                      child: _cover(
+                          lead,
+                          const BorderRadius.vertical(
+                              top: Radius.circular(14)),
+                          fit: BoxFit.cover),
                     ),
                     if (c.shopGameFilter == null)
                       Positioned(
@@ -891,6 +897,12 @@ class ShopView extends StatelessWidget {
     // that has to exist - not the folder of whatever the sidebar points at.
     final game = _gameOf(c, mod);
     final needsFolder = game == null || !c.hasModsFolder(game.id);
+    // A save of the same listing is the same download; the controller
+    // refuses to start both, so the button says so rather than going
+    // nowhere when pressed.
+    final saving = progress == null && c.shopBusy(mod);
+    // Painted flat rather than as the accent call to action.
+    final quiet = installed || needsFolder || saving;
     final label = installed
         ? l.shopInstalled
         : progress != null
@@ -899,11 +911,11 @@ class ShopView extends StatelessWidget {
                 ? l.shopUpdate
                 : l.install;
     final button = HoverBuilder(
-      cursor: installed || progress != null || needsFolder
+      cursor: quiet || progress != null
           ? SystemMouseCursors.basic
           : SystemMouseCursors.click,
       builder: (context, hovered) => GestureDetector(
-        onTap: installed || progress != null || needsFolder
+        onTap: quiet || progress != null
             ? null
             : () => _installFromShop(context, t, c, mod),
         child: AnimatedContainer(
@@ -911,13 +923,11 @@ class ShopView extends StatelessWidget {
           padding: EdgeInsets.symmetric(
               horizontal: compact ? 12 : 18, vertical: compact ? 6 : 10),
           decoration: BoxDecoration(
-            gradient: installed || needsFolder ? null : t.accentGradient,
-            color: installed || needsFolder ? t.surfaceAlt : null,
-            border: installed || needsFolder
-                ? Border.all(color: t.border)
-                : null,
+            gradient: quiet ? null : t.accentGradient,
+            color: quiet ? t.surfaceAlt : null,
+            border: quiet ? Border.all(color: t.border) : null,
             borderRadius: BorderRadius.circular(compact ? 9 : 11),
-            boxShadow: !installed && !needsFolder && hovered
+            boxShadow: !quiet && hovered
                 ? [
                     BoxShadow(
                       color: t.accent.withValues(alpha: .5),
@@ -935,7 +945,7 @@ class ShopView extends StatelessWidget {
                     color: t.muted),
                 const SizedBox(width: 5),
               ],
-              if (updatable && !needsFolder) ...[
+              if (updatable && !quiet) ...[
                 Icon(Icons.arrow_circle_down_rounded,
                     size: compact ? 13 : 15, color: Colors.white),
                 const SizedBox(width: 5),
@@ -955,7 +965,7 @@ class ShopView extends StatelessWidget {
               Text(
                 label,
                 style: TextStyle(
-                  color: installed || needsFolder ? t.muted : Colors.white,
+                  color: quiet ? t.muted : Colors.white,
                   fontSize: compact ? 12 : 13.5,
                   fontWeight: FontWeight.w800,
                 ),
@@ -1245,7 +1255,27 @@ class ShopView extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 18),
-        _installButton(t, c, l, mod),
+        // Wrapped rather than in a Row: the two labels are long in several
+        // languages and this column is half of a narrow window.
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            _installButton(t, c, l, mod),
+            _SaveButton(theme: t, controller: c, mod: mod),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(
+          l.shopSaveHint,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            height: 1.4,
+            color: t.muted,
+          ),
+        ),
         if (mod.description.isNotEmpty) ...[
           const SizedBox(height: 22),
           ProseText(
@@ -1292,6 +1322,118 @@ class ShopView extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+}
+
+/// Downloads the file and stops there, into a folder the user names. The
+/// quiet half of the pair: Install is the one with the gradient on it,
+/// this is for a download the app has no business filing away (a tool
+/// that isn't a mod file at all) and for anyone who would rather put
+/// their own downloads where they keep the rest. Says "Saved" for a
+/// moment afterwards, the same confirmation copying a link gets.
+class _SaveButton extends StatefulWidget {
+  const _SaveButton({
+    required this.theme,
+    required this.controller,
+    required this.mod,
+  });
+
+  final GameTheme theme;
+  final AppController controller;
+  final ShopMod mod;
+
+  @override
+  State<_SaveButton> createState() => _SaveButtonState();
+}
+
+class _SaveButtonState extends State<_SaveButton> {
+  bool _saved = false;
+  Timer? _reset;
+
+  @override
+  void dispose() {
+    _reset?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final saved = await widget.controller.saveShopMod(widget.mod);
+    if (!mounted || !saved) return;
+    setState(() => _saved = true);
+    _reset?.cancel();
+    _reset = Timer(const Duration(milliseconds: 2400), () {
+      if (mounted) setState(() => _saved = false);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = widget.theme;
+    final l = L.of(context);
+    final c = widget.controller;
+    final saving = c.shopSaveProgress.containsKey(widget.mod.id);
+    // The demo shelves are invented; their files point at nothing. An
+    // install of the same listing borrows the button for its duration:
+    // both are the one download, and the controller starts only one.
+    final enabled = widget.mod.demoImages.isEmpty && !c.shopBusy(widget.mod);
+    // Outlined in the accent rather than in the plain border, because the
+    // button beside it wears exactly that plain border when it is
+    // disabled - and a working button that looks like a dead one is worse
+    // than no button (a game with no mods folder set up shows both at
+    // once).
+    final quiet = !enabled && !saving;
+    final ink = quiet ? t.muted : t.accent;
+    return HoverBuilder(
+      cursor: enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
+      builder: (context, hovered) => GestureDetector(
+        onTap: enabled ? _save : null,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            color: hovered && enabled ? t.tint : t.surfaceAlt,
+            border: Border.all(
+                color: quiet ? t.border : t.accent,
+                width: quiet ? 1 : 1.5),
+            borderRadius: BorderRadius.circular(11),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (saving)
+                SizedBox(
+                  width: 13,
+                  height: 13,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    value: c.shopSaveProgress[widget.mod.id],
+                    color: t.accent,
+                  ),
+                )
+              else
+                Icon(
+                  _saved ? Icons.check_rounded : Icons.save_alt_rounded,
+                  size: 15,
+                  color: ink,
+                ),
+              const SizedBox(width: 7),
+              Text(
+                saving
+                    ? l.shopSaving
+                    : _saved
+                        ? l.shopSaved
+                        : l.shopSaveFile,
+                style: TextStyle(
+                  color: ink,
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -1385,40 +1527,59 @@ class _GalleryState extends State<_Gallery> {
           aspectRatio: 16 / 10,
           child: Container(
             decoration: BoxDecoration(
+              color: t.surfaceAlt,
               border: Border.all(color: t.border),
               borderRadius: BorderRadius.circular(15),
             ),
+            // Contained rather than cropped: a screenshot is someone's
+            // proof of what their mod does, and the interface they were
+            // showing off sits right at its edges.
             child: _cover(mod, BorderRadius.circular(14),
-                index: mod.imageCount == 0 ? null : _index),
+                index: mod.imageCount == 0 ? null : _index,
+                fit: BoxFit.contain),
           ),
         ),
         if (mod.imageCount > 1) ...[
           const SizedBox(height: 10),
-          SizedBox(
-            height: 56,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: mod.imageCount,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
-              itemBuilder: (context, i) => HoverBuilder(
-                cursor: SystemMouseCursors.click,
-                builder: (context, hovered) => GestureDetector(
-                  onTap: () => setState(() => _index = i),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 150),
-                    width: 86,
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: i == _index || hovered ? t.accent : t.border,
-                        width: i == _index ? 2 : 1,
+          // Wrapped rather than a strip that scrolls sideways: a mouse
+          // wheel cannot reach along one, so on a 380px panel the fifth
+          // screenshot of ten was off the edge with no way back to it.
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (var i = 0; i < mod.imageCount; i++)
+                HoverBuilder(
+                  // Named so a test can reach for the tenth of them.
+                  key: ValueKey('shop-shot-$i'),
+                  cursor: SystemMouseCursors.click,
+                  builder: (context, hovered) => GestureDetector(
+                    onTap: () => setState(() => _index = i),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      width: 86,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: t.surfaceAlt,
+                        border: Border.all(
+                          color: i == _index || hovered ? t.accent : t.border,
+                          width: i == _index ? 2 : 1,
+                        ),
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      borderRadius: BorderRadius.circular(10),
+                      // Every chip is built at once, so each one decodes
+                      // at the size it is drawn rather than at whatever
+                      // the creator uploaded: ten full-size rasters held
+                      // for a strip 86px wide is the cost of showing
+                      // them all.
+                      child: _cover(mod, BorderRadius.circular(9),
+                          index: i,
+                          fit: BoxFit.cover,
+                          decodeWidth: 192), // an 86px chip
                     ),
-                    child: _cover(mod, BorderRadius.circular(9), index: i),
                   ),
                 ),
-              ),
-            ),
+            ],
           ),
         ],
       ],
@@ -1426,24 +1587,25 @@ class _GalleryState extends State<_Gallery> {
   }
 }
 
-Widget _cover(ShopMod mod, BorderRadius radius, {int? index}) {
-  final fallback = StripeThumb(seed: mod.name, borderRadius: radius);
+/// [fit] has no default on purpose: a card crops to its slot and a frame
+/// showing the screenshot for its own sake must not, and which of the two
+/// this is has to be answered at the call site rather than inherited from
+/// whichever was written first.
+Widget _cover(ShopMod mod, BorderRadius radius,
+    {required BoxFit fit, int? index, int? decodeWidth}) {
   // The invented listings carry their pictures with them; only real
   // ones have anything to fetch.
   if (mod.demoImages.isNotEmpty) {
     final at = (index ?? 0).clamp(0, mod.demoImages.length - 1);
-    return ClipRRect(
+    return ModThumb(
+      seed: mod.name,
+      bytes: mod.demoImages[at],
       borderRadius: radius,
-      child: Image.memory(
-        mod.demoImages[at],
-        fit: BoxFit.cover,
-        width: double.infinity,
-        height: double.infinity,
-        gaplessPlayback: true,
-        errorBuilder: (_, __, ___) => fallback,
-      ),
+      decodeWidth: decodeWidth,
+      fit: fit,
     );
   }
+  final fallback = StripeThumb(seed: mod.name, borderRadius: radius);
   final uri = index == null
       ? mod.coverUri
       : (index < mod.imagePaths.length ? mod.imageUri(index) : null);
@@ -1452,10 +1614,11 @@ Widget _cover(ShopMod mod, BorderRadius radius, {int? index}) {
     borderRadius: radius,
     child: Image.network(
       uri.toString(),
-      fit: BoxFit.cover,
+      fit: fit,
       width: double.infinity,
       height: double.infinity,
       gaplessPlayback: true,
+      cacheWidth: decodeWidth,
       errorBuilder: (_, __, ___) => fallback,
     ),
   );

@@ -152,6 +152,19 @@ class LPl extends L {
   }
 
   @override
+  String get shopSaveFile => 'Pobierz';
+
+  @override
+  String get shopSaving => 'Pobieranie…';
+
+  @override
+  String get shopSaved => 'Zapisano';
+
+  @override
+  String get shopSaveHint =>
+      'Instalacja wrzuca pliki prosto do twojego folderu z modami. Pobieranie po prostu zapisze plik tam, gdzie chcesz.';
+
+  @override
   String get shopVariationPick => 'Wybierz wariant';
 
   @override
@@ -1264,6 +1277,11 @@ class LPl extends L {
   @override
   String errorShopDownload(String name) {
     return '„$name” nie dał się pobrać z The Exchange. Sprawdź połączenie i spróbuj jeszcze raz.';
+  }
+
+  @override
+  String errorShopNoModFiles(String name) {
+    return 'W „$name” nie ma nic, co ta gra mogłaby zainstalować. Może to wcale nie mod - użyj Pobierz i zapisz plik tam, gdzie chcesz.';
   }
 
   @override

@@ -13,6 +13,8 @@ import 'package:sims_mod_manager/src/services/settings_store.dart';
 import 'package:sims_mod_manager/src/ui/app.dart';
 import 'package:sims_mod_manager/src/ui/game_theme.dart';
 
+import 'until.dart';
+
 /// A game we ship artwork for, so the shell reaches for the real assets.
 class _Sims4Adapter extends FolderBasedGameAdapter {
   _Sims4Adapter(this.dir);
@@ -112,7 +114,7 @@ void main() {
       ));
       await Future<void>.delayed(const Duration(milliseconds: 200));
     });
-    await tester.pump();
+    await until(tester, find.text('The Sims 4 Library'));
     await tester.pump(const Duration(milliseconds: 400));
 
     expect(tester.takeException(), isNull,

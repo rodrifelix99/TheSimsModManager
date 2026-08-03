@@ -146,6 +146,19 @@ class LFr extends L {
   }
 
   @override
+  String get shopSaveFile => 'Télécharger';
+
+  @override
+  String get shopSaving => 'Téléchargement…';
+
+  @override
+  String get shopSaved => 'Enregistré';
+
+  @override
+  String get shopSaveHint =>
+      'Installer met les fichiers directement dans ton dossier de mods. Télécharger enregistre juste le fichier, là où tu veux.';
+
+  @override
   String get shopVariationPick => 'Choisis une variante';
 
   @override
@@ -1220,6 +1233,11 @@ class LFr extends L {
   @override
   String errorShopDownload(String name) {
     return '« $name » n’a pas pu être téléchargé depuis The Exchange. Vérifie ta connexion et réessaie.';
+  }
+
+  @override
+  String errorShopNoModFiles(String name) {
+    return 'Il n’y a rien que ce jeu puisse installer dans « $name ». Ce n’est peut-être pas un mod - utilise Télécharger pour enregistrer le fichier où tu veux.';
   }
 
   @override

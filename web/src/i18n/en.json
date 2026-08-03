@@ -251,6 +251,7 @@
   "portal.editor.tip2": "Say which packs are required, up front.",
   "portal.editor.tip3": "Name known conflicts: players trust it more.",
   "portal.editor.imageTooBig": "%s is over 10 MB. Resize it and try again.",
+  "portal.editor.imagesFull": "Only %s screenshots per mod, so the extra ones were left out.",
   "portal.editor.fileTooBig": "That file is over 500 MB. The alpha caps uploads there, so try splitting it up.",
   "portal.editor.needFile": "Pick the mod file to upload. That is the part players install!",
   "portal.editor.saveFailed": "Could not save: %s",

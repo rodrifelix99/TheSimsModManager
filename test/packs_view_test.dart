@@ -19,6 +19,8 @@ import 'package:sims_mod_manager/src/ui/app.dart';
 import 'package:sims_mod_manager/src/ui/packs_view.dart';
 import 'package:sims_mod_manager/src/ui/widgets.dart';
 
+import 'until.dart';
+
 class _FakeAdapter extends FolderBasedGameAdapter {
   _FakeAdapter(
     this.dir, {
@@ -140,6 +142,7 @@ Future<_FakeAdapter> _pumpApp(WidgetTester tester, _FakeAdapter adapter,
         ModManagerApp(registry: GameRegistry([adapter]), settings: settings));
     await Future<void>.delayed(const Duration(milliseconds: 200));
   });
+  await until(tester, find.text('Fake Game Library'));
   await tester.pump(const Duration(milliseconds: 400));
   return adapter;
 }
@@ -175,29 +178,20 @@ _FakeAdapter _adapter({
 /// Waits for the screen rather than for a fixed number of milliseconds,
 /// because the load is real async work and a machine running the whole
 /// suite at once does not finish it on any schedule worth guessing at.
-Future<void> _tapNav(WidgetTester tester, String label) async {
-  await tester.runAsync(() async {
-    await tester.tap(find.text(label).first);
-    await Future<void>.delayed(const Duration(milliseconds: 50));
-  });
-  for (var i = 0; i < 40; i++) {
-    await tester.pump(const Duration(milliseconds: 100));
-    final settled = find
-        .descendant(
-            of: find.byType(PacksView),
-            matching: find.byType(CircularProgressIndicator))
-        .evaluate()
-        .isEmpty;
-    // Two clear frames: the first can land mid-fade, with both screens up.
-    if (settled && i > 4) return;
-    if (!settled) {
-      await tester.runAsync(
-          () => Future<void>.delayed(const Duration(milliseconds: 20)));
-    }
-  }
+Future<void> _tapNav(WidgetTester tester, String label, {Finder? ready}) async {
+  await tester.tap(find.text(label).first);
+  await tester.pump();
+  if (ready != null) await until(tester, ready);
+  await untilGone(
+      tester,
+      find.descendant(
+          of: find.byType(PacksView),
+          matching: find.byType(CircularProgressIndicator)));
+  await tester.pump(const Duration(milliseconds: 400));
 }
 
-Future<void> _openPacks(WidgetTester tester) => _tapNav(tester, 'Packs');
+Future<void> _openPacks(WidgetTester tester) =>
+    _tapNav(tester, 'Packs', ready: find.byType(PacksView));
 
 /// The switches on the packs screen itself. Scoped, because the library
 /// the screen switcher is fading out has switches of its own.
@@ -404,6 +398,7 @@ void main() {
           ModManagerApp(registry: GameRegistry([adapter]), settings: settings));
       await Future<void>.delayed(const Duration(milliseconds: 200));
     });
+    await until(tester, find.text('Fake Game Library'));
     await tester.pump(const Duration(milliseconds: 400));
     await _openPacks(tester);
 
@@ -435,12 +430,11 @@ void main() {
           ModManagerApp(registry: GameRegistry([adapter]), settings: settings));
       await Future<void>.delayed(const Duration(milliseconds: 200));
     });
+    await until(tester, find.text('Fake Game-Bibliothek'));
     await tester.pump(const Duration(milliseconds: 400));
 
-    await tester.runAsync(() async {
-      await tester.tap(find.text('Packs'));
-      await Future<void>.delayed(const Duration(milliseconds: 100));
-    });
+    await tester.tap(find.text('Packs'));
+    await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
 
     // The install's own translation wins for the pack that has one.

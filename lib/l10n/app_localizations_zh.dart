@@ -140,6 +140,18 @@ class LZh extends L {
   }
 
   @override
+  String get shopSaveFile => '下载';
+
+  @override
+  String get shopSaving => '下载中…';
+
+  @override
+  String get shopSaved => '已保存';
+
+  @override
+  String get shopSaveHint => '安装会把文件直接放进你的模组文件夹；下载只是把文件存到你想放的地方。';
+
+  @override
   String get shopVariationPick => '选一个款式';
 
   @override
@@ -1114,6 +1126,11 @@ class LZh extends L {
   @override
   String errorShopDownload(String name) {
     return '「$name」无法从 The Exchange 下载。检查一下网络连接，再试一次吧。';
+  }
+
+  @override
+  String errorShopNoModFiles(String name) {
+    return '“$name”里没有这个游戏能安装的东西，可能根本不是模组。用「下载」把文件存到你想放的地方吧。';
   }
 
   @override

@@ -43,6 +43,7 @@ class ModManagerApp extends StatefulWidget {
     this.fetchListing,
     this.downloadShop,
     this.reportDownload,
+    this.pickSavePath,
     this.deepLinks,
     this.onBrightnessChanged,
     this.checkElevated,
@@ -72,6 +73,11 @@ class ModManagerApp extends StatefulWidget {
   /// download count; null means the real endpoint. Injectable so tests
   /// count nothing.
   final Future<void> Function(String id)? reportDownload;
+
+  /// Where to put a listing's file when it is downloaded rather than
+  /// installed; null means the system's Save-as dialog. Injectable so
+  /// tests answer without one opening.
+  final Future<String?> Function(String suggestedName)? pickSavePath;
 
   /// Addresses the OS handed the app, one per `simsmodmanager://` link
   /// opened. main() feeds this from the platform; tests feed it from a
@@ -106,6 +112,7 @@ class _ModManagerAppState extends State<ModManagerApp> {
       fetchListing: widget.fetchListing,
       downloadShop: widget.downloadShop,
       reportDownload: widget.reportDownload,
+      pickSavePath: widget.pickSavePath,
       checkElevated: widget.checkElevated,
       probeServices: widget.probeServices);
 

@@ -251,6 +251,7 @@
   "portal.editor.tip2": "必要なパックは最初に書きましょう。",
   "portal.editor.tip3": "分かっている競合は明記を。そのほうが信頼されます。",
   "portal.editor.imageTooBig": "%s は 10 MB を超えています。サイズを小さくして試してください。",
+  "portal.editor.imagesFull": "スクリーンショットは 1 つの MOD につき %s 枚までなので、あふれた分は入っていません。",
   "portal.editor.fileTooBig": "そのファイルは 500 MB を超えています。アルファ版の上限なので、分割してみてください。",
   "portal.editor.needFile": "MOD ファイルを選んでください。プレイヤーがインストールするのはこれです！",
   "portal.editor.saveFailed": "保存できませんでした: %s",

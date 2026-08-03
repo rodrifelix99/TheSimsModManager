@@ -308,6 +308,10 @@ const ticker = ['portal.ticker1', 'portal.ticker2', 'portal.ticker3', 'portal.ti
                 </div>
               </div>
               <input type="file" id="f-images" accept="image/*" multiple class="hidden" />
+              {/* A picture that was refused is said so here rather than in the
+                  error box under the save button, which is three cards away
+                  from where the creator is looking. */}
+              <div class="error" id="images-error"></div>
               <div class="imgs" id="images-grid"></div>
             </div>
 

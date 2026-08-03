@@ -17,6 +17,8 @@ import 'package:sims_mod_manager/src/ui/app.dart';
 import 'package:sims_mod_manager/src/ui/app_controller.dart';
 import 'package:sims_mod_manager/src/ui/shop_view.dart';
 
+import 'until.dart';
+
 class _FakeAdapter extends FolderBasedGameAdapter {
   _FakeAdapter(this.dir, {this.id = 'fake', this.title = 'Fake Game'});
 
@@ -48,23 +50,15 @@ class _FakeAdapter extends FolderBasedGameAdapter {
   Future<String?> defaultModsPath() async => dir.path;
 }
 
-/// Waits for the interface to say something rather than for a round number
-/// of milliseconds. An install is a download to a scratch file, a copy into
-/// the mods folder and a library refresh behind it, all real IO on a real
-/// disk: a fixed wait that is generous on this laptop is a coin toss on a
-/// CI runner, which is how the Windows job came to fail on its own.
-///
-/// Alternates real time (runAsync, where the IO actually progresses) with
-/// frames (pump, where the result of it is drawn), so it returns as soon as
-/// the machine is done and only gives up when the install really did fail.
-Future<void> _until(WidgetTester tester, Finder finder) async {
-  final deadline = DateTime.now().add(const Duration(seconds: 20));
-  while (DateTime.now().isBefore(deadline)) {
-    if (finder.evaluate().isNotEmpty) return;
-    await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 25)));
-    await tester.pump();
-  }
+/// Opens the shop, waiting for the library behind it rather than for a
+/// round number of milliseconds: an install is a download to a scratch
+/// file, a copy into the mods folder and a library refresh behind it, all
+/// real IO on a real disk.
+Future<void> _openShop(WidgetTester tester, {String game = 'Fake Game'}) async {
+  await until(tester, find.text('$game Library'));
+  await tester.tap(find.text('The Exchange'));
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 400));
 }
 
 ShopMod _listing({
@@ -76,6 +70,7 @@ ShopMod _listing({
   int downloads = 0,
   String authorUid = 'u1',
   String? group,
+  List<String> imagePaths = const [],
 }) =>
     ShopMod(
       id: id,
@@ -91,6 +86,7 @@ ShopMod _listing({
       filePath: 'mods/u1/$id/$fileName',
       fileSizeBytes: 11,
       downloads: downloads,
+      imagePaths: imagePaths,
     );
 
 void main() {
@@ -118,14 +114,9 @@ void main() {
       ));
       await Future<void>.delayed(const Duration(milliseconds: 200));
     });
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
-
     // Into the shop via the sidebar; the listing renders from the
     // injected fetcher.
-    await tester.tap(find.text('The Exchange'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+    await _openShop(tester);
     expect(find.text('Camera Fix'), findsOneWidget);
     expect(find.text('by plumbob_pat'), findsOneWidget);
 
@@ -135,11 +126,118 @@ void main() {
     // Process.run - runAsync keeps its timer out of the fake-async zone.
     await tester.runAsync(() => tester.tap(find.text('Install')));
     await tester.pump();
-    await _until(tester, find.text('Installed'));
+    await until(tester, find.text('Installed'));
 
     expect(File(p.join(tempDir.path, 'camera_fix.package')).existsSync(),
         isTrue);
     expect(find.text('Installed'), findsOneWidget);
+  });
+
+  testWidgets('a listing downloads to where the user says, installing nothing',
+      (tester) async {
+    tester.view.physicalSize = const Size(1280, 824);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    SharedPreferences.setMockInitialValues({'soundEffects': false});
+    final tempDir = Directory.systemTemp.createTempSync('shop_save');
+    final elsewhere = Directory.systemTemp.createTempSync('shop_save_dest');
+    addTearDown(() => tempDir.deleteSync(recursive: true));
+    addTearDown(() => elsewhere.deleteSync(recursive: true));
+
+    final registry = GameRegistry([_FakeAdapter(tempDir)]);
+    final settings = await SettingsStore.load();
+    final asked = <String>[];
+    final counted = <String>[];
+    final chosen = p.join(elsewhere.path, 'simtracker.mdb');
+
+    await tester.runAsync(() async {
+      await tester.pumpWidget(ModManagerApp(
+        registry: registry,
+        settings: settings,
+        fetchShop: () async => [_listing(fileName: 'simtracker.mdb')],
+        downloadShop: (mod, destination, {onProgress}) async {
+          destination.writeAsStringSync('shop bytes!');
+          onProgress?.call(11, 11);
+        },
+        pickSavePath: (suggested) async {
+          asked.add(suggested);
+          return chosen;
+        },
+        reportDownload: (id) async => counted.add(id),
+      ));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
+    await _openShop(tester);
+
+    // Download lives on the listing's own page, next to Install.
+    await tester.tap(find.text('Camera Fix'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('Download'), findsOneWidget);
+
+    await tester.runAsync(() => tester.tap(find.text('Download')));
+    await tester.pump();
+    await until(tester, find.text('Saved'));
+
+    // The dialog was offered the file's own name, the bytes landed where
+    // the user pointed, and the mods folder was never touched: the whole
+    // point of the button (issue #16).
+    expect(asked, ['simtracker.mdb']);
+    expect(File(chosen).readAsStringSync(), 'shop bytes!');
+    expect(tempDir.listSync(), isEmpty);
+    expect(find.text('Install'), findsOneWidget);
+    // A take is a take: the creator's count hears about it.
+    expect(counted, ['l1']);
+  });
+
+  testWidgets('a second press while the save dialog is open does nothing',
+      (tester) async {
+    tester.view.physicalSize = const Size(1280, 824);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    SharedPreferences.setMockInitialValues({'soundEffects': false});
+    final tempDir = Directory.systemTemp.createTempSync('shop_twice');
+    final elsewhere = Directory.systemTemp.createTempSync('shop_twice_dest');
+    addTearDown(() => tempDir.deleteSync(recursive: true));
+    addTearDown(() => elsewhere.deleteSync(recursive: true));
+
+    final settings = await SettingsStore.load();
+    final downloads = <String>[];
+    final chosen = p.join(elsewhere.path, 'camera_fix.package');
+    // Held open the way a real Save-as dialog is: the button is live on
+    // screen the whole time it is up.
+    final dialog = Completer<String?>();
+
+    await tester.runAsync(() async {
+      await tester.pumpWidget(ModManagerApp(
+        registry: GameRegistry([_FakeAdapter(tempDir)]),
+        settings: settings,
+        fetchShop: () async => [_listing()],
+        downloadShop: (mod, destination, {onProgress}) async {
+          downloads.add(mod.id);
+          destination.writeAsStringSync('shop bytes!');
+        },
+        pickSavePath: (suggested) => dialog.future,
+      ));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
+    await _openShop(tester);
+    await tester.tap(find.text('Camera Fix'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    // Two presses, the dialog still up for both.
+    await tester.tap(find.text('Download'));
+    await tester.pump();
+    await tester.tap(find.text('Download'));
+    await tester.pump();
+
+    dialog.complete(chosen);
+    await until(tester, find.text('Saved'));
+
+    // One download, not two - the guard lands before the dialog rather
+    // than after it.
+    expect(downloads, ['l1']);
   });
 
   testWidgets('the shelves mix games, and a listing installs into its own',
@@ -178,10 +276,9 @@ void main() {
       ));
       await Future<void>.delayed(const Duration(milliseconds: 200));
     });
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
-
     // The library is on the first game; the shop opens on all of them.
+    await until(tester, find.text('Fake Game Library'));
+    await tester.pump(const Duration(milliseconds: 400));
     await tester.tap(find.text('The Exchange'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
@@ -200,9 +297,12 @@ void main() {
     expect(find.text('Kingdom Doors'), findsOneWidget);
 
     // Installing it lands in the second game's folder, not the one the
-    // sidebar is pointing at.
-    await tester.tap(find.text('Install'));
-    await _until(tester, find.text('Installed'));
+    // sidebar is pointing at. The tap goes through runAsync like the
+    // others: its onPressed fires refresh()'s unawaited disk-space check,
+    // a real Process.run whose timer must stay out of the fake-async zone.
+    await tester.runAsync(() => tester.tap(find.text('Install')));
+    await tester.pump();
+    await until(tester, find.text('Installed'));
 
     expect(File(p.join(secondDir.path, 'doors.package')).existsSync(), isTrue);
     expect(File(p.join(firstDir.path, 'doors.package')).existsSync(), isFalse);
@@ -228,12 +328,7 @@ void main() {
       ));
       await Future<void>.delayed(const Duration(milliseconds: 200));
     });
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
-
-    await tester.tap(find.text('The Exchange'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+    await _openShop(tester);
     expect(find.text('The shelves are still empty'), findsOneWidget);
     expect(find.text('Publish your mods'), findsWidgets);
   });
@@ -259,12 +354,7 @@ void main() {
       ));
       await Future<void>.delayed(const Duration(milliseconds: 200));
     });
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
-
-    await tester.tap(find.text('The Exchange'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+    await _openShop(tester);
     expect(find.text('The Exchange isn’t answering'), findsOneWidget);
 
     await tester.tap(find.text('Try again'));
@@ -305,6 +395,7 @@ void main() {
         },
       ));
       await Future<void>.delayed(const Duration(milliseconds: 400));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
     });
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
@@ -365,6 +456,7 @@ void main() {
         fetchShop: () async => throw StateError('demo mode must not fetch'),
       ));
       await Future<void>.delayed(const Duration(milliseconds: 400));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
     });
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
@@ -418,6 +510,7 @@ void main() {
         fetchShop: () async => [_listing()],
       ));
       await Future<void>.delayed(const Duration(milliseconds: 400));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
     });
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
@@ -475,15 +568,22 @@ void main() {
       ));
       await Future<void>.delayed(const Duration(milliseconds: 200));
     });
-    await tester.pump();
+    await until(tester, find.text('Fake Game Library'));
     await tester.pump(const Duration(milliseconds: 400));
     return links;
   }
 
-  Future<void> settle(WidgetTester tester) async {
-    await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 200)));
-    await tester.pump();
+  /// Waits for what the link was supposed to draw. [shows] is null only
+  /// where the point is that nothing happened, and there is no arrival to
+  /// wait for.
+  Future<void> settle(WidgetTester tester, {Finder? shows}) async {
+    if (shows != null) {
+      await until(tester, shows);
+    } else {
+      await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 200)));
+      await tester.pump();
+    }
     await tester.pump(const Duration(milliseconds: 400));
   }
 
@@ -509,7 +609,7 @@ void main() {
     );
 
     links.add(Uri.parse('simsmodmanager://mod/l1'));
-    await settle(tester);
+    await settle(tester, shows: find.text('Back to the shelves'));
 
     // The listing's own page, reached without ever touching the shelves.
     expect(find.text('Back to the shelves'), findsOneWidget);
@@ -543,7 +643,7 @@ void main() {
     );
 
     links.add(Uri.parse('simsmodmanager://mod/l9'));
-    await settle(tester);
+    await settle(tester, shows: find.text('Deep Cut'));
 
     expect(fetched, ['l9']);
     expect(find.text('Deep Cut'), findsOneWidget);
@@ -563,7 +663,8 @@ void main() {
     );
 
     links.add(Uri.parse('simsmodmanager://mod/deleted'));
-    await settle(tester);
+    await settle(
+        tester, shows: find.textContaining('isn’t on The Exchange any more'));
 
     expect(
         find.textContaining('isn’t on The Exchange any more'), findsOneWidget);
@@ -586,7 +687,7 @@ void main() {
     );
 
     links.add(Uri.parse('simsmodmanager://mod/l9'));
-    await settle(tester);
+    await settle(tester, shows: find.textContaining('doesn’t know yet'));
 
     expect(find.textContaining('doesn’t know yet'), findsOneWidget);
     expect(find.text('From The Future'), findsNothing);
@@ -633,7 +734,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
 
     links.add(Uri.parse('simsmodmanager://mod/l1'));
-    await settle(tester);
+    await settle(tester, shows: find.text('Back to the shelves'));
 
     expect(find.text('Camera Fix'), findsOneWidget);
     expect(find.text('Back to the shelves'), findsOneWidget);
@@ -704,12 +805,7 @@ void main() {
       ));
       await Future<void>.delayed(const Duration(milliseconds: 200));
     });
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
-
-    await tester.tap(find.text('The Exchange'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+    await _openShop(tester);
 
     // Grouped the way the reader's own language groups numbers, and drawn
     // for the listing that has downloads and nowhere else.
@@ -758,12 +854,7 @@ void main() {
       ));
       await Future<void>.delayed(const Duration(milliseconds: 200));
     });
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
-
-    await tester.tap(find.text('The Exchange'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+    await _openShop(tester);
 
     // Three listings, one card: the set's name, its count, and none of
     // the colours spelled out on the shelf. The lone listing is
@@ -792,7 +883,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
     await tester.tap(find.text('Install'));
-    await _until(tester, find.text('Installed'));
+    await until(tester, find.text('Installed'));
 
     expect(File(p.join(tempDir.path, 'curtains_fern.package')).existsSync(),
         isTrue);
@@ -804,5 +895,55 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.text('Installed'), findsOneWidget);
+  });
+
+  testWidgets('every screenshot of a listing can be reached', (tester) async {
+    tester.view.physicalSize = const Size(1280, 824);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    SharedPreferences.setMockInitialValues({'soundEffects': false});
+    final tempDir = Directory.systemTemp.createTempSync('shop_shots');
+    addTearDown(() => tempDir.deleteSync(recursive: true));
+
+    final registry = GameRegistry([_FakeAdapter(tempDir)]);
+    final settings = await SettingsStore.load();
+
+    await tester.runAsync(() async {
+      await tester.pumpWidget(ModManagerApp(
+        registry: registry,
+        settings: settings,
+        fetchShop: () async => [
+          _listing(imagePaths: [
+            for (var i = 1; i <= 10; i++) 'mods/u1/l1/images/$i.png',
+          ]),
+        ],
+      ));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
+    await _openShop(tester);
+    await tester.tap(find.text('Camera Fix'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    // The gallery column is 380px wide and a thumbnail is 86 of them, so
+    // a strip that only scrolled sideways left the fifth onwards past the
+    // edge with no mouse wheel that could reach along it.
+    final panel = tester.getRect(find.byType(ShopView));
+    for (var i = 0; i < 10; i++) {
+      final thumb = find.byKey(widgets.ValueKey('shop-shot-$i'));
+      expect(thumb, findsOneWidget, reason: 'screenshot ${i + 1}');
+      // Compared edge by edge rather than with Rect.contains, which is
+      // exclusive of right and bottom: a chip sitting flush against the
+      // panel's edge is on screen, and would fail that test.
+      final box = tester.getRect(thumb);
+      expect(box.left >= panel.left, isTrue, reason: 'screenshot ${i + 1}');
+      expect(box.top >= panel.top, isTrue, reason: 'screenshot ${i + 1}');
+      expect(box.right <= panel.right, isTrue, reason: 'screenshot ${i + 1}');
+      expect(box.bottom <= panel.bottom, isTrue, reason: 'screenshot ${i + 1}');
+    }
+
+    // And the last one takes the tap that puts it in the big frame.
+    await tester.tap(find.byKey(const widgets.ValueKey('shop-shot-9')));
+    await tester.pump();
   });
 }

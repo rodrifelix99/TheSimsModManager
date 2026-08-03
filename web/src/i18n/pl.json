@@ -251,6 +251,7 @@
   "portal.editor.tip2": "Od razu napisz, jakie dodatki są potrzebne.",
   "portal.editor.tip3": "Wymień znane konflikty: gracze bardziej ci zaufają.",
   "portal.editor.imageTooBig": "%s ma ponad 10 MB. Zmniejsz go i spróbuj jeszcze raz.",
+  "portal.editor.imagesFull": "Maksymalnie %s zrzutów na moda, więc reszta się nie załapała.",
   "portal.editor.fileTooBig": "Ten plik ma ponad 500 MB. Alfa kończy się w tym miejscu, spróbuj go podzielić.",
   "portal.editor.needFile": "Wybierz plik moda. To właśnie jego instalują gracze!",
   "portal.editor.saveFailed": "Nie udało się zapisać: %s",

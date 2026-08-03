@@ -125,6 +125,13 @@ AppMessage? noWriteAccessMessage(Object error, {String? folder}) {
 AppMessage noWriteAccessTo(String folder) =>
     AppMessage('errorNoWriteAccess', [folder]);
 
+/// The system's Save-as dialog, offering [suggestedName]; null when the
+/// user closed it. No file type filter: the download is whatever the
+/// creator uploaded, and a filter would only fight the name it already
+/// has.
+Future<String?> pickSaveFilePath(String suggestedName) async =>
+    (await getSaveLocation(suggestedName: suggestedName))?.path;
+
 /// Coarse cause of an install failure, for the `mod_install_failed`
 /// event: enough to tell a rejected archive from a filesystem problem
 /// without sending anything about the file itself.
@@ -168,6 +175,7 @@ class AppController extends ChangeNotifier {
             {void Function(int received, int total)? onProgress})?
         downloadShop,
     Future<void> Function(String id)? reportDownload,
+    Future<String?> Function(String suggestedName)? pickSavePath,
     Future<bool> Function()? checkElevated,
     Future<Reachability> Function(String? mirrorBase)? probeServices,
     int artworkBudgetBytes = defaultArtworkBudgetBytes,
@@ -181,6 +189,7 @@ class AppController extends ChangeNotifier {
         _fetchListing = fetchListing ?? fetchShopListing,
         _downloadShop = downloadShop ?? downloadShopFile,
         _reportDownload = reportDownload ?? reportShopDownload,
+        _pickSavePath = pickSavePath ?? pickSaveFilePath,
         _probeServices = probeServices ?? probeReachability,
         _adapter = registry.byGameId('sims4') ?? registry.adapters.first {
     // Before anything lists a folder: every read and write of the disabled
@@ -229,6 +238,10 @@ class AppController extends ChangeNotifier {
   /// creator's download count comes from; injectable so tests count
   /// nothing and touch no network.
   final Future<void> Function(String id) _reportDownload;
+
+  /// Where the user wants a listing's file put, or null when they closed
+  /// the dialog; injectable so tests answer without one opening.
+  final Future<String?> Function(String suggestedName) _pickSavePath;
 
   /// Asks whether our own services answer from this machine; injectable
   /// for the same reason as [_checkUpdates].
@@ -3330,6 +3343,24 @@ class AppController extends ChangeNotifier {
   /// still unknown. A listing appears here only while installing.
   final Map<String, double?> shopProgress = {};
 
+  /// The same, for a listing being saved to a folder of the user's
+  /// choosing rather than installed. Its own map because the two say
+  /// different things on screen, and a listing can be doing either.
+  final Map<String, double?> shopSaveProgress = {};
+
+  /// Listings with a save under way, the Save-as dialog included.
+  /// [shopSaveProgress] only fills once bytes are moving, and the dialog
+  /// is a long wait in front of that - long enough to press the button
+  /// again, which is exactly what this stops.
+  final Set<String> _shopSaving = {};
+
+  /// Whether this listing is already doing something: installing, or
+  /// saving (dialog included). One predicate for both, because the two
+  /// actions are the same download twice and neither button should start
+  /// while the other is running.
+  bool shopBusy(ShopMod mod) =>
+      shopProgress.containsKey(mod.id) || _shopSaving.contains(mod.id);
+
   /// What The Exchange has installed on this machine, by listing id.
   /// Survives restarts (see [SettingsStore.shopInstallsJson]) - it is
   /// what makes "you have v1.2, the creator published v1.3" a question
@@ -3761,7 +3792,7 @@ class AppController extends ChangeNotifier {
   Future<void> installShopMod(ShopMod mod,
       {InstallPlacement placement = const SortedPlacement()}) async {
     final into = registry.byGameId(mod.gameId);
-    if (into == null || shopProgress.containsKey(mod.id)) return;
+    if (into == null || shopBusy(mod)) return;
     playSound(UiSound.click);
     shopProgress[mod.id] = null;
     notifyListeners();
@@ -3787,6 +3818,14 @@ class AppController extends ChangeNotifier {
       final previous = _shopInstalls[mod.id];
       final installed = await installFiles([file],
           method: 'shop', into: into, target: dir, placement: placement);
+      // A listing holding nothing this game can install is not
+      // necessarily a broken listing - it can be a tool, a spreadsheet,
+      // something that was never a mod (issue #16). The generic wording
+      // is a dead end there, so on the one screen that has an answer it
+      // says what the answer is.
+      if (lastError case AppMessage(key: 'noModFiles')) {
+        lastError = AppMessage('shopNoModFiles', [mod.name]);
+      }
       // installFiles reports its own failures through lastError rather
       // than throwing; only a clean run counts as installed.
       if (lastError == null) {
@@ -3831,6 +3870,68 @@ class AppController extends ChangeNotifier {
       try {
         await scratch?.delete(recursive: true);
       } catch (_) {}
+      notifyListeners();
+    }
+  }
+
+  /// Downloads [mod]'s file to a folder the user picks and installs
+  /// nothing. Asked for by someone whose listing was a Microsoft Access
+  /// database rather than a mod file (issue #16): the app had no way to
+  /// hand over a download it could not also file away, and "no mod files
+  /// found" was the only answer a perfectly good listing got. It is also
+  /// the answer to not knowing where Install puts things - here the user
+  /// says where.
+  ///
+  /// The file is written straight to the chosen path rather than through
+  /// a scratch copy, so a failed download leaves nothing behind (see
+  /// [downloadShopFile], which deletes its own partial file). Needs no
+  /// mods folder, which is why it works on a game that has none set up.
+  /// Returns whether a file was actually written - the button says
+  /// "Saved" on the strength of it.
+  Future<bool> saveShopMod(ShopMod mod) async {
+    if (shopBusy(mod)) return false;
+    playSound(UiSound.click);
+    // Marked busy before the dialog opens rather than after it closes:
+    // the picker is the longest await here, and until something lands in
+    // one of these the button is still live and a second press starts a
+    // second download.
+    _shopSaving.add(mod.id);
+    notifyListeners();
+    try {
+      final path = await _pickSavePath(p.basename(mod.fileName));
+      if (path == null) return false;
+      shopSaveProgress[mod.id] = null;
+      notifyListeners();
+      try {
+        await _downloadShop(mod, File(path), onProgress: (received, total) {
+          shopSaveProgress[mod.id] =
+              total > 0 ? (received / total).clamp(0.0, 1.0) : null;
+          notifyListeners();
+        });
+        analytics.capture('shop_mod_saved', {
+          'game': mod.gameId,
+          'listing': mod.id,
+          'size_kb': (mod.fileSizeBytes / 1024).round(),
+        });
+        playSound(UiSound.install);
+        // A take is a take, whether or not the app filed it away for
+        // them; the mod's own page on the website counts its download
+        // button the same way. Same bargain as the install: not awaited,
+        // and never for an invented listing.
+        if (!settings.demoLibrary) unawaited(_reportDownload(mod.id));
+        return true;
+      } catch (e) {
+        // Only the download is worded as a failed download - a picker
+        // that threw is not one, and is caught by the outer finally.
+        lastError = AppMessage('shopDownloadFailed', [mod.name]);
+        analytics.capture(
+            'shop_save_failed', {'game': mod.gameId, 'reason': 'download'});
+        playSound(UiSound.error);
+        return false;
+      }
+    } finally {
+      _shopSaving.remove(mod.id);
+      shopSaveProgress.remove(mod.id);
       notifyListeners();
     }
   }

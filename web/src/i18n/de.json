@@ -251,6 +251,7 @@
   "portal.editor.tip2": "Sag gleich am Anfang, welche Packs nötig sind.",
   "portal.editor.tip3": "Nenn bekannte Konflikte: das schafft Vertrauen.",
   "portal.editor.imageTooBig": "%s ist über 10 MB. Verkleinere es und versuch es nochmal.",
+  "portal.editor.imagesFull": "Nur %s Screenshots pro Mod, der Rest bleibt draußen.",
   "portal.editor.fileTooBig": "Diese Datei ist über 500 MB. Da ist in der Alpha Schluss, teil sie am besten auf.",
   "portal.editor.needFile": "Wähl die Mod-Datei aus. Das ist der Teil, den die Spieler installieren!",
   "portal.editor.saveFailed": "Speichern ging nicht: %s",

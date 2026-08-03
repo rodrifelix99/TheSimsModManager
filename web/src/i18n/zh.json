@@ -251,6 +251,7 @@
   "portal.editor.tip2": "开头就写清楚需要哪些资料片。",
   "portal.editor.tip3": "把已知冲突写出来，玩家反而更信你。",
   "portal.editor.imageTooBig": "%s 超过 10 MB，压缩一下再试。",
+  "portal.editor.imagesFull": "每个模组最多 %s 张截图，多出来的没有加进来。",
   "portal.editor.fileTooBig": "这个文件超过 500 MB。alpha 阶段就到这里，试试拆分一下。",
   "portal.editor.needFile": "选一个 MOD 文件吧，玩家装的就是它！",
   "portal.editor.saveFailed": "没能保存：%s",

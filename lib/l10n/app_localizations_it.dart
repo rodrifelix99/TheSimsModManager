@@ -145,6 +145,19 @@ class LIt extends L {
   }
 
   @override
+  String get shopSaveFile => 'Scarica';
+
+  @override
+  String get shopSaving => 'Download in corso…';
+
+  @override
+  String get shopSaved => 'Salvato';
+
+  @override
+  String get shopSaveHint =>
+      'Installa mette i file dritti nella tua cartella mod. Scarica salva solo il file, dove vuoi tu.';
+
+  @override
   String get shopVariationPick => 'Scegli una variante';
 
   @override
@@ -1217,6 +1230,11 @@ class LIt extends L {
   @override
   String errorShopDownload(String name) {
     return '«$name» non si è scaricata da The Exchange. Controlla la connessione e riprova.';
+  }
+
+  @override
+  String errorShopNoModFiles(String name) {
+    return 'Dentro “$name” non c’è niente che questo gioco possa installare. Forse non è nemmeno una mod - usa Scarica per salvare il file dove vuoi tu.';
   }
 
   @override

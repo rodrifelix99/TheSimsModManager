@@ -151,6 +151,19 @@ class LRu extends L {
   }
 
   @override
+  String get shopSaveFile => 'Скачать';
+
+  @override
+  String get shopSaving => 'Скачиваем…';
+
+  @override
+  String get shopSaved => 'Сохранено';
+
+  @override
+  String get shopSaveHint =>
+      'Установка кладёт файлы прямо в твою папку модов. Скачивание просто сохранит файл там, где захочешь.';
+
+  @override
   String get shopVariationPick => 'Выбери вариант';
 
   @override
@@ -1262,6 +1275,11 @@ class LRu extends L {
   @override
   String errorShopDownload(String name) {
     return '«$name» не скачался с The Exchange. Проверь соединение и попробуй ещё раз.';
+  }
+
+  @override
+  String errorShopNoModFiles(String name) {
+    return 'Внутри «$name» нет ничего, что эта игра может установить. Может, это вообще не мод - нажми «Скачать» и сохрани файл там, где захочешь.';
   }
 
   @override

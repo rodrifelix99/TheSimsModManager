@@ -398,6 +398,43 @@ void main() {
     );
     expect(dest.existsSync(), isFalse);
   });
+
+  test('a failed download leaves the file that was already there', () async {
+    final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+    addTearDown(() => server.close(force: true));
+    server.listen((request) async {
+      request.response.statusCode = HttpStatus.notFound;
+      await request.response.close();
+    });
+    final dir = Directory.systemTemp.createTempSync('shop_dl_keep');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final mod = ShopMod(
+      id: 'x',
+      gameId: 'sims4',
+      name: 'X',
+      version: '1',
+      description: '',
+      authorName: 'a',
+      fileName: 'x.package',
+      filePath: 'mods/u/x/x.package',
+      fileSizeBytes: 10,
+    );
+    // What the Save-as dialog lets someone do: pick a file they already
+    // have. A download that fails is not allowed to be what takes it.
+    final dest = File(p.join(dir.path, 'x.package'))
+      ..writeAsStringSync('the file I already had');
+    final inner = HttpClient();
+    addTearDown(() => inner.close(force: true));
+    await expectLater(
+      HttpOverrides.runZoned(
+        () => downloadShopFile(mod, dest),
+        createHttpClient: (_) => _RedirectingClient(server.port, inner),
+      ),
+      throwsA(isA<HttpException>()),
+    );
+    expect(dest.readAsStringSync(), 'the file I already had');
+    expect(File('${dest.path}.part').existsSync(), isFalse);
+  });
 }
 
 /// Sends every request to the local test server, whatever host the

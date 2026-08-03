@@ -251,6 +251,7 @@
   "portal.editor.tip2": "Di qué packs hacen falta, y dilo pronto.",
   "portal.editor.tip3": "Nombra los conflictos que conozcas: da más confianza.",
   "portal.editor.imageTooBig": "%s pasa de 10 MB. Redúcela y prueba otra vez.",
+  "portal.editor.imagesFull": "Solo %s capturas por mod, así que las de más se han quedado fuera.",
   "portal.editor.fileTooBig": "Ese archivo pasa de 500 MB. La alfa corta ahí, así que prueba a dividirlo.",
   "portal.editor.needFile": "Elige el archivo del mod. ¡Es lo que instalan los jugadores!",
   "portal.editor.saveFailed": "No se ha podido guardar: %s",

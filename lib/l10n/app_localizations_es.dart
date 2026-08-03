@@ -145,6 +145,19 @@ class LEs extends L {
   }
 
   @override
+  String get shopSaveFile => 'Descargar';
+
+  @override
+  String get shopSaving => 'Descargando…';
+
+  @override
+  String get shopSaved => 'Guardado';
+
+  @override
+  String get shopSaveHint =>
+      'Instalar mete los archivos directamente en tu carpeta de mods. Descargar solo guarda el archivo, donde tú quieras.';
+
+  @override
   String get shopVariationPick => 'Elige una variación';
 
   @override
@@ -1218,6 +1231,11 @@ class LEs extends L {
   @override
   String errorShopDownload(String name) {
     return '«$name» no se pudo descargar de The Exchange. Revisa tu conexión e inténtalo otra vez.';
+  }
+
+  @override
+  String errorShopNoModFiles(String name) {
+    return 'No hay nada que este juego pueda instalar dentro de “$name”. Igual ni siquiera es un mod - usa Descargar para guardar el archivo donde tú quieras.';
   }
 
   @override

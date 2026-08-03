@@ -15,6 +15,8 @@ import 'package:sims_mod_manager/src/services/settings_store.dart';
 import 'package:sims_mod_manager/src/ui/app.dart';
 import 'package:sims_mod_manager/src/ui/widgets.dart';
 
+import 'until.dart';
+
 class _FakeAdapter extends FolderBasedGameAdapter {
   _FakeAdapter(this.dir, {this.gameFolder, this.lockRename = false});
 
@@ -68,23 +70,29 @@ class _FakeAdapter extends FolderBasedGameAdapter {
   Future<String?> defaultModsPath() async => dir.path;
 }
 
-/// Waits for the interface to say something rather than for a round number
-/// of milliseconds. Loading a library is real IO on a real disk: a fixed
-/// wait that is generous when this test runs alone is a coin toss when the
-/// rest of the suite is running beside it, and the library then arrives a
-/// frame after the assertion.
+/// Pumps the app and waits for the library to arrive, rather than for a
+/// round number of milliseconds: loading one is real IO on a real disk, and
+/// a wait that is generous when this test runs alone is a coin toss when
+/// the rest of the suite runs beside it on a CI runner.
 ///
-/// Alternates real time (runAsync, where the IO actually progresses) with
-/// frames (pump, where the result of it is drawn), so it returns as soon as
-/// the machine is done and only gives up when the load really did fail.
-Future<void> _until(WidgetTester tester, Finder finder) async {
-  final deadline = DateTime.now().add(const Duration(seconds: 20));
-  while (DateTime.now().isBefore(deadline)) {
-    if (finder.evaluate().isNotEmpty) return;
-    await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 25)));
-    await tester.pump(const Duration(milliseconds: 25));
-  }
+/// The delay inside runAsync is the head start rather than the guarantee -
+/// boot wants a stretch of real time with nothing pumping the fake clock
+/// underneath it - and [ready] is what says the machine is actually done:
+/// the library's own header for most tests, a setup screen's headline for
+/// the two games that have no mods folder.
+Future<void> _pump(
+  WidgetTester tester,
+  GameRegistry registry,
+  SettingsStore settings, {
+  Finder? ready,
+}) async {
+  await tester.runAsync(() async {
+    await tester
+        .pumpWidget(ModManagerApp(registry: registry, settings: settings));
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+  });
+  await until(tester, ready ?? find.text('Fake Game Library'));
+  await tester.pump(const Duration(milliseconds: 400));
 }
 
 void main() {
@@ -107,31 +115,20 @@ void main() {
     final registry = GameRegistry([_FakeAdapter(tempDir)]);
     final settings = await SettingsStore.load();
 
-    await tester.runAsync(() async {
-      await tester.pumpWidget(
-          ModManagerApp(registry: registry, settings: settings));
-      // Let the controller finish its real file IO.
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-    });
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+    await _pump(tester, registry, settings);
 
     expect(find.text('Fake Game Library'), findsOneWidget);
     // Display title is the humanized file name.
     expect(find.text('cozy sofa'), findsOneWidget);
 
     // Disable it via the card switch: the file gets the .disabled marker.
-    await tester.runAsync(() async {
-      await tester.tap(find.byType(PillSwitch).first);
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-    });
+    final disabled =
+        File(p.join(tempDir.path, 'cozy_sofa.package$disabledSuffix'));
+    await tester.tap(find.byType(PillSwitch).first);
+    await untilExists(tester, disabled);
     await tester.pump(const Duration(milliseconds: 400));
 
-    expect(
-      File(p.join(tempDir.path, 'cozy_sofa.package$disabledSuffix'))
-          .existsSync(),
-      isTrue,
-    );
+    expect(disabled.existsSync(), isTrue);
   });
 
   testWidgets('the refresh button picks up a mod copied in behind our back',
@@ -148,24 +145,15 @@ void main() {
     final registry = GameRegistry([_FakeAdapter(tempDir)]);
     final settings = await SettingsStore.load();
 
-    await tester.runAsync(() async {
-      await tester.pumpWidget(
-          ModManagerApp(registry: registry, settings: settings));
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-    });
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+    await _pump(tester, registry, settings);
 
     // What the file manager does while the app is looking the other way.
     File(p.join(tempDir.path, 'retro_lamp.package'))
         .writeAsStringSync('lamp bytes');
     expect(find.text('retro lamp'), findsNothing);
 
-    await tester.runAsync(() async {
-      await tester.tap(find.byTooltip('Refresh'));
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-    });
-    await tester.pump();
+    await tester.tap(find.byTooltip('Refresh'));
+    await until(tester, find.text('retro lamp'));
     await tester.pump(const Duration(milliseconds: 400));
 
     expect(find.text('retro lamp'), findsOneWidget);
@@ -185,23 +173,15 @@ void main() {
     final registry = GameRegistry([_FakeAdapter(tempDir, lockRename: true)]);
     final settings = await SettingsStore.load();
 
-    await tester.runAsync(() async {
-      await tester.pumpWidget(
-          ModManagerApp(registry: registry, settings: settings));
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-    });
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
-
-    await tester.runAsync(() async {
-      await tester.tap(find.byType(PillSwitch).first);
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-    });
-    await tester.pump(const Duration(milliseconds: 400));
+    await _pump(tester, registry, settings);
 
     // The banner says which file and why, translated from the key the
     // core layer raised - not the raw exception, and not silence.
     final banner = find.textContaining('in use by another program');
+    await tester.tap(find.byType(PillSwitch).first);
+    await until(tester, banner);
+    await tester.pump(const Duration(milliseconds: 400));
+
     expect(banner, findsOneWidget);
     expect(find.textContaining('cozy_sofa.package'), findsWidgets);
 
@@ -234,13 +214,7 @@ void main() {
     final registry = GameRegistry([_FakeAdapter(tempDir)]);
     final settings = await SettingsStore.load();
 
-    await tester.runAsync(() async {
-      await tester.pumpWidget(
-          ModManagerApp(registry: registry, settings: settings));
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-    });
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+    await _pump(tester, registry, settings, ready: find.text('CONFLICTS'));
 
     // Both duplicates count; tapping the stat narrows the library to them.
     expect(find.text('CONFLICTS'), findsOneWidget);
@@ -309,13 +283,7 @@ void main() {
     final registry = GameRegistry([_FakeAdapter(tempDir)]);
     final settings = await SettingsStore.load();
 
-    await tester.runAsync(() async {
-      await tester.pumpWidget(
-          ModManagerApp(registry: registry, settings: settings));
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-    });
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+    await _pump(tester, registry, settings, ready: find.text('lamp'));
 
     expect(find.text('lamp'), findsOneWidget);
     expect(find.text('sofa'), findsOneWidget);
@@ -358,17 +326,10 @@ void main() {
     final registry = GameRegistry([_FakeAdapter(tempDir)]);
     final settings = await SettingsStore.load();
 
-    await tester.runAsync(() async {
-      await tester.pumpWidget(
-          ModManagerApp(registry: registry, settings: settings));
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-    });
-    await tester.pump();
-
     // The subfolder shows up as a chip (label + count in one span);
     // filtering hides the root mod.
     final casChip = find.text('CAS  2');
-    await _until(tester, casChip);
+    await _pump(tester, registry, settings, ready: casChip);
     expect(casChip, findsOneWidget);
     await tester.tap(casChip);
     await tester.pump(const Duration(milliseconds: 400));
@@ -401,16 +362,12 @@ void main() {
     final registry = GameRegistry([_FakeAdapter(tempDir)]);
     final settings = await SettingsStore.load();
 
-    await tester.runAsync(() async {
-      await tester.pumpWidget(
-          ModManagerApp(registry: registry, settings: settings));
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-    });
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
-
     // Overflowing chips stay in the tree but unpainted; the visible sign
-    // of overflow is the "…" button at the end of the line.
+    // of overflow is the "…" button at the end of the line, which only
+    // appears once the folders have been read and the row has measured
+    // what fits.
+    await _pump(tester, registry, settings, ready: find.text('…'));
+
     expect(find.text('…'), findsOneWidget);
 
     // A hidden folder lives in the popup menu and still filters. Folder
@@ -447,16 +404,9 @@ void main() {
     final registry = GameRegistry([_FakeAdapter(tempDir)]);
     final settings = await SettingsStore.load();
 
-    await tester.runAsync(() async {
-      await tester.pumpWidget(
-          ModManagerApp(registry: registry, settings: settings));
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-    });
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
-
     final gamma = find.text('Gamma  1');
     final alpha = find.text('Alpha  1');
+    await _pump(tester, registry, settings, ready: alpha);
     expect(tester.getCenter(alpha).dx, lessThan(tester.getCenter(gamma).dx));
 
     // Drag Gamma onto Alpha: Gamma takes Alpha's spot.
@@ -495,17 +445,11 @@ void main() {
     final registry = GameRegistry([_FakeAdapter(tempDir)]);
     final settings = await SettingsStore.load();
 
-    await tester.runAsync(() async {
-      await tester.pumpWidget(
-          ModManagerApp(registry: registry, settings: settings));
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-    });
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
-
     // A header per section, the mods folder itself above the subfolders.
     // The chips carry their count in the same string ('Alpha  1'), so
     // these bare labels are the headers.
+    await _pump(tester, registry, settings, ready: find.text('Mods folder'));
+
     expect(find.text('Mods folder'), findsOneWidget);
     expect(find.text('Alpha'), findsOneWidget);
     expect(tester.getCenter(find.text('Mods folder')).dy,
@@ -544,16 +488,8 @@ void main() {
     final registry = GameRegistry([_FakeAdapter(tempDir)]);
     final settings = await SettingsStore.load();
 
-    await tester.runAsync(() async {
-      await tester.pumpWidget(
-          ModManagerApp(registry: registry, settings: settings));
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-    });
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
-
     final row = find.textContaining('loose mod', findRichText: true);
-    await _until(tester, row);
+    await _pump(tester, registry, settings, ready: row);
     final gesture = await tester.startGesture(tester.getCenter(row));
     await tester.pump(const Duration(milliseconds: 100));
     // Sideways first, on purpose: a mod is only picked up by a horizontal
@@ -566,11 +502,7 @@ void main() {
     // and frames to be drawn.
     await gesture.up();
     final moved = File(p.join(alpha.path, 'loose_mod.package'));
-    for (var i = 0; i < 60 && !moved.existsSync(); i++) {
-      await tester.runAsync(
-          () => Future<void>.delayed(const Duration(milliseconds: 25)));
-      await tester.pump(const Duration(milliseconds: 25));
-    }
+    await untilExists(tester, moved);
 
     // The file has landed, but the library is told about it a moment
     // later: the rename's completion reaches the app on the event loop,
@@ -600,14 +532,7 @@ void main() {
     final registry = GameRegistry([_FakeAdapter(tempDir)]);
     final settings = await SettingsStore.load();
 
-    await tester.runAsync(() async {
-      await tester.pumpWidget(
-          ModManagerApp(registry: registry, settings: settings));
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-    });
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
-    await _until(tester, find.text('cozy sofa'));
+    await _pump(tester, registry, settings, ready: find.text('cozy sofa'));
 
     // Ctrl-click ticks the mod, which brings the selection bar up in the
     // stats row's place.
@@ -629,16 +554,9 @@ void main() {
     await tester.tap(find.text('New folder'));
     await tester.pump();
     await tester.enterText(find.byType(EditableText).last, 'CC');
-    await tester.runAsync(() async {
-      await tester.tap(find.text('Create'));
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-    });
+    await tester.tap(find.text('Create'));
     final made = Directory(p.join(tempDir.path, 'CC'));
-    for (var i = 0; i < 60 && !made.existsSync(); i++) {
-      await tester.runAsync(
-          () => Future<void>.delayed(const Duration(milliseconds: 25)));
-      await tester.pump(const Duration(milliseconds: 25));
-    }
+    await untilExists(tester, made);
     // Same again: the folder is on disk before the dialog has been told.
     await tester.runAsync(
         () => Future<void>.delayed(const Duration(milliseconds: 100)));
@@ -653,11 +571,7 @@ void main() {
     // close, and real time for the rename underneath it.
     await tester.tap(find.text('Move'));
     final moved = File(p.join(tempDir.path, 'CC', 'cozy_sofa.package'));
-    for (var i = 0; i < 60 && !moved.existsSync(); i++) {
-      await tester.runAsync(
-          () => Future<void>.delayed(const Duration(milliseconds: 25)));
-      await tester.pump(const Duration(milliseconds: 25));
-    }
+    await untilExists(tester, moved);
 
     await tester.runAsync(
         () => Future<void>.delayed(const Duration(milliseconds: 100)));
@@ -695,15 +609,10 @@ void main() {
     final registry = GameRegistry([_FakeAdapter(tempDir)]);
     final settings = await SettingsStore.load();
 
-    await tester.runAsync(() async {
-      await tester.pumpWidget(
-          ModManagerApp(registry: registry, settings: settings));
-    });
     // The overflow button only exists once the three folders have been
     // read off the disk and the row has measured what fits, so wait for
-    // the button itself rather than for a duration.
-    await _until(tester, find.text('…'));
-    await tester.pump(const Duration(milliseconds: 400));
+    // the button itself rather than for the library's header.
+    await _pump(tester, registry, settings, ready: find.text('…'));
 
     expect(find.text('…'), findsOneWidget);
     await tester.tap(find.text('…'));
@@ -761,25 +670,16 @@ void main() {
     final registry = GameRegistry([_FakeAdapter(modsDir)]);
     final settings = await SettingsStore.load();
 
-    await tester.runAsync(() async {
-      await tester.pumpWidget(
-          ModManagerApp(registry: registry, settings: settings));
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-    });
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+    await _pump(tester, registry, settings,
+        ready: find.text('Fake Game mods folder not found'));
 
     expect(find.text('Fake Game mods folder not found'), findsOneWidget);
     expect(find.text('Check again'), findsOneWidget);
 
     // The user creates the folder outside the app, then rechecks.
     modsDir.createSync(recursive: true);
-    await tester.runAsync(() async {
-      await tester.tap(find.text('Check again'));
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-    });
-    await tester.pump();
-    await _until(tester, find.text('Fake Game Library'));
+    await tester.tap(find.text('Check again'));
+    await until(tester, find.text('Fake Game Library'));
 
     expect(find.text('Fake Game mods folder not found'), findsNothing);
     expect(find.text('Fake Game Library'), findsOneWidget);
@@ -800,13 +700,8 @@ void main() {
         GameRegistry([_FakeAdapter(modsDir, gameFolder: tempDir)]);
     final settings = await SettingsStore.load();
 
-    await tester.runAsync(() async {
-      await tester.pumpWidget(
-          ModManagerApp(registry: registry, settings: settings));
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-    });
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+    await _pump(tester, registry, settings,
+        ready: find.text('Fake Game found, but no mods folder yet'));
 
     expect(find.text('Fake Game found, but no mods folder yet'), findsOneWidget);
     expect(find.text('Fake Game mods folder not found'), findsNothing);
@@ -837,13 +732,8 @@ void main() {
     final registry = GameRegistry([_FakeAdapter(tempDir)]);
     final settings = await SettingsStore.load();
 
-    await tester.runAsync(() async {
-      await tester.pumpWidget(
-          ModManagerApp(registry: registry, settings: settings));
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-    });
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+    await _pump(tester, registry, settings,
+        ready: find.text('One of your mods has a known issue'));
 
     expect(find.text('One of your mods has a known issue'), findsOneWidget);
     expect(find.text('tidy lamp'), findsOneWidget);
@@ -870,13 +760,12 @@ void main() {
     // counting a mod that had already dropped out of the list.
     // The detail's switch is inside an IgnorePointer; the row around it
     // is what carries the tap.
-    await tester.runAsync(() async {
-      await tester.tap(find.text('Enabled'));
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-    });
+    final warning = find.text('This mod is reported broken');
+    await tester.tap(find.text('Enabled'));
+    await untilGone(tester, warning);
     await tester.pump(const Duration(milliseconds: 400));
 
-    expect(find.text('This mod is reported broken'), findsNothing);
+    expect(warning, findsNothing);
     // Both the sidebar nav and the detail's back button say "Library".
     await tester.tap(find.text('Library').last);
     await tester.pump(const Duration(milliseconds: 400));
@@ -910,7 +799,7 @@ void main() {
       });
       // Wait for the library itself, so the absence asserted below is the
       // banner missing rather than the library not having arrived yet.
-      await _until(tester, find.text('Fake Game Library'));
+      await until(tester, find.text('Fake Game Library'));
       await tester.pump(const Duration(milliseconds: 400));
     }
 
@@ -946,12 +835,7 @@ void main() {
 
     final registry = GameRegistry([_FakeAdapter(tempDir)]);
     final settings = await SettingsStore.load();
-    await tester.runAsync(() async {
-      await tester
-          .pumpWidget(ModManagerApp(registry: registry, settings: settings));
-    });
-    await _until(tester, find.text('aaa'));
-    await tester.pump(const Duration(milliseconds: 400));
+    await _pump(tester, registry, settings, ready: find.text('aaa'));
 
     double reading(String title) => tester.getTopLeft(find.text(title)).dx;
     expect(reading('aaa'), lessThan(reading('zzz')));

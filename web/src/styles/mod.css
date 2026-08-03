@@ -19,8 +19,10 @@
 @media (max-width: 880px) { .mod-shell { grid-template-columns: minmax(0, 1fr); } }
 
 .mod-gallery { position: relative; }
+/* Contained, not cropped: a screenshot is what a creator has to show for
+   their mod, and whatever they were pointing at tends to sit at its edges. */
 .mod-cover {
-  width: 100%; aspect-ratio: 16 / 10; object-fit: cover;
+  width: 100%; aspect-ratio: 16 / 10; object-fit: contain;
   border-radius: 20px; border: 1px solid var(--border); background: var(--surface-alt);
   box-shadow: 0 30px 60px -34px color-mix(in srgb, var(--text) 60%, transparent);
 }

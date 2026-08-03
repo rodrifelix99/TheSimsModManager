@@ -14,6 +14,8 @@ import 'package:sims_mod_manager/src/services/reachability.dart';
 import 'package:sims_mod_manager/src/services/settings_store.dart';
 import 'package:sims_mod_manager/src/ui/app.dart';
 
+import 'until.dart';
+
 /// The blocked case is otherwise only reachable from inside a country,
 /// which is the whole reason the probe is injectable.
 
@@ -77,7 +79,7 @@ Future<Directory> _pump(
     ));
     await Future<void>.delayed(const Duration(milliseconds: 200));
   });
-  await tester.pump();
+  await until(tester, find.text('Fake Game Library'));
   await tester.pump(const Duration(milliseconds: 400));
   return tempDir;
 }
@@ -175,12 +177,9 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.text('ALPHA'), findsOneWidget);
 
-    await tester.runAsync(() async {
-      probe.complete(
-          const Reachability(shop: false, site: false, downloads: false));
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-    });
-    await tester.pump();
+    probe.complete(
+        const Reachability(shop: false, site: false, downloads: false));
+    await untilGone(tester, find.text('The Exchange'));
     await tester.pump(const Duration(milliseconds: 400));
 
     // The sidebar card is about to stop being drawn; leaving the user on

@@ -13,6 +13,8 @@ import 'package:sims_mod_manager/src/services/settings_store.dart';
 import 'package:sims_mod_manager/src/ui/app.dart';
 import 'package:sims_mod_manager/src/ui/game_theme.dart';
 
+import 'until.dart';
+
 class _FakeAdapter extends FolderBasedGameAdapter {
   _FakeAdapter(this.dir);
 
@@ -207,7 +209,7 @@ void main() {
             ModManagerApp(registry: registry, settings: settings));
         await Future<void>.delayed(const Duration(milliseconds: 200));
       });
-      await tester.pump();
+      await until(tester, find.text('Fake Game Library'));
       await tester.pump(const Duration(milliseconds: 400));
 
       final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));

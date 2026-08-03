@@ -145,6 +145,7 @@ extension AppText on L {
       'folderTooDeep' => errorFolderTooDeep(int.tryParse(arg(0)) ?? 0),
       'errorNoWriteAccess' => errorNoWriteAccess(arg(0)),
       'shopDownloadFailed' => errorShopDownload(arg(0)),
+      'shopNoModFiles' => errorShopNoModFiles(arg(0)),
       'shopNeedsFolder' => shopNeedsFolder(arg(0)),
       'shopListingNotFound' => errorShopListingNotFound,
       'shopListingUnknownGame' => errorShopListingUnknownGame,

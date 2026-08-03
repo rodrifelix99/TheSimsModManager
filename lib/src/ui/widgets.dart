@@ -162,11 +162,16 @@ class ModThumb extends StatelessWidget {
     this.bytes,
     this.borderRadius,
     this.decodeWidth,
+    this.fit = BoxFit.cover,
   });
 
   final String seed;
   final Uint8List? bytes;
   final BorderRadius? borderRadius;
+
+  /// Cropped to the slot by default, which is what a card wants. A frame
+  /// showing the picture for its own sake asks for [BoxFit.contain].
+  final BoxFit fit;
 
   /// Widest raster to decode the artwork into. Embedded previews are often
   /// far larger than the slot showing them, and a decoded image costs
@@ -183,7 +188,7 @@ class ModThumb extends StatelessWidget {
       borderRadius: borderRadius ?? BorderRadius.zero,
       child: Image.memory(
         data,
-        fit: BoxFit.cover,
+        fit: fit,
         width: double.infinity,
         height: double.infinity,
         gaplessPlayback: true,
