@@ -12,6 +12,7 @@ import 'game_theme.dart';
 import 'l10n.dart';
 import 'mod_presentation.dart' show modDate, modTitle, modVersion;
 import 'move_folder_dialog.dart';
+import 'tag_dialog.dart';
 import 'widgets.dart';
 
 /// Full page for one mod: artwork, enable toggle, facts, file details.
@@ -632,6 +633,96 @@ class DetailView extends StatelessWidget {
     );
   }
 
+  /// The mod's own labels, and the way onto it: a chip each, an x to take
+  /// one off, and a button that opens the same dialog the selection bar
+  /// does. Drawn even with nothing on it, because a mod's page is where
+  /// someone goes looking for where tags are put on in the first place.
+  Widget _tagsSection(GameTheme t, AppController c, L l, Mod mod) {
+    final tags = c.tagsOf(mod);
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 5),
+            child: Icon(Icons.sell_rounded, size: 15, color: t.muted),
+          ),
+          const SizedBox(width: 9),
+          Expanded(
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                for (final tag in tags) _tagChip(t, c, l, mod, tag),
+                HoverBuilder(
+                  cursor: SystemMouseCursors.click,
+                  builder: (context, hovered) => GestureDetector(
+                    onTap: () => askAboutTags(context, c,
+                        theme: t, mods: [mod]),
+                    child: Text(
+                      tags.isEmpty ? l.tagAddFirst : '+',
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w800,
+                        color: t.accent,
+                        decoration: hovered
+                            ? TextDecoration.underline
+                            : TextDecoration.none,
+                        decorationColor: t.accent,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _tagChip(GameTheme t, AppController c, L l, Mod mod, String tag) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(10, 4, 4, 4),
+      decoration: BoxDecoration(
+        color: t.tint,
+        border: Border.all(color: t.accent.withValues(alpha: .4)),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            tag,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              color: t.accent,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Tooltip(
+            message: l.tagRemove(tag),
+            waitDuration: const Duration(milliseconds: 500),
+            child: HoverBuilder(
+              cursor: SystemMouseCursors.click,
+              builder: (context, hovered) => GestureDetector(
+                onTap: () => c.removeTag([mod], tag),
+                child: Icon(
+                  Icons.close_rounded,
+                  size: 14,
+                  color: t.accent.withValues(alpha: hovered ? 1 : .55),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// "The creator published a new version": the accent-tinted twin of the
   /// advisory panel, for a mod that came from The Exchange and has a
   /// newer version waiting there. The button installs it on the spot,
@@ -770,6 +861,7 @@ class DetailView extends StatelessWidget {
           const SizedBox(height: 12),
           _ignoredConflictsFact(t, c, l, mod, ignored),
         ],
+        _tagsSection(t, c, l, mod),
         ..._contentsSection(t, c, l, mod),
         const SizedBox(height: 22),
         Text(

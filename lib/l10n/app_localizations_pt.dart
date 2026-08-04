@@ -1215,6 +1215,83 @@ class LPt extends L {
   String get tooDeepShow => 'Mostra quais';
 
   @override
+  String get duplicatesFind => 'Procurar mods repetidos';
+
+  @override
+  String duplicatesScanning(int done, int total) {
+    return 'Lendo os mods que podem estar repetidos… $done de $total';
+  }
+
+  @override
+  String get duplicatesStop => 'Parar';
+
+  @override
+  String duplicatesBanner(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mods são o mesmo arquivo que outros',
+      one: 'Um mod é o mesmo arquivo que outro',
+    );
+    return '$_temp0 - dá pra recuperar $size.';
+  }
+
+  @override
+  String get duplicatesShow => 'Mostra quais';
+
+  @override
+  String get duplicatesSelectExtras => 'Marcar as cópias sobrando';
+
+  @override
+  String get duplicatesClean => 'Não tem nada repetido aqui.';
+
+  @override
+  String get duplicatesDismiss => 'Beleza';
+
+  @override
+  String tagTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Tags de $count mods',
+      one: 'Tags desse mod',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tagBody =>
+      'Suas próprias tags, pra achar as coisas depois. Toca numa pra colocar ou tirar.';
+
+  @override
+  String get tagHint => 'Tag nova';
+
+  @override
+  String get tagAdd => 'Adicionar';
+
+  @override
+  String get tagDone => 'Pronto';
+
+  @override
+  String get tagHeading => 'Tags';
+
+  @override
+  String get tagAddFirst => 'Adicionar uma tag';
+
+  @override
+  String tagRemove(String tag) {
+    return 'Tirar “$tag”';
+  }
+
+  @override
+  String get selectionTag => 'Etiquetar…';
+
+  @override
+  String folderAlsoReading(String folders) {
+    return 'Seu jogo também lê $folders, então os mods que estão lá também aparecem nesta biblioteca.';
+  }
+
+  @override
   String errorNoWriteAccess(String folder) {
     return 'O app não tem permissão para escrever em “$folder”. O sistema protege essa pasta: dá permissão de escrita pra sua conta, ou escolhe outra pasta nas Configurações.';
   }

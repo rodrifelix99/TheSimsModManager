@@ -1,7 +1,7 @@
 name: sims_mod_manager
 description: Cross-platform desktop mod manager for The Sims series (and future moddable games).
 publish_to: "none"
-version: 2.3.4
+version: 2.3.5
 environment:
   sdk: ^3.5.0
 
@@ -18,6 +18,10 @@ dependencies:
   shared_preferences: ^2.3.0
   window_manager: ^0.5.2
   archive: ^4.0.9
+  # SHA-256 for the duplicate scan (core/duplicates.dart). Pure Dart and
+  # already in the lock as a transitive dependency; 3.0.7 asks for Dart
+  # 3.4, well below what the release pin ships.
+  crypto: ^3.0.7
   desktop_drop: ^0.7.1
   # Held below 7.1.0 deliberately: from there app_links wants Dart 3.12 and
   # Flutter 3.44, and release.yml is pinned to 3.41.9 until

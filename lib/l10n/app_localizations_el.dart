@@ -1219,6 +1219,83 @@ class LEl extends L {
   String get tooDeepShow => 'Δείτε τα';
 
   @override
+  String get duplicatesFind => 'Βρες διπλά mods';
+
+  @override
+  String duplicatesScanning(int done, int total) {
+    return 'Διαβάζω τα mods που μπορεί να είναι διπλά… $done από $total';
+  }
+
+  @override
+  String get duplicatesStop => 'Σταμάτα';
+
+  @override
+  String duplicatesBanner(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mods είναι ακριβώς τα ίδια αρχεία με κάποια άλλα',
+      one: 'Ένα mod είναι ακριβώς το ίδιο αρχείο με κάποιο άλλο',
+    );
+    return '$_temp0 - είναι $size που παίρνεις πίσω.';
+  }
+
+  @override
+  String get duplicatesShow => 'Δείξε μου ποια';
+
+  @override
+  String get duplicatesSelectExtras => 'Τσέκαρε τα αντίγραφα που περισσεύουν';
+
+  @override
+  String get duplicatesClean => 'Εδώ δεν υπάρχει τίποτα διπλό.';
+
+  @override
+  String get duplicatesDismiss => 'Εντάξει';
+
+  @override
+  String tagTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ετικέτες $count mods',
+      one: 'Ετικέτες αυτού του mod',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tagBody =>
+      'Οι δικές σου ετικέτες, για να τα βρίσκεις μετά. Πάτα μία για να μπει ή να βγει.';
+
+  @override
+  String get tagHint => 'Νέα ετικέτα';
+
+  @override
+  String get tagAdd => 'Πρόσθεσε';
+
+  @override
+  String get tagDone => 'Έτοιμο';
+
+  @override
+  String get tagHeading => 'Ετικέτες';
+
+  @override
+  String get tagAddFirst => 'Βάλε ετικέτα';
+
+  @override
+  String tagRemove(String tag) {
+    return 'Βγάλε «$tag»';
+  }
+
+  @override
+  String get selectionTag => 'Ετικέτα…';
+
+  @override
+  String folderAlsoReading(String folders) {
+    return 'Το παιχνίδι σου διαβάζει και το $folders, οπότε τα mods που είναι εκεί μέσα είναι κι αυτά στη βιβλιοθήκη.';
+  }
+
+  @override
   String errorNoWriteAccess(String folder) {
     return 'Η εφαρμογή δεν επιτρέπεται να γράψει στο «$folder». Το σύστημά σας προστατεύει αυτόν τον φάκελο - δώστε στον λογαριασμό σας δικαίωμα εγγραφής σε αυτόν ή δείξτε στην εφαρμογή άλλη τοποθεσία από τις Ρυθμίσεις.';
   }

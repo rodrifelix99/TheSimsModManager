@@ -1210,6 +1210,83 @@ class LEn extends L {
   String get tooDeepShow => 'Show them';
 
   @override
+  String get duplicatesFind => 'Find duplicate mods';
+
+  @override
+  String duplicatesScanning(int done, int total) {
+    return 'Reading the mods that could be copies… $done of $total';
+  }
+
+  @override
+  String get duplicatesStop => 'Stop';
+
+  @override
+  String duplicatesBanner(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mods are the same file as another one',
+      one: 'One mod is the same file as another one',
+    );
+    return '$_temp0 - that’s $size you could have back.';
+  }
+
+  @override
+  String get duplicatesShow => 'Show them';
+
+  @override
+  String get duplicatesSelectExtras => 'Tick the spare copies';
+
+  @override
+  String get duplicatesClean => 'Nothing in here is a copy of anything else.';
+
+  @override
+  String get duplicatesDismiss => 'Got it';
+
+  @override
+  String tagTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Tags for $count mods',
+      one: 'Tags for this mod',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tagBody =>
+      'Your own labels, for finding things later. Tap one to put it on or take it off.';
+
+  @override
+  String get tagHint => 'New tag';
+
+  @override
+  String get tagAdd => 'Add';
+
+  @override
+  String get tagDone => 'Done';
+
+  @override
+  String get tagHeading => 'Tags';
+
+  @override
+  String get tagAddFirst => 'Add a tag';
+
+  @override
+  String tagRemove(String tag) {
+    return 'Remove “$tag”';
+  }
+
+  @override
+  String get selectionTag => 'Tag…';
+
+  @override
+  String folderAlsoReading(String folders) {
+    return 'Your game reads $folders as well, so mods in there are in this library too.';
+  }
+
+  @override
   String errorNoWriteAccess(String folder) {
     return 'The app isn’t allowed to write to “$folder”. Your system protects that folder - give your account write access to it, or point the app somewhere else in Settings.';
   }

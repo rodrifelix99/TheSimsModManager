@@ -1260,6 +1260,87 @@ class LRu extends L {
   String get tooDeepShow => 'Показать их';
 
   @override
+  String get duplicatesFind => 'Найти повторяющиеся моды';
+
+  @override
+  String duplicatesScanning(int done, int total) {
+    return 'Читаю моды, которые могут повторяться… $done из $total';
+  }
+
+  @override
+  String get duplicatesStop => 'Стоп';
+
+  @override
+  String duplicatesBanner(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count модов - это те же самые файлы, что и другие',
+      many: '$count модов - это те же самые файлы, что и другие',
+      few: '$count мода - это те же самые файлы, что и другие',
+      one: 'Один мод - это тот же самый файл, что и другой',
+    );
+    return '$_temp0 - можно освободить $size.';
+  }
+
+  @override
+  String get duplicatesShow => 'Показать их';
+
+  @override
+  String get duplicatesSelectExtras => 'Отметить лишние копии';
+
+  @override
+  String get duplicatesClean => 'Здесь ничего не повторяется.';
+
+  @override
+  String get duplicatesDismiss => 'Понятно';
+
+  @override
+  String tagTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Метки $count модов',
+      many: 'Метки $count модов',
+      few: 'Метки $count модов',
+      one: 'Метки этого мода',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tagBody =>
+      'Твои собственные метки, чтобы потом всё находить. Нажми на метку, чтобы поставить её или снять.';
+
+  @override
+  String get tagHint => 'Новая метка';
+
+  @override
+  String get tagAdd => 'Добавить';
+
+  @override
+  String get tagDone => 'Готово';
+
+  @override
+  String get tagHeading => 'Метки';
+
+  @override
+  String get tagAddFirst => 'Добавить метку';
+
+  @override
+  String tagRemove(String tag) {
+    return 'Снять «$tag»';
+  }
+
+  @override
+  String get selectionTag => 'Пометить…';
+
+  @override
+  String folderAlsoReading(String folders) {
+    return 'Твоя игра читает ещё и $folders, так что моды оттуда тоже есть в этой библиотеке.';
+  }
+
+  @override
   String errorNoWriteAccess(String folder) {
     return 'У приложения нет прав на запись в «$folder». Система защищает эту папку. Выдай своей учётной записи доступ на запись или выбери другую папку в настройках.';
   }

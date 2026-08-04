@@ -10,6 +10,7 @@ import '../core/app_message.dart';
 import '../core/conflicts.dart';
 import '../core/deep_link.dart';
 import '../core/demo_library.dart';
+import '../core/duplicates.dart';
 import '../core/folder_access.dart';
 import '../core/game_adapter.dart';
 import '../core/game_pack.dart';
@@ -22,6 +23,7 @@ import '../core/mod_advisories.dart';
 import '../core/mod_archive.dart';
 import '../core/mod_folder.dart';
 import '../core/mod_name.dart';
+import '../core/mod_tags.dart';
 import '../core/package_insight.dart';
 import '../core/placed_mods.dart';
 import '../core/save_game.dart';
@@ -195,6 +197,10 @@ class AppController extends ChangeNotifier {
     // Before anything lists a folder: every read and write of the disabled
     // marker asks the core layer for it, and the answer is this preference.
     disabledSuffix = settings.disabledSuffix ?? defaultDisabledSuffix;
+    // Here rather than in [init] for the same reason: the library reads
+    // the labels as it is built ([_setMods]), so a refresh that beat the
+    // load would draw a library with no tags on it and no chips for them.
+    _modTags = parseModTags(settings.modTagsJson);
     // Remote flags may land after the first frame (announcement banner,
     // kill switches); repaint when they do.
     this.analytics.onFlagsChanged = _onFlagsChanged;
@@ -424,6 +430,66 @@ class AppController extends ChangeNotifier {
   /// reads, the way [advisoriesOnly] does. Toggled from the banner.
   bool tooDeepOnly = false;
 
+  /// The labels the player has put on this game's mods, as stored: mod
+  /// path relative to the mods folder -> its tags. See `core/mod_tags.dart`.
+  Map<String, Map<String, Set<String>>> _modTags = {};
+
+  /// The invented library's tags. In memory only, and a separate bucket
+  /// rather than a flag on the records, because these preferences are
+  /// shared with the release build - the same bargain the demo library's
+  /// settled clashes make.
+  final Map<String, Map<String, Set<String>>> _demoModTags = {};
+
+  /// The current game's tags by the path each mod sits at right now, so
+  /// a card can ask for its labels without resolving a path per frame.
+  Map<String, List<String>> _tagsByMod = const {};
+
+  /// The tags in use in this library, in the order they are offered, with
+  /// how many mods carry each. What the filter row draws its chips from.
+  Map<String, int> tagCounts = const {};
+
+  /// When set, [filteredMods] narrows to the mods carrying this tag.
+  /// Null rather than an 'All' sentinel: unlike the file types, there is
+  /// no chip standing for every tag at once.
+  String? tagFilter;
+
+  /// What the last duplicate scan found: sets of mods that are the same
+  /// file, biggest saving first. Empty until [scanForDuplicates] runs -
+  /// unlike the conflict scan this one reads whole files, so it happens
+  /// when the user asks rather than on every load.
+  List<DuplicateSet> duplicateSets = const [];
+
+  /// Every path in [duplicateSets], for the filter and the card badge.
+  Set<String> duplicatePaths = const {};
+
+  /// Narrows [filteredMods] to [duplicatePaths], the way [conflictsOnly]
+  /// does.
+  bool duplicatesOnly = false;
+
+  /// (hashed, to hash) while a duplicate scan runs, null otherwise.
+  (int, int)? duplicateProgress;
+
+  /// Whether a scan has finished since this game was opened, so the UI
+  /// can tell "nothing is duplicated" from "nobody has looked yet". A
+  /// cancelled scan doesn't get to claim the library is clean.
+  bool duplicatesScanned = false;
+
+  /// Set when the user stops a running scan; the workers give up between
+  /// batches and whatever was hashed stays cached.
+  bool _cancelDuplicateScan = false;
+
+  /// SHA-256 per mod file, under the same key as the insight cache: the
+  /// enabled name, the size and the mtime. A file whose bytes changed
+  /// under a name that stayed put is a different file, and gets hashed
+  /// again rather than answered from here.
+  final Map<String, String> _digests = {};
+
+  /// The other folders this game reads mods from, when its own manifest
+  /// names any ([GameAdapter.extraModsDirectories]). Nothing chooses
+  /// these and nothing installs into them; they are listed so Settings
+  /// can say why the library holds more than the mods folder does.
+  List<Directory> extraModsDirs = const [];
+
   /// Alternate mods folders found on this machine (multiple installs,
   /// localized names), shown when the default guess fails or as choices.
   List<Directory> candidateDirs = const [];
@@ -605,6 +671,9 @@ class AppController extends ChangeNotifier {
       _selected.removeWhere((path) => !present.contains(path));
       if (!_selected.contains(_selectionAnchor)) _selectionAnchor = null;
     }
+    // The labels are keyed by where a mod sits, so they are re-read from
+    // the records here with the rest of the per-chip counts.
+    _applyTags();
     _libraryStamp++;
   }
 
@@ -616,7 +685,7 @@ class AppController extends ChangeNotifier {
   List<Mod> get filteredMods {
     final q = query.trim().toLowerCase();
     final key = '$_libraryStamp|$category|$folder|$conflictsOnly'
-        '|$advisoriesOnly|$tooDeepOnly|$stateFilter'
+        '|$advisoriesOnly|$tooDeepOnly|$duplicatesOnly|$tagFilter|$stateFilter'
         '|${settings.showDisabled}|${sort.name}|$disabledLast|$q';
     final cached = _filtered;
     if (cached != null && _filteredKey == key) return cached;
@@ -632,6 +701,8 @@ class AppController extends ChangeNotifier {
             (!conflictsOnly || conflictPaths.contains(mod.path)) &&
             (!advisoriesOnly || advisories.containsKey(mod.path)) &&
             (!tooDeepOnly || tooDeepPaths.contains(mod.path)) &&
+            (!duplicatesOnly || duplicatePaths.contains(mod.path)) &&
+            (tagFilter == null || _hasTag(mod, tagFilter!)) &&
             (stateFilter == ModStateFilter.all ||
                 mod.isEnabled == (stateFilter == ModStateFilter.enabled)) &&
             (!hideDisabled || mod.isEnabled) &&
@@ -903,6 +974,8 @@ class AppController extends ChangeNotifier {
       conflictsOnly ||
       advisoriesOnly ||
       tooDeepOnly ||
+      duplicatesOnly ||
+      tagFilter != null ||
       stateFilter != ModStateFilter.all;
 
   /// Narrows the library to the enabled or the disabled mods, or back to
@@ -936,6 +1009,8 @@ class AppController extends ChangeNotifier {
     conflictsOnly = false;
     advisoriesOnly = false;
     tooDeepOnly = false;
+    duplicatesOnly = false;
+    tagFilter = null;
     stateFilter = ModStateFilter.all;
     notifyListeners();
   }
@@ -1295,6 +1370,212 @@ class AppController extends ChangeNotifier {
     await _dropIgnored(held, notify: false);
   }
 
+  /// The labels on [mod], in the order they are drawn. Empty for most
+  /// mods, which is why this answers from a map built once per library
+  /// rather than resolving a path: it is asked on every card of every
+  /// frame.
+  List<String> tagsOf(Mod mod) => _tagsByMod[mod.path] ?? const [];
+
+  bool _hasTag(Mod mod, String tag) {
+    final held = _tagsByMod[mod.path];
+    if (held == null) return false;
+    final key = tagKey(tag);
+    return held.any((one) => tagKey(one) == key);
+  }
+
+  /// How many mods carry [tag], for its chip.
+  int tagCount(String tag) => tagCounts[tag] ?? 0;
+
+  /// Narrows the library to one tag, or lets go of it when [tag] is
+  /// already the one showing.
+  void setTagFilter(String? tag) {
+    if (tag != null && tagKey(tag) == tagKey(tagFilter ?? '')) tag = null;
+    if (tag == tagFilter) return;
+    playSound(UiSound.cycle);
+    tagFilter = tag;
+    if (tag != null) {
+      // The tag itself is the user's own words and never leaves the
+      // machine; how many mods wear it is ours to count.
+      analytics.capture(
+          'tag_filtered', {'game': _adapter.game.id, 'mods': tagCount(tag)});
+    }
+    notifyListeners();
+  }
+
+  /// Which bucket [mod]'s labels belong in: the invented library's stay
+  /// in memory, everything else is written down.
+  Map<String, Map<String, Set<String>>> _tagBucketFor(Mod mod) =>
+      isDemoMod(mod) ? _demoModTags : _modTags;
+
+  /// Where a mod is written down in the records: its path while switched
+  /// on, relative to the mods folder. Null when there is no folder to
+  /// measure from, which is a library nothing can be tagged in anyway.
+  String? _tagRecordPath(Mod mod) {
+    final root = modsDir?.path;
+    if (root == null) return null;
+    return p.relative(enabledPathOf(mod.path), from: root);
+  }
+
+  /// Rebuilds what the library draws from the records: every mod's
+  /// labels by the path it sits at now, and the vocabulary with its
+  /// counts. Runs whenever the library or the records change, which is
+  /// what keeps a chip's count honest after a delete.
+  void _applyTags() {
+    final gameId = _adapter.game.id;
+    final stored = _modTags[gameId];
+    final invented = _demoModTags[gameId];
+    if ((stored == null || stored.isEmpty) &&
+        (invented == null || invented.isEmpty)) {
+      if (_tagsByMod.isNotEmpty || tagCounts.isNotEmpty) {
+        _tagsByMod = const {};
+        tagCounts = const {};
+        _libraryStamp++;
+      }
+      tagFilter = null;
+      return;
+    }
+    final root = modsDir?.path;
+    final byMod = <String, List<String>>{};
+    if (root != null) {
+      for (final mod in mods) {
+        final record = p.relative(enabledPathOf(mod.path), from: root);
+        final held = (isDemoMod(mod) ? invented : stored)?[record];
+        if (held == null || held.isEmpty) continue;
+        byMod[mod.path] = sortTags(held);
+      }
+    }
+    _tagsByMod = byMod;
+    tagCounts = countTags(byMod.values);
+    // A tag whose last mod was deleted or moved out of sight leaves with
+    // it; a filter still pointing at it would show an empty library and
+    // no chip to explain why.
+    final filter = tagFilter;
+    if (filter != null && !tagCounts.keys.any((t) => tagKey(t) == tagKey(filter))) {
+      tagFilter = null;
+    }
+    _libraryStamp++;
+  }
+
+  /// Puts [raw] on every mod in [targets]. The spelling already in use
+  /// wins over the one just typed, so "Spooky" typed over a library of
+  /// "spooky" mods joins that chip instead of starting a second one.
+  /// A mod already carrying the tag, and one already at [maxTagsPerMod],
+  /// are both left alone.
+  Future<void> addTag(List<Mod> targets, String raw) async {
+    final tag = sanitizeTag(raw);
+    if (tag == null || targets.isEmpty) return;
+    final existing = tagCounts.keys.firstWhere(
+        (held) => tagKey(held) == tagKey(tag),
+        orElse: () => tag);
+    var added = 0;
+    var persist = false;
+    for (final mod in targets) {
+      final record = _tagRecordPath(mod);
+      if (record == null) continue;
+      final bucket = _tagBucketFor(mod);
+      final gameId = _adapter.game.id;
+      final held = bucket[gameId]?[record] ?? const <String>{};
+      if (held.any((t) => tagKey(t) == tagKey(existing))) continue;
+      if (held.length >= maxTagsPerMod) continue;
+      (bucket[gameId] ??= {})[record] = {...held, existing};
+      added++;
+      persist |= identical(bucket, _modTags);
+    }
+    if (added == 0) return;
+    playSound(UiSound.click);
+    analytics.capture('mods_tagged',
+        {'game': _adapter.game.id, 'mods': added, 'tags': tagCounts.length});
+    await _rememberTags(persist: persist);
+  }
+
+  /// Takes [tag] off every mod in [targets] - which is also the only way
+  /// a tag itself goes away, since a tag nothing carries is not a thing
+  /// the app keeps.
+  Future<void> removeTag(List<Mod> targets, String tag) async {
+    final key = tagKey(tag);
+    var removed = 0;
+    var persist = false;
+    final gameId = _adapter.game.id;
+    for (final mod in targets) {
+      final record = _tagRecordPath(mod);
+      if (record == null) continue;
+      final bucket = _tagBucketFor(mod);
+      final held = bucket[gameId]?[record];
+      if (held == null) continue;
+      final kept = {
+        for (final tag in held)
+          if (tagKey(tag) != key) tag,
+      };
+      if (kept.length == held.length) continue;
+      if (kept.isEmpty) {
+        bucket[gameId]!.remove(record);
+        if (bucket[gameId]!.isEmpty) bucket.remove(gameId);
+      } else {
+        bucket[gameId]![record] = kept;
+      }
+      removed++;
+      persist |= identical(bucket, _modTags);
+    }
+    if (removed == 0) return;
+    playSound(UiSound.click);
+    analytics.capture(
+        'mods_untagged', {'game': _adapter.game.id, 'mods': removed});
+    await _rememberTags(persist: persist);
+  }
+
+  Future<void> _rememberTags({required bool persist}) async {
+    if (persist) await settings.setModTagsJson(encodeModTags(_modTags));
+    _applyTags();
+    notifyListeners();
+  }
+
+  /// Drops the labels of a mod that has been uninstalled, the way
+  /// [_forgetIgnored] drops its settled clashes: a record is a path, and
+  /// a kept one would silently land on whatever is installed there next.
+  Future<void> _forgetTags(Mod mod) async {
+    final record = _tagRecordPath(mod);
+    if (record == null) return;
+    final gameId = _adapter.game.id;
+    var persist = false;
+    var changed = false;
+    for (final bucket in [_modTags, _demoModTags]) {
+      final held = bucket[gameId];
+      if (held == null || !held.containsKey(record)) continue;
+      held.remove(record);
+      if (held.isEmpty) bucket.remove(gameId);
+      changed = true;
+      persist |= identical(bucket, _modTags);
+    }
+    if (!changed) return;
+    if (persist) await settings.setModTagsJson(encodeModTags(_modTags));
+  }
+
+  /// Labels follow their mods through a move, like every other record
+  /// keyed by where a mod sits.
+  Future<void> _repathTags(Map<String, String> renamed) async {
+    final gameId = _adapter.game.id;
+    var persist = false;
+    var changed = false;
+    for (final bucket in [_modTags, _demoModTags]) {
+      final held = bucket[gameId];
+      if (held == null || held.isEmpty) continue;
+      final rebuilt = <String, Set<String>>{};
+      var touched = false;
+      for (final entry in held.entries) {
+        final to = renamed[entry.key];
+        touched |= to != null;
+        rebuilt[to ?? entry.key] = entry.value;
+      }
+      if (!touched) continue;
+      bucket[gameId] = rebuilt;
+      changed = true;
+      persist |= identical(bucket, _modTags);
+    }
+    if (!changed) return;
+    if (persist) await settings.setModTagsJson(encodeModTags(_modTags));
+    _applyTags();
+  }
+
   Future<void> _rememberIgnored(
       {required bool persist, bool notify = true}) async {
     if (persist) {
@@ -1317,6 +1598,30 @@ class AppController extends ChangeNotifier {
   void _rescanWarnings() {
     _rescanConflicts();
     _rematchAdvisories();
+    _regroupDuplicates();
+  }
+
+  /// Rebuilds the duplicate sets from the digests already in hand. Cheap
+  /// and synchronous, which is the whole reason the hashes are cached:
+  /// deleting one copy of a pair has to stop the other being called a
+  /// duplicate, and re-reading the files to work that out would be
+  /// seconds of frozen window per click.
+  void _regroupDuplicates() {
+    final sets = _digests.isEmpty
+        ? const <DuplicateSet>[]
+        : duplicateSetsOf([
+            for (final mod in mods)
+              // Invented mods have no file behind them, so nothing was
+              // ever hashed for one.
+              if (!isDemoMod(mod)) mod,
+          ], digestOf);
+    duplicateSets = sets;
+    duplicatePaths = {
+      for (final set in sets)
+        for (final mod in set.mods) mod.path,
+    };
+    if (duplicatePaths.isEmpty) duplicatesOnly = false;
+    _libraryStamp++;
   }
 
   int get advisoryCount => advisories.length;
@@ -1616,6 +1921,182 @@ class AppController extends ChangeNotifier {
     }
   }
 
+  /// The digest of [mod]'s file, or null when nothing has hashed it: the
+  /// size pass ruled it out, the scan hasn't run, or the file could not
+  /// be read.
+  String? digestOf(Mod mod) => _digests[_insightKey(mod)];
+
+  /// How many mods are a copy of another mod.
+  int get duplicateCount => duplicatePaths.length;
+
+  /// What deleting all but one copy of everything would give back.
+  int get duplicateWastedBytes {
+    var total = 0;
+    for (final set in duplicateSets) {
+      total += set.wastedBytes;
+    }
+    return total;
+  }
+
+  bool isDuplicate(Mod mod) => duplicatePaths.contains(mod.path);
+
+  /// The other copies of [mod], for its page. Empty for a mod nothing is
+  /// duplicating.
+  List<Mod> duplicatesOf(Mod mod) {
+    for (final set in duplicateSets) {
+      if (set.mods.any((m) => m.path == mod.path)) {
+        return [
+          for (final other in set.mods)
+            if (other.path != mod.path) other,
+        ];
+      }
+    }
+    return const [];
+  }
+
+  /// Reads every mod that shares a size with another and works out which
+  /// of them are the same file. The one scan in the app the user starts
+  /// themselves: it reads whole files rather than headers, so putting it
+  /// on the library load would make every launch pay for a question most
+  /// people ask once.
+  ///
+  /// Only the files no digest is held for are opened, so running it again
+  /// after deleting a few copies costs almost nothing.
+  Future<void> scanForDuplicates() async {
+    if (duplicateProgress != null) return;
+    // Remote kill switch, like the other scans: this one reads whole
+    // files off an untrusted disk and can be stopped without a release.
+    if (!analytics.isEnabled('duplicate-scan', fallback: true)) return;
+    final real = [
+      for (final mod in mods)
+        if (!isDemoMod(mod)) mod,
+    ];
+    final candidates = duplicateCandidates(real);
+    final missing = [
+      for (final mod in candidates)
+        if (!_digests.containsKey(_insightKey(mod))) mod,
+    ];
+    _cancelDuplicateScan = false;
+    playSound(UiSound.click);
+    if (missing.isEmpty) {
+      // Everything worth reading was read on an earlier run - or there is
+      // nothing to read at all, which is still an answer and has to leave
+      // the screen saying so rather than saying nothing happened.
+      duplicatesScanned = true;
+      _regroupDuplicates();
+      notifyListeners();
+      return;
+    }
+    duplicateProgress = (0, missing.length);
+    notifyListeners();
+    // Repainting per batch is thousands of frames to move a bar by a
+    // hair; the artwork scan settled on the same ceiling.
+    final notifyEvery = (missing.length / 200).ceil();
+    var lastNotified = 0;
+    var hashed = 0;
+    try {
+      final found = await hashModFiles(
+        missing,
+        onProgress: (done, total) {
+          duplicateProgress = (done, total);
+          if (done - lastNotified < notifyEvery && done < total) return;
+          lastNotified = done;
+          notifyListeners();
+        },
+        isCancelled: () => _cancelDuplicateScan,
+      );
+      for (final mod in missing) {
+        final digest = found[mod.path];
+        if (digest != null) {
+          _digests[_insightKey(mod)] = digest;
+          hashed++;
+        }
+      }
+    } catch (e, stack) {
+      analytics.captureException(e, stack);
+      lastError = errorMessage(e);
+      playSound(UiSound.error);
+    } finally {
+      duplicateProgress = null;
+    }
+    // A scan that was stopped halfway has looked at some of the library,
+    // which is not the same as having looked at it.
+    duplicatesScanned = !_cancelDuplicateScan;
+    _regroupDuplicates();
+    analytics.capture('duplicate_scan_completed', {
+      'game': _adapter.game.id,
+      'mods': real.length,
+      'hashed': hashed,
+      'sets': duplicateSets.length,
+      'duplicates': duplicateCount,
+      'wasted_bytes': duplicateWastedBytes,
+      'cancelled': _cancelDuplicateScan,
+    });
+    if (!_cancelDuplicateScan) {
+      playSound(duplicateSets.isEmpty ? UiSound.click : UiSound.alert);
+    }
+    notifyListeners();
+  }
+
+  /// Puts away a finished scan's "nothing is duplicated" answer. The
+  /// found-something version of that banner has no dismiss: it describes
+  /// the library as it is, and leaves on its own when the copies do.
+  void dismissDuplicateResult() {
+    if (!duplicatesScanned || duplicateSets.isNotEmpty) return;
+    playSound(UiSound.click);
+    duplicatesScanned = false;
+    notifyListeners();
+  }
+
+  /// Stops a running scan. What was already hashed stays cached, so
+  /// starting again picks up where this left off.
+  void cancelDuplicateScan() {
+    if (duplicateProgress == null) return;
+    playSound(UiSound.click);
+    _cancelDuplicateScan = true;
+  }
+
+  /// Narrows the library to the mods that have a copy, or back to all of
+  /// them. No-op when nothing is duplicated.
+  void showOnlyDuplicates() {
+    if (!duplicatesOnly && duplicatePaths.isEmpty) return;
+    playSound(UiSound.cycle);
+    duplicatesOnly = !duplicatesOnly;
+    if (duplicatesOnly) {
+      analytics.capture('duplicates_filtered', {
+        'game': _adapter.game.id,
+        'sets': duplicateSets.length,
+        'duplicates': duplicateCount,
+      });
+    }
+    notifyListeners();
+  }
+
+  /// Ticks every copy but one in each set, so the extras go through the
+  /// same confirmed, cancellable delete as any other selection rather
+  /// than through a second remover written for this screen. Which copy
+  /// is spared is [DuplicateSet.mods]' first, and the user is free to
+  /// untick and choose another - the bytes cannot say which copy of an
+  /// identical pair someone meant to keep.
+  void selectDuplicateExtras() {
+    if (duplicateSets.isEmpty) return;
+    final extras = [
+      for (final set in duplicateSets) ...set.mods.skip(1),
+    ];
+    if (extras.isEmpty) return;
+    playSound(UiSound.select);
+    for (final mod in extras) {
+      _selected.add(mod.path);
+    }
+    _selectionAnchor = null;
+    analytics.capture('duplicate_extras_selected', {
+      'game': _adapter.game.id,
+      'mods': extras.length,
+      'bytes': duplicateWastedBytes,
+    });
+    notifyListeners();
+  }
+
   /// Feed for the loading screen's floating backdrop: any mod's cleaned-up
   /// title plus whatever artwork the scan has cached for it so far (more
   /// appears as batches finish). One item at a time, because the backdrop
@@ -1900,7 +2381,16 @@ class AppController extends ChangeNotifier {
     conflictsOnly = false;
     advisoriesOnly = false;
     tooDeepOnly = false;
+    duplicatesOnly = false;
+    // Another game's library, another set of labels on it.
+    tagFilter = null;
     stateFilter = ModStateFilter.all;
+    // The digests were another game's files, and the answer they add up
+    // to is about a library that is no longer on screen.
+    _digests.clear();
+    duplicateSets = const [];
+    duplicatePaths = const {};
+    duplicatesScanned = false;
     _selectedModPath = null;
     // The ticks were on another game's files.
     _selected.clear();
@@ -2075,6 +2565,8 @@ class AppController extends ChangeNotifier {
       modDepthLimit = dir == null ? null : await _adapter.modDepthLimit(dir);
       unmetRequirements =
           dir == null ? const [] : await _adapter.unmetRequirements(dir);
+      extraModsDirs =
+          dir == null ? const [] : await _adapter.extraModsDirectories(dir);
       // Settings only offers to ask where mods go when there is somewhere
       // else for them to go, which for The Sims 1 depends on the install
       // being found and on which expansions are in it.
@@ -2359,6 +2851,7 @@ class AppController extends ChangeNotifier {
       await _forgetShopFile(mod);
       await _forgetPlaced(_adapter, modsDir, mod);
       await _forgetIgnored(mod);
+      await _forgetTags(mod);
     }
     await _refreshKeepingError(error);
   }
@@ -2540,6 +3033,7 @@ class AppController extends ChangeNotifier {
         await _forgetShopFile(mod);
         await _forgetPlaced(_adapter, modsDir, mod);
         await _forgetIgnored(mod);
+        await _forgetTags(mod);
       } catch (e, stack) {
         analytics.captureException(e, stack, mechanism: 'removeSelectedRecords');
       }
@@ -2725,6 +3219,7 @@ class AppController extends ChangeNotifier {
       // All of this before _setMods, which prunes anything whose path it
       // no longer recognises - and every one of these mods has a new one.
       _repathInsights(moved);
+      _repathDigests(moved);
       _repathSelection(moved);
       await _repathRecords(moved);
       final byOldPath = {for (final (from, to) in moved) from.path: to};
@@ -2782,6 +3277,18 @@ class AppController extends ChangeNotifier {
   /// file's size and date, so only the path part of the key changes -
   /// and without this a tidy-up would send every mod it touched back
   /// through the artwork scan on the next launch.
+  /// Digests follow their mods for the same reason the insights do: the
+  /// cache key is built from where a mod sits, and a move that dropped it
+  /// would re-read every moved file the next time anyone looked for
+  /// duplicates.
+  void _repathDigests(List<(Mod, Mod)> moved) {
+    for (final (from, to) in moved) {
+      final was = _insightKey(from);
+      final digest = _digests.remove(was);
+      if (digest != null) _digests[_insightKey(to)] = digest;
+    }
+  }
+
   void _repathInsights(List<(Mod, Mod)> moved) {
     for (final (from, to) in moved) {
       final was = _insightKey(from);
@@ -2818,6 +3325,7 @@ class AppController extends ChangeNotifier {
     };
     await _repathShopInstalls(renamed);
     await _repathIgnored(renamed);
+    await _repathTags(renamed);
   }
 
   Future<void> _repathShopInstalls(Map<String, String> renamed) async {

@@ -1218,6 +1218,83 @@ class LFr extends L {
   String get tooDeepShow => 'Montre-les-moi';
 
   @override
+  String get duplicatesFind => 'Trouver les mods en double';
+
+  @override
+  String duplicatesScanning(int done, int total) {
+    return 'Lecture des mods qui pourraient être des doublons… $done sur $total';
+  }
+
+  @override
+  String get duplicatesStop => 'Arrêter';
+
+  @override
+  String duplicatesBanner(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mods sont exactement le même fichier qu’un autre',
+      one: 'Un mod est exactement le même fichier qu’un autre',
+    );
+    return '$_temp0 - ça fait $size à récupérer.';
+  }
+
+  @override
+  String get duplicatesShow => 'Montre-les-moi';
+
+  @override
+  String get duplicatesSelectExtras => 'Cocher les copies en trop';
+
+  @override
+  String get duplicatesClean => 'Ici, rien n’est en double.';
+
+  @override
+  String get duplicatesDismiss => 'OK';
+
+  @override
+  String tagTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Étiquettes de $count mods',
+      one: 'Étiquettes de ce mod',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tagBody =>
+      'Tes propres étiquettes, pour retrouver tes affaires plus tard. Touche-en une pour la mettre ou l’enlever.';
+
+  @override
+  String get tagHint => 'Nouvelle étiquette';
+
+  @override
+  String get tagAdd => 'Ajouter';
+
+  @override
+  String get tagDone => 'Terminé';
+
+  @override
+  String get tagHeading => 'Étiquettes';
+
+  @override
+  String get tagAddFirst => 'Ajouter une étiquette';
+
+  @override
+  String tagRemove(String tag) {
+    return 'Enlever « $tag »';
+  }
+
+  @override
+  String get selectionTag => 'Étiqueter…';
+
+  @override
+  String folderAlsoReading(String folders) {
+    return 'Ton jeu lit aussi $folders, donc les mods qui s’y trouvent sont dans cette bibliothèque également.';
+  }
+
+  @override
   String errorNoWriteAccess(String folder) {
     return 'L’appli n’a pas le droit d’écrire dans « $folder ». Ton système protège ce dossier : donne à ton compte l’accès en écriture, ou choisis un autre dossier dans les Réglages.';
   }

@@ -1215,6 +1215,83 @@ class LIt extends L {
   String get tooDeepShow => 'Fammi vedere';
 
   @override
+  String get duplicatesFind => 'Trova i mod doppioni';
+
+  @override
+  String duplicatesScanning(int done, int total) {
+    return 'Sto leggendo i mod che potrebbero essere doppioni… $done di $total';
+  }
+
+  @override
+  String get duplicatesStop => 'Ferma';
+
+  @override
+  String duplicatesBanner(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mod sono lo stesso identico file di un altro',
+      one: 'Un mod è lo stesso identico file di un altro',
+    );
+    return '$_temp0 - sono $size che ti riprendi.';
+  }
+
+  @override
+  String get duplicatesShow => 'Mostrameli';
+
+  @override
+  String get duplicatesSelectExtras => 'Spunta le copie in più';
+
+  @override
+  String get duplicatesClean => 'Qui non c’è niente di doppio.';
+
+  @override
+  String get duplicatesDismiss => 'Ok';
+
+  @override
+  String tagTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Tag di $count mod',
+      one: 'Tag di questo mod',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tagBody =>
+      'I tuoi tag, per ritrovare le cose dopo. Toccane uno per metterlo o toglierlo.';
+
+  @override
+  String get tagHint => 'Nuovo tag';
+
+  @override
+  String get tagAdd => 'Aggiungi';
+
+  @override
+  String get tagDone => 'Fatto';
+
+  @override
+  String get tagHeading => 'Tag';
+
+  @override
+  String get tagAddFirst => 'Aggiungi un tag';
+
+  @override
+  String tagRemove(String tag) {
+    return 'Togli «$tag»';
+  }
+
+  @override
+  String get selectionTag => 'Tagga…';
+
+  @override
+  String folderAlsoReading(String folders) {
+    return 'Il tuo gioco legge anche $folders, quindi i mod che stanno lì sono in questa libreria pure loro.';
+  }
+
+  @override
   String errorNoWriteAccess(String folder) {
     return 'L’app non ha il permesso di scrivere in «$folder». Il sistema protegge quella cartella: dai al tuo account l’accesso in scrittura, o scegli un’altra cartella nelle Impostazioni.';
   }

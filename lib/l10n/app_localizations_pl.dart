@@ -1262,6 +1262,87 @@ class LPl extends L {
   String get tooDeepShow => 'Pokaż je';
 
   @override
+  String get duplicatesFind => 'Znajdź powtórzone mody';
+
+  @override
+  String duplicatesScanning(int done, int total) {
+    return 'Czytam mody, które mogą być kopiami… $done z $total';
+  }
+
+  @override
+  String get duplicatesStop => 'Zatrzymaj';
+
+  @override
+  String duplicatesBanner(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count modów to dokładnie te same pliki co inne',
+      many: '$count modów to dokładnie te same pliki co inne',
+      few: '$count mody to dokładnie te same pliki co inne',
+      one: 'Jeden mod to dokładnie ten sam plik co inny',
+    );
+    return '$_temp0 - odzyskasz $size.';
+  }
+
+  @override
+  String get duplicatesShow => 'Pokaż je';
+
+  @override
+  String get duplicatesSelectExtras => 'Zaznacz zbędne kopie';
+
+  @override
+  String get duplicatesClean => 'Nic tu się nie powtarza.';
+
+  @override
+  String get duplicatesDismiss => 'Jasne';
+
+  @override
+  String tagTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Tagi $count modów',
+      many: 'Tagi $count modów',
+      few: 'Tagi $count modów',
+      one: 'Tagi tego moda',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tagBody =>
+      'Twoje własne tagi, żeby później wszystko odnaleźć. Kliknij tag, żeby go dodać albo zdjąć.';
+
+  @override
+  String get tagHint => 'Nowy tag';
+
+  @override
+  String get tagAdd => 'Dodaj';
+
+  @override
+  String get tagDone => 'Gotowe';
+
+  @override
+  String get tagHeading => 'Tagi';
+
+  @override
+  String get tagAddFirst => 'Dodaj tag';
+
+  @override
+  String tagRemove(String tag) {
+    return 'Zdejmij „$tag”';
+  }
+
+  @override
+  String get selectionTag => 'Otaguj…';
+
+  @override
+  String folderAlsoReading(String folders) {
+    return 'Twoja gra czyta też $folders, więc mody z tego folderu też są w tej bibliotece.';
+  }
+
+  @override
   String errorNoWriteAccess(String folder) {
     return 'Apka nie ma uprawnień do zapisu w „$folder”. System chroni ten folder: nadaj swojemu kontu prawo zapisu albo wskaż inny folder w Ustawieniach.';
   }

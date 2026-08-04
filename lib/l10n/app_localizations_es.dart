@@ -1216,6 +1216,83 @@ class LEs extends L {
   String get tooDeepShow => 'Enséñamelos';
 
   @override
+  String get duplicatesFind => 'Buscar mods repetidos';
+
+  @override
+  String duplicatesScanning(int done, int total) {
+    return 'Leyendo los mods que podrían estar repetidos… $done de $total';
+  }
+
+  @override
+  String get duplicatesStop => 'Parar';
+
+  @override
+  String duplicatesBanner(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mods son el mismo archivo que otro',
+      one: 'Un mod es el mismo archivo que otro',
+    );
+    return '$_temp0: son $size que puedes recuperar.';
+  }
+
+  @override
+  String get duplicatesShow => 'Muéstramelos';
+
+  @override
+  String get duplicatesSelectExtras => 'Marcar las copias de más';
+
+  @override
+  String get duplicatesClean => 'Aquí no hay nada repetido.';
+
+  @override
+  String get duplicatesDismiss => 'Vale';
+
+  @override
+  String tagTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Etiquetas de $count mods',
+      one: 'Etiquetas de este mod',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tagBody =>
+      'Tus propias etiquetas, para encontrar cosas luego. Toca una para ponerla o quitarla.';
+
+  @override
+  String get tagHint => 'Etiqueta nueva';
+
+  @override
+  String get tagAdd => 'Añadir';
+
+  @override
+  String get tagDone => 'Listo';
+
+  @override
+  String get tagHeading => 'Etiquetas';
+
+  @override
+  String get tagAddFirst => 'Añadir una etiqueta';
+
+  @override
+  String tagRemove(String tag) {
+    return 'Quitar «$tag»';
+  }
+
+  @override
+  String get selectionTag => 'Etiquetar…';
+
+  @override
+  String folderAlsoReading(String folders) {
+    return 'Tu juego también lee $folders, así que los mods que haya ahí también están en esta biblioteca.';
+  }
+
+  @override
   String errorNoWriteAccess(String folder) {
     return 'La app no tiene permiso para escribir en «$folder». Tu sistema protege esa carpeta: dale permiso de escritura a tu cuenta, o elige otra carpeta en Ajustes.';
   }

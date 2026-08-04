@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as p;
 
 import '../app_version.dart';
 import '../core/game_adapter.dart' show defaultDisabledSuffix;
@@ -246,6 +247,33 @@ class SettingsView extends StatelessWidget {
                     ],
                   ],
                 ),
+                // Why the library holds more than this folder does. Only
+                // the game's own manifest puts anything here, so a user
+                // who never heard of it still gets told.
+                if (c.extraModsDirs.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Icons.subdirectory_arrow_right_rounded,
+                          size: 15, color: t.muted),
+                      const SizedBox(width: 7),
+                      Expanded(
+                        child: Text(
+                          l.folderAlsoReading([
+                            for (final dir in c.extraModsDirs)
+                              p.basename(dir.path),
+                          ].join(', ')),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: t.muted,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
                 if (c.modsDir == null && c.defaultPath != null) ...[
                   const SizedBox(height: 12),
                   Row(

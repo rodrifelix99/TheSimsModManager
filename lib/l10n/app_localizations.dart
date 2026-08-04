@@ -1849,6 +1849,114 @@ abstract class L {
   /// **'Show them'**
   String get tooDeepShow;
 
+  /// No description provided for @duplicatesFind.
+  ///
+  /// In en, this message translates to:
+  /// **'Find duplicate mods'**
+  String get duplicatesFind;
+
+  /// No description provided for @duplicatesScanning.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading the mods that could be copies… {done} of {total}'**
+  String duplicatesScanning(int done, int total);
+
+  /// No description provided for @duplicatesStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get duplicatesStop;
+
+  /// No description provided for @duplicatesBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{One mod is the same file as another one} other{{count} mods are the same file as another one}} - that’s {size} you could have back.'**
+  String duplicatesBanner(int count, String size);
+
+  /// No description provided for @duplicatesShow.
+  ///
+  /// In en, this message translates to:
+  /// **'Show them'**
+  String get duplicatesShow;
+
+  /// No description provided for @duplicatesSelectExtras.
+  ///
+  /// In en, this message translates to:
+  /// **'Tick the spare copies'**
+  String get duplicatesSelectExtras;
+
+  /// No description provided for @duplicatesClean.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing in here is a copy of anything else.'**
+  String get duplicatesClean;
+
+  /// No description provided for @duplicatesDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get duplicatesDismiss;
+
+  /// No description provided for @tagTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Tags for this mod} other{Tags for {count} mods}}'**
+  String tagTitle(int count);
+
+  /// No description provided for @tagBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your own labels, for finding things later. Tap one to put it on or take it off.'**
+  String get tagBody;
+
+  /// No description provided for @tagHint.
+  ///
+  /// In en, this message translates to:
+  /// **'New tag'**
+  String get tagHint;
+
+  /// No description provided for @tagAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get tagAdd;
+
+  /// No description provided for @tagDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get tagDone;
+
+  /// No description provided for @tagHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get tagHeading;
+
+  /// No description provided for @tagAddFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a tag'**
+  String get tagAddFirst;
+
+  /// No description provided for @tagRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove “{tag}”'**
+  String tagRemove(String tag);
+
+  /// No description provided for @selectionTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag…'**
+  String get selectionTag;
+
+  /// No description provided for @folderAlsoReading.
+  ///
+  /// In en, this message translates to:
+  /// **'Your game reads {folders} as well, so mods in there are in this library too.'**
+  String folderAlsoReading(String folders);
+
   /// No description provided for @errorNoWriteAccess.
   ///
   /// In en, this message translates to:

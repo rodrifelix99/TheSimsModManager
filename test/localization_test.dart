@@ -313,6 +313,9 @@ void main() {
       final tempDir = Directory.systemTemp.createTempSync('mod_manager_size');
       addTearDown(() => tempDir.deleteSync(recursive: true));
       File('${tempDir.path}/cozy_sofa.package').writeAsStringSync('x');
+      // Byte for byte the first one, so the duplicate banner below has
+      // something to report.
+      File('${tempDir.path}/cozy_sofa_copy.package').writeAsStringSync('x');
 
       final overflows = <String>[];
       final priorOnError = FlutterError.onError;
@@ -347,6 +350,20 @@ void main() {
 
       final strings = await L.delegate.load(Locale(language.code));
 
+      // The duplicate banner in its wordiest state: a sentence carrying a
+      // count and a size, with two actions beside it. Run from its own
+      // button, so a header that no longer has room for one fails here
+      // rather than in a screenshot. The scan reads real files, so it
+      // goes outside the fake-async zone like the library load above.
+      await tester.runAsync(() async {
+        await tester.tap(find.byTooltip(strings.duplicatesFind));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+      });
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text(strings.duplicatesSelectExtras), findsOneWidget,
+          reason: 'duplicate banner in ${language.name}');
+      expect(overflows, isEmpty, reason: 'duplicates in ${language.name}');
+
       // The selection bar drops in under the filters, carrying the count
       // in words as well as five buttons; ctrl-click is how the library
       // gets into it. Finding one of its buttons is what says it worked -
@@ -373,6 +390,17 @@ void main() {
       await tester.pump(const Duration(milliseconds: 500));
       expect(overflows, isEmpty, reason: 'new folder in ${language.name}');
       await tester.tap(find.text(strings.cancel).last);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      // The tag dialog: a field, a button beside it and a row per tag,
+      // all of them labelled in words that run long.
+      await tester.tap(find.byTooltip(strings.selectionTag));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text(strings.tagBody), findsOneWidget);
+      expect(overflows, isEmpty, reason: 'tag dialog in ${language.name}');
+      await tester.tap(find.text(strings.tagDone));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
 

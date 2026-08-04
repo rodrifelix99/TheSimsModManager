@@ -1112,6 +1112,80 @@ class LZh extends L {
   String get tooDeepShow => '看看是哪些';
 
   @override
+  String get duplicatesFind => '查找重复的模组';
+
+  @override
+  String duplicatesScanning(int done, int total) {
+    return '正在读取可能重复的模组… $done / $total';
+  }
+
+  @override
+  String get duplicatesStop => '停止';
+
+  @override
+  String duplicatesBanner(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '有 $count 个模组和别的模组是同一个文件',
+    );
+    return '$_temp0，清掉能省下 $size。';
+  }
+
+  @override
+  String get duplicatesShow => '看看是哪些';
+
+  @override
+  String get duplicatesSelectExtras => '勾选多余的副本';
+
+  @override
+  String get duplicatesClean => '这里没有重复的模组。';
+
+  @override
+  String get duplicatesDismiss => '知道了';
+
+  @override
+  String tagTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个模组的标签',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tagBody => '你自己的标签，方便以后找东西。点一下加上或去掉。';
+
+  @override
+  String get tagHint => '新标签';
+
+  @override
+  String get tagAdd => '添加';
+
+  @override
+  String get tagDone => '完成';
+
+  @override
+  String get tagHeading => '标签';
+
+  @override
+  String get tagAddFirst => '加个标签';
+
+  @override
+  String tagRemove(String tag) {
+    return '去掉“$tag”';
+  }
+
+  @override
+  String get selectionTag => '打标签…';
+
+  @override
+  String folderAlsoReading(String folders) {
+    return '你的游戏也会读取 $folders，所以那里的模组也在这个库里。';
+  }
+
+  @override
   String errorNoWriteAccess(String folder) {
     return '应用没有权限写入「$folder」。这个文件夹被系统保护着，给你的账户加上写入权限，或者在设置里换一个文件夹。';
   }

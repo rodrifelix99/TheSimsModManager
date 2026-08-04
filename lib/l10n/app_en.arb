@@ -584,6 +584,45 @@
     }
   },
   "tooDeepShow": "Show them",
+  "duplicatesFind": "Find duplicate mods",
+  "duplicatesScanning": "Reading the mods that could be copies… {done} of {total}",
+  "@duplicatesScanning": {
+    "placeholders": {
+      "done": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "duplicatesStop": "Stop",
+  "duplicatesBanner": "{count, plural, =1{One mod is the same file as another one} other{{count} mods are the same file as another one}} - that’s {size} you could have back.",
+  "@duplicatesBanner": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "size": { "type": "String" }
+    }
+  },
+  "duplicatesShow": "Show them",
+  "duplicatesSelectExtras": "Tick the spare copies",
+  "duplicatesClean": "Nothing in here is a copy of anything else.",
+  "duplicatesDismiss": "Got it",
+  "tagTitle": "{count, plural, =1{Tags for this mod} other{Tags for {count} mods}}",
+  "@tagTitle": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "tagBody": "Your own labels, for finding things later. Tap one to put it on or take it off.",
+  "tagHint": "New tag",
+  "tagAdd": "Add",
+  "tagDone": "Done",
+  "tagHeading": "Tags",
+  "tagAddFirst": "Add a tag",
+  "tagRemove": "Remove “{tag}”",
+  "@tagRemove": {
+    "placeholders": { "tag": { "type": "String" } }
+  },
+  "selectionTag": "Tag…",
+  "folderAlsoReading": "Your game reads {folders} as well, so mods in there are in this library too.",
+  "@folderAlsoReading": {
+    "placeholders": { "folders": { "type": "String" } }
+  },
   "errorNoWriteAccess": "The app isn’t allowed to write to “{folder}”. Your system protects that folder - give your account write access to it, or point the app somewhere else in Settings.",
   "@errorNoWriteAccess": {
     "placeholders": { "folder": { "type": "String" } }

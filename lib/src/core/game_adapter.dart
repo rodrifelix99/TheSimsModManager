@@ -151,6 +151,17 @@ abstract class GameAdapter {
 
   Future<List<Mod>> listMods(Directory modsDir);
 
+  /// Other folders this game loads mods from besides its mods folder,
+  /// and that hold nothing but the player's own files - so unlike The
+  /// Sims 1's routed folders ([installDestinations], `placed_mods.dart`)
+  /// they can be listed whole rather than remembered file by file.
+  ///
+  /// Empty for most games. The Sims 3 engine reads its list of folders
+  /// out of the Resource.cfg on disk, so the games that keep one answer
+  /// this from the file itself rather than from anything assumed here.
+  Future<List<Directory>> extraModsDirectories(Directory modsDir) async =>
+      const [];
+
   /// Every folder this game reads mods from, when that is more than one.
   ///
   /// Empty for every game whose mods all live in the mods folder, which is
@@ -413,19 +424,65 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
 
   @override
   Future<List<Mod>> listMods(Directory modsDir) async {
-    if (!await modsDir.exists()) return const [];
     final mods = <Mod>[];
+    // The mods folder first, then whatever else the game says it reads.
+    // Those extras are folders of the player's own, so they are swept
+    // exactly like the main one; where a mod sits is then the library's
+    // business rather than this one's.
+    await _sweep(modsDir, mods);
+    for (final extra in await extraModsDirectories(modsDir)) {
+      await _sweep(extra, mods);
+    }
+    mods.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    return mods;
+  }
+
+  Future<void> _sweep(Directory dir, List<Mod> into) async {
+    if (!await dir.exists()) return;
     // A subfolder the OS refuses to open (a name another tool wrote that
     // Windows can't address, a permission wall) must cost its own mods,
     // not the whole library.
     await for (final entity
-        in modsDir.list(recursive: true).handleError((Object _) {})) {
+        in dir.list(recursive: true).handleError((Object _) {})) {
       if (entity is! File) continue;
       final mod = toMod(entity);
-      if (mod != null) mods.add(mod);
+      if (mod != null) into.add(mod);
     }
-    mods.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-    return mods;
+  }
+
+  /// Read off the cfg the game actually has, like [modDepthLimit]: the
+  /// stock Sims 3 framework names an `Overrides` folder beside
+  /// `Packages`, people edit these by hand, and a game with no cfg at all
+  /// has only its mods folder.
+  @override
+  Future<List<Directory>> extraModsDirectories(Directory modsDir) async {
+    final cfg = resourceCfgFile(modsDir);
+    if (cfg == null) return const [];
+    String text;
+    try {
+      if (!await cfg.exists()) return const [];
+      text = await cfg.readAsString();
+    } catch (_) {
+      return const [];
+    }
+    final base = cfg.parent.path;
+    final found = <String, Directory>{};
+    for (final root in modFolderRoots(text)) {
+      final dir = Directory(
+          root.isEmpty ? base : p.joinAll([base, ...root.split('/')]));
+      // The mods folder is where the sweep already starts. A folder
+      // inside it, or one holding it, would hand back the same files a
+      // second time - which is a library counting every mod twice, and a
+      // conflict scan reporting every mod as a clash with itself.
+      if (p.equals(dir.path, modsDir.path)) continue;
+      if (p.isWithin(modsDir.path, dir.path)) continue;
+      if (p.isWithin(dir.path, modsDir.path)) continue;
+      final key = p.canonicalize(dir.path);
+      if (found.containsKey(key)) continue;
+      if (!await dir.exists()) continue;
+      found[key] = dir;
+    }
+    return found.values.toList();
   }
 
   /// One folder holds everything, unless a subclass says otherwise. The

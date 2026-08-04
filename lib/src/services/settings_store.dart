@@ -280,6 +280,13 @@ class SettingsStore {
   Future<void> setIgnoredConflictsJson(String value) =>
       _prefs.setString('ignoredConflicts', value);
 
+  /// The labels the player has put on their own mods, as JSON: game id ->
+  /// mod path (relative to that game's mods folder) -> the tags on it.
+  /// See `core/mod_tags.dart`.
+  String? get modTagsJson => _prefs.getString('modTags');
+  Future<void> setModTagsJson(String value) =>
+      _prefs.setString('modTags', value);
+
   /// Whether an install asks where to put things, for the games that read
   /// mods from more than one folder. On by default: the app's guess is
   /// right most of the time but wrong in ways only the user can see (a

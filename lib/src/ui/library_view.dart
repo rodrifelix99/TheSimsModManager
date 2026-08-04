@@ -13,6 +13,7 @@ import 'install_destination_dialog.dart';
 import 'l10n.dart';
 import 'mod_presentation.dart';
 import 'move_folder_dialog.dart';
+import 'tag_dialog.dart';
 import 'scan_backdrop.dart';
 import 'widgets.dart';
 
@@ -151,6 +152,8 @@ class LibraryView extends StatelessWidget {
                 _newFolderButton(t, c, l),
                 const SizedBox(width: 6),
               ],
+              _duplicateButton(t, c, l),
+              const SizedBox(width: 6),
               _refreshButton(t, c, l),
               const SizedBox(width: 14),
               _installButton(t, c, l),
@@ -165,6 +168,10 @@ class LibraryView extends StatelessWidget {
             _requirementBanner(t, c, l, key, text),
         if (c.tooDeepCount > 0) _tooDeepBanner(t, c, l),
         if (c.advisoryCount > 0) _advisoryBanner(t, c, l),
+        if (c.duplicateProgress != null ||
+            c.duplicateSets.isNotEmpty ||
+            c.duplicatesScanned)
+          _duplicateBanner(t, c, l),
         Padding(
           padding: const EdgeInsets.fromLTRB(28, 16, 28, 14),
           // The selection bar is a row of its own under the filters rather
@@ -470,6 +477,94 @@ class LibraryView extends StatelessWidget {
     );
   }
 
+  /// What the duplicate scan is doing or found. Three states in one
+  /// banner, because they are one thought: the scan running, the copies
+  /// it found, and the answer that there are none - which is worth
+  /// saying out loud, since a scan that reported nothing would otherwise
+  /// look like a button that did nothing.
+  Widget _duplicateBanner(GameTheme t, AppController c, L l) {
+    final progress = c.duplicateProgress;
+    final found = c.duplicateSets.isNotEmpty;
+    // Only the copies get the warning colours. A scan in flight and a
+    // clean library are both good news and shouldn't look like an alarm.
+    final color = found ? t.warning : t.accent;
+    final onTint = found ? t.onWarningTint : t.text;
+
+    Widget action(String label, VoidCallback onTap) => TextButton(
+          onPressed: onTap,
+          style: TextButton.styleFrom(
+            foregroundColor: color,
+            textStyle:
+                const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+          ),
+          child: Text(label),
+        );
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(28, 14, 28, 0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: .1),
+          border: Border.all(color: color, width: 1.5),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              progress != null
+                  ? Icons.hourglass_top_rounded
+                  : found
+                      ? Icons.difference_outlined
+                      : Icons.check_circle_outline_rounded,
+              size: 20,
+              color: color,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                progress != null
+                    ? l.duplicatesScanning(progress.$1, progress.$2)
+                    : found
+                        ? l.duplicatesBanner(c.duplicateCount,
+                            formatBytes(c.duplicateWastedBytes))
+                        : l.duplicatesClean,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: onTint,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            // Wrapped rather than a plain row: translated labels run long,
+            // and at the minimum window size two of them side by side is
+            // more width than this banner has.
+            Flexible(
+              child: Wrap(
+                alignment: WrapAlignment.end,
+                spacing: 2,
+                children: [
+                  if (progress != null)
+                    action(l.duplicatesStop, c.cancelDuplicateScan)
+                  else if (found) ...[
+                    action(l.duplicatesSelectExtras, c.selectDuplicateExtras),
+                    action(
+                        c.duplicatesOnly
+                            ? l.advisoryShowAll
+                            : l.duplicatesShow,
+                        c.showOnlyDuplicates),
+                  ] else
+                    action(l.duplicatesDismiss, c.dismissDuplicateResult),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _searchField(GameTheme t, AppController c, L l) {
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 210),
@@ -658,6 +753,41 @@ class LibraryView extends StatelessWidget {
               Icons.refresh_rounded,
               size: 18,
               color: hovered ? t.accent : t.muted,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Starts the duplicate scan, and stops it while one is running. The
+  /// only scan in the app with a button of its own: it reads whole files,
+  /// so it happens when someone asks rather than on every library load.
+  Widget _duplicateButton(GameTheme t, AppController c, L l) {
+    final running = c.duplicateProgress != null;
+    return Tooltip(
+      message: running ? l.duplicatesStop : l.duplicatesFind,
+      child: HoverBuilder(
+        cursor: SystemMouseCursors.click,
+        builder: (context, hovered) => GestureDetector(
+          onTap: running ? c.cancelDuplicateScan : c.scanForDuplicates,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            width: 34,
+            height: 40,
+            decoration: BoxDecoration(
+              color: hovered ? t.surface : t.surfaceAlt,
+              border: Border.all(color: t.border),
+              borderRadius: BorderRadius.circular(11),
+            ),
+            child: Icon(
+              running ? Icons.stop_rounded : Icons.difference_outlined,
+              size: 18,
+              // Lit while a scan is running or while its answer is what
+              // the library is showing, the way the sort button is.
+              color: hovered || running || c.duplicatesOnly
+                  ? t.accent
+                  : t.muted,
             ),
           ),
         ),
@@ -1233,6 +1363,8 @@ class _SelectionBar extends StatelessWidget {
                 theme: t,
                 mods: [for (final mod in c.selectedMods) if (c.canMove(mod)) mod],
                 method: 'selection')),
+      _action(t, l.selectionTag, Icons.sell_outlined, t.text,
+          () => askAboutTags(context, c, theme: t, mods: c.selectedMods)),
       _action(t, l.uninstall, Icons.delete_outline_rounded, t.warning,
           () => _confirmRemove(context, t, c, l)),
       _action(t, l.selectionClear, Icons.close_rounded, t.muted,
@@ -1417,7 +1549,12 @@ class _FolderHeader extends StatelessWidget {
 }
 
 /// One entry of the filter row: a category or a mods subfolder.
-typedef _FilterEntry = ({String label, bool isFolder});
+/// Which of the three axes a chip on the filter line belongs to: the
+/// file type the adapter decided, the subfolder the disk decided, or the
+/// label the player wrote themselves.
+enum _FilterKind { category, folder, tag }
+
+typedef _FilterEntry = ({String label, _FilterKind kind});
 
 /// The single-line filter row: category chips, then folder chips.
 /// Chips that don't fit move into a "..." popup menu at the end
@@ -1457,10 +1594,14 @@ class _FilterChipsState extends State<_FilterChips> {
   }
 
   List<_FilterEntry> _entries(AppController c) => [
-        for (final cat in c.categories) (label: cat, isFolder: false),
+        for (final cat in c.categories)
+          (label: cat, kind: _FilterKind.category),
         // Subfolders of the mods folder act as a second filter axis;
         // tapping the active one clears it again.
-        for (final f in c.folders) (label: f, isFolder: true),
+        for (final f in c.folders) (label: f, kind: _FilterKind.folder),
+        // The user's own labels are the third, and come last because
+        // they are the only axis a library can have none of.
+        for (final tag in c.tagCounts.keys) (label: tag, kind: _FilterKind.tag),
       ];
 
   @override
@@ -1483,9 +1624,11 @@ class _FilterChipsState extends State<_FilterChips> {
       },
       children: [
         for (final e in entries)
-          e.isFolder
-              ? _folderChip(t, c, e.label)
-              : _categoryChip(t, c, l, e.label),
+          switch (e.kind) {
+            _FilterKind.folder => _folderChip(t, c, e.label),
+            _FilterKind.tag => _tagChip(t, c, e.label),
+            _FilterKind.category => _categoryChip(t, c, l, e.label),
+          },
         _overflowButton(t, c),
       ],
     );
@@ -1501,6 +1644,18 @@ class _FilterChipsState extends State<_FilterChips> {
         // they filter on, since a file type and a folder of the user's
         // own sit side by side on this line.
         icon: cat == 'All' ? null : Icons.description_rounded,
+      );
+
+  /// A label the player wrote. Neither a drag source nor a drop target,
+  /// unlike the folder chips beside it: a tag is not a place, so there is
+  /// nothing to arrange and nowhere for a mod to land.
+  Widget _tagChip(GameTheme t, AppController c, String tag) => _chip(
+        t,
+        tag,
+        count: c.tagCount(tag),
+        active: tag == c.tagFilter,
+        onTap: () => c.setTagFilter(tag),
+        icon: Icons.sell_rounded,
       );
 
   /// A folder chip is also a drag source and two kinds of drop target:
@@ -1704,19 +1859,29 @@ class _FilterChipsState extends State<_FilterChips> {
   /// like the line chips, so folders reorder within the menu and drag out
   /// of it onto the line; category rows only tap.
   Widget _menuRow(GameTheme t, AppController c, L l, _FilterEntry e) {
-    final active = e.isFolder ? e.label == c.folder : e.label == c.category;
-    final count =
-        e.isFolder ? c.folderCount(e.label) : c.categoryCount(e.label);
+    final active = switch (e.kind) {
+      _FilterKind.folder => e.label == c.folder,
+      _FilterKind.tag => e.label == c.tagFilter,
+      _FilterKind.category => e.label == c.category,
+    };
+    final count = switch (e.kind) {
+      _FilterKind.folder => c.folderCount(e.label),
+      _FilterKind.tag => c.tagCount(e.label),
+      _FilterKind.category => c.categoryCount(e.label),
+    };
     final row = HoverBuilder(
       cursor: SystemMouseCursors.click,
       builder: (context, hovered) => GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () {
           _closeMenu();
-          if (e.isFolder) {
-            c.setFolder(e.label == c.folder ? 'All' : e.label);
-          } else {
-            c.setCategory(e.label);
+          switch (e.kind) {
+            case _FilterKind.folder:
+              c.setFolder(e.label == c.folder ? 'All' : e.label);
+            case _FilterKind.tag:
+              c.setTagFilter(e.label);
+            case _FilterKind.category:
+              c.setCategory(e.label);
           }
         },
         child: Container(
@@ -1724,9 +1889,13 @@ class _FilterChipsState extends State<_FilterChips> {
           color: hovered ? t.tint : Colors.transparent,
           child: Row(
             children: [
-              if (e.isFolder || e.label != 'All') ...[
+              if (e.kind != _FilterKind.category || e.label != 'All') ...[
                 Icon(
-                  e.isFolder ? Icons.folder_rounded : Icons.description_rounded,
+                  switch (e.kind) {
+                    _FilterKind.folder => Icons.folder_rounded,
+                    _FilterKind.tag => Icons.sell_rounded,
+                    _FilterKind.category => Icons.description_rounded,
+                  },
                   size: 14,
                   color: active ? t.accent : t.muted,
                 ),
@@ -1734,9 +1903,11 @@ class _FilterChipsState extends State<_FilterChips> {
               ],
               Flexible(
                 child: Text(
-                  e.isFolder
-                      ? folderChipLabel(e.label)
-                      : categoryChipLabel(l, e.label),
+                  switch (e.kind) {
+                    _FilterKind.folder => folderChipLabel(e.label),
+                    _FilterKind.tag => e.label,
+                    _FilterKind.category => categoryChipLabel(l, e.label),
+                  },
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -1759,7 +1930,9 @@ class _FilterChipsState extends State<_FilterChips> {
         ),
       ),
     );
-    if (!e.isFolder) return row;
+    // Only folders are draggable out of the menu; the arrangement being
+    // dragged is theirs alone.
+    if (e.kind != _FilterKind.folder) return row;
     return Draggable<String>(
       data: e.label,
       onDragStarted: () {

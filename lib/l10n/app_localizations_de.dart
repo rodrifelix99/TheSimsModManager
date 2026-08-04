@@ -1220,6 +1220,83 @@ class LDe extends L {
   String get tooDeepShow => 'Zeig sie mir';
 
   @override
+  String get duplicatesFind => 'Doppelte Mods finden';
+
+  @override
+  String duplicatesScanning(int done, int total) {
+    return 'Lese die Mods, die Kopien sein könnten… $done von $total';
+  }
+
+  @override
+  String get duplicatesStop => 'Stopp';
+
+  @override
+  String duplicatesBanner(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Mods sind dieselbe Datei wie ein anderer',
+      one: 'Ein Mod ist dieselbe Datei wie ein anderer',
+    );
+    return '$_temp0 - das sind $size, die du zurückbekommst.';
+  }
+
+  @override
+  String get duplicatesShow => 'Zeig sie mir';
+
+  @override
+  String get duplicatesSelectExtras => 'Die überzähligen Kopien anhaken';
+
+  @override
+  String get duplicatesClean => 'Hier ist nichts doppelt.';
+
+  @override
+  String get duplicatesDismiss => 'Alles klar';
+
+  @override
+  String tagTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Tags für $count Mods',
+      one: 'Tags für diesen Mod',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tagBody =>
+      'Deine eigenen Tags, damit du später alles wiederfindest. Tipp einen an, um ihn zu setzen oder zu entfernen.';
+
+  @override
+  String get tagHint => 'Neuer Tag';
+
+  @override
+  String get tagAdd => 'Hinzufügen';
+
+  @override
+  String get tagDone => 'Fertig';
+
+  @override
+  String get tagHeading => 'Tags';
+
+  @override
+  String get tagAddFirst => 'Tag hinzufügen';
+
+  @override
+  String tagRemove(String tag) {
+    return '„$tag“ entfernen';
+  }
+
+  @override
+  String get selectionTag => 'Taggen…';
+
+  @override
+  String folderAlsoReading(String folders) {
+    return 'Dein Spiel liest auch $folders, deshalb sind die Mods von dort ebenfalls in dieser Bibliothek.';
+  }
+
+  @override
   String errorNoWriteAccess(String folder) {
     return 'Die App darf nicht in „$folder“ schreiben. Dein System schützt diesen Ordner: gib deinem Konto Schreibrechte darauf, oder wähl in den Einstellungen einen anderen Ordner.';
   }

@@ -1126,6 +1126,80 @@ class LJa extends L {
   String get tooDeepShow => 'どれか見る';
 
   @override
+  String get duplicatesFind => '重複したMODを探す';
+
+  @override
+  String duplicatesScanning(int done, int total) {
+    return '重複しているかもしれないMODを読んでるよ… $done / $total';
+  }
+
+  @override
+  String get duplicatesStop => '中止';
+
+  @override
+  String duplicatesBanner(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count個のMOD',
+    );
+    return '$_temp0が、別のMODとまったく同じファイルだよ。$size分を取り戻せる。';
+  }
+
+  @override
+  String get duplicatesShow => 'どれか見る';
+
+  @override
+  String get duplicatesSelectExtras => '余分なコピーにチェック';
+
+  @override
+  String get duplicatesClean => 'ここには重複したMODはないよ。';
+
+  @override
+  String get duplicatesDismiss => '了解';
+
+  @override
+  String tagTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count個のMODのタグ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tagBody => 'あとで探すための、自分だけのタグだよ。タップで付けたり外したりできる。';
+
+  @override
+  String get tagHint => '新しいタグ';
+
+  @override
+  String get tagAdd => '追加';
+
+  @override
+  String get tagDone => '完了';
+
+  @override
+  String get tagHeading => 'タグ';
+
+  @override
+  String get tagAddFirst => 'タグを付ける';
+
+  @override
+  String tagRemove(String tag) {
+    return '「$tag」を外す';
+  }
+
+  @override
+  String get selectionTag => 'タグを付ける…';
+
+  @override
+  String folderAlsoReading(String folders) {
+    return 'ゲームは $folders も読み込むから、そこに入ってるMODもこのライブラリーに出てくるよ。';
+  }
+
+  @override
   String errorNoWriteAccess(String folder) {
     return 'アプリに「$folder」への書き込み権限がありません。このフォルダーはシステムに保護されています。アカウントに書き込み権限を付けるか、設定で別のフォルダーを選んでください。';
   }
