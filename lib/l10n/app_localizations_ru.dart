@@ -164,6 +164,9 @@ class LRu extends L {
       'Установка кладёт файлы прямо в твою папку модов. Скачивание просто сохранит файл там, где захочешь.';
 
   @override
+  String get shopDestination => 'Ставится в';
+
+  @override
   String get shopVariationPick => 'Выбери вариант';
 
   @override
@@ -385,6 +388,21 @@ class LRu extends L {
   @override
   String get moveBody =>
       'Файлы переедут в другую папку на диске. Больше ничего не меняется: что выключено, останется выключенным.';
+
+  @override
+  String get installFolderTitle => 'В какую папку?';
+
+  @override
+  String installFolderBody(String game) {
+    return 'Куда попадут файлы внутри твоей папки модов для $game.';
+  }
+
+  @override
+  String get installFolderChoose => 'Выбрать';
+
+  @override
+  String get installFolderEmpty =>
+      'Подпапок пока нет. Создай одну или оставь всё в папке модов.';
 
   @override
   String get folderEmptySection => 'Тут пока пусто';
@@ -827,6 +845,19 @@ class LRu extends L {
   }
 
   @override
+  String sectionShopFolder(String game) {
+    return 'THE EXCHANGE · $game';
+  }
+
+  @override
+  String get prefShopFolderTitle => 'Куда попадают моды из The Exchange';
+
+  @override
+  String prefShopFolderDesc(String folder) {
+    return 'Установки идут в $folder';
+  }
+
+  @override
   String get sectionFeedback => 'ОБРАТНАЯ СВЯЗЬ';
 
   @override
@@ -1108,13 +1139,25 @@ class LRu extends L {
   String get contentMeshes => 'меши';
 
   @override
+  String get modKindCas => 'CAS';
+
+  @override
+  String get modKindBuildBuy => 'Строительство';
+
+  @override
+  String get modKindGameplay => 'Геймплей';
+
+  @override
+  String get modKindScript => 'Скрипт';
+
+  @override
   String errorNoModFiles(String extensions, String name) {
     return 'Внутри $name нет файлов модов ($extensions).';
   }
 
   @override
   String errorUnreadableArchive(String name) {
-    return '$name - это не zip-архив, который приложение может прочитать.';
+    return '$name - это не архив, который приложение может прочитать.';
   }
 
   @override
@@ -2069,4 +2112,37 @@ class LRu extends L {
   @override
   String get setupHelpSimsMedieval =>
       'The Sims Medieval загружает моды из папки установки, а не из «Документов»: папка Mods > Packages рядом с файлами игры (например C:\\Program Files (x86)\\Origin Games\\The Sims Medieval) плюс файл Resource.cfg в папке установки, который говорит игре её читать. Приложение создаст и то, и другое (внутри Program Files Windows может запросить права администратора). Папка «Документы» > Electronic Arts > The Sims Medieval хранит только сохранения; моды там ничего не делают. Для Wine/CrossOver или своей библиотеки Steam укажи через «Выбрать папку» папку Mods > Packages внутри установки.';
+
+  @override
+  String get prefSubfoldersTitle => 'Папки включают вложенные папки';
+
+  @override
+  String get prefSubfoldersDesc =>
+      'Папка показывает и всё, что лежит внутри неё. Если выключить, cc и cc/defaults будут отдельными полками.';
+
+  @override
+  String deleteFolderTitle(String folder) {
+    return 'Удалить $folder?';
+  }
+
+  @override
+  String get deleteFolderBody =>
+      'Папка и всё, что в ней есть, исчезнет вместе с вложенными папками. Отменить это не получится.';
+
+  @override
+  String deleteFolderMods(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Будет удалено модов: $count',
+      one: 'Будет удалён 1 мод',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get deleteFolderEmpty => 'Модов внутри нет.';
+
+  @override
+  String get deleteFolder => 'Удалить папку';
 }

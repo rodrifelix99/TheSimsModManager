@@ -68,6 +68,7 @@
   "shopSaving": "Downloading…",
   "shopSaved": "Saved",
   "shopSaveHint": "Install drops the files straight into your mods folder. Download just saves the file, wherever you want it.",
+  "shopDestination": "Installs into",
   "shopVariationPick": "Pick a variation",
   "shopBack": "Back to the shelves",
   "shopCopyLink": "Copy link",
@@ -184,6 +185,13 @@
     "placeholders": { "count": { "type": "int" } }
   },
   "moveBody": "The files move on disk. Nothing else about them changes - anything switched off stays off.",
+  "installFolderTitle": "Which folder?",
+  "installFolderBody": "Where the files land inside your mods folder for {game}.",
+  "@installFolderBody": {
+    "placeholders": { "game": { "type": "String" } }
+  },
+  "installFolderChoose": "Choose",
+  "installFolderEmpty": "No subfolders yet. Make one, or leave everything in the mods folder.",
   "folderEmptySection": "Nothing in here yet",
   "install": "Install",
   "filePickerModsLabel": "{game} mods",
@@ -362,6 +370,15 @@
   "@sectionIgnoredConflicts": {
     "placeholders": { "game": { "type": "String" } }
   },
+  "sectionShopFolder": "THE EXCHANGE · {game}",
+  "@sectionShopFolder": {
+    "placeholders": { "game": { "type": "String" } }
+  },
+  "prefShopFolderTitle": "Where mods from The Exchange go",
+  "prefShopFolderDesc": "Installs land in {folder}",
+  "@prefShopFolderDesc": {
+    "placeholders": { "folder": { "type": "String" } }
+  },
   "sectionFeedback": "FEEDBACK",
   "sectionAbout": "ABOUT",
 
@@ -473,6 +490,10 @@
   "contentTextTables": "text tables",
   "contentTextures": "textures",
   "contentMeshes": "meshes",
+  "modKindCas": "CAS",
+  "modKindBuildBuy": "Build & Buy",
+  "modKindGameplay": "Gameplay",
+  "modKindScript": "Script",
 
   "errorNoModFiles": "No mod files ({extensions}) found inside {name}.",
   "@errorNoModFiles": {
@@ -481,7 +502,7 @@
       "name": { "type": "String" }
     }
   },
-  "errorUnreadableArchive": "{name} isn’t a zip archive this app can read.",
+  "errorUnreadableArchive": "{name} isn’t an archive this app can read.",
   "@errorUnreadableArchive": {
     "placeholders": { "name": { "type": "String" } }
   },
@@ -922,5 +943,18 @@
   "setupHelpSims2": "The Sims 2 loads custom content from Documents > EA Games > The Sims 2 > Downloads (the Ultimate Collection uses “The Sims 2 Ultimate Collection”; the 2025 Legacy Collection uses “The Sims 2 Legacy”). The folder may not exist until you create it or install content once. When the game starts, answer “Yes” to the custom content prompt so downloads are enabled.",
   "setupHelpSims3": "The Sims 3 does not create a mods folder on its own: it needs the community “framework”: a Mods > Packages folder inside Documents > Electronic Arts > The Sims 3, plus a Resource.cfg file that tells the game to read it. This app can create both for you. On disc/Wine installs the folder can live inside the app bundle instead; use “Choose folder” to point at it.",
   "setupHelpSims4": "The Sims 4 loads mods from Documents > Electronic Arts > The Sims 4 > Mods. The game creates this folder the first time it runs, so launch the game once if it is missing. Then, in the game, turn on Options > Game Options > Other > “Enable Custom Content and Mods” (and “Script Mods Allowed” for .ts4script files) and restart the game.",
-  "setupHelpSimsMedieval": "The Sims Medieval loads mods from its install folder, not Documents: a Mods > Packages folder next to the game files (e.g. C:\\Program Files (x86)\\Origin Games\\The Sims Medieval), plus a Resource.cfg file in the install folder that tells the game to read it. This app can create both for you (Windows may ask for administrator rights under Program Files). The Documents > Electronic Arts > The Sims Medieval folder only holds saves; mods placed there do nothing. For Wine/CrossOver installs or a custom Steam library, use “Choose folder” to point at the Mods > Packages folder inside the game install."
+  "setupHelpSimsMedieval": "The Sims Medieval loads mods from its install folder, not Documents: a Mods > Packages folder next to the game files (e.g. C:\\Program Files (x86)\\Origin Games\\The Sims Medieval), plus a Resource.cfg file in the install folder that tells the game to read it. This app can create both for you (Windows may ask for administrator rights under Program Files). The Documents > Electronic Arts > The Sims Medieval folder only holds saves; mods placed there do nothing. For Wine/CrossOver installs or a custom Steam library, use “Choose folder” to point at the Mods > Packages folder inside the game install.",
+  "prefSubfoldersTitle": "Folders include their subfolders",
+  "prefSubfoldersDesc": "A folder shows everything below it too. Off, cc and cc/defaults are separate shelves.",
+  "deleteFolderTitle": "Delete {folder}?",
+  "@deleteFolderTitle": {
+    "placeholders": { "folder": { "type": "String" } }
+  },
+  "deleteFolderBody": "The folder and everything in it goes, subfolders and all. This cannot be undone.",
+  "deleteFolderMods": "{count, plural, =1{1 mod will be deleted} other{{count} mods will be deleted}}",
+  "@deleteFolderMods": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "deleteFolderEmpty": "It holds no mods.",
+  "deleteFolder": "Delete folder"
 }

@@ -158,6 +158,9 @@ class LEl extends L {
       'Η εγκατάσταση βάζει τα αρχεία κατευθείαν στον φάκελο mod σας. Η λήψη απλώς αποθηκεύει το αρχείο, όπου θέλετε.';
 
   @override
+  String get shopDestination => 'Εγκατάσταση σε';
+
+  @override
   String get shopVariationPick => 'Διαλέξτε παραλλαγή';
 
   @override
@@ -368,6 +371,21 @@ class LEl extends L {
   @override
   String get moveBody =>
       'Τα αρχεία αλλάζουν φάκελο στον δίσκο. Τίποτα άλλο δεν αλλάζει - ό,τι είναι ανενεργό μένει ανενεργό.';
+
+  @override
+  String get installFolderTitle => 'Ποιος φάκελος;';
+
+  @override
+  String installFolderBody(String game) {
+    return 'Πού καταλήγουν τα αρχεία μέσα στον φάκελο mods για $game.';
+  }
+
+  @override
+  String get installFolderChoose => 'Επιλογή';
+
+  @override
+  String get installFolderEmpty =>
+      'Δεν υπάρχουν υποφάκελοι ακόμη. Φτιάξε έναν, ή άσε τα πάντα στον φάκελο mods.';
 
   @override
   String get folderEmptySection => 'Δεν υπάρχει τίποτα εδώ ακόμα';
@@ -799,6 +817,19 @@ class LEl extends L {
   }
 
   @override
+  String sectionShopFolder(String game) {
+    return 'THE EXCHANGE · $game';
+  }
+
+  @override
+  String get prefShopFolderTitle => 'Πού πάνε τα mods από το The Exchange';
+
+  @override
+  String prefShopFolderDesc(String folder) {
+    return 'Οι εγκαταστάσεις πάνε στο $folder';
+  }
+
+  @override
   String get sectionFeedback => 'ΣΧΟΛΙΑ';
 
   @override
@@ -1072,13 +1103,25 @@ class LEl extends L {
   String get contentMeshes => 'πλέγματα';
 
   @override
+  String get modKindCas => 'CAS';
+
+  @override
+  String get modKindBuildBuy => 'Κατασκευή';
+
+  @override
+  String get modKindGameplay => 'Gameplay';
+
+  @override
+  String get modKindScript => 'Script';
+
+  @override
   String errorNoModFiles(String extensions, String name) {
     return 'Δεν βρέθηκαν αρχεία mod ($extensions) μέσα στο $name.';
   }
 
   @override
   String errorUnreadableArchive(String name) {
-    return 'Το $name δεν είναι αρχείο zip που μπορεί να διαβάσει αυτή η εφαρμογή.';
+    return 'Το $name δεν είναι συμπιεσμένο αρχείο που μπορεί να διαβάσει αυτή η εφαρμογή.';
   }
 
   @override
@@ -2007,4 +2050,38 @@ class LEl extends L {
   @override
   String get setupHelpSimsMedieval =>
       'Το The Sims Medieval φορτώνει τα mod από τον φάκελο εγκατάστασής του, όχι από τα Έγγραφα: από έναν φάκελο Mods > Packages δίπλα στα αρχεία του παιχνιδιού (π.χ. C:\\Program Files (x86)\\Origin Games\\The Sims Medieval), συν ένα αρχείο Resource.cfg στον φάκελο εγκατάστασης που λέει στο παιχνίδι να τον διαβάσει. Αυτή η εφαρμογή μπορεί να δημιουργήσει και τα δύο για εσάς (τα Windows μπορεί να ζητήσουν δικαιώματα διαχειριστή για την τοποθεσία Program Files). Ο φάκελος Έγγραφα > Electronic Arts > The Sims Medieval περιέχει μόνο αποθηκευμένα παιχνίδια - ό,τι mod βάλετε εκεί δεν θα λειτουργήσει. Αν το έχετε εγκαταστήσει μέσω Wine/CrossOver ή έχετε προσαρμοσμένη βιβλιοθήκη Steam, χρησιμοποιήστε το «Επιλέξτε φάκελο» για να υποδείξετε τον φάκελο Mods > Packages μέσα στον φάκελο εγκατάστασης του παιχνιδιού.';
+
+  @override
+  String get prefSubfoldersTitle =>
+      'Οι φάκελοι περιλαμβάνουν τους υποφακέλους τους';
+
+  @override
+  String get prefSubfoldersDesc =>
+      'Ένας φάκελος δείχνει και όλα όσα βρίσκονται από κάτω. Κλειστό, το cc και το cc/defaults είναι ξεχωριστά ράφια.';
+
+  @override
+  String deleteFolderTitle(String folder) {
+    return 'Διαγραφή του $folder;';
+  }
+
+  @override
+  String get deleteFolderBody =>
+      'Ο φάκελος και ό,τι έχει μέσα χάνεται, μαζί με τους υποφακέλους. Δεν αναιρείται.';
+
+  @override
+  String deleteFolderMods(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Θα διαγραφούν $count mods',
+      one: 'Θα διαγραφεί 1 mod',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get deleteFolderEmpty => 'Δεν έχει mods μέσα.';
+
+  @override
+  String get deleteFolder => 'Διαγραφή φακέλου';
 }

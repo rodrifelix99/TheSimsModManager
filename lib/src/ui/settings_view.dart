@@ -8,7 +8,9 @@ import '../services/reachability.dart' show debugReachabilityScenarios;
 import '../services/sfx.dart';
 import 'app_controller.dart';
 import 'game_theme.dart';
+import 'install_folder_dialog.dart';
 import 'l10n.dart';
+import 'mod_presentation.dart';
 import 'widgets.dart';
 
 /// Settings: mod-management toggles, per-game mods folder, about card.
@@ -103,6 +105,18 @@ class SettingsView extends StatelessWidget {
                     setting: 'showDisabled',
                     value: !s.showDisabled,
                   ),
+                ),
+                _divider(t),
+                _prefRow(
+                  t,
+                  title: l.prefSubfoldersTitle,
+                  desc: l.prefSubfoldersDesc,
+                  value: s.folderIncludesSubfolders,
+                  // Own action, not setPref: the counts on the chips are
+                  // worked out as the library is read, so flipping this
+                  // has to rebuild it rather than just redraw it.
+                  onToggle: () =>
+                      c.setFolderIncludesSubfolders(!s.folderIncludesSubfolders),
                 ),
                 _divider(t),
                 _SuffixRow(theme: t, controller: c),
@@ -355,6 +369,13 @@ class SettingsView extends StatelessWidget {
               color: t.muted,
             ),
           ),
+          // Where the shop files things for this game. Per game because
+          // the folders are, and on the game's own section rather than
+          // among the app-wide toggles above for the same reason - a
+          // listing for another game keeps that game's answer, and its
+          // own page is where it can be overruled.
+          _ShopFolderRow(
+              key: ValueKey(c.adapter.game.id), theme: t, controller: c),
           // The way back for a clash the user settled on a mod whose page
           // now shows nothing about it - which is most of them, since the
           // last ignored pair takes the whole warning panel with it.
@@ -731,13 +752,13 @@ class SettingsView extends StatelessWidget {
         ],
       );
 
-  BoxDecoration _cardDecoration(GameTheme t) => BoxDecoration(
+  static BoxDecoration _cardDecoration(GameTheme t) => BoxDecoration(
         color: t.surface,
         border: Border.all(color: t.border),
         borderRadius: BorderRadius.circular(14),
       );
 
-  Widget _sectionLabel(GameTheme t, String label) => Padding(
+  static Widget _sectionLabel(GameTheme t, String label) => Padding(
         padding: const EdgeInsets.only(bottom: 10),
         child: Text(
           label,
@@ -780,6 +801,95 @@ class SettingsView extends StatelessWidget {
 /// tool the user runs alongside this one, and we don't get to know them
 /// all: CC Magic writes `.off`, and the next one will write something
 /// else. Empty goes back to the app's own.
+/// Which subfolder installs from The Exchange land in for the game on
+/// screen. Its own card rather than a row among the toggles above,
+/// because the answer is per game like the folders themselves, and the
+/// section label has to be able to say which game it is about.
+///
+/// Absent for a game with no mods folder set up and for The Sims 1,
+/// which routes installs into folders of its own. Keyed on the game at
+/// the call site, so switching games asks the disk again instead of
+/// carrying the last game's answer over.
+class _ShopFolderRow extends StatefulWidget {
+  const _ShopFolderRow(
+      {super.key, required this.theme, required this.controller});
+
+  final GameTheme theme;
+  final AppController controller;
+
+  @override
+  State<_ShopFolderRow> createState() => _ShopFolderRowState();
+}
+
+class _ShopFolderRowState extends State<_ShopFolderRow> {
+  bool? _choosable;
+
+  @override
+  void initState() {
+    super.initState();
+    _ask();
+  }
+
+  Future<void> _ask() async {
+    final can =
+        await widget.controller.canChooseShopFolder(widget.controller.adapter);
+    if (!mounted) return;
+    setState(() => _choosable = can);
+  }
+
+  Future<void> _pick() async {
+    final c = widget.controller;
+    final game = c.adapter.game.id;
+    final chosen = await askForInstallFolder(context, c,
+        theme: widget.theme,
+        into: c.adapter,
+        current: c.shopDestinationFolder(game));
+    if (chosen == null) return;
+    await c.setShopFolder(game, chosen);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_choosable != true) return const SizedBox.shrink();
+    final t = widget.theme;
+    final c = widget.controller;
+    final l = L.of(context);
+    final folder = c.shopDestinationFolder(c.adapter.game.id);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SizedBox(height: 24),
+        SettingsView._sectionLabel(t, l.sectionShopFolder(c.adapter.game.name)),
+        Container(
+          decoration: SettingsView._cardDecoration(t),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
+            child: Row(
+              children: [
+                Expanded(
+                  child: SettingsView._rowLabel(
+                    t,
+                    l.prefShopFolderTitle,
+                    l.prefShopFolderDesc(folder.isEmpty
+                        ? l.libraryRootFolder
+                        : folderChipLabel(folder)),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                OutlinedButton(
+                  onPressed: _pick,
+                  style: accentButtonStyle(t),
+                  child: Text(l.change),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _SuffixRow extends StatefulWidget {
   const _SuffixRow({required this.theme, required this.controller});
 

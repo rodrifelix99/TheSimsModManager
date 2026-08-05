@@ -158,6 +158,9 @@ class LEn extends L {
       'Install drops the files straight into your mods folder. Download just saves the file, wherever you want it.';
 
   @override
+  String get shopDestination => 'Installs into';
+
+  @override
   String get shopVariationPick => 'Pick a variation';
 
   @override
@@ -367,6 +370,21 @@ class LEn extends L {
   @override
   String get moveBody =>
       'The files move on disk. Nothing else about them changes - anything switched off stays off.';
+
+  @override
+  String get installFolderTitle => 'Which folder?';
+
+  @override
+  String installFolderBody(String game) {
+    return 'Where the files land inside your mods folder for $game.';
+  }
+
+  @override
+  String get installFolderChoose => 'Choose';
+
+  @override
+  String get installFolderEmpty =>
+      'No subfolders yet. Make one, or leave everything in the mods folder.';
 
   @override
   String get folderEmptySection => 'Nothing in here yet';
@@ -791,6 +809,19 @@ class LEn extends L {
   }
 
   @override
+  String sectionShopFolder(String game) {
+    return 'THE EXCHANGE · $game';
+  }
+
+  @override
+  String get prefShopFolderTitle => 'Where mods from The Exchange go';
+
+  @override
+  String prefShopFolderDesc(String folder) {
+    return 'Installs land in $folder';
+  }
+
+  @override
   String get sectionFeedback => 'FEEDBACK';
 
   @override
@@ -1063,13 +1094,25 @@ class LEn extends L {
   String get contentMeshes => 'meshes';
 
   @override
+  String get modKindCas => 'CAS';
+
+  @override
+  String get modKindBuildBuy => 'Build & Buy';
+
+  @override
+  String get modKindGameplay => 'Gameplay';
+
+  @override
+  String get modKindScript => 'Script';
+
+  @override
   String errorNoModFiles(String extensions, String name) {
     return 'No mod files ($extensions) found inside $name.';
   }
 
   @override
   String errorUnreadableArchive(String name) {
-    return '$name isn’t a zip archive this app can read.';
+    return '$name isn’t an archive this app can read.';
   }
 
   @override
@@ -1996,4 +2039,37 @@ class LEn extends L {
   @override
   String get setupHelpSimsMedieval =>
       'The Sims Medieval loads mods from its install folder, not Documents: a Mods > Packages folder next to the game files (e.g. C:\\Program Files (x86)\\Origin Games\\The Sims Medieval), plus a Resource.cfg file in the install folder that tells the game to read it. This app can create both for you (Windows may ask for administrator rights under Program Files). The Documents > Electronic Arts > The Sims Medieval folder only holds saves; mods placed there do nothing. For Wine/CrossOver installs or a custom Steam library, use “Choose folder” to point at the Mods > Packages folder inside the game install.';
+
+  @override
+  String get prefSubfoldersTitle => 'Folders include their subfolders';
+
+  @override
+  String get prefSubfoldersDesc =>
+      'A folder shows everything below it too. Off, cc and cc/defaults are separate shelves.';
+
+  @override
+  String deleteFolderTitle(String folder) {
+    return 'Delete $folder?';
+  }
+
+  @override
+  String get deleteFolderBody =>
+      'The folder and everything in it goes, subfolders and all. This cannot be undone.';
+
+  @override
+  String deleteFolderMods(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mods will be deleted',
+      one: '1 mod will be deleted',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get deleteFolderEmpty => 'It holds no mods.';
+
+  @override
+  String get deleteFolder => 'Delete folder';
 }

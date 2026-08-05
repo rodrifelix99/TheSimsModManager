@@ -10,7 +10,9 @@ import '../services/sfx.dart';
 import 'app_controller.dart';
 import 'game_theme.dart';
 import 'install_destination_dialog.dart';
+import 'install_folder_dialog.dart';
 import 'l10n.dart';
+import 'mod_presentation.dart';
 import 'prose_text.dart';
 import 'widgets.dart';
 
@@ -1266,6 +1268,8 @@ class ShopView extends StatelessWidget {
             _SaveButton(theme: t, controller: c, mod: mod),
           ],
         ),
+        const SizedBox(height: 10),
+        _DestinationRow(theme: t, controller: c, mod: mod),
         const SizedBox(height: 8),
         Text(
           l.shopSaveHint,
@@ -1321,6 +1325,108 @@ class ShopView extends StatelessWidget {
             ),
           ),
         ],
+      ],
+    );
+  }
+}
+
+/// Which folder Install will use, and the way to change it for this one
+/// listing. The line has to be here rather than only in Settings because
+/// this is where somebody decides: a mod they want kept with the rest of
+/// their CC is a different answer from the default they set once.
+///
+/// Absent for a game that routes its own installs (The Sims 1) and for
+/// one with no mods folder set up, neither of which this is a question
+/// about. Stateful for the asking: the answer arrives off the disk.
+class _DestinationRow extends StatefulWidget {
+  const _DestinationRow({
+    required this.theme,
+    required this.controller,
+    required this.mod,
+  });
+
+  final GameTheme theme;
+  final AppController controller;
+  final ShopMod mod;
+
+  @override
+  State<_DestinationRow> createState() => _DestinationRowState();
+}
+
+class _DestinationRowState extends State<_DestinationRow> {
+  bool? _choosable;
+
+  @override
+  void initState() {
+    super.initState();
+    _ask();
+  }
+
+  @override
+  void didUpdateWidget(_DestinationRow old) {
+    super.didUpdateWidget(old);
+    // The variation picker swaps the listing under this row, and a set
+    // can hold listings for the one game only, so the answer stands.
+    if (old.mod.gameId != widget.mod.gameId) _ask();
+  }
+
+  Future<void> _ask() async {
+    final into = widget.controller.registry.byGameId(widget.mod.gameId);
+    final can = into != null &&
+        await widget.controller.canChooseShopFolder(into);
+    if (!mounted) return;
+    setState(() => _choosable = can);
+  }
+
+  Future<void> _pick() async {
+    final c = widget.controller;
+    final into = c.registry.byGameId(widget.mod.gameId);
+    if (into == null) return;
+    final chosen = await askForInstallFolder(context, c,
+        theme: widget.theme,
+        into: into,
+        current: c.shopDestinationOf(widget.mod));
+    if (chosen == null) return;
+    c.chooseShopFolder(widget.mod, chosen);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_choosable != true) return const SizedBox.shrink();
+    final t = widget.theme;
+    final c = widget.controller;
+    final l = L.of(context);
+    final folder = c.shopDestinationOf(widget.mod);
+    return Row(
+      children: [
+        Icon(
+          folder.isEmpty ? Icons.inventory_2_rounded : Icons.folder_rounded,
+          size: 15,
+          color: t.muted,
+        ),
+        const SizedBox(width: 7),
+        Text(l.shopDestination.toUpperCase(), style: eyebrowStyle(t)),
+        const SizedBox(width: 8),
+        Flexible(
+          child: Text(
+            folder.isEmpty ? l.libraryRootFolder : folderChipLabel(folder),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+                fontSize: 12.5, fontWeight: FontWeight.w800, color: t.text),
+          ),
+        ),
+        TextButton(
+          onPressed: c.shopBusy(widget.mod) ? null : _pick,
+          style: TextButton.styleFrom(
+            foregroundColor: t.accent,
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            minimumSize: const Size(0, 32),
+            textStyle:
+                const TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5),
+          ),
+          child: Text(l.change),
+        ),
       ],
     );
   }

@@ -165,6 +165,9 @@ class LPl extends L {
       'Instalacja wrzuca pliki prosto do twojego folderu z modami. Pobieranie po prostu zapisze plik tam, gdzie chcesz.';
 
   @override
+  String get shopDestination => 'Instaluje do';
+
+  @override
   String get shopVariationPick => 'Wybierz wariant';
 
   @override
@@ -389,6 +392,21 @@ class LPl extends L {
   @override
   String get moveBody =>
       'Pliki przeniosą się do innego folderu na dysku. Nic poza tym się nie zmienia - co wyłączone, zostaje wyłączone.';
+
+  @override
+  String get installFolderTitle => 'Który folder?';
+
+  @override
+  String installFolderBody(String game) {
+    return 'Gdzie wylądują pliki w twoim folderze modów do $game.';
+  }
+
+  @override
+  String get installFolderChoose => 'Wybierz';
+
+  @override
+  String get installFolderEmpty =>
+      'Nie ma jeszcze podfolderów. Stwórz jakiś albo zostaw wszystko w folderze modów.';
 
   @override
   String get folderEmptySection => 'Nic tu jeszcze nie ma';
@@ -830,6 +848,19 @@ class LPl extends L {
   }
 
   @override
+  String sectionShopFolder(String game) {
+    return 'THE EXCHANGE · $game';
+  }
+
+  @override
+  String get prefShopFolderTitle => 'Gdzie trafiają mody z The Exchange';
+
+  @override
+  String prefShopFolderDesc(String folder) {
+    return 'Instalacje trafiają do $folder';
+  }
+
+  @override
   String get sectionFeedback => 'OPINIE';
 
   @override
@@ -1110,13 +1141,25 @@ class LPl extends L {
   String get contentMeshes => 'siatki';
 
   @override
+  String get modKindCas => 'CAS';
+
+  @override
+  String get modKindBuildBuy => 'Budowanie';
+
+  @override
+  String get modKindGameplay => 'Rozgrywka';
+
+  @override
+  String get modKindScript => 'Skrypt';
+
+  @override
   String errorNoModFiles(String extensions, String name) {
     return 'W $name nie ma żadnych plików modów ($extensions).';
   }
 
   @override
   String errorUnreadableArchive(String name) {
-    return '$name to nie jest archiwum zip, które aplikacja potrafi odczytać.';
+    return '$name to nie jest archiwum, które aplikacja potrafi odczytać.';
   }
 
   @override
@@ -2071,4 +2114,37 @@ class LPl extends L {
   @override
   String get setupHelpSimsMedieval =>
       'The Sims Medieval wczytuje mody z folderu instalacji, a nie z Dokumentów: folder Mods > Packages obok plików gry (na przykład C:\\Program Files (x86)\\Origin Games\\The Sims Medieval) plus plik Resource.cfg w folderze instalacji, który każe grze go czytać. Aplikacja utworzy oba za ciebie (w Program Files Windows może poprosić o uprawnienia administratora). Folder Dokumenty > Electronic Arts > The Sims Medieval trzyma tylko zapisy gry; mody wrzucone tam nic nie robią. Przy Wine/CrossOver albo własnej bibliotece Steam użyj „Wybierz folder” i wskaż folder Mods > Packages w instalacji.';
+
+  @override
+  String get prefSubfoldersTitle => 'Foldery zawierają swoje podfoldery';
+
+  @override
+  String get prefSubfoldersDesc =>
+      'Folder pokazuje też wszystko, co jest w środku. Po wyłączeniu cc i cc/defaults to osobne półki.';
+
+  @override
+  String deleteFolderTitle(String folder) {
+    return 'Usunąć $folder?';
+  }
+
+  @override
+  String get deleteFolderBody =>
+      'Folder i wszystko, co w nim jest, zniknie razem z podfolderami. Tego nie da się cofnąć.';
+
+  @override
+  String deleteFolderMods(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Zostaną usunięte mody: $count',
+      one: 'Zostanie usunięty 1 mod',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get deleteFolderEmpty => 'Nie ma w nim żadnych modów.';
+
+  @override
+  String get deleteFolder => 'Usuń folder';
 }

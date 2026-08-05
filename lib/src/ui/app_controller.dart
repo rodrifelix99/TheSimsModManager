@@ -23,6 +23,7 @@ import '../core/mod_advisories.dart';
 import '../core/mod_archive.dart';
 import '../core/mod_folder.dart';
 import '../core/mod_name.dart';
+import '../core/mod_kind.dart';
 import '../core/mod_tags.dart';
 import '../core/package_insight.dart';
 import '../core/placed_mods.dart';
@@ -64,7 +65,19 @@ enum SavesTab { households, album, stats }
 /// which is `null` for the ones in the mods directory itself. A mod
 /// belongs to exactly one, so `cc` does not repeat what `cc/defaults`
 /// already shows.
-typedef ModFolderGroup = ({String? folder, List<Mod> mods, int sizeBytes});
+/// One section of the folder view: the folder ([folder] null for the mods
+/// directory itself), the mods sitting directly in it, how far down the
+/// tree it is, and what it holds all the way down - which is what its
+/// header says, since a rolled-up folder is drawn instead of its
+/// contents.
+typedef ModFolderGroup = ({
+  String? folder,
+  List<Mod> mods,
+  int sizeBytes,
+  int depth,
+  int totalMods,
+  int totalSizeBytes,
+});
 
 /// What to tell the user when installing [error] failed on the file or
 /// folder at [sourcePath]. Adapters raise [ModContentException] and
@@ -332,8 +345,18 @@ class AppController extends ChangeNotifier {
   AppScreen screen = AppScreen.library;
   bool loading = true;
   String query = '';
-  String category = 'All';
-  String folder = 'All';
+
+  /// The categories and folders the library is narrowed to, empty
+  /// meaning all of them.
+  ///
+  /// Sets rather than one chip each because ctrl/cmd-click lights another
+  /// without putting the first one out - asked for by a user who wanted
+  /// two folders on screen at once and could only ever have one or the
+  /// whole library. Several folders are read as "any of these", which is
+  /// the only reading that makes the count on the chips add up.
+  final selectedCategories = <String>{};
+  final selectedFolders = <String>{};
+
   String? _selectedModPath;
 
   /// Resolved mods folder for the current game (override wins), or null
@@ -452,6 +475,20 @@ class AppController extends ChangeNotifier {
   /// Null rather than an 'All' sentinel: unlike the file types, there is
   /// no chip standing for every tag at once.
   String? tagFilter;
+
+  /// What each mod turns out to hold, by the path it sits at now. Worked
+  /// out from the insight cache, so it fills in with the scan and is
+  /// empty when the scan is off. See `core/mod_kind.dart`.
+  Map<String, Set<String>> _kindsByMod = const {};
+
+  /// The kinds present in this library, in [modKindOrder], with how many
+  /// mods each covers. What the filter row draws its kind chips from.
+  Map<String, int> kindCounts = const {};
+
+  /// When set, [filteredMods] narrows to the mods of this kind. Null
+  /// rather than an 'All' sentinel, like [tagFilter] and for the same
+  /// reason.
+  String? kindFilter;
 
   /// What the last duplicate scan found: sets of mods that are the same
   /// file, biggest saving first. Empty until [scanForDuplicates] runs -
@@ -628,12 +665,21 @@ class AppController extends ChangeNotifier {
         if (root != null && !p.isWithin(root, mod.path)) {
           _externalFolders.add(folder);
           _folderCounts[folder] = (_folderCounts[folder] ?? 0) + 1;
-        } else {
+        } else if (settings.folderIncludesSubfolders) {
           // A folder counts everything below it too, and earns a chip
           // even when it holds no mod files of its own: a user who put
           // everything in cc/defaults still thinks of cc as a folder.
           for (final key in folderAncestry(folder)) {
             _folderCounts[key] = (_folderCounts[key] ?? 0) + 1;
+          }
+        } else {
+          // Counting only its own files, which is the whole point of the
+          // setting: the number on the chip has to be the number you get
+          // when you press it. A parent still earns its chip - it is a
+          // real folder either way - just not a count it didn't earn.
+          _folderCounts[folder] = (_folderCounts[folder] ?? 0) + 1;
+          for (final key in folderAncestry(folder)) {
+            _folderCounts.putIfAbsent(key, () => 0);
           }
         }
       }
@@ -655,8 +701,8 @@ class AppController extends ChangeNotifier {
       ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
     _sortedCategories = _categoryCounts.keys.toList()..sort();
     // The chips these filters point at may have just gone away.
-    if (!categories.contains(category)) category = 'All';
-    if (folder != 'All' && !_folderCounts.containsKey(folder)) folder = 'All';
+    selectedCategories.removeWhere((c) => !_categoryCounts.containsKey(c));
+    selectedFolders.removeWhere((f) => !_folderCounts.containsKey(f));
     // So might the side of the switch the library is showing: enabling
     // the last disabled mod shouldn't leave an empty list behind.
     if (stateFilter == ModStateFilter.enabled && _enabledCount == 0 ||
@@ -672,8 +718,11 @@ class AppController extends ChangeNotifier {
       if (!_selected.contains(_selectionAnchor)) _selectionAnchor = null;
     }
     // The labels are keyed by where a mod sits, so they are re-read from
-    // the records here with the rest of the per-chip counts.
+    // the records here with the rest of the per-chip counts. So are the
+    // kinds, off whatever the insight cache already holds - a game
+    // revisited has its chips back before anything is scanned.
     _applyTags();
+    _applyKinds();
     _libraryStamp++;
   }
 
@@ -684,8 +733,11 @@ class AppController extends ChangeNotifier {
 
   List<Mod> get filteredMods {
     final q = query.trim().toLowerCase();
-    final key = '$_libraryStamp|$category|$folder|$conflictsOnly'
-        '|$advisoriesOnly|$tooDeepOnly|$duplicatesOnly|$tagFilter|$stateFilter'
+    final key = '$_libraryStamp|${_filterKey(selectedCategories)}'
+        '|${_filterKey(selectedFolders)}'
+        '|${settings.folderIncludesSubfolders}|$conflictsOnly'
+        '|$advisoriesOnly|$tooDeepOnly|$duplicatesOnly|$tagFilter|$kindFilter'
+        '|$stateFilter'
         '|${settings.showDisabled}|${sort.name}|$disabledLast|$q';
     final cached = _filtered;
     if (cached != null && _filteredKey == key) return cached;
@@ -696,13 +748,17 @@ class AppController extends ChangeNotifier {
         !settings.showDisabled && stateFilter != ModStateFilter.disabled;
     final result = [
       for (final mod in mods)
-        if ((category == 'All' || mod.category == category) &&
-            (folder == 'All' || _inFolder(folderOf(mod), folder)) &&
+        if ((selectedCategories.isEmpty ||
+                selectedCategories.contains(mod.category)) &&
+            (selectedFolders.isEmpty ||
+                selectedFolders.any((f) => _inFolder(folderOf(mod), f))) &&
             (!conflictsOnly || conflictPaths.contains(mod.path)) &&
             (!advisoriesOnly || advisories.containsKey(mod.path)) &&
             (!tooDeepOnly || tooDeepPaths.contains(mod.path)) &&
             (!duplicatesOnly || duplicatePaths.contains(mod.path)) &&
             (tagFilter == null || _hasTag(mod, tagFilter!)) &&
+            (kindFilter == null ||
+                (_kindsByMod[mod.path]?.contains(kindFilter) ?? false)) &&
             (stateFilter == ModStateFilter.all ||
                 mod.isEnabled == (stateFilter == ModStateFilter.enabled)) &&
             (!hideDisabled || mod.isEnabled) &&
@@ -795,10 +851,18 @@ class AppController extends ChangeNotifier {
         : null;
   }
 
+  /// A stable key for a filter set, so [filteredMods] can cache on it.
+  static String _filterKey(Set<String> chosen) =>
+      (chosen.toList()..sort()).join(' ');
+
   /// Whether a mod in [actual] belongs under the chip for [selected]:
-  /// its own folder, or any folder below it.
-  bool _inFolder(String? actual, String selected) =>
-      actual != null && folderIsWithin(actual, selected);
+  /// its own folder, and any folder below it unless the user has asked
+  /// for folders to stand for themselves alone
+  /// ([SettingsStore.folderIncludesSubfolders]).
+  bool _inFolder(String? actual, String selected) => actual != null &&
+      (settings.folderIncludesSubfolders
+          ? folderIsWithin(actual, selected)
+          : actual == selected);
 
   /// Subfolder paths present in the current library, for the folder
   /// filter chips, parents included. Empty when every mod sits directly
@@ -860,6 +924,14 @@ class AppController extends ChangeNotifier {
   /// chips count, so nothing is listed twice; the sections then follow
   /// [folders], which means rearranging the chips rearranges these too.
   /// The mods directory itself comes first whatever that order says.
+  ///
+  /// A tree, in tree order: every section is followed by its own
+  /// subfolders before the next section at its level, and carries the
+  /// [ModFolderGroup.depth] to draw that with. What it does *not* carry
+  /// is which of them are on screen - a rolled-up section hides the ones
+  /// below it, and that is the drawing's business. Keeping it out of
+  /// here is what lets this stay cached against the library rather than
+  /// being rebuilt every time a chevron is clicked.
   List<ModFolderGroup> get folderGroups {
     final visible = filteredMods;
     final cached = _folderGroups;
@@ -868,28 +940,91 @@ class AppController extends ChangeNotifier {
     for (final mod in visible) {
       (byFolder[folderOf(mod)] ??= []).add(mod);
     }
-    ModFolderGroup group(String? folder) {
+
+    // Who sits under whom, in the chip order, so siblings follow the
+    // arrangement the user made. A folder whose parent is not itself a
+    // chip hangs off the top rather than off nothing - the Sims 1's
+    // external folders resolve to a bare name, and a section nobody can
+    // reach is a mod nobody can reach.
+    final known = folders.toSet();
+    final children = <String?, List<String>>{};
+    for (final f in folders) {
+      final segments = folderSegments(f);
+      final parent = segments.length > 1
+          ? segments.sublist(0, segments.length - 1).join(folderSeparator)
+          : null;
+      (children[known.contains(parent) ? parent : null] ??= []).add(f);
+    }
+
+    // What a folder holds all the way down, which is what its header
+    // says: a closed `cc` reading 0 while it hides two hundred mods is
+    // the opposite of the point. Filled before anything is drawn,
+    // because building a group takes its mods out of [byFolder].
+    final totals = <String, ({int mods, int bytes})>{};
+    ({int mods, int bytes}) totalOf(String f) {
+      final memo = totals[f];
+      if (memo != null) return memo;
+      var mods = 0;
+      var bytes = 0;
+      for (final mod in byFolder[f] ?? const <Mod>[]) {
+        mods++;
+        bytes += mod.sizeBytes ?? 0;
+      }
+      for (final child in children[f] ?? const <String>[]) {
+        final sub = totalOf(child);
+        mods += sub.mods;
+        bytes += sub.bytes;
+      }
+      return totals[f] = (mods: mods, bytes: bytes);
+    }
+
+    for (final f in folders) {
+      totalOf(f);
+    }
+
+    ModFolderGroup group(String? folder, int depth) {
       final mods = byFolder.remove(folder) ?? const <Mod>[];
+      final own = mods.fold<int>(0, (sum, m) => sum + (m.sizeBytes ?? 0));
+      final total = folder == null
+          ? (mods: mods.length, bytes: own)
+          : totals[folder] ?? (mods: mods.length, bytes: own);
       return (
         folder: folder,
         mods: mods,
-        sizeBytes: mods.fold(0, (sum, m) => sum + (m.sizeBytes ?? 0)),
+        sizeBytes: own,
+        depth: depth,
+        totalMods: total.mods,
+        totalSizeBytes: total.bytes,
       );
     }
 
-    final result = [
-      if (byFolder.containsKey(null)) group(null),
-      // A folder the user just made draws its own empty section, which is
-      // what makes it somewhere to drag mods to. Only while nothing is
-      // filtered: an empty section under a search would say the folder
-      // holds nothing rather than that nothing in it matched.
-      for (final f in folders)
-        if (byFolder.containsKey(f) || (_madeFolders.contains(f) && !isFiltering))
-          group(f),
-      // Anything the chip order somehow missed still has to be drawn:
-      // a section the user cannot see is a mod the user cannot reach.
-      for (final f in byFolder.keys.toList()) group(f),
-    ];
+    // A folder the user just made draws its own empty section, which is
+    // what makes it somewhere to drag mods to. Only while nothing is
+    // filtered: an empty section under a search would say the folder
+    // holds nothing rather than that nothing in it matched. A folder
+    // holding one of those has to be drawn too, or the new folder is
+    // somewhere the user cannot get to.
+    final shows = <String, bool>{};
+    bool showable(String f) => shows[f] ??= totals[f]!.mods > 0 ||
+        (!isFiltering && _madeFolders.contains(f)) ||
+        (children[f] ?? const <String>[]).any(showable);
+
+    final result = <ModFolderGroup>[];
+    void emit(String? parent, int depth) {
+      for (final f in children[parent] ?? const <String>[]) {
+        if (!showable(f)) continue;
+        result.add(group(f, depth));
+        emit(f, depth + 1);
+      }
+    }
+
+    if (byFolder.containsKey(null)) result.add(group(null, 0));
+    emit(null, 0);
+    // Anything the chip order somehow missed still has to be drawn, for
+    // the same reason.
+    for (final f in byFolder.keys.toList()) {
+      result.add(group(f, 0));
+    }
     _folderGroups = result;
     _folderGroupsFrom = visible;
     return result;
@@ -898,18 +1033,38 @@ class AppController extends ChangeNotifier {
   List<ModFolderGroup>? _folderGroups;
   List<Mod>? _folderGroupsFrom;
 
-  bool isFolderCollapsed(String? folder) =>
-      settings.collapsedFolders(_adapter.game.id).contains(folder ?? rootFolderKey);
+  /// Whether [folder]'s section is rolled up.
+  ///
+  /// **A subfolder starts rolled up and a top-level one starts open.**
+  /// Every level used to be drawn at once, so a library organised into
+  /// `cc/hair/female` opened on a wall of headers with the mods pushed
+  /// off the bottom of it - which is what a tree is for. What is stored
+  /// is the sections the user has since flipped away from that, one list
+  /// each way; see [SettingsStore.expandedFolders] for why it is two
+  /// lists and not one.
+  bool isFolderCollapsed(String? folder) {
+    final key = folder ?? rootFolderKey;
+    final gameId = _adapter.game.id;
+    if (settings.collapsedFolders(gameId).contains(key)) return true;
+    if (settings.expandedFolders(gameId).contains(key)) return false;
+    return folder != null && folderSegments(folder).length > 1;
+  }
 
   /// Rolls a folder view section up or down. Remembered per game, so a
   /// library someone has organised stays the way they left it.
   Future<void> toggleFolderCollapsed(String? folder) async {
     final key = folder ?? rootFolderKey;
-    final collapsed = settings.collapsedFolders(_adapter.game.id).toSet();
-    final wasCollapsed = collapsed.remove(key);
-    if (!wasCollapsed) collapsed.add(key);
-    playSound(wasCollapsed ? UiSound.toggleOn : UiSound.toggleOff);
-    await settings.setCollapsedFolders(_adapter.game.id, collapsed.toList());
+    final gameId = _adapter.game.id;
+    final collapse = !isFolderCollapsed(folder);
+    final collapsed = settings.collapsedFolders(gameId).toSet();
+    final expanded = settings.expandedFolders(gameId).toSet();
+    // Recorded on the side it is now on and taken off the other, so the
+    // two lists can never both claim the same section.
+    (collapse ? collapsed : expanded).add(key);
+    (collapse ? expanded : collapsed).remove(key);
+    playSound(collapse ? UiSound.toggleOff : UiSound.toggleOn);
+    await settings.setCollapsedFolders(gameId, collapsed.toList());
+    await settings.setExpandedFolders(gameId, expanded.toList());
     notifyListeners();
   }
 
@@ -969,13 +1124,14 @@ class AppController extends ChangeNotifier {
   /// is why the show-disabled preference isn't in it.
   bool get isFiltering =>
       query.isNotEmpty ||
-      category != 'All' ||
-      folder != 'All' ||
+      selectedCategories.isNotEmpty ||
+      selectedFolders.isNotEmpty ||
       conflictsOnly ||
       advisoriesOnly ||
       tooDeepOnly ||
       duplicatesOnly ||
       tagFilter != null ||
+      kindFilter != null ||
       stateFilter != ModStateFilter.all;
 
   /// Narrows the library to the enabled or the disabled mods, or back to
@@ -1004,14 +1160,40 @@ class AppController extends ChangeNotifier {
     if (!isFiltering) return;
     playSound(UiSound.cycle);
     query = '';
-    category = 'All';
-    folder = 'All';
+    selectedCategories.clear();
+    selectedFolders.clear();
     conflictsOnly = false;
     advisoriesOnly = false;
     tooDeepOnly = false;
     duplicatesOnly = false;
     tagFilter = null;
+    kindFilter = null;
     stateFilter = ModStateFilter.all;
+    notifyListeners();
+  }
+
+  /// Whether any chip on the filter line is lit - the four axes drawn
+  /// there, and nothing else. What the 'All' chip reads to know whether
+  /// to draw itself lit.
+  bool get anyChipFilter =>
+      selectedCategories.isNotEmpty ||
+      selectedFolders.isNotEmpty ||
+      kindFilter != null ||
+      tagFilter != null;
+
+  /// The 'All' chip's click: every chip on the filter line off at once.
+  ///
+  /// Narrower than [clearFilters], which is the Total stat's click and
+  /// takes the search box, the stat filters and the state filter with
+  /// it. Those are not chips on this line, and a click on one chip has
+  /// no business emptying the search someone is halfway through.
+  void clearChipFilters() {
+    if (!anyChipFilter) return;
+    playSound(UiSound.cycle);
+    selectedCategories.clear();
+    selectedFolders.clear();
+    kindFilter = null;
+    tagFilter = null;
     notifyListeners();
   }
 
@@ -1452,6 +1634,58 @@ class AppController extends ChangeNotifier {
     final filter = tagFilter;
     if (filter != null && !tagCounts.keys.any((t) => tagKey(t) == tagKey(filter))) {
       tagFilter = null;
+    }
+    _libraryStamp++;
+  }
+
+  /// What [mod] turns out to hold, in [modKindOrder]. Empty for a mod
+  /// the scan could not read, and for every mod while the scan that
+  /// reads inside files is switched off - which is why nothing in the UI
+  /// says "none", it just has no chips to draw.
+  Set<String> kindsOf(Mod mod) => _kindsByMod[mod.path] ?? const {};
+
+  /// How many mods are of [kind], for its chip.
+  int kindCount(String kind) => kindCounts[kind] ?? 0;
+
+  /// Narrows the library to one kind, or lets go of it when [kind] is
+  /// already the one showing.
+  void setKindFilter(String? kind) {
+    if (kind == kindFilter) {
+      kind = null;
+    }
+    playSound(UiSound.cycle);
+    kindFilter = kind;
+    if (kind != null) {
+      // The kind is our own vocabulary of four rather than the user's
+      // words, so it travels with the count the way a category does.
+      analytics.capture('kind_filtered',
+          {'game': _adapter.game.id, 'kind': kind, 'mods': kindCount(kind)});
+    }
+    notifyListeners();
+  }
+
+  /// Rebuilds what each mod turns out to hold, from the insight cache.
+  /// Runs wherever [_applyTags] does, and again as the scan fills the
+  /// cache in - a library opens with no kind chips and grows them as the
+  /// files are read, the same way the artwork appears.
+  void _applyKinds() {
+    final byMod = <String, Set<String>>{};
+    for (final mod in mods) {
+      final kinds = modKindsOf(insightFor(mod),
+          extension: p.extension(enabledPathOf(mod.path)).toLowerCase());
+      if (kinds.isNotEmpty) byMod[mod.path] = kinds;
+    }
+    if (byMod.isEmpty && _kindsByMod.isEmpty) {
+      kindFilter = null;
+      return;
+    }
+    _kindsByMod = byMod;
+    kindCounts = countKinds(byMod.values);
+    // A kind whose last mod was deleted, or that the scan stopped
+    // finding, leaves with it: a filter pointing at it would show an
+    // empty library and no chip to explain why.
+    if (kindFilter != null && !kindCounts.containsKey(kindFilter)) {
+      kindFilter = null;
     }
     _libraryStamp++;
   }
@@ -2376,14 +2610,16 @@ class AppController extends ChangeNotifier {
     _adapter = next;
     screen = AppScreen.library;
     query = '';
-    category = 'All';
-    folder = 'All';
+    selectedCategories.clear();
+    selectedFolders.clear();
     conflictsOnly = false;
     advisoriesOnly = false;
     tooDeepOnly = false;
     duplicatesOnly = false;
-    // Another game's library, another set of labels on it.
+    // Another game's library, another set of labels on it - and another
+    // set of things they turn out to be.
     tagFilter = null;
+    kindFilter = null;
     stateFilter = ModStateFilter.all;
     // The digests were another game's files, and the answer they add up
     // to is about a library that is no longer on screen.
@@ -2584,6 +2820,10 @@ class AppController extends ChangeNotifier {
       // land before the conflict scan: resource-overlap detection reads
       // the packages' resource keys out of the insight cache.
       await _scanNewMods();
+      // What each mod turns out to hold is read from that cache, so it
+      // is worked out once the scan has filled it rather than from the
+      // empty one _setMods saw.
+      _applyKinds();
       _rescanWarnings();
       candidateDirs = await _adapter.findModsDirectoryCandidates();
       defaultPath = await _adapter.defaultModsPath();
@@ -2721,24 +2961,77 @@ class AppController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setCategory(String value) {
-    if (value != category) {
-      playSound(UiSound.cycle);
+  /// Narrows the library to [value], or widens it back.
+  ///
+  /// [add] is a ctrl/cmd-click: it lights [value] alongside whatever is
+  /// already lit instead of replacing it, the same chord that ticks a mod
+  /// card. Without it a plain click is the old behaviour - this chip
+  /// alone, or the whole library again when it was the only one lit.
+  /// 'All' is the explicit way back.
+  void setCategory(String value, {bool add = false}) {
+    // 'All' heads the whole chip line rather than the category run of
+    // it, so it puts out every chip on the line. It counts the whole
+    // library and draws itself lit whenever nothing is narrowing one,
+    // and a kind or a tag still burning behind it is a filter with
+    // nothing on screen to say so - the chips overflow into a menu on
+    // any library with a few folders, which is where the last one to
+    // arrive, the kind, spends most of its life. A game whose mods all
+    // share one extension has no category chips at all (see
+    // [categories]), and there 'All' clearing only categories was a
+    // chip that did nothing whatever was lit.
+    if (value == 'All') {
+      clearChipFilters();
+      return;
+    }
+    if (_narrow(selectedCategories, value, add: add, all: 'All')) {
       // Categories are the adapter's fixed taxonomy (not user data).
       analytics.capture('category_filter_used',
           {'game': _adapter.game.id, 'category': value});
     }
-    category = value;
-    notifyListeners();
   }
 
-  void setFolder(String value) {
-    if (value != folder) {
-      playSound(UiSound.cycle);
-      // Folder names are the user's own; only the fact is captured.
-      analytics.capture('folder_filter_used', {'game': _adapter.game.id});
+  void setFolder(String value, {bool add = false}) {
+    if (_narrow(selectedFolders, value, add: add, all: 'All')) {
+      // Folder names are the user's own; only the fact is captured, plus
+      // how many are lit, which is what says the feature gets used.
+      analytics.capture('folder_filter_used',
+          {'game': _adapter.game.id, 'folders': selectedFolders.length});
     }
-    folder = value;
+  }
+
+  /// Applies a chip click to [chosen] and reports whether anything moved.
+  bool _narrow(Set<String> chosen, String value,
+      {required bool add, required String all}) {
+    final before = chosen.toSet();
+    if (value == all) {
+      chosen.clear();
+    } else if (add) {
+      if (!chosen.remove(value)) chosen.add(value);
+    } else if (chosen.length == 1 && chosen.contains(value)) {
+      chosen.clear();
+    } else {
+      chosen
+        ..clear()
+        ..add(value);
+    }
+    final moved = before.length != chosen.length || !before.containsAll(chosen);
+    if (moved) playSound(UiSound.cycle);
+    notifyListeners();
+    return moved;
+  }
+
+  /// Whether a folder chip stands for everything below it or only for
+  /// its own files. Rebuilds the library rather than just redrawing it:
+  /// the counts on the chips are worked out as the mods are read, and a
+  /// chip whose number disagrees with what pressing it shows is worse
+  /// than either answer on its own.
+  Future<void> setFolderIncludesSubfolders(bool value) async {
+    if (settings.folderIncludesSubfolders == value) return;
+    await settings.setFolderIncludesSubfolders(value);
+    playSound(value ? UiSound.toggleOn : UiSound.toggleOff);
+    analytics.capture('folder_subfolders_set', {'on': value});
+    _setMods(mods);
+    _folderGroups = null;
     notifyListeners();
   }
 
@@ -2877,6 +3170,143 @@ class AppController extends ChangeNotifier {
   /// longer drawing the counter than moving the files - and stopping
   /// early once [cancelBulk] has been called. Returns how many it got
   /// through.
+  /// Every mod [folder] holds, its subfolders included.
+  ///
+  /// Always everything below it, whatever
+  /// [SettingsStore.folderIncludesSubfolders] is set to: that setting is
+  /// about what a chip stands for on screen, and this is about what is
+  /// on the disk. Deleting `cc` and leaving `cc/defaults` behind is not
+  /// something the filesystem offers.
+  List<Mod> modsInFolder(String folder) => [
+        for (final mod in mods)
+          if (folderOf(mod) case final own?)
+            if (folderIsWithin(own, folder)) mod,
+      ];
+
+  /// Whether [folder] is the app's to delete. The Sims 1's routed skins
+  /// and walls are the game's own folders drawn as chips; removing one
+  /// would take Maxis's files with it.
+  bool canDeleteFolder(String folder) =>
+      canMoveInto(folder) && _folderCounts.containsKey(folder);
+
+  /// Deletes [folder] and everything inside it - the mods it holds, the
+  /// subfolders below it, and the readmes and screenshots that came with
+  /// them. There is no undo, which is why the dialog that calls this
+  /// counts the mods out first.
+  Future<void> deleteFolder(String folder) async {
+    final root = modsDir;
+    if (bulkRunning || root == null || !canDeleteFolder(folder)) return;
+    final targets = modsInFolder(folder);
+    var failed = 0;
+    AppMessage? failure;
+    final removed = <String>{};
+    final invented = <String>{};
+    await _runBatch(targets, (mod) async {
+      if (isDemoMod(mod)) {
+        invented.add(mod.path);
+        removed.add(mod.path);
+        return;
+      }
+      try {
+        await _adapter.removeMod(mod);
+      } catch (e, stack) {
+        failure ??= _bulkFailure(e, stack, action: 'remove');
+        failed++;
+        return;
+      }
+      removed.add(mod.path);
+      try {
+        await _forgetShopFile(mod);
+        await _forgetPlaced(_adapter, modsDir, mod);
+        await _forgetIgnored(mod);
+        await _forgetTags(mod);
+      } catch (e, stack) {
+        analytics.captureException(e, stack, mechanism: 'deleteFolderRecords');
+      }
+    });
+    // The folder itself goes only once its mods are out of the way: a
+    // file that refused to be deleted is a reason to leave the folder
+    // standing, not to take it and everything left in it anyway.
+    final pretend = isDemoFolder(folder);
+    if (failed == 0 && !pretend) {
+      try {
+        final dir =
+            Directory(p.joinAll([root.path, ...folderSegments(folder)]));
+        if (dir.existsSync()) await dir.delete(recursive: true);
+      } catch (e, stack) {
+        analytics.captureException(e, stack, mechanism: 'deleteFolder');
+        failure ??= errorMessage(e);
+        failed++;
+      }
+    }
+    playSound(failed > 0 ? UiSound.error : UiSound.uninstall);
+    // The folder's name is the user's own; how big it was is the part
+    // worth knowing.
+    analytics.capture('folder_deleted', {
+      'game': _adapter.game.id,
+      'mods': removed.length,
+      'failed': failed,
+      'depth': folderSegments(folder).length,
+    });
+    if (failed == 0) await _forgetFolder(folder);
+    _selected.removeWhere(removed.contains);
+    if (invented.isNotEmpty) {
+      final gone = {for (final path in invented) enabledPathOf(path)};
+      _demoPaths = {..._demoPaths}..removeWhere(gone.contains);
+    }
+    final open = _selectedModPath;
+    if (open != null && removed.contains(open)) {
+      _selectedModPath = null;
+      screen = AppScreen.library;
+    }
+    await _refreshKeepingError(_batchError(failure, failed, 'bulkRemoveFailed'));
+  }
+
+  /// Whether [folder] holds nothing but invented mods, so deleting it
+  /// must not reach for the disk. The demo library is drawn in a mods
+  /// folder that may be borrowed from a machine with no game in it.
+  bool isDemoFolder(String folder) {
+    final held = modsInFolder(folder);
+    return settings.demoLibrary && held.isNotEmpty && held.every(isDemoMod);
+  }
+
+  /// Drops [folder] and everything under it from what the app remembers
+  /// about folders: the made-and-empty record, the chip arrangement, and
+  /// the filter itself, which would otherwise be pointing at a folder
+  /// that no longer exists.
+  Future<void> _forgetFolder(String folder) async {
+    bool gone(String f) => folderIsWithin(f, folder);
+    final gameId = _adapter.game.id;
+    selectedFolders.removeWhere(gone);
+    if (_madeFolders.any(gone)) {
+      _madeFolders = {..._madeFolders}..removeWhere(gone);
+      if (!settings.demoLibrary) {
+        await settings.setMadeFolders(gameId, _madeFolders.toList());
+      }
+    }
+    final order = settings.folderOrder(gameId);
+    if (order != null && order.any(gone)) {
+      await settings.setFolderOrder(gameId, [
+        for (final f in order)
+          if (!gone(f)) f,
+      ]);
+    }
+    final collapsed = settings.collapsedFolders(gameId);
+    if (collapsed.any(gone)) {
+      await settings.setCollapsedFolders(gameId, [
+        for (final f in collapsed)
+          if (!gone(f)) f,
+      ]);
+    }
+    final expanded = settings.expandedFolders(gameId);
+    if (expanded.any(gone)) {
+      await settings.setExpandedFolders(gameId, [
+        for (final f in expanded)
+          if (!gone(f)) f,
+      ]);
+    }
+  }
+
   Future<int> _runBatch<T>(
       List<T> targets, Future<void> Function(T) step) async {
     _bulkCancelled = false;
@@ -3103,8 +3533,17 @@ class AppController extends ChangeNotifier {
   /// everything the library knows about folders it works out from where
   /// the mods are: a folder made a second ago holds nothing, and would
   /// leave the screen before anything could be put in it.
-  Future<String?> createFolder(String? parent, String name) async {
-    final root = modsDir;
+  ///
+  /// [into] is for the install-folder dialog, which The Exchange opens
+  /// for whichever game the listing names - not necessarily the one in
+  /// the sidebar. For another game nothing on screen changes: there are
+  /// no chips to add it to and no library to rebuild, so only the record
+  /// is kept.
+  Future<String?> createFolder(String? parent, String name,
+      {GameAdapter? into}) async {
+    final adapter = into ?? _adapter;
+    final onScreen = adapter.game.id == _adapter.game.id;
+    final root = onScreen ? modsDir : await modsDirFor(adapter);
     if (root == null) return null;
     final typed = name.trim();
     final clean = sanitizeComponent(typed, windows: Platform.isWindows);
@@ -3121,8 +3560,8 @@ class AppController extends ChangeNotifier {
     // The game reads a fixed number of levels into the mods folder and
     // nothing below them. Offering to make a folder past that would be
     // the app building, by hand, the very state its too-deep banner
-    // exists to warn about.
-    final limit = modDepthLimit;
+    // exists to warn about. Another game's limit is its own to answer.
+    final limit = onScreen ? modDepthLimit : await adapter.modDepthLimit(root);
     if (limit != null && folderSegments(key).length > limit) {
       return _refuseFolder(AppMessage('folderTooDeep', ['$limit']));
     }
@@ -3147,9 +3586,21 @@ class AppController extends ChangeNotifier {
     playSound(UiSound.install);
     // The name is the user's own; how deep they went is the useful part.
     analytics.capture('folder_created', {
-      'game': _adapter.game.id,
+      'game': adapter.game.id,
       'depth': folderSegments(key).length,
     });
+    if (!onScreen) {
+      // No chips to add it to and no library to rebuild - the record is
+      // all there is to keep, so that the folder still exists as far as
+      // that game is concerned when the sidebar next lands on it.
+      if (!pretend) {
+        final recorded = settings.madeFolders(adapter.game.id);
+        if (!recorded.contains(key)) {
+          await settings.setMadeFolders(adapter.game.id, [...recorded, key]);
+        }
+      }
+      return key;
+    }
     if (!_folderCounts.containsKey(key)) {
       _madeFolders = {..._madeFolders, key};
       if (!pretend) {
@@ -3397,8 +3848,20 @@ class AppController extends ChangeNotifier {
   /// and the adapter decides what goes in those.
   Directory _installDestination(GameAdapter adapter, Directory modsFolder) {
     if (adapter.game.id != _adapter.game.id) return modsFolder;
-    if (folder == 'All' || _externalFolders.contains(folder)) return modsFolder;
-    return Directory(p.joinAll([modsFolder.path, ...folderSegments(folder)]));
+    final only = installFolder;
+    if (only == null) return modsFolder;
+    return Directory(p.joinAll([modsFolder.path, ...folderSegments(only)]));
+  }
+
+  /// The one folder chip an install follows, or null when there isn't
+  /// one. Two chips lit is no answer to which of them a new file belongs
+  /// in, so the install goes to the mods folder rather than picking for
+  /// the user - and Sims 1's routed skins and walls are chips too, which
+  /// the adapter fills for itself.
+  String? get installFolder {
+    if (selectedFolders.length != 1) return null;
+    final only = selectedFolders.first;
+    return _externalFolders.contains(only) ? null : only;
   }
 
   /// Mods the app put in folders that hold the game's own files too, by
@@ -3487,10 +3950,20 @@ class AppController extends ChangeNotifier {
   /// Returns the mods that reached disk, which is not something the
   /// library can always work out for itself afterwards: a file placed in a
   /// folder the game keeps its own files in is invisible to [listMods].
+  ///
+  /// [destination] is a folder key below [target] to install into, which
+  /// The Exchange works out for itself ([shopDestinationOf]) because it
+  /// has no folder chips to read an answer off. The empty string is the
+  /// mods folder itself. Left out, the library's own rule applies: the
+  /// selected chip. A folder named here that has since been deleted is
+  /// made again on the way in rather than refused - the adapters create
+  /// their destination, and an install is a bad moment to find out a
+  /// folder set months ago is gone.
   Future<List<Mod>> installFiles(List<FileSystemEntity> sources,
       {String method = 'picker',
       GameAdapter? into,
       Directory? target,
+      String? destination,
       InstallPlacement placement = const SortedPlacement()}) async {
     final adapter = into ?? _adapter;
     final modsFolder = target ?? modsDir;
@@ -3501,7 +3974,12 @@ class AppController extends ChangeNotifier {
     // the chosen folder belongs to.
     final dir = placement is ChosenPlacement
         ? modsFolder
-        : _installDestination(adapter, modsFolder);
+        : destination != null
+            ? (destination.isEmpty
+                ? modsFolder
+                : Directory(p.joinAll(
+                    [modsFolder.path, ...folderSegments(destination)])))
+            : _installDestination(adapter, modsFolder);
     AppMessage? error;
     var folders = 0, archives = 0, files = 0;
     final installed = <Mod>[];
@@ -4072,10 +4550,12 @@ class AppController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Back to the shelves.
+  /// Back to the shelves. The folder picked on the listing goes with it:
+  /// it was an answer about that mod, not about the game.
   void closeShopListing() {
     if (_shopSelectedId == null) return;
     playSound(UiSound.back);
+    _shopFolderChoices.remove(_shopSelectedId);
     _shopSelectedId = null;
     _shopSelectedFetched = null;
     notifyListeners();
@@ -4291,6 +4771,119 @@ class AppController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Folders picked on a listing's own page, by listing id. Dropped by
+  /// [closeShopListing]: the answer is about the mod on screen, not about
+  /// the game, and the next listing gets to be asked afresh.
+  final _shopFolderChoices = <String, String>{};
+
+  /// Whether the shop may ask which subfolder a listing installs into.
+  ///
+  /// False for a game that routes its own installs. The Sims 1 works out
+  /// which of its folders a file belongs in *from the mods folder*,
+  /// reaching siblings with `..`, so putting the install a level down
+  /// would send every routed file somewhere the game never reads. No row
+  /// on the listing, no card in Settings, and [shopDestinationFolder]
+  /// ignores a saved answer from before that game's install was found.
+  Future<bool> canChooseShopFolder(GameAdapter into) async {
+    final dir = await modsDirFor(into);
+    if (dir == null) return false;
+    return (await into.installDestinations(dir)).length <= 1;
+  }
+
+  /// The subfolder an install from The Exchange lands in for [gameId]:
+  /// the game's saved default, and failing that the folder chip the
+  /// library has selected - which is what every Exchange install followed
+  /// before there was a default, and only ever says anything for the game
+  /// the sidebar is on. The empty string is the mods folder itself.
+  ///
+  /// Synchronous because it is called from `build`, so it cannot itself
+  /// ask whether this game routes its own installs - the views draw the
+  /// row only once [canChooseShopFolder] has said yes, and the install
+  /// asks again before it uses any of this.
+  String shopDestinationFolder(String gameId) {
+    // Absent and empty are different answers: absent is nobody having
+    // said, empty is someone choosing the mods folder and meaning it.
+    final saved = settings.shopFolder(gameId);
+    if (saved != null) return saved;
+    if (gameId != _adapter.game.id) return '';
+    return installFolder ?? '';
+  }
+
+  /// Where [mod] would install: what was picked on the listing itself,
+  /// then its game's answer. The destination row on the listing draws
+  /// exactly this, so what it says is where the file goes.
+  String shopDestinationOf(ShopMod mod) =>
+      _shopFolderChoices[mod.id] ?? shopDestinationFolder(mod.gameId);
+
+  /// Remembers the folder picked on [mod]'s own page.
+  void chooseShopFolder(ShopMod mod, String folder) {
+    if (_shopFolderChoices[mod.id] == folder) return;
+    _shopFolderChoices[mod.id] = folder;
+    playSound(UiSound.click);
+    notifyListeners();
+  }
+
+  /// Sets the folder Exchange installs for [gameId] land in from now on.
+  Future<void> setShopFolder(String gameId, String folder) async {
+    await settings.setShopFolder(gameId, folder);
+    playSound(UiSound.click);
+    // Never the folder's name, which is the user's own.
+    analytics.capture('shop_folder_set', {
+      'game': gameId,
+      'depth': folder.isEmpty ? 0 : folderSegments(folder).length,
+      'cleared': folder.isEmpty,
+    });
+    notifyListeners();
+  }
+
+  /// The subfolders an install into [into] could go to, for the picker.
+  ///
+  /// The loaded library's own chips for the game on screen; for any other
+  /// game a bounded walk of its mods folder, which is why the dialog
+  /// opens on a spinner. Depth is the game's own limit where it reads one
+  /// out of its config, and three levels where it doesn't.
+  Future<List<String>> installFolderChoices(GameAdapter into) async {
+    if (into.game.id == _adapter.game.id) {
+      return [
+        for (final folder in folders)
+          if (canMoveInto(folder)) folder,
+      ];
+    }
+    final dir = await modsDirFor(into);
+    if (dir == null) return const [];
+    final limit = await into.modDepthLimit(dir) ?? 3;
+    final found = <String>[];
+    await _walkFolders(dir, const [], limit, found);
+    found.sort();
+    // A folder made in the app and still empty is on record rather than
+    // on the chips, and the walk finds it on disk anyway - but a game
+    // whose folder has since gone would otherwise offer nothing at all.
+    for (final made in settings.madeFolders(into.game.id)) {
+      if (!found.contains(made)) found.add(made);
+    }
+    return found;
+  }
+
+  /// Every subfolder under [dir], [depth] levels down, as folder keys.
+  /// A folder the OS won't open costs what is inside it and nothing else,
+  /// the way listing a library does.
+  Future<void> _walkFolders(
+      Directory dir, List<String> parents, int depth, List<String> found) async {
+    if (depth <= 0) return;
+    final List<FileSystemEntity> entries;
+    try {
+      entries = await dir.list(followLinks: false).toList();
+    } catch (_) {
+      return;
+    }
+    for (final entry in entries) {
+      if (entry is! Directory) continue;
+      final segments = [...parents, p.basename(entry.path)];
+      found.add(segments.join(folderSeparator));
+      await _walkFolders(entry, segments, depth - 1, found);
+    }
+  }
+
   /// Downloads [mod] from The Exchange and installs it through the same
   /// pipeline as a picked file, so archives unpack and files land where
   /// the adapter routes them. The listing names its own game, which need
@@ -4324,8 +4917,19 @@ class AppController extends ChangeNotifier {
       });
       shopProgress.remove(mod.id);
       final previous = _shopInstalls[mod.id];
+      // Asked here rather than read off the screen: a deep link can
+      // install a listing whose destination row was never drawn, and a
+      // game that routes its own installs must ignore any folder on
+      // record from before its install was found.
+      final folder = await canChooseShopFolder(into)
+          ? shopDestinationOf(mod)
+          : '';
       final installed = await installFiles([file],
-          method: 'shop', into: into, target: dir, placement: placement);
+          method: 'shop',
+          into: into,
+          target: dir,
+          destination: folder,
+          placement: placement);
       // A listing holding nothing this game can install is not
       // necessarily a broken listing - it can be a tool, a spreadsheet,
       // something that was never a mod (issue #16). The generic wording

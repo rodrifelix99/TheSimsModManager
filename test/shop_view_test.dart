@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui' show Size;
 
+import 'package:flutter/material.dart' show AlertDialog;
 import 'package:flutter/widgets.dart' as widgets;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
@@ -9,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sims_mod_manager/src/core/game.dart';
 import 'package:sims_mod_manager/src/core/game_adapter.dart';
 import 'package:sims_mod_manager/src/core/game_registry.dart';
+import 'package:sims_mod_manager/src/core/install_destination.dart';
 import 'package:sims_mod_manager/src/core/mod.dart';
 import 'package:sims_mod_manager/src/core/package_insight.dart';
 import 'package:sims_mod_manager/src/services/mod_shop.dart';
@@ -61,6 +63,21 @@ Future<void> _openShop(WidgetTester tester, {String game = 'Fake Game'}) async {
   await tester.pump(const Duration(milliseconds: 400));
 }
 
+/// Opens the listing's folder picker and takes [folder] out of it.
+Future<void> _pickShopFolder(WidgetTester tester, String folder) async {
+  await tester.tap(find.text('Change…'));
+  await tester.pump();
+  // The list arrives off the disk, so the dialog opens on a spinner.
+  final option = find.descendant(
+      of: find.byType(AlertDialog), matching: find.text(folder));
+  await until(tester, option);
+  await tester.tap(option);
+  await tester.pump();
+  await tester.tap(find.text('Choose'));
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 400));
+}
+
 ShopMod _listing({
   String id = 'l1',
   String fileName = 'camera_fix.package',
@@ -89,7 +106,173 @@ ShopMod _listing({
       imagePaths: imagePaths,
     );
 
+/// A game that routes installs into folders of its own, the way The Sims
+/// 1 does. Two destinations is what makes the routing real: the folder
+/// question is the adapter's to answer, and the shop must keep out of it.
+class _RoutedAdapter extends _FakeAdapter {
+  _RoutedAdapter(super.dir);
+
+  @override
+  Future<List<InstallDestination>> installDestinations(
+          Directory modsDir) async =>
+      [
+        InstallDestination(
+            id: 'Downloads', directory: modsDir, label: 'Downloads'),
+        InstallDestination(
+            id: 'GameData/Skins',
+            directory: Directory(p.join(modsDir.path, 'GameData', 'Skins')),
+            label: r'GameData\Skins'),
+      ];
+}
+
 void main() {
+  testWidgets('an install from the shop lands in the folder set for the game',
+      (tester) async {
+    tester.view.physicalSize = const Size(1280, 824);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    // The folder is not made first: a default set months ago outlives the
+    // folder it named, and an install is a worse moment than any to find
+    // that out.
+    SharedPreferences.setMockInitialValues(
+        {'soundEffects': false, 'shopFolder.fake': 'cc/exchange'});
+    final tempDir = Directory.systemTemp.createTempSync('shop_folder_pref');
+    addTearDown(() => tempDir.deleteSync(recursive: true));
+
+    final registry = GameRegistry([_FakeAdapter(tempDir)]);
+    final settings = await SettingsStore.load();
+
+    await tester.runAsync(() async {
+      await tester.pumpWidget(ModManagerApp(
+        registry: registry,
+        settings: settings,
+        fetchShop: () async => [_listing()],
+        downloadShop: (mod, destination, {onProgress}) async {
+          destination.writeAsStringSync('shop bytes!');
+          onProgress?.call(11, 11);
+        },
+      ));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
+    await _openShop(tester);
+    await tester.runAsync(() => tester.tap(find.text('Install')));
+    await tester.pump();
+    await until(tester, find.text('Installed'));
+
+    expect(
+        File(p.join(tempDir.path, 'cc', 'exchange', 'camera_fix.package'))
+            .existsSync(),
+        isTrue);
+    expect(
+        File(p.join(tempDir.path, 'camera_fix.package')).existsSync(), isFalse);
+  });
+
+  testWidgets(
+      'a folder picked on a listing beats the default, and goes with '
+      'the screen', (tester) async {
+    tester.view.physicalSize = const Size(1280, 824);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    SharedPreferences.setMockInitialValues({'soundEffects': false});
+    final tempDir = Directory.systemTemp.createTempSync('shop_folder_pick');
+    addTearDown(() => tempDir.deleteSync(recursive: true));
+    // A folder the library knows about, which is where the picker's
+    // choices come from for the game on screen.
+    Directory(p.join(tempDir.path, 'cc')).createSync();
+    File(p.join(tempDir.path, 'cc', 'old.package')).writeAsStringSync('x');
+
+    final registry = GameRegistry([_FakeAdapter(tempDir)]);
+    final settings = await SettingsStore.load();
+
+    await tester.runAsync(() async {
+      await tester.pumpWidget(ModManagerApp(
+        registry: registry,
+        settings: settings,
+        fetchShop: () async => [_listing()],
+        downloadShop: (mod, destination, {onProgress}) async {
+          destination.writeAsStringSync('shop bytes!');
+          onProgress?.call(11, 11);
+        },
+      ));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
+    await _openShop(tester);
+    await tester.tap(find.text('Camera Fix').last);
+    await until(tester, find.text('Installs into'.toUpperCase()));
+    expect(find.text('Mods folder'), findsOneWidget);
+
+    await _pickShopFolder(tester, 'cc');
+    expect(find.text('cc'), findsOneWidget);
+    expect(find.text('Mods folder'), findsNothing);
+
+    // Back to the shelves and in again: the answer was about the install
+    // in front of the user, not about the game.
+    await tester.tap(find.text('Back to the shelves'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tap(find.text('Camera Fix').last);
+    await until(tester, find.text('Installs into'.toUpperCase()));
+    expect(find.text('Mods folder'), findsOneWidget);
+
+    await _pickShopFolder(tester, 'cc');
+    await tester.runAsync(() => tester.tap(find.text('Install')));
+    await tester.pump();
+    await until(tester, find.text('Installed'));
+
+    expect(File(p.join(tempDir.path, 'cc', 'camera_fix.package')).existsSync(),
+        isTrue);
+    expect(
+        File(p.join(tempDir.path, 'camera_fix.package')).existsSync(), isFalse);
+  });
+
+  testWidgets(
+      'a game that routes its own installs is never asked about '
+      'subfolders', (tester) async {
+    tester.view.physicalSize = const Size(1280, 824);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    // The pref is set and has to be ignored: which folder a file belongs
+    // in is this adapter's answer, worked out from the mods folder, and a
+    // subfolder under it would take every routed file with it.
+    SharedPreferences.setMockInitialValues({
+      'soundEffects': false,
+      'askWhereToInstall': false,
+      'shopFolder.fake': 'cc',
+    });
+    final tempDir = Directory.systemTemp.createTempSync('shop_folder_routed');
+    addTearDown(() => tempDir.deleteSync(recursive: true));
+
+    final registry = GameRegistry([_RoutedAdapter(tempDir)]);
+    final settings = await SettingsStore.load();
+
+    await tester.runAsync(() async {
+      await tester.pumpWidget(ModManagerApp(
+        registry: registry,
+        settings: settings,
+        fetchShop: () async => [_listing()],
+        downloadShop: (mod, destination, {onProgress}) async {
+          destination.writeAsStringSync('shop bytes!');
+          onProgress?.call(11, 11);
+        },
+      ));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
+    await _openShop(tester);
+    await tester.tap(find.text('Camera Fix').last);
+    await until(tester, find.text('Install'));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('Installs into'.toUpperCase()), findsNothing);
+
+    await tester.runAsync(() => tester.tap(find.text('Install')));
+    await tester.pump();
+    await until(tester, find.text('Installed'));
+
+    expect(
+        File(p.join(tempDir.path, 'camera_fix.package')).existsSync(), isTrue);
+    expect(File(p.join(tempDir.path, 'cc', 'camera_fix.package')).existsSync(),
+        isFalse);
+  });
+
   testWidgets('the shop lists a mod and installs it in one click',
       (tester) async {
     tester.view.physicalSize = const Size(1280, 824);
@@ -128,8 +311,8 @@ void main() {
     await tester.pump();
     await until(tester, find.text('Installed'));
 
-    expect(File(p.join(tempDir.path, 'camera_fix.package')).existsSync(),
-        isTrue);
+    expect(
+        File(p.join(tempDir.path, 'camera_fix.package')).existsSync(), isTrue);
     expect(find.text('Installed'), findsOneWidget);
   });
 
@@ -404,8 +587,7 @@ void main() {
     // from it, so the library badges the mod without anyone opening the
     // shop, and the sidebar carries the count.
     expect(find.text('update'), findsOneWidget);
-    expect(
-        find.byTooltip('1 of your mods has a new version on The Exchange'),
+    expect(find.byTooltip('1 of your mods has a new version on The Exchange'),
         findsOneWidget);
 
     // The listing offers an update rather than reading as done.
@@ -424,8 +606,7 @@ void main() {
 
     // The file is replaced, the record moves to the new version, and
     // nothing is left claiming an update.
-    expect(
-        File(p.join(tempDir.path, 'camera_fix.package')).readAsStringSync(),
+    expect(File(p.join(tempDir.path, 'camera_fix.package')).readAsStringSync(),
         'new bytes');
     expect(find.text('Installed'), findsOneWidget);
     expect(find.text('Update'), findsNothing);
@@ -587,8 +768,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
   }
 
-  testWidgets('a link opens the listing without installing it',
-      (tester) async {
+  testWidgets('a link opens the listing without installing it', (tester) async {
     final tempDir = Directory.systemTemp.createTempSync('shop_link');
     addTearDown(() => tempDir.deleteSync(recursive: true));
     final fetched = <String>[];
@@ -619,8 +799,8 @@ void main() {
     expect(fetched, isEmpty);
     // The whole point: a link opens a listing. It never installs one.
     expect(downloaded, isEmpty);
-    expect(File(p.join(tempDir.path, 'camera_fix.package')).existsSync(),
-        isFalse);
+    expect(
+        File(p.join(tempDir.path, 'camera_fix.package')).existsSync(), isFalse);
     expect(find.text('Install'), findsOneWidget);
   });
 
@@ -663,8 +843,8 @@ void main() {
     );
 
     links.add(Uri.parse('simsmodmanager://mod/deleted'));
-    await settle(
-        tester, shows: find.textContaining('isn’t on The Exchange any more'));
+    await settle(tester,
+        shows: find.textContaining('isn’t on The Exchange any more'));
 
     expect(
         find.textContaining('isn’t on The Exchange any more'), findsOneWidget);
@@ -719,7 +899,8 @@ void main() {
     expect(find.text('Back to the shelves'), findsNothing);
   });
 
-  testWidgets('a link arriving from another screen still lands', (tester) async {
+  testWidgets('a link arriving from another screen still lands',
+      (tester) async {
     final tempDir = Directory.systemTemp.createTempSync('shop_link_settings');
     addTearDown(() => tempDir.deleteSync(recursive: true));
 
@@ -799,8 +980,7 @@ void main() {
           _listing(downloads: 1284),
           // Nobody has taken this one, and a card that says so out loud
           // does the creator no favours: the number stays off entirely.
-          _listing(
-              id: 'l2', name: 'Quiet Doors', fileName: 'doors.package'),
+          _listing(id: 'l2', name: 'Quiet Doors', fileName: 'doors.package'),
         ],
       ));
       await Future<void>.delayed(const Duration(milliseconds: 200));
@@ -820,7 +1000,8 @@ void main() {
     expect(find.text('1,284'), findsOneWidget);
   });
 
-  testWidgets('a creator\'s set is one card, and the picker installs the '
+  testWidgets(
+      'a creator\'s set is one card, and the picker installs the '
       'colour that was chosen', (tester) async {
     tester.view.physicalSize = const Size(1280, 824);
     tester.view.devicePixelRatio = 1.0;

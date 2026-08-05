@@ -479,7 +479,16 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
       if (p.isWithin(dir.path, modsDir.path)) continue;
       final key = p.canonicalize(dir.path);
       if (found.containsKey(key)) continue;
-      if (!await dir.exists()) continue;
+      // Asking whether a folder is there can itself fail: a name the OS
+      // refuses to address (Windows answers errno 123 rather than false)
+      // throws out of exists(). The line named a folder we cannot reach
+      // either way, which is worth exactly one skipped folder and not a
+      // refresh that ends in an error banner.
+      try {
+        if (!await dir.exists()) continue;
+      } catch (_) {
+        continue;
+      }
       found[key] = dir;
     }
     return found.values.toList();

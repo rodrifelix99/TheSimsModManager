@@ -161,6 +161,85 @@ void main() {
       expect(c.isFolderCollapsed('cc'), isFalse);
     });
 
+    test('a subfolder sits under its parent, in tree order', () async {
+      writeMod('loose.package');
+      writeMod('cc/hair.package');
+      writeMod('cc/defaults/eyes.package');
+      writeMod('scripts/cheats.package');
+      final c = await makeController();
+
+      expect(
+        c.folderGroups.map((g) => (g.folder, g.depth)),
+        [(null, 0), ('cc', 0), ('cc/defaults', 1), ('scripts', 0)],
+      );
+    });
+
+    // The complaint this answers: a library organised into cc/hair/female
+    // opened on every level at once, headers all the way down before a
+    // single mod.
+    test('subfolders start rolled up and top-level ones start open',
+        () async {
+      writeMod('cc/hair.package');
+      writeMod('cc/defaults/eyes.package');
+      final c = await makeController();
+
+      expect(c.isFolderCollapsed(null), isFalse);
+      expect(c.isFolderCollapsed('cc'), isFalse);
+      expect(c.isFolderCollapsed('cc/defaults'), isTrue);
+    });
+
+    test('opening a subfolder is remembered, and so is closing it again',
+        () async {
+      writeMod('cc/defaults/eyes.package');
+      final c = await makeController();
+
+      await c.toggleFolderCollapsed('cc/defaults');
+      expect(c.isFolderCollapsed('cc/defaults'), isFalse);
+      expect(c.settings.expandedFolders('fake'), ['cc/defaults']);
+      expect(c.settings.collapsedFolders('fake'), isEmpty);
+
+      await c.toggleFolderCollapsed('cc/defaults');
+      expect(c.isFolderCollapsed('cc/defaults'), isTrue);
+      // Never on both lists at once, whichever way it was flipped.
+      expect(c.settings.expandedFolders('fake'), isEmpty);
+      expect(c.settings.collapsedFolders('fake'), ['cc/defaults']);
+    });
+
+    // An install that had already rolled sections up keeps them rolled
+    // up: the stored list is what the user did, not what differs from a
+    // default that has since changed.
+    test('a section an older install collapsed stays collapsed', () async {
+      writeMod('cc/hair.package');
+      final c = await makeController({'collapsedFolders.fake': ['cc']});
+
+      expect(c.isFolderCollapsed('cc'), isTrue);
+    });
+
+    test('a header counts everything below it, not just what sits in it',
+        () async {
+      writeMod('cc/hair.package');
+      writeMod('cc/defaults/eyes.package');
+      writeMod('cc/defaults/deep/skin.package');
+      final c = await makeController();
+
+      final cc = c.folderGroups.firstWhere((g) => g.folder == 'cc');
+      expect(cc.mods, hasLength(1));
+      expect(cc.totalMods, 3);
+      expect(cc.sizeBytes, 'bytes'.length);
+      expect(cc.totalSizeBytes, 'bytes'.length * 3);
+    });
+
+    // A folder with nothing of its own is still the way to the mods
+    // underneath it.
+    test('a folder holding only subfolders is still a section', () async {
+      writeMod('cc/defaults/eyes.package');
+      final c = await makeController();
+
+      expect(c.folderGroups.map((g) => g.folder), ['cc', 'cc/defaults']);
+      expect(c.folderGroups.first.mods, isEmpty);
+      expect(c.folderGroups.first.totalMods, 1);
+    });
+
     test('an install that already picked list or grid keeps it', () async {
       expect((await makeController()).layout, LibraryLayout.grid);
       expect((await makeController({'listView': true})).layout,

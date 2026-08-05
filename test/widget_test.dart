@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:ui' show Size;
 
 import 'package:flutter/services.dart' show LogicalKeyboardKey;
+import 'package:flutter/gestures.dart' show kSecondaryButton;
 import 'package:flutter/widgets.dart' show EditableText, Text;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
@@ -44,6 +45,11 @@ class _FakeAdapter extends FolderBasedGameAdapter {
   @override
   Future<Directory?> findGameFolder() async => gameFolder;
 
+  /// What a scan of each mod reports, by file name. Empty by default,
+  /// which is a library nothing could be read inside - what every test
+  /// here had before the kind chips needed something to draw.
+  Map<String, Map<String, int>> contents = const {};
+
   /// The real implementation reads files in [Isolate]s: threads the
   /// widget test's fake-async zone can't wait on, whose open handles make
   /// Windows fail the toggle rename and the temp-dir teardown delete.
@@ -54,7 +60,12 @@ class _FakeAdapter extends FolderBasedGameAdapter {
     void Function(Map<String, PackageInsight> found)? onFound,
     bool Function()? isCancelled,
   }) async =>
-      const {};
+      {
+        for (final mod in mods)
+          if (contents.containsKey(mod.name))
+            mod.path: PackageInsight(
+                resourceCount: 1, contents: contents[mod.name]!),
+      };
 
   @override
   Game get game =>
@@ -343,6 +354,81 @@ void main() {
     expect(find.text('root mod'), findsOneWidget);
   });
 
+  testWidgets('ctrl-clicking a second folder chip shows both folders',
+      (tester) async {
+    tester.view.physicalSize = const Size(1280, 824);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    SharedPreferences.setMockInitialValues({'soundEffects': false});
+    final tempDir = Directory.systemTemp.createTempSync('mod_manager_ui');
+    addTearDown(() => tempDir.deleteSync(recursive: true));
+    File(p.join(tempDir.path, 'root_mod.package')).writeAsStringSync('x');
+    Directory(p.join(tempDir.path, 'CAS')).createSync();
+    File(p.join(tempDir.path, 'CAS', 'skin_tone.package'))
+        .writeAsStringSync('x');
+    Directory(p.join(tempDir.path, 'Build')).createSync();
+    File(p.join(tempDir.path, 'Build', 'sofa.package')).writeAsStringSync('x');
+
+    final registry = GameRegistry([_FakeAdapter(tempDir)]);
+    final settings = await SettingsStore.load();
+    await _pump(tester, registry, settings, ready: find.text('CAS  1'));
+
+    await tester.tap(find.text('CAS  1'));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('sofa'), findsNothing);
+
+    // The same chord that ticks a mod card, held over the second chip.
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+    await tester.tap(find.text('Build  1'));
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.text('skin tone'), findsOneWidget);
+    expect(find.text('sofa'), findsOneWidget);
+    expect(find.text('root mod'), findsNothing);
+  });
+
+  testWidgets('right-clicking a folder chip offers to delete it',
+      (tester) async {
+    tester.view.physicalSize = const Size(1280, 824);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    SharedPreferences.setMockInitialValues({'soundEffects': false});
+    final tempDir = Directory.systemTemp.createTempSync('mod_manager_ui');
+    addTearDown(() => tempDir.deleteSync(recursive: true));
+    File(p.join(tempDir.path, 'root_mod.package')).writeAsStringSync('x');
+    Directory(p.join(tempDir.path, 'CAS')).createSync();
+    File(p.join(tempDir.path, 'CAS', 'skin_tone.package'))
+        .writeAsStringSync('x');
+
+    final registry = GameRegistry([_FakeAdapter(tempDir)]);
+    final settings = await SettingsStore.load();
+    await _pump(tester, registry, settings, ready: find.text('CAS  1'));
+
+    final gesture = await tester.startGesture(
+        tester.getCenter(find.text('CAS  1')),
+        buttons: kSecondaryButton);
+    await gesture.up();
+    await tester.pumpAndSettle();
+
+    // It says what it is about to take, because there is no undo.
+    expect(find.text('Delete CAS?'), findsOneWidget);
+    expect(find.text('1 mod will be deleted'), findsOneWidget);
+
+    await tester.runAsync(() => tester.tap(find.text('Delete folder')));
+    await tester.pump();
+    // The mods are deleted and the library re-read before the chip goes,
+    // so the chip leaving is what says the whole thing finished.
+    await untilGone(tester, find.text('CAS  1'));
+    // The chip goes while the library is still being re-read, so the
+    // shelf coming back is what says the whole thing landed.
+    await until(tester, find.text('root mod'));
+
+    expect(Directory(p.join(tempDir.path, 'CAS')).existsSync(), isFalse);
+    expect(find.text('skin tone'), findsNothing);
+    expect(find.text('CAS  1'), findsNothing);
+  });
+
   testWidgets('folder chips overflow into the "…" menu when the line is full',
       (tester) async {
     tester.view.physicalSize = const Size(1280, 824);
@@ -470,6 +556,106 @@ void main() {
     expect(row('beta mod'), findsOneWidget);
     expect(row('loose mod'), findsOneWidget);
     expect(settings.collapsedFolders('fake'), ['Alpha']);
+  });
+
+  // The point of the axis: nobody typed any of this. The category chips
+  // read the file extension, which for these games is ".package" and the
+  // same for every mod in the library.
+  testWidgets('the library sorts itself into CAS and Build & Buy',
+      (tester) async {
+    tester.view.physicalSize = const Size(1280, 824);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    SharedPreferences.setMockInitialValues({'soundEffects': false});
+    final tempDir = Directory.systemTemp.createTempSync('mod_manager_kinds');
+    addTearDown(() => tempDir.deleteSync(recursive: true));
+    for (final name in ['long_hair', 'cozy_sofa', 'retro_lamp']) {
+      File(p.join(tempDir.path, '$name.package')).writeAsStringSync('bytes');
+    }
+
+    final adapter = _FakeAdapter(tempDir)
+      ..contents = {
+        'long_hair.package': {'CAS parts': 3},
+        'cozy_sofa.package': {'objects': 1},
+        'retro_lamp.package': {'objects': 1},
+      };
+    final registry = GameRegistry([adapter]);
+    final settings = await SettingsStore.load();
+
+    await _pump(tester, registry, settings);
+
+    // A chip each, carrying its count the way every other chip does.
+    expect(find.text('CAS  1'), findsOneWidget);
+    expect(find.text('Build & Buy  2'), findsOneWidget);
+
+    await tester.tap(find.text('CAS  1'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('long hair'), findsOneWidget);
+    expect(find.text('cozy sofa'), findsNothing);
+
+    // Tapping the live chip lets go of it again.
+    await tester.tap(find.text('CAS  1'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('cozy sofa'), findsOneWidget);
+  });
+
+  testWidgets('a subfolder opens on click and closes its whole branch',
+      (tester) async {
+    tester.view.physicalSize = const Size(1280, 824);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    SharedPreferences.setMockInitialValues(
+        {'soundEffects': false, 'libraryLayout': 'folders'});
+    final tempDir = Directory.systemTemp.createTempSync('mod_manager_ui');
+    addTearDown(() => tempDir.deleteSync(recursive: true));
+    final deep = Directory(p.join(tempDir.path, 'cc', 'hair', 'female'))
+      ..createSync(recursive: true);
+    File(p.join(deep.path, 'bangs_mod.package')).writeAsStringSync('x');
+    File(p.join(deep.parent.path, 'bob_mod.package')).writeAsStringSync('x');
+    File(p.join(deep.parent.parent.path, 'eyes_mod.package'))
+        .writeAsStringSync('x');
+
+    final registry = GameRegistry([_FakeAdapter(tempDir)]);
+    final settings = await SettingsStore.load();
+    await _pump(tester, registry, settings, ready: find.text('cc'));
+
+    Finder row(String title) =>
+        find.textContaining(title, findRichText: true);
+
+    // Only the top level is open: cc's own mod shows, and 'hair' is a
+    // header sitting closed rather than a wall of levels.
+    expect(row('eyes mod'), findsOneWidget);
+    expect(find.text('hair'), findsOneWidget);
+    expect(row('bob mod'), findsNothing);
+    expect(find.text('female'), findsNothing);
+
+    // Opening 'hair' brings its own mods and its subfolder's header, and
+    // nothing from inside that subfolder.
+    await tester.tap(find.text('hair'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(row('bob mod'), findsOneWidget);
+    expect(find.text('female'), findsOneWidget);
+    expect(row('bangs mod'), findsNothing);
+    expect(settings.expandedFolders('fake'), ['cc/hair']);
+
+    await tester.tap(find.text('female'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(row('bangs mod'), findsOneWidget);
+
+    // Closing the branch at the top takes everything below it with it,
+    // however much of it was open.
+    await tester.tap(find.text('cc'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('cc'), findsOneWidget);
+    expect(find.text('hair'), findsNothing);
+    expect(find.text('female'), findsNothing);
+    expect(row('eyes mod'), findsNothing);
+    expect(row('bangs mod'), findsNothing);
   });
 
   testWidgets('a mod dragged onto a folder header moves into it',

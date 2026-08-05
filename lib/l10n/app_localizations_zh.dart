@@ -152,6 +152,9 @@ class LZh extends L {
   String get shopSaveHint => '安装会把文件直接放进你的模组文件夹；下载只是把文件存到你想放的地方。';
 
   @override
+  String get shopDestination => '安装到';
+
+  @override
   String get shopVariationPick => '选一个款式';
 
   @override
@@ -344,6 +347,20 @@ class LZh extends L {
 
   @override
   String get moveBody => '文件会在磁盘上移动位置，其他什么都不变 —— 已经停用的还是停用状态。';
+
+  @override
+  String get installFolderTitle => '装到哪个文件夹？';
+
+  @override
+  String installFolderBody(String game) {
+    return '文件会放进你 $game 的 Mods 文件夹里的哪个位置。';
+  }
+
+  @override
+  String get installFolderChoose => '就它了';
+
+  @override
+  String get installFolderEmpty => '还没有子文件夹。新建一个，或者全都放在 Mods 文件夹里。';
 
   @override
   String get folderEmptySection => '这里还什么都没有';
@@ -729,6 +746,19 @@ class LZh extends L {
   }
 
   @override
+  String sectionShopFolder(String game) {
+    return 'THE EXCHANGE · $game';
+  }
+
+  @override
+  String get prefShopFolderTitle => 'The Exchange 的 Mod 装到哪';
+
+  @override
+  String prefShopFolderDesc(String folder) {
+    return '安装会放进 $folder';
+  }
+
+  @override
   String get sectionFeedback => '反馈';
 
   @override
@@ -969,13 +999,25 @@ class LZh extends L {
   String get contentMeshes => '模型';
 
   @override
+  String get modKindCas => 'CAS';
+
+  @override
+  String get modKindBuildBuy => '建造购买';
+
+  @override
+  String get modKindGameplay => '玩法';
+
+  @override
+  String get modKindScript => '脚本';
+
+  @override
   String errorNoModFiles(String extensions, String name) {
     return '$name 里没有找到模组文件（$extensions）。';
   }
 
   @override
   String errorUnreadableArchive(String name) {
-    return '$name 不是这个应用能读取的 zip 压缩包。';
+    return '$name 不是这个应用能读取的压缩包。';
   }
 
   @override
@@ -1834,4 +1876,35 @@ class LZh extends L {
   @override
   String get setupHelpSimsMedieval =>
       '模拟人生中世纪从安装目录加载 MOD，而不是「文档」：在游戏文件旁边放一个 Mods > Packages 文件夹（例如 C:\\Program Files (x86)\\Origin Games\\The Sims Medieval），再在安装目录里放一个告诉游戏去读它的 Resource.cfg。这两样这个应用都能帮你建好（在 Program Files 下 Windows 可能会要管理员权限）。「文档 > Electronic Arts > The Sims Medieval」只存档案，放在那儿的 MOD 不起作用。如果用 Wine/CrossOver，或者 Steam 库位置是自定义的，就用「选择文件夹」指向安装目录里的 Mods > Packages。';
+
+  @override
+  String get prefSubfoldersTitle => '文件夹包含子文件夹';
+
+  @override
+  String get prefSubfoldersDesc =>
+      '文件夹会一并显示下面的所有内容。关掉后，cc 和 cc/defaults 就是两个独立的架子。';
+
+  @override
+  String deleteFolderTitle(String folder) {
+    return '删除 $folder？';
+  }
+
+  @override
+  String get deleteFolderBody => '这个文件夹和里面的所有东西都会消失，子文件夹也一样。这个操作无法撤销。';
+
+  @override
+  String deleteFolderMods(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '将删除 $count 个模组',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get deleteFolderEmpty => '里面没有模组。';
+
+  @override
+  String get deleteFolder => '删除文件夹';
 }

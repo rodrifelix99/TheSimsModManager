@@ -110,11 +110,30 @@ class SettingsStore {
 
   /// Folder sections the user rolled up in the folder view. Per game,
   /// like the folder arrangement, since the folders themselves are.
+  ///
+  /// Only sections that would otherwise be open: a subfolder starts
+  /// closed, so the ones the user closed by hand are the top-level
+  /// sections and the root. See [expandedFolders] for the other half.
   List<String> collapsedFolders(String gameId) =>
       _prefs.getStringList(_collapsedFoldersKey(gameId)) ?? const [];
 
   Future<void> setCollapsedFolders(String gameId, List<String> folders) =>
       _prefs.setStringList(_collapsedFoldersKey(gameId), folders);
+
+  static String _expandedFoldersKey(String gameId) =>
+      'expandedFolders.$gameId';
+
+  /// Folder sections the user opened that start closed - the subfolders.
+  ///
+  /// Two lists rather than one holding "not the default", because that
+  /// single list would read every section an existing install had
+  /// already rolled up as one to open instead, and silently unfold the
+  /// libraries this was written to tidy.
+  List<String> expandedFolders(String gameId) =>
+      _prefs.getStringList(_expandedFoldersKey(gameId)) ?? const [];
+
+  Future<void> setExpandedFolders(String gameId, List<String> folders) =>
+      _prefs.setStringList(_expandedFoldersKey(gameId), folders);
 
   static String _madeFoldersKey(String gameId) => 'madeFolders.$gameId';
 
@@ -130,6 +149,34 @@ class SettingsStore {
       folders.isEmpty
           ? _prefs.remove(_madeFoldersKey(gameId))
           : _prefs.setStringList(_madeFoldersKey(gameId), folders);
+
+  /// Whether a folder chip stands for everything below it or only for
+  /// the files sitting in that folder itself.
+  ///
+  /// On by default, which is what it has always done: someone who keeps
+  /// everything under `cc/defaults` still thinks of `cc` as holding it.
+  /// Off is for the opposite habit - `cc` and `cc/defaults` as two
+  /// separate shelves, which is how the user who asked for this reads
+  /// their own library.
+  bool get folderIncludesSubfolders =>
+      _prefs.getBool('folderIncludesSubfolders') ?? true;
+
+  Future<void> setFolderIncludesSubfolders(bool value) =>
+      _prefs.setBool('folderIncludesSubfolders', value);
+
+  static String _shopFolderKey(String gameId) => 'shopFolder.$gameId';
+
+  /// Which subfolder of a game's mods folder an install from The
+  /// Exchange lands in by default.
+  ///
+  /// Absent and empty are different answers on purpose: absent means
+  /// nobody has said, and the install follows the selected folder chip
+  /// the way it always did, while the empty string is someone choosing
+  /// the mods folder itself and meaning it.
+  String? shopFolder(String gameId) => _prefs.getString(_shopFolderKey(gameId));
+
+  Future<void> setShopFolder(String gameId, String folder) =>
+      _prefs.setString(_shopFolderKey(gameId), folder);
 
   /// Look inside mod files for embedded artwork and content summaries
   /// while the library loads (the slow part of the loading screen).

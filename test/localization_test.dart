@@ -419,6 +419,11 @@ void main() {
       await tester.tap(find.text(strings.navSettings).last);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
+      // The Exchange's folder card asks the disk before it draws, so it
+      // is waited for rather than assumed: it is a label and a button on
+      // one row, which is where a long translation shows.
+      await until(tester, find.text(strings.prefShopFolderTitle));
+      await tester.pump(const Duration(milliseconds: 500));
       expect(overflows, isEmpty, reason: 'settings in ${language.name}');
 
       await tester.tap(find.text(strings.navShop).last);
@@ -512,6 +517,11 @@ void main() {
       await tester.pump(const Duration(milliseconds: 500));
       expect(find.text(strings.shopSaveFile), findsOneWidget,
           reason: 'listing page in ${language.name}');
+      // And the line under them saying which folder Install will use,
+      // which is a label, a folder name and a button on one row.
+      await until(tester, find.text(strings.shopDestination.toUpperCase()));
+      expect(find.text(strings.shopDestination.toUpperCase()), findsOneWidget,
+          reason: 'listing destination in ${language.name}');
       expect(overflows, isEmpty, reason: 'listing page in ${language.name}');
     });
   }

@@ -1,9 +1,10 @@
 import 'dart:convert';
 
-/// Labels the player puts on their own mods, and the third axis the
+/// Labels the player puts on their own mods, and the fourth axis the
 /// library can be narrowed by - beside the file type, which the adapter
-/// decides, and the subfolder, which the disk decides. This one is the
-/// only vocabulary in the app that is entirely the user's: "wcif",
+/// decides, the subfolder, which the disk decides, and the kind, which
+/// the resources inside decide (`mod_kind.dart`). This one is the only
+/// vocabulary in the app that is entirely the user's: "wcif",
 /// "testing", "alpha cc", "keep for the legacy save". Nothing here reads
 /// a tag or acts on it; it exists to be written down and filtered by.
 ///

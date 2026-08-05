@@ -154,6 +154,9 @@ class LJa extends L {
       'インストールはファイルをMODフォルダーに直接入れます。ダウンロードは好きな場所にファイルを保存するだけです。';
 
   @override
+  String get shopDestination => 'インストール先';
+
+  @override
   String get shopVariationPick => 'バリエーションを選ぶ';
 
   @override
@@ -346,6 +349,20 @@ class LJa extends L {
 
   @override
   String get moveBody => 'ディスク上でフォルダが変わるだけです。ほかは変わりません（無効のものは無効のまま）。';
+
+  @override
+  String get installFolderTitle => 'どのフォルダ？';
+
+  @override
+  String installFolderBody(String game) {
+    return '$game の Mods フォルダのどこにファイルを置くか。';
+  }
+
+  @override
+  String get installFolderChoose => '決定';
+
+  @override
+  String get installFolderEmpty => 'サブフォルダはまだないよ。作ってもいいし、全部 Mods フォルダのままでもOK。';
 
   @override
   String get folderEmptySection => 'まだ何もありません';
@@ -737,6 +754,19 @@ class LJa extends L {
   }
 
   @override
+  String sectionShopFolder(String game) {
+    return 'THE EXCHANGE · $game';
+  }
+
+  @override
+  String get prefShopFolderTitle => 'The Exchange の Mod の入れ先';
+
+  @override
+  String prefShopFolderDesc(String folder) {
+    return 'インストールは $folder に入るよ';
+  }
+
+  @override
   String get sectionFeedback => 'フィードバック';
 
   @override
@@ -980,13 +1010,25 @@ class LJa extends L {
   String get contentMeshes => 'メッシュ';
 
   @override
+  String get modKindCas => 'CAS';
+
+  @override
+  String get modKindBuildBuy => '建設・購入';
+
+  @override
+  String get modKindGameplay => 'ゲームプレイ';
+
+  @override
+  String get modKindScript => 'スクリプト';
+
+  @override
   String errorNoModFiles(String extensions, String name) {
     return '$name の中にMODファイル（$extensions）が見つかりませんでした。';
   }
 
   @override
   String errorUnreadableArchive(String name) {
-    return '$name はこのアプリで読めるZIPアーカイブではありません。';
+    return '$name はこのアプリで読めるアーカイブではありません。';
   }
 
   @override
@@ -1853,4 +1895,35 @@ class LJa extends L {
   @override
   String get setupHelpSimsMedieval =>
       'The Sims Medieval はドキュメントではなくインストールフォルダから MOD を読み込みます。ゲームファイルの隣に Mods > Packages フォルダ（例：C:\\Program Files (x86)\\Origin Games\\The Sims Medieval）と、それを読むようゲームに伝える Resource.cfg をインストールフォルダに置きます。どちらもこのアプリが作れます（Program Files の下では Windows が管理者権限を求めることがあります）。「ドキュメント > Electronic Arts > The Sims Medieval」にはセーブしか入っておらず、そこに MOD を置いても何も起きません。Wine/CrossOver や独自の Steam ライブラリの場合は、「フォルダを選ぶ」でインストール先の Mods > Packages を指定してください。';
+
+  @override
+  String get prefSubfoldersTitle => 'フォルダにサブフォルダを含める';
+
+  @override
+  String get prefSubfoldersDesc =>
+      'フォルダの中身もまとめて表示します。オフにすると cc と cc/defaults は別々の棚になります。';
+
+  @override
+  String deleteFolderTitle(String folder) {
+    return '$folder を削除しますか？';
+  }
+
+  @override
+  String get deleteFolderBody => 'このフォルダと中身は、サブフォルダごとすべて消えます。元には戻せません。';
+
+  @override
+  String deleteFolderMods(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 個の MOD が削除されます',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get deleteFolderEmpty => 'MOD は入っていません。';
+
+  @override
+  String get deleteFolder => 'フォルダを削除';
 }

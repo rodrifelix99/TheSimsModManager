@@ -337,6 +337,12 @@ abstract class L {
   /// **'Install drops the files straight into your mods folder. Download just saves the file, wherever you want it.'**
   String get shopSaveHint;
 
+  /// No description provided for @shopDestination.
+  ///
+  /// In en, this message translates to:
+  /// **'Installs into'**
+  String get shopDestination;
+
   /// No description provided for @shopVariationPick.
   ///
   /// In en, this message translates to:
@@ -624,6 +630,30 @@ abstract class L {
   /// In en, this message translates to:
   /// **'The files move on disk. Nothing else about them changes - anything switched off stays off.'**
   String get moveBody;
+
+  /// No description provided for @installFolderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Which folder?'**
+  String get installFolderTitle;
+
+  /// No description provided for @installFolderBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Where the files land inside your mods folder for {game}.'**
+  String installFolderBody(String game);
+
+  /// No description provided for @installFolderChoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose'**
+  String get installFolderChoose;
+
+  /// No description provided for @installFolderEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No subfolders yet. Make one, or leave everything in the mods folder.'**
+  String get installFolderEmpty;
 
   /// No description provided for @folderEmptySection.
   ///
@@ -1249,6 +1279,24 @@ abstract class L {
   /// **'IGNORED CONFLICTS · {game}'**
   String sectionIgnoredConflicts(String game);
 
+  /// No description provided for @sectionShopFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'THE EXCHANGE · {game}'**
+  String sectionShopFolder(String game);
+
+  /// No description provided for @prefShopFolderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Where mods from The Exchange go'**
+  String get prefShopFolderTitle;
+
+  /// No description provided for @prefShopFolderDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Installs land in {folder}'**
+  String prefShopFolderDesc(String folder);
+
   /// No description provided for @sectionFeedback.
   ///
   /// In en, this message translates to:
@@ -1693,6 +1741,30 @@ abstract class L {
   /// **'meshes'**
   String get contentMeshes;
 
+  /// No description provided for @modKindCas.
+  ///
+  /// In en, this message translates to:
+  /// **'CAS'**
+  String get modKindCas;
+
+  /// No description provided for @modKindBuildBuy.
+  ///
+  /// In en, this message translates to:
+  /// **'Build & Buy'**
+  String get modKindBuildBuy;
+
+  /// No description provided for @modKindGameplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Gameplay'**
+  String get modKindGameplay;
+
+  /// No description provided for @modKindScript.
+  ///
+  /// In en, this message translates to:
+  /// **'Script'**
+  String get modKindScript;
+
   /// No description provided for @errorNoModFiles.
   ///
   /// In en, this message translates to:
@@ -1702,7 +1774,7 @@ abstract class L {
   /// No description provided for @errorUnreadableArchive.
   ///
   /// In en, this message translates to:
-  /// **'{name} isn’t a zip archive this app can read.'**
+  /// **'{name} isn’t an archive this app can read.'**
   String errorUnreadableArchive(String name);
 
   /// No description provided for @errorNoUnpacker.
@@ -3138,6 +3210,48 @@ abstract class L {
   /// In en, this message translates to:
   /// **'The Sims Medieval loads mods from its install folder, not Documents: a Mods > Packages folder next to the game files (e.g. C:\\Program Files (x86)\\Origin Games\\The Sims Medieval), plus a Resource.cfg file in the install folder that tells the game to read it. This app can create both for you (Windows may ask for administrator rights under Program Files). The Documents > Electronic Arts > The Sims Medieval folder only holds saves; mods placed there do nothing. For Wine/CrossOver installs or a custom Steam library, use “Choose folder” to point at the Mods > Packages folder inside the game install.'**
   String get setupHelpSimsMedieval;
+
+  /// No description provided for @prefSubfoldersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Folders include their subfolders'**
+  String get prefSubfoldersTitle;
+
+  /// No description provided for @prefSubfoldersDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'A folder shows everything below it too. Off, cc and cc/defaults are separate shelves.'**
+  String get prefSubfoldersDesc;
+
+  /// No description provided for @deleteFolderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {folder}?'**
+  String deleteFolderTitle(String folder);
+
+  /// No description provided for @deleteFolderBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The folder and everything in it goes, subfolders and all. This cannot be undone.'**
+  String get deleteFolderBody;
+
+  /// No description provided for @deleteFolderMods.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 mod will be deleted} other{{count} mods will be deleted}}'**
+  String deleteFolderMods(int count);
+
+  /// No description provided for @deleteFolderEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'It holds no mods.'**
+  String get deleteFolderEmpty;
+
+  /// No description provided for @deleteFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete folder'**
+  String get deleteFolder;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

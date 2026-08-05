@@ -82,14 +82,17 @@ List<String> modFolderRoots(String cfg) {
     final keyword = trimmed.substring(0, space).toLowerCase();
     final rest = trimmed.substring(space + 1).trim();
     if (rest.isEmpty) continue;
+    final String value;
     final List<String> segments;
     switch (keyword) {
       case 'packedfile':
-        final all = rest.replaceAll('\\', '/').split('/');
+        value = _unquoted(rest);
+        final all = value.replaceAll('\\', '/').split('/');
         // The last segment is the file, never a folder.
         segments = all.sublist(0, all.length - 1);
       case 'directoryfiles':
-        segments = rest.split(RegExp(r'\s')).first.replaceAll('\\', '/').split('/');
+        value = _firstValue(rest);
+        segments = value.replaceAll('\\', '/').split('/');
       default:
         continue;
     }
@@ -109,11 +112,40 @@ List<String> modFolderRoots(String cfg) {
     if (refused) continue;
     // A leading separator made the first segment empty and was skipped
     // above, so an absolute path would arrive here looking relative.
-    if (rest.startsWith('/') || rest.startsWith(r'\')) continue;
+    if (value.startsWith('/') || value.startsWith(r'\')) continue;
     final root = literal.join('/');
     if (!roots.contains(root)) roots.add(root);
   }
   return roots;
+}
+
+/// A value with one matched pair of surrounding quotes taken off.
+///
+/// Quoting is what a person reaches for when a path has a space in it,
+/// and these files are written by hand and by other people's tools. A
+/// quote left on the front of a folder name is not a folder that fails
+/// to be found - on Windows it is a name the OS refuses to address at
+/// all, and `Directory.exists()` throws instead of answering false.
+/// That is how one such line ended a launch rather than a lookup.
+String _unquoted(String value) {
+  if (value.length < 2) return value;
+  final quote = value[0];
+  if ((quote == '"' || quote == "'") && value.endsWith(quote)) {
+    return value.substring(1, value.length - 1);
+  }
+  return value;
+}
+
+/// The first value of a line that carries more after it - the folder of
+/// a `DirectoryFiles`, with its mode following. A quoted value is taken
+/// whole, so a folder with a space in its name survives the split.
+String _firstValue(String rest) {
+  final quote = rest[0];
+  if (quote == '"' || quote == "'") {
+    final close = rest.indexOf(quote, 1);
+    if (close > 0) return rest.substring(1, close);
+  }
+  return rest.split(RegExp(r'\s')).first;
 }
 
 /// How many levels of subfolders the `PackedFile` lines in [cfg] reach,
@@ -132,7 +164,7 @@ int? maxPackedFileDepth(String cfg) {
     final space = trimmed.indexOf(RegExp(r'\s'));
     if (space < 0) continue;
     if (trimmed.substring(0, space).toLowerCase() != 'packedfile') continue;
-    final glob = trimmed.substring(space + 1).trim();
+    final glob = _unquoted(trimmed.substring(space + 1).trim());
     if (glob.isEmpty) continue;
     // The last segment is the file itself; the wildcards before it are
     // the folders the game will descend into.

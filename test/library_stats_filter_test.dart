@@ -142,7 +142,7 @@ void main() {
       c.clearFilters();
       expect(c.isFiltering, isFalse);
       expect(c.query, isEmpty);
-      expect(c.folder, 'All');
+      expect(c.selectedFolders, isEmpty);
       expect(c.stateFilter, ModStateFilter.all);
       expect(c.filteredMods, hasLength(c.mods.length));
     });

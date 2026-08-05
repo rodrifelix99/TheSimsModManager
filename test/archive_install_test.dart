@@ -11,6 +11,25 @@ import 'package:sims_mod_manager/src/core/game_adapter.dart';
 import 'package:sims_mod_manager/src/core/install_path.dart';
 import 'package:sims_mod_manager/src/core/mod_archive.dart';
 
+import 'sevenzip_fixtures.dart';
+
+/// The last byte of the LZMA coder's id in the fixture's header, walked
+/// from where the start header says the header begins so a matching run
+/// inside the compressed payload can't be mistaken for it. `03 01 01` is
+/// LZMA; `03 04 01` is PPMd.
+int _lzmaCoderIdIn(Uint8List bytes) {
+  final start = ByteData.sublistView(bytes).getUint64(12, Endian.little);
+  for (var i = 32 + start; i < bytes.length - 4; i++) {
+    if (bytes[i] == 0x23 &&
+        bytes[i + 1] == 0x03 &&
+        bytes[i + 2] == 0x01 &&
+        bytes[i + 3] == 0x01) {
+      return i + 2;
+    }
+  }
+  throw StateError('the LZMA fixture no longer looks like one');
+}
+
 /// Where an unpacker was told to extract to: `-o` is 7-Zip's way of
 /// saying it, `-C` tar's, and unrar takes it as the last argument.
 String _destinationIn(List<String> arguments) {
@@ -366,9 +385,129 @@ void main() {
     final archive = File(p.join(sourceDir.path, 'bundle.7z'))
       ..writeAsStringSync('7z\xbc\xaf');
 
-    await expectLater(adapter.installArchive(modsDir, archive),
-        throwsA(isA<ArchiveExtractionException>()));
+    // Four bytes wearing a .7z name: the pure-Dart reader turns it down,
+    // and since nothing installed here reads 7z either, its verdict
+    // stands. Telling the user to install p7zip for a file that is no 7z
+    // at all would send them off after the wrong thing.
+    await expectLater(
+        adapter.installArchive(modsDir, archive),
+        throwsA(isA<ModContentException>()
+            .having((e) => e.detail.key, 'message key', 'unreadableArchive')));
     expect(calls, isNot(contains('unrar')));
+  });
+
+  /// A machine whose only unpacker sits at [where] rather than on PATH,
+  /// which is every Windows machine with 7-Zip on it.
+  void fakeUnpackerAt(String where, int Function(String destination) extract,
+      {List<String>? calls}) {
+    archiveUnpackerLocations =
+        (unpacker) => unpacker.executable == '7z' ? [where] : const [];
+    addTearDown(
+        () => archiveUnpackerLocations = defaultArchiveUnpackerLocations);
+    fakeUnpackers(
+      {where: '7-Zip 24.09'},
+      (_, destination) => extract(destination),
+      calls: calls,
+    );
+  }
+
+  // 7-Zip, NanaZip and WinRAR all install into Program Files without
+  // touching PATH, so probing PATH alone found nothing on a machine that
+  // had the tool installed all along.
+  test('finds an unpacker where it installs itself, not just on PATH',
+      () async {
+    fakeUnpackerAt(r'C:\Program Files\7-Zip\7z.exe', (destination) {
+      File(p.join(destination, 'hair.package')).writeAsStringSync('hair');
+      return 0;
+    });
+
+    final mods = await adapter.installArchive(modsDir, makeRar('hair.rar'));
+
+    expect(mods.map((m) => m.name), ['hair.package']);
+  });
+
+  test('runs the tool it found by the path it found it at', () async {
+    final calls = <String>[];
+    fakeUnpackerAt(r'C:\Program Files\7-Zip\7z.exe', (destination) {
+      File(p.join(destination, 'hair.package')).writeAsStringSync('hair');
+      return 0;
+    }, calls: calls);
+
+    await adapter.installArchive(modsDir, makeRar('hair.rar'));
+
+    // Probed and then driven under the full path. Handing the bare name
+    // to Process.run would be the same failure the probe just ruled out.
+    expect(calls.where((c) => c == r'C:\Program Files\7-Zip\7z.exe'),
+        hasLength(2));
+  });
+
+  test('PATH wins over an install location', () async {
+    final calls = <String>[];
+    archiveUnpackerLocations = (unpacker) => unpacker.executable == '7z'
+        ? const [r'C:\Program Files\7-Zip\7z.exe']
+        : const [];
+    addTearDown(
+        () => archiveUnpackerLocations = defaultArchiveUnpackerLocations);
+    fakeUnpackers({'7z': '7-Zip 23.01'}, (executable, destination) {
+      File(p.join(destination, 'hair.package')).writeAsStringSync('hair');
+      return 0;
+    }, calls: calls);
+
+    await adapter.installArchive(modsDir, makeRar('hair.rar'));
+
+    // A build the user put on PATH themselves is the one they meant.
+    expect(calls, isNot(contains(r'C:\Program Files\7-Zip\7z.exe')));
+  });
+
+  /// A real 7z, packed the way 7-Zip packs one by default.
+  File makeSevenZip(String name) => File(p.join(sourceDir.path, name))
+    ..writeAsBytesSync(base64.decode(sevenZipLzma1));
+
+  // The bug this whole path exists for: Windows ships one unpacker, its
+  // `tar` is libarchive without LZMA, and no 7-Zip installer puts itself
+  // on PATH - so an ordinary .7z failed on Windows and nowhere else. It
+  // has to install with nothing on the machine to help.
+  test('installs a 7z with no unpacker on the machine at all', () async {
+    final calls = <String>[];
+    fakeUnpackers(const {}, (_, __) => 0, calls: calls);
+
+    final mods = await adapter.installArchive(
+        modsDir, makeSevenZip('Merlin-K_Fiat-Lux_Set.7z'));
+
+    expect(
+        mods.map((m) => m.name), containsAll(['hair.package', 'lamp.package']));
+    expect(File(p.join(modsDir.path, 'hair.package')).readAsStringSync(),
+        sevenZipContents['hair.package']);
+    // The archive's own folder is kept, and the readme beside the mods
+    // is left where every other install leaves one.
+    expect(
+        File(p.join(modsDir.path, 'inner', 'lamp.package')).readAsStringSync(),
+        sevenZipContents['inner/lamp.package']);
+    expect(File(p.join(modsDir.path, 'readme.txt')).existsSync(), isFalse);
+    // Nothing was asked to help, because nothing needed to be.
+    expect(calls, isEmpty);
+  });
+
+  test('falls back to an unpacker for a 7z coder it cannot read', () async {
+    final calls = <String>[];
+    fakeUnpackers(
+      {'tar': 'bsdtar 3.7.4 - libarchive 3.7.4'},
+      (executable, destination) {
+        File(p.join(destination, 'hair.package')).writeAsStringSync('unpacked');
+        return 0;
+      },
+      calls: calls,
+    );
+    // PPMd, which the reader turns down by name rather than by failing.
+    final archive = makeSevenZip('ppmd.7z');
+    final bytes = archive.readAsBytesSync();
+    bytes[_lzmaCoderIdIn(bytes)] = 0x04;
+    archive.writeAsBytesSync(bytes);
+
+    final mods = await adapter.installArchive(modsDir, archive);
+
+    expect(File(mods.single.path).readAsStringSync(), 'unpacked');
+    expect(calls, contains('tar'));
   });
 
   test('throws a readable error when the zip holds no mod files', () async {

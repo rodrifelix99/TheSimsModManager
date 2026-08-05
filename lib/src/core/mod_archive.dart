@@ -6,12 +6,14 @@ import 'package:path/path.dart' as p;
 
 import 'app_message.dart';
 import 'install_path.dart';
+import 'sevenzip.dart';
 
 /// Compressed archive formats mods are commonly distributed in and the
-/// app can unpack on install. Zip is decoded natively (pure Dart);
-/// rar and 7z have no pure-Dart decoder and go through whichever
-/// external unpacker the machine has (see [archiveUnpackers]), as does
-/// the odd zip the native decoder can't read.
+/// app can unpack on install. Zip and 7z are decoded natively (pure
+/// Dart - see sevenzip.dart for why 7z had to be); rar has no pure-Dart
+/// decoder and goes through whichever external unpacker the machine has
+/// (see [archiveUnpackers]), as do the odd zip or 7z the native decoders
+/// can't read.
 const archiveFileExtensions = {'.zip', '.rar', '.7z'};
 
 bool isArchivePath(String path) =>
@@ -54,10 +56,11 @@ Future<List<File>> extractModFiles(
   Directory destination,
   Set<String> fileExtensions,
 ) async {
-  final extension = p.extension(archive.path).toLowerCase();
-  final extracted = extension == '.zip'
-      ? await _extractZip(archive, destination, fileExtensions)
-      : await _extractWithUnpacker(archive, destination, fileExtensions);
+  final extracted = switch (p.extension(archive.path).toLowerCase()) {
+    '.zip' => await _extractZip(archive, destination, fileExtensions),
+    '.7z' => await _extractSevenZip(archive, destination, fileExtensions),
+    _ => await _extractWithUnpacker(archive, destination, fileExtensions),
+  };
   if (extracted.isEmpty) {
     throw ModContentException.noModFiles(
         fileExtensions, p.basename(archive.path));
@@ -96,6 +99,71 @@ Future<List<String>> _extractZip(
   }
 }
 
+/// The pure-Dart reader first, an unpacker behind it. Same bargain as
+/// zip, and for a sharper reason: on Windows the only unpacker most
+/// machines have is the bundled `tar`, which is built without LZMA and
+/// so refuses every 7z 7-Zip made with its own default settings.
+Future<List<String>> _extractSevenZip(
+  File archive,
+  Directory destination,
+  Set<String> extensions,
+) async {
+  final List<String> native;
+  try {
+    native =
+        await _runSevenZipExtract(archive.path, destination.path, extensions);
+  } on SevenZipUnsupportedError {
+    // A coder this reader doesn't do - BCJ, PPMd, an encrypted archive.
+    // A real unpacker may well, and if none is there its own message is
+    // the right one, password and all.
+    return await _extractWithUnpacker(archive, destination, extensions);
+  } on FormatException {
+    // Not a 7z, or a damaged one. A rar wearing the wrong extension is
+    // common enough to be worth a second opinion, but if nothing else
+    // reads it either then the reader's verdict was right.
+    try {
+      return await _extractWithUnpacker(archive, destination, extensions);
+    } catch (_) {
+      throw _unreadableArchive(archive.path);
+    }
+  }
+  if (native.isNotEmpty) return native;
+  // Read fine and held nothing for this game. Let an unpacker look before
+  // saying so, the way the zip path does.
+  try {
+    return await _extractWithUnpacker(archive, destination, extensions);
+  } catch (_) {
+    return native;
+  }
+}
+
+/// Top-level wrapper so the isolate closure can't capture caller state.
+Future<List<String>> _runSevenZipExtract(
+        String archivePath, String destinationPath, Set<String> extensions) =>
+    Isolate.run(() => _decodeSevenZip(archivePath, destinationPath, extensions));
+
+List<String> _decodeSevenZip(
+    String archivePath, String destinationPath, Set<String> extensions) {
+  final extracted = <String>[];
+  final taken = <String>{};
+  readSevenZip(
+    File(archivePath).readAsBytesSync(),
+    (entry, data) {
+      final target = _safeTarget(destinationPath, entry.name, extensions, taken);
+      if (target == null) return;
+      File(target)
+        ..parent.createSync(recursive: true)
+        ..writeAsBytesSync(data);
+      extracted.add(target);
+    },
+    // Asked before anything is decompressed: a solid archive is one
+    // stream holding every file, and unpacking a set of meshes for the
+    // readme beside them is the one cost worth avoiding.
+    wanted: (name) => extensions.contains(p.extension(name).toLowerCase()),
+  );
+  return extracted;
+}
+
 /// Top-level wrapper so the isolate closure can't capture caller state.
 Future<List<String>> _runZipExtract(
         String archivePath, String destinationPath, Set<String> extensions) =>
@@ -107,14 +175,14 @@ List<String> _decodeZip(
   try {
     zip = ZipDecoder().decodeBytes(File(archivePath).readAsBytesSync());
   } catch (_) {
-    throw _unreadableZip(archivePath);
+    throw _unreadableArchive(archivePath);
   }
   // Bytes that are no zip at all rarely make the decoder throw: a
   // truncated download, a renamed rar, plain garbage all come back as an
   // archive with nothing in it instead. Same verdict, so it travels the
   // same way - and an entry we merely didn't want is a different thing,
   // which is why this counts entries and not extracted files.
-  if (zip.files.isEmpty) throw _unreadableZip(archivePath);
+  if (zip.files.isEmpty) throw _unreadableArchive(archivePath);
   final extracted = <String>[];
   final taken = <String>{};
   for (final entry in zip.files) {
@@ -129,7 +197,7 @@ List<String> _decodeZip(
   return extracted;
 }
 
-ModContentException _unreadableZip(String archivePath) => ModContentException(
+ModContentException _unreadableArchive(String archivePath) => ModContentException(
     AppMessage('unreadableArchive', [p.basename(archivePath)]));
 
 /// An external command that unpacks archives, and how to drive it. Rar
@@ -140,10 +208,19 @@ class ArchiveUnpacker {
     required this.formats,
     required this.arguments,
     this.libarchiveOnly = false,
+    this.installedAt = _nowhereElse,
   });
 
   /// The command, as found on PATH.
   final String executable;
+
+  /// Where else to look for it, tried in order after PATH itself. None of
+  /// the Windows unpackers puts itself on PATH - 7-Zip, NanaZip and
+  /// WinRAR all install into Program Files and leave it at that - so a
+  /// machine with 7-Zip sitting right there had nothing to fall back on.
+  /// A function rather than a list because it reads the environment, and
+  /// on the platforms that don't have the tool it must cost nothing.
+  final List<String> Function() installedAt;
 
   /// Archive extensions it reads, lowercase and without the dot.
   final Set<String> formats;
@@ -168,14 +245,77 @@ const archiveUnpackers = <ArchiveUnpacker>[
   ArchiveUnpacker('tar',
       formats: _everyFormat, arguments: _tarArguments, libarchiveOnly: true),
   ArchiveUnpacker('bsdtar', formats: _everyFormat, arguments: _tarArguments),
-  ArchiveUnpacker('7z', formats: _everyFormat, arguments: _sevenZipArguments),
-  ArchiveUnpacker('7zz', formats: _everyFormat, arguments: _sevenZipArguments),
+  ArchiveUnpacker('7z',
+      formats: _everyFormat,
+      arguments: _sevenZipArguments,
+      installedAt: _sevenZipLocations),
+  ArchiveUnpacker('7zz',
+      formats: _everyFormat,
+      arguments: _sevenZipArguments,
+      installedAt: _sevenZipLocations),
   ArchiveUnpacker('7za', formats: _everyFormat, arguments: _sevenZipArguments),
-  ArchiveUnpacker('unrar', formats: {'rar'}, arguments: _unrarArguments),
+  ArchiveUnpacker('unrar',
+      formats: {'rar'},
+      arguments: _unrarArguments,
+      installedAt: _unrarLocations),
 ];
 
 /// Zip only reaches an unpacker when the Dart decoder gave up on it.
 const _everyFormat = {'rar', '7z', 'zip'};
+
+List<String> _nowhereElse() => const [];
+
+/// The 7-Zip family where its installers actually put it. Windows is the
+/// point of the exercise; the Mac entries are here because an app opened
+/// from Finder gets a bare `/usr/bin:/bin` PATH and never sees Homebrew,
+/// so `7zz` worked in a terminal and not in the app.
+List<String> _sevenZipLocations() {
+  if (Platform.isWindows) {
+    return [
+      for (final root in _windowsProgramFiles) ...[
+        p.join(root, '7-Zip', '7z.exe'),
+        p.join(root, 'NanaZip', 'NanaZipC.exe'),
+        p.join(root, 'PeaZip', 'res', 'bin', '7z', '7z.exe'),
+      ],
+    ];
+  }
+  if (Platform.isMacOS) {
+    return const [
+      '/opt/homebrew/bin/7zz',
+      '/usr/local/bin/7zz',
+      '/opt/homebrew/bin/7z',
+      '/usr/local/bin/7z',
+    ];
+  }
+  return const [];
+}
+
+/// WinRAR ships `UnRAR.exe` beside itself. `WinRAR.exe` reads 7z too but
+/// is a windowed program: driven from here it can put a dialog on screen
+/// and sit there, so only the console tool is offered a file.
+List<String> _unrarLocations() => Platform.isWindows
+    ? [
+        for (final root in _windowsProgramFiles)
+          p.join(root, 'WinRAR', 'UnRAR.exe'),
+      ]
+    : const [];
+
+/// Both Program Files, plus whatever the 64-bit one is called on a
+/// machine where a 32-bit build of the app is doing the asking.
+List<String> get _windowsProgramFiles {
+  final roots = <String>[];
+  for (final variable in const [
+    'ProgramW6432',
+    'ProgramFiles',
+    'ProgramFiles(x86)',
+  ]) {
+    final value = Platform.environment[variable];
+    if (value != null && value.isNotEmpty && !roots.contains(value)) {
+      roots.add(value);
+    }
+  }
+  return roots.isEmpty ? const [r'C:\Program Files'] : roots;
+}
 
 List<String> _tarArguments(String archive, String destination) =>
     ['-xf', archive, '-C', destination];
@@ -198,22 +338,51 @@ set archiveProcessRunner(
 
 Future<ProcessResult> Function(String, List<String>) _runProcess = Process.run;
 
-/// Which executables answered, remembered for the run: probing costs a
-/// process launch each and the answer doesn't change while we're open.
-final _probed = <String, bool>{};
+/// Where an unpacker is looked for besides PATH. Tests replace it to
+/// stand in for a machine whose 7-Zip is where Windows puts it; setting
+/// it forgets what was probed.
+set archiveUnpackerLocations(List<String> Function(ArchiveUnpacker) locate) {
+  _locate = locate;
+  _probed.clear();
+}
 
-Future<bool> _isInstalled(ArchiveUnpacker unpacker) async {
-  final known = _probed[unpacker.executable];
-  if (known != null) return known;
-  bool present;
-  try {
-    final version = await _runProcess(unpacker.executable, const ['--version']);
-    present = !unpacker.libarchiveOnly ||
-        '${version.stdout}'.toLowerCase().contains('libarchive');
-  } on ProcessException {
-    present = false; // Not on PATH.
+/// What [archiveUnpackerLocations] is when nobody has replaced it, and
+/// what a test puts back.
+List<String> defaultArchiveUnpackerLocations(ArchiveUnpacker unpacker) =>
+    unpacker.installedAt();
+
+List<String> Function(ArchiveUnpacker) _locate = defaultArchiveUnpackerLocations;
+
+/// Which executables answered and by what name, remembered for the run:
+/// probing costs a process launch each and the answer doesn't change
+/// while we're open. A `null` value is a tool that isn't on the machine,
+/// which is worth remembering too.
+final _probed = <String, String?>{};
+
+/// The command that runs [unpacker] on this machine, or `null` when
+/// nothing does. PATH first, so a user who put their own build in front
+/// of ours still gets theirs.
+Future<String?> _resolve(ArchiveUnpacker unpacker) async {
+  if (_probed.containsKey(unpacker.executable)) {
+    return _probed[unpacker.executable];
   }
-  return _probed[unpacker.executable] = present;
+  String? found;
+  for (final command in [unpacker.executable, ..._locate(unpacker)]) {
+    try {
+      final version = await _runProcess(command, const ['--version']);
+      // 7-Zip has no `--version` and answers with its banner and a
+      // complaint, which is answer enough: it ran. Only tar has to prove
+      // which tar it is.
+      if (!unpacker.libarchiveOnly ||
+          '${version.stdout}'.toLowerCase().contains('libarchive')) {
+        found = command;
+        break;
+      }
+    } on ProcessException {
+      continue; // Not there under that name.
+    }
+  }
+  return _probed[unpacker.executable] = found;
 }
 
 /// Unpacks to a temp folder with the first unpacker that manages it,
@@ -229,15 +398,16 @@ Future<List<String>> _extractWithUnpacker(
     var tried = 0;
     for (final unpacker in archiveUnpackers) {
       if (!unpacker.formats.contains(format)) continue;
-      if (!await _isInstalled(unpacker)) continue;
+      final command = await _resolve(unpacker);
+      if (command == null) continue;
       // A tool that gives up halfway still leaves its debris behind, so
       // every attempt gets a folder of its own.
       final attempt = await Directory(p.join(scratch.path, '${++tried}'))
           .create(recursive: true);
       final ProcessResult result;
       try {
-        result = await _runProcess(unpacker.executable,
-            unpacker.arguments(archive.path, attempt.path));
+        result = await _runProcess(
+            command, unpacker.arguments(archive.path, attempt.path));
       } on ProcessException {
         continue; // Uninstalled since we probed it.
       }

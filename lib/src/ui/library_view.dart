@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 
 import '../core/mod.dart';
+import '../core/mod_folder.dart';
 import '../services/sfx.dart';
 import 'app_controller.dart';
 import 'game_theme.dart';
@@ -1055,14 +1056,25 @@ class LibraryView extends StatelessWidget {
 
   /// The list, gathered under a header per subfolder. The sections are
   /// flattened into one lazy list rather than built as nested columns so
-  /// a library of thousands still only builds the rows on screen.
+  /// a library of thousands still only builds the rows on screen - which
+  /// is also why a rolled-up folder is skipped by walking past every
+  /// section deeper than it rather than by asking each one about its
+  /// ancestors. The groups arrive in tree order, so that is one pass.
   Widget _modFolders(GameTheme t, AppController c) {
     final rows = <_FolderRow>[];
+    var hiddenUnder = -1;
     for (final group in c.folderGroups) {
-      rows.add((group: group, mod: null));
-      if (c.isFolderCollapsed(group.folder)) continue;
+      if (hiddenUnder >= 0) {
+        if (group.depth > hiddenUnder) continue;
+        hiddenUnder = -1;
+      }
+      rows.add((group: group, mod: null, depth: group.depth));
+      if (c.isFolderCollapsed(group.folder)) {
+        hiddenUnder = group.depth;
+        continue;
+      }
       for (final mod in group.mods) {
-        rows.add((group: null, mod: mod));
+        rows.add((group: null, mod: mod, depth: group.depth));
       }
     }
     return ListView.separated(
@@ -1074,12 +1086,84 @@ class LibraryView extends StatelessWidget {
       itemBuilder: (context, i) {
         final row = rows[i];
         final group = row.group;
-        return group == null
-            ? _ListRow(theme: t, controller: c, mod: row.mod!)
-            : _FolderHeader(theme: t, controller: c, group: group);
+        return Padding(
+          padding: EdgeInsets.only(left: _folderIndent(row.depth)),
+          child: group == null
+              ? _ListRow(theme: t, controller: c, mod: row.mod!)
+              : _FolderHeader(theme: t, controller: c, group: group),
+        );
       },
     );
   }
+}
+
+/// Asks before deleting [folder] and everything in it, then does it.
+///
+/// The count is worked out first and put in the dialog, because this is
+/// the one action in the library that can take mods the user never
+/// selected - everything in the subfolders goes too - and there is no
+/// undo to fall back on.
+Future<void> _deleteFolder(
+    BuildContext context, AppController c, GameTheme t, String folder) async {
+  final l = L.of(context);
+  final held = c.modsInFolder(folder).length;
+  c.playSound(UiSound.open);
+  final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: t.surface,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16)),
+          title: Text(
+            l.deleteFolderTitle(folderChipLabel(folder)),
+            style: TextStyle(
+                fontWeight: FontWeight.w900, fontSize: 18, color: t.text),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l.deleteFolderBody,
+                style: TextStyle(
+                    fontSize: 13.5, fontWeight: FontWeight.w600, color: t.muted),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                held == 0 ? l.deleteFolderEmpty : l.deleteFolderMods(held),
+                style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w800,
+                    color: held == 0 ? t.muted : t.warning),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(l.cancel,
+                  style:
+                      TextStyle(color: t.muted, fontWeight: FontWeight.w800)),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: FilledButton.styleFrom(backgroundColor: t.warning),
+              child: Text(l.deleteFolder,
+                  style: const TextStyle(fontWeight: FontWeight.w800)),
+            ),
+          ],
+        ),
+      ) ??
+      false;
+  if (confirmed) await c.deleteFolder(folder);
+}
+
+/// Whether a click on a filter chip adds to what is already lit instead
+/// of replacing it: ctrl, or cmd on a Mac. The same chord that ticks a
+/// mod card, so the two selections are learned once.
+bool get _addsToFilter {
+  final keys = HardwareKeyboard.instance;
+  return keys.isControlPressed || keys.isMetaPressed;
 }
 
 /// What clicking a mod does. Ctrl (Cmd on a Mac) ticks it, shift extends
@@ -1452,8 +1536,16 @@ class _SelectionBar extends StatelessWidget {
 }
 
 /// One line of the folder view: a section header, or a mod belonging to
-/// the header above it. Exactly one of the two is set.
-typedef _FolderRow = ({ModFolderGroup? group, Mod? mod});
+/// the header above it. Exactly one of the two is set. [depth] is the
+/// header's own level, carried by its mods too so a row sits under the
+/// folder it belongs to rather than under the margin.
+typedef _FolderRow = ({ModFolderGroup? group, Mod? mod, int depth});
+
+/// How far in a folder view row at [depth] sits. Capped, because the
+/// games that read four levels deep would otherwise leave a card with
+/// no width left in a minimum-size window - past the cap the tree is
+/// read off the headers rather than off the margin.
+double _folderIndent(int depth) => (depth > 3 ? 3 : depth) * 16.0;
 
 /// A folder view section header: what the folder is called, how much it
 /// holds, and a chevron that rolls it up.
@@ -1492,6 +1584,12 @@ class _FolderHeader extends StatelessWidget {
       cursor: SystemMouseCursors.click,
       builder: (context, hovered) => GestureDetector(
         onTap: () => c.toggleFolderCollapsed(folder),
+        // The same right-click the chips take. Not on the mods folder's
+        // own section, which is the library itself rather than a folder
+        // anyone could delete.
+        onSecondaryTap: folder != null && c.canDeleteFolder(folder)
+            ? () => _deleteFolder(context, c, t, folder)
+            : null,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
           decoration: BoxDecoration(
@@ -1517,7 +1615,11 @@ class _FolderHeader extends StatelessWidget {
               const SizedBox(width: 8),
               Flexible(
                 child: Text(
-                  folder == null ? l.libraryRootFolder : folderChipLabel(folder),
+                  // Its own name, not its whole path: the folder it sits
+                  // in is the header above it now.
+                  folder == null
+                      ? l.libraryRootFolder
+                      : folderSegments(folder).last,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -1529,11 +1631,16 @@ class _FolderHeader extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               Text(
+                // Everything below it, not just what sits in it: a closed
+                // folder is drawn instead of its subfolders, and one
+                // reading 0 while it holds two hundred mods is the
+                // opposite of what a tree is for.
+                //
                 // A folder the user just made says so rather than reading
                 // "0 · 0 B", which looks like something went wrong.
-                group.mods.isEmpty
+                group.totalMods == 0
                     ? l.folderEmptySection
-                    : '${group.mods.length} · ${formatBytes(group.sizeBytes)}',
+                    : '${group.totalMods} · ${formatBytes(group.totalSizeBytes)}',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
@@ -1549,10 +1656,11 @@ class _FolderHeader extends StatelessWidget {
 }
 
 /// One entry of the filter row: a category or a mods subfolder.
-/// Which of the three axes a chip on the filter line belongs to: the
-/// file type the adapter decided, the subfolder the disk decided, or the
-/// label the player wrote themselves.
-enum _FilterKind { category, folder, tag }
+/// Which of the four axes a chip on the filter line belongs to: the file
+/// type the adapter decided, the subfolder the disk decided, what the
+/// resources inside said the mod is, or the label the player wrote
+/// themselves.
+enum _FilterKind { category, folder, kind, tag }
 
 typedef _FilterEntry = ({String label, _FilterKind kind});
 
@@ -1599,7 +1707,12 @@ class _FilterChipsState extends State<_FilterChips> {
         // Subfolders of the mods folder act as a second filter axis;
         // tapping the active one clears it again.
         for (final f in c.folders) (label: f, kind: _FilterKind.folder),
-        // The user's own labels are the third, and come last because
+        // What the mods turn out to hold is the third, and sits ahead of
+        // the labels because nobody had to type it: it is there on a
+        // library opened for the first time.
+        for (final kind in c.kindCounts.keys)
+          (label: kind, kind: _FilterKind.kind),
+        // The user's own labels are the fourth, and come last because
         // they are the only axis a library can have none of.
         for (final tag in c.tagCounts.keys) (label: tag, kind: _FilterKind.tag),
       ];
@@ -1626,6 +1739,7 @@ class _FilterChipsState extends State<_FilterChips> {
         for (final e in entries)
           switch (e.kind) {
             _FilterKind.folder => _folderChip(t, c, e.label),
+            _FilterKind.kind => _kindChip(t, c, l, e.label),
             _FilterKind.tag => _tagChip(t, c, e.label),
             _FilterKind.category => _categoryChip(t, c, l, e.label),
           },
@@ -1638,12 +1752,28 @@ class _FilterChipsState extends State<_FilterChips> {
         t,
         categoryChipLabel(l, cat),
         count: c.categoryCount(cat),
-        active: cat == c.category,
-        onTap: () => c.setCategory(cat),
+        active: cat == 'All'
+            ? !c.anyChipFilter
+            : c.selectedCategories.contains(cat),
+        onTap: () => c.setCategory(cat, add: _addsToFilter),
         // 'All' is neither axis, so it stays bare; the rest say what
         // they filter on, since a file type and a folder of the user's
         // own sit side by side on this line.
         icon: cat == 'All' ? null : Icons.description_rounded,
+      );
+
+  /// What a mod turned out to hold, read off the resources inside it
+  /// rather than off its name or its folder. Drawn like a tag because it
+  /// behaves like one - it narrows the library and nothing else - but
+  /// with an icon of its own, since one of these is the app's word and
+  /// the other is the user's.
+  Widget _kindChip(GameTheme t, AppController c, L l, String kind) => _chip(
+        t,
+        l.modKind(kind),
+        count: c.kindCount(kind),
+        active: kind == c.kindFilter,
+        onTap: () => c.setKindFilter(kind),
+        icon: Icons.auto_awesome_rounded,
       );
 
   /// A label the player wrote. Neither a drag source nor a drop target,
@@ -1684,7 +1814,17 @@ class _FilterChipsState extends State<_FilterChips> {
           ),
         ],
       ),
-      child: _reorderableFolderChip(t, c, f),
+      child: Builder(
+        // Right-click is free here: ctrl/cmd-click is what adds a chip to
+        // the selection, so the secondary button keeps its usual job.
+        builder: (context) => GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onSecondaryTap: c.canDeleteFolder(f)
+              ? () => _deleteFolder(context, c, t, f)
+              : null,
+          child: _reorderableFolderChip(t, c, f),
+        ),
+      ),
     );
   }
 
@@ -1693,8 +1833,8 @@ class _FilterChipsState extends State<_FilterChips> {
       t,
       folderChipLabel(f),
       count: c.folderCount(f),
-      active: f == c.folder,
-      onTap: () => c.setFolder(f == c.folder ? 'All' : f),
+      active: c.selectedFolders.contains(f),
+      onTap: () => c.setFolder(f, add: _addsToFilter),
       icon: Icons.folder_rounded,
     );
     return Draggable<String>(
@@ -1860,12 +2000,16 @@ class _FilterChipsState extends State<_FilterChips> {
   /// of it onto the line; category rows only tap.
   Widget _menuRow(GameTheme t, AppController c, L l, _FilterEntry e) {
     final active = switch (e.kind) {
-      _FilterKind.folder => e.label == c.folder,
+      _FilterKind.folder => c.selectedFolders.contains(e.label),
+      _FilterKind.kind => e.label == c.kindFilter,
       _FilterKind.tag => e.label == c.tagFilter,
-      _FilterKind.category => e.label == c.category,
+      _FilterKind.category => e.label == 'All'
+          ? !c.anyChipFilter
+          : c.selectedCategories.contains(e.label),
     };
     final count = switch (e.kind) {
       _FilterKind.folder => c.folderCount(e.label),
+      _FilterKind.kind => c.kindCount(e.label),
       _FilterKind.tag => c.tagCount(e.label),
       _FilterKind.category => c.categoryCount(e.label),
     };
@@ -1874,14 +2018,19 @@ class _FilterChipsState extends State<_FilterChips> {
       builder: (context, hovered) => GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () {
-          _closeMenu();
+          // Ctrl/cmd-clicking a row means the user is building a
+          // selection, so the menu stays up for the next one.
+          final adding = _addsToFilter;
+          if (!adding) _closeMenu();
           switch (e.kind) {
             case _FilterKind.folder:
-              c.setFolder(e.label == c.folder ? 'All' : e.label);
+              c.setFolder(e.label, add: adding);
+            case _FilterKind.kind:
+              c.setKindFilter(e.label);
             case _FilterKind.tag:
               c.setTagFilter(e.label);
             case _FilterKind.category:
-              c.setCategory(e.label);
+              c.setCategory(e.label, add: adding);
           }
         },
         child: Container(
@@ -1893,6 +2042,7 @@ class _FilterChipsState extends State<_FilterChips> {
                 Icon(
                   switch (e.kind) {
                     _FilterKind.folder => Icons.folder_rounded,
+                    _FilterKind.kind => Icons.auto_awesome_rounded,
                     _FilterKind.tag => Icons.sell_rounded,
                     _FilterKind.category => Icons.description_rounded,
                   },
@@ -1905,6 +2055,7 @@ class _FilterChipsState extends State<_FilterChips> {
                 child: Text(
                   switch (e.kind) {
                     _FilterKind.folder => folderChipLabel(e.label),
+                    _FilterKind.kind => l.modKind(e.label),
                     _FilterKind.tag => e.label,
                     _FilterKind.category => categoryChipLabel(l, e.label),
                   },

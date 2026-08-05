@@ -3,6 +3,7 @@ import 'dart:ui' show Locale;
 import '../../l10n/app_localizations.dart';
 import '../core/app_message.dart';
 import '../core/game_pack.dart';
+import '../core/mod_kind.dart';
 
 export '../../l10n/app_localizations.dart' show L;
 
@@ -79,6 +80,17 @@ extension AppText on L {
       _ => null,
     };
   }
+
+  /// What a mod turns out to be, worked out from what is inside it. The
+  /// keys are `core/mod_kind.dart`'s and stay English as they travel;
+  /// an unknown one draws as itself, like the content labels below.
+  String modKind(String key) => switch (key) {
+        kindCasPart => modKindCas,
+        kindBuildBuy => modKindBuildBuy,
+        kindGameplay => modKindGameplay,
+        kindScript => modKindScript,
+        _ => key,
+      };
 
   String contentLabel(String key) => switch (key) {
         'CAS parts' => contentCasParts,

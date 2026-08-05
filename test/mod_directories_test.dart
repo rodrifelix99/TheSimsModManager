@@ -98,6 +98,23 @@ void main() {
       expect(modFolderRoots('PackedFile Overrides/one.package'), ['Overrides']);
     });
 
+    // A quote left on the front of a folder name is a name Windows will
+    // not address at all: exists() threw errno 123 out of the launch
+    // instead of answering false, on a cfg whose paths were quoted.
+    test('a quoted path is the path, without the quotes', () {
+      expect(modFolderRoots('PackedFile "Packages/*.package"'), ['Packages']);
+      expect(modFolderRoots("PackedFile 'Overrides/*.package'"), ['Overrides']);
+      expect(
+        modFolderRoots('DirectoryFiles "My Mods" autoupdate'),
+        ['My Mods'],
+      );
+      expect(maxPackedFileDepth('PackedFile "Packages/*/*.package"'), 1);
+    });
+
+    test('a lone quote is not a pair and stays part of the name', () {
+      expect(modFolderRoots('PackedFile "Packages/*.package'), ['"Packages']);
+    });
+
     // This file is written by other people's tools and edited by hand. A
     // line in it must never be able to point a sweep at the rest of the
     // machine.
@@ -157,6 +174,23 @@ void main() {
 
       expect(await _CfgAdapter(mods).extraModsDirectories(mods), isEmpty);
     });
+
+    // The report was a launch that ended in PathNotFoundException rather
+    // than a library. A quote is a character Windows will not address in
+    // a path, so exists() throws errno 123 instead of answering false,
+    // and the throw came out of a refresh. It is worth one skipped
+    // folder and nothing more. Windows only: POSIX answers false for
+    // every name, so there is nothing to catch there.
+    test('a folder the OS refuses to address costs only itself', () async {
+      writeCfg('PackedFile Packages/*.package\n'
+          'PackedFile "Overrides/*.package\n');
+      writeMod('Packages/hair.package');
+
+      final found = await _CfgAdapter(mods).listMods(mods);
+
+      expect(found.map((m) => m.name), ['hair.package']);
+      expect(await _CfgAdapter(mods).extraModsDirectories(mods), isEmpty);
+    }, skip: !Platform.isWindows);
 
     // The failure this guards against is a library that counts every mod
     // twice and a conflict scan that reports each one clashing with

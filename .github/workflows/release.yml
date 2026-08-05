@@ -149,6 +149,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install Linux build dependencies
         run: |
+          # See ci.yml's Linux build step: the runner image's own
+          # azure-cli apt repo can 403 apt-get update on a source this
+          # build never needed in the first place.
+          sudo rm -f /etc/apt/sources.list.d/azure-cli.list
           sudo apt-get update
           sudo apt-get install -y ninja-build libgtk-3-dev \
             libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev

@@ -141,6 +141,242 @@ void main() {
       expect(c.filteredMods.map((m) => m.name), ['eyes.package']);
     });
 
+    // The user who asked for this keeps a `defaults` folder inside `cc`
+    // and reads them as two shelves, not one holding the other.
+    group('when folders do not include their subfolders', () {
+      Future<AppController> makeNarrow() async {
+        SharedPreferences.setMockInitialValues(
+            {'soundEffects': false, 'folderIncludesSubfolders': false});
+        final controller = AppController(
+          registry: GameRegistry([_FakeAdapter(modsDir)]),
+          settings: await SettingsStore.load(),
+          checkUpdates: () async => null,
+        );
+        await controller.refresh();
+        return controller;
+      }
+
+      test('a folder shows only what sits in it', () async {
+        writeMod('cc/defaults/eyes.package');
+        writeMod('cc/hair.package');
+        final c = await makeNarrow();
+
+        c.setFolder('cc');
+        expect(c.filteredMods.map((m) => m.name), ['hair.package']);
+
+        c.setFolder('cc/defaults');
+        expect(c.filteredMods.map((m) => m.name), ['eyes.package']);
+      });
+
+      // The number on the chip has to be the number you get when you
+      // press it, or the two answers argue with each other on screen.
+      test('the count on the chip matches what pressing it shows', () async {
+        writeMod('cc/defaults/eyes.package');
+        writeMod('cc/hair.package');
+        final c = await makeNarrow();
+
+        expect(c.folderCount('cc'), 1);
+        expect(c.folderCount('cc/defaults'), 1);
+        c.setFolder('cc');
+        expect(c.filteredMods, hasLength(c.folderCount('cc')));
+      });
+
+      test('a folder holding nothing of its own still gets its chip',
+          () async {
+        writeMod('cc/defaults/eyes.package');
+        final c = await makeNarrow();
+
+        expect(c.folders, ['cc', 'cc/defaults']);
+        expect(c.folderCount('cc'), 0);
+      });
+
+      test('turning it back on counts the subfolders again', () async {
+        writeMod('cc/defaults/eyes.package');
+        writeMod('cc/hair.package');
+        final c = await makeNarrow();
+        expect(c.folderCount('cc'), 1);
+
+        await c.setFolderIncludesSubfolders(true);
+
+        expect(c.folderCount('cc'), 2);
+        c.setFolder('cc');
+        expect(c.filteredMods, hasLength(2));
+      });
+    });
+
+    group('more than one folder at once', () {
+      test('ctrl-clicking a second folder shows both', () async {
+        writeMod('cc/hair.package');
+        writeMod('mods/tuning.package');
+        writeMod('loose.package');
+        final c = await makeController();
+
+        c.setFolder('cc');
+        c.setFolder('mods', add: true);
+
+        expect(c.selectedFolders, {'cc', 'mods'});
+        expect(c.filteredMods.map((m) => m.name),
+            containsAll(['hair.package', 'tuning.package']));
+        expect(c.filteredMods, hasLength(2));
+      });
+
+      test('ctrl-clicking a lit folder puts just that one out', () async {
+        writeMod('cc/hair.package');
+        writeMod('mods/tuning.package');
+        final c = await makeController();
+
+        c.setFolder('cc');
+        c.setFolder('mods', add: true);
+        c.setFolder('cc', add: true);
+
+        expect(c.selectedFolders, {'mods'});
+        expect(c.filteredMods.map((m) => m.name), ['tuning.package']);
+      });
+
+      // Without the modifier a chip still means "just this one", which is
+      // what it has always meant.
+      test('a plain click replaces the selection rather than adding to it',
+          () async {
+        writeMod('cc/hair.package');
+        writeMod('mods/tuning.package');
+        final c = await makeController();
+
+        c.setFolder('cc');
+        c.setFolder('mods', add: true);
+        c.setFolder('cc');
+
+        expect(c.selectedFolders, {'cc'});
+      });
+
+      test('clicking the only lit folder again clears the filter', () async {
+        writeMod('cc/hair.package');
+        writeMod('loose.package');
+        final c = await makeController();
+
+        c.setFolder('cc');
+        c.setFolder('cc');
+
+        expect(c.selectedFolders, isEmpty);
+        expect(c.filteredMods, hasLength(2));
+      });
+
+      test('categories light up together the same way', () async {
+        writeMod('one.package');
+        writeMod('two.ts4script');
+        final c = await makeController(extensions: {'.package', '.ts4script'});
+
+        c.setCategory('Package');
+        c.setCategory('Script', add: true);
+
+        expect(c.selectedCategories, {'Package', 'Script'});
+        expect(c.filteredMods, hasLength(2));
+        // 'All' is the way back whatever is lit.
+        c.setCategory('All');
+        expect(c.selectedCategories, isEmpty);
+      });
+
+      // 'All' heads every chip on the line, folders included - a folder
+      // lit behind it used to survive the click.
+      test("'All' lets go of a lit folder too", () async {
+        writeMod('cc/hair.package');
+        writeMod('loose.package');
+        final c = await makeController();
+
+        c.setFolder('cc');
+        c.setCategory('All');
+
+        expect(c.selectedFolders, isEmpty);
+        expect(c.filteredMods, hasLength(2));
+      });
+
+      // An install has to land somewhere, and two lit chips is no answer
+      // to which of them - so it falls back to the mods folder.
+      test('two folders lit is no destination for an install', () async {
+        writeMod('cc/hair.package');
+        writeMod('mods/tuning.package');
+        final c = await makeController();
+
+        c.setFolder('cc');
+        expect(c.installFolder, 'cc');
+
+        c.setFolder('mods', add: true);
+        expect(c.installFolder, isNull);
+      });
+    });
+
+    group('deleting a folder', () {
+      test('takes the folder, its mods and its subfolders', () async {
+        writeMod('cc/defaults/eyes.package');
+        writeMod('cc/hair.package');
+        writeMod('loose.package');
+        final c = await makeController();
+
+        await c.deleteFolder('cc');
+
+        expect(Directory(p.join(modsDir.path, 'cc')).existsSync(), isFalse);
+        expect(c.mods.map((m) => m.name), ['loose.package']);
+        expect(c.folders, isEmpty);
+      });
+
+      // Whatever the chip is set to count, the disk has no way to keep a
+      // subfolder of a folder that is gone.
+      test('takes the subfolders even when chips do not count them',
+          () async {
+        SharedPreferences.setMockInitialValues(
+            {'soundEffects': false, 'folderIncludesSubfolders': false});
+        writeMod('cc/defaults/eyes.package');
+        writeMod('cc/hair.package');
+        final c = AppController(
+          registry: GameRegistry([_FakeAdapter(modsDir)]),
+          settings: await SettingsStore.load(),
+          checkUpdates: () async => null,
+        );
+        await c.refresh();
+
+        expect(c.modsInFolder('cc'), hasLength(2));
+        await c.deleteFolder('cc');
+
+        expect(Directory(p.join(modsDir.path, 'cc')).existsSync(), isFalse);
+        expect(c.mods, isEmpty);
+      });
+
+      test('it stops filtering the library on the way out', () async {
+        writeMod('cc/hair.package');
+        writeMod('loose.package');
+        final c = await makeController();
+        c.setFolder('cc');
+
+        await c.deleteFolder('cc');
+
+        expect(c.selectedFolders, isEmpty);
+        expect(c.filteredMods.map((m) => m.name), ['loose.package']);
+      });
+
+      test('the readme that came with the mods goes too', () async {
+        writeMod('cc/hair.package');
+        File(p.join(modsDir.path, 'cc', 'readme.txt'))
+            .writeAsStringSync('instructions');
+        final c = await makeController();
+
+        await c.deleteFolder('cc');
+
+        expect(Directory(p.join(modsDir.path, 'cc')).existsSync(), isFalse);
+      });
+
+      test('an empty folder the user made is forgotten as well', () async {
+        writeMod('loose.package');
+        final c = await makeController();
+        await c.createFolder(null, 'cc');
+        expect(c.folders, ['cc']);
+
+        await c.deleteFolder('cc');
+        await c.refresh();
+
+        expect(c.folders, isEmpty);
+        expect(c.settings.madeFolders('fake'), isEmpty);
+      });
+    });
+
     test('a folder that is gone stops filtering the library', () async {
       writeMod('cc/hair.package');
       final c = await makeController();
@@ -150,7 +386,7 @@ void main() {
       writeMod('loose.package');
       await c.refresh();
 
-      expect(c.folder, 'All');
+      expect(c.selectedFolders, isEmpty);
       expect(c.filteredMods, hasLength(1));
     });
 

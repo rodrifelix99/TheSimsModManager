@@ -290,10 +290,9 @@ Future<void> askForNewFolder(
   required GameTheme theme,
 }) async {
   if (!controller.canMoveMods) return;
-  final parent = controller.folder == 'All' ||
-          !controller.canMoveInto(controller.folder)
-      ? null
-      : controller.folder;
+  // The same rule an install follows: the one selected chip, and the
+  // mods folder whenever the selection isn't a single ordinary folder.
+  final parent = controller.installFolder;
   controller.playSound(UiSound.open);
   final name = await showDialog<String>(
     context: context,
