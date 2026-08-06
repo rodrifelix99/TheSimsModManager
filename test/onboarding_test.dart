@@ -335,13 +335,14 @@ void main() {
         reason: 'the pair is flush with the right edge of the card');
   });
 
-  testWidgets('an install that has run before is never asked', (tester) async {
+  testWidgets('an install that has run before but never seen it is shown',
+      (tester) async {
     tester.view.physicalSize = const Size(1280, 824);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
-    // Never answered, but this copy of the app has a history: the
+    // Never answered, and this copy of the app has a history: the
     // walkthrough shipped in an update, and this user has been here for
-    // months.
+    // months without ever seeing the screen - it is shown to them too.
     SharedPreferences.setMockInitialValues({
       'soundEffects': false,
       'onboardingDone': false,
@@ -354,16 +355,15 @@ void main() {
     final settings = await SettingsStore.load();
     final strings = await L.delegate.load(const Locale('en'));
 
-    await tester.runAsync(() async {
-      await tester
-          .pumpWidget(ModManagerApp(registry: registry, settings: settings));
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-    });
+    await _pumpFirstRun(tester, registry, settings, strings);
+    expect(find.text(strings.onboardingWelcomeTitle), findsOneWidget);
+
+    await tester.tap(find.text(strings.onboardingSkip));
     await until(tester, find.text(strings.libraryTitle('Fake Game')));
     await tester.pump(const Duration(milliseconds: 400));
 
     expect(find.text(strings.onboardingWelcomeTitle), findsNothing);
-    // And the question is settled rather than asked again next launch.
+    // And it is not asked again.
     expect(settings.onboardingDone, isTrue);
   });
 

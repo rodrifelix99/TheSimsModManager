@@ -2504,21 +2504,17 @@ class AppController extends ChangeNotifier {
     // Before everything else, so the very first frame is the walkthrough
     // rather than a library flashing up behind it for a moment.
     //
-    // An install that has been launched before is not a first run, even
-    // though it has never answered this: the walkthrough shipped in an
-    // update, and greeting somebody who has been using the app for
-    // months with a setup card is the update introducing itself to the
-    // wrong person. `launchCount` is bumped by `Analytics.init` before
-    // the app is built, so 1 is this launch and anything above it is a
-    // history. The question is then written down as answered rather than
-    // being asked again every launch.
+    // Whoever has never answered this sees it, launch history and all:
+    // the walkthrough shipped in an update, so an install that has been
+    // running for months has still never seen the screen, and every page
+    // reads current settings rather than assuming a blank install - there
+    // is nothing on it that only makes sense the very first time. The
+    // source just says which of the two happened.
     if (!settings.onboardingDone) {
-      if (settings.launchCount > 1) {
-        await settings.setOnboardingDone(true);
-      } else {
-        _onboarding = true;
-        analytics.capture('onboarding_started', {'source': 'first_run'});
-      }
+      _onboarding = true;
+      analytics.capture('onboarding_started', {
+        'source': settings.launchCount > 1 ? 'update' : 'first_run',
+      });
     }
     // Before the first refresh, so the library's very first frame already
     // carries whatever the last download knew.
