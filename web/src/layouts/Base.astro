@@ -37,7 +37,7 @@ const {
   ogTitle = 'The Sims Mod Manager',
   ogImageAlt,
   ogImage: ogImageOverride,
-  ogImageWidth = '2228',
+  ogImageWidth = '2227',
   ogImageHeight = '1436',
   localized = true,
   noindex = false,
@@ -46,7 +46,7 @@ const {
 
 const url = (path: string) => new URL(path, Astro.site).href;
 const canonical = url(localePath(locale, base));
-const ogImage = ogImageOverride ?? url('/images/library-grid.png');
+const ogImage = ogImageOverride ?? url('/images/library-grid-ts4.png');
 const favicon =
   'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">' +
   '<path d="M50 4 L88 50 L50 96 L12 50 Z" fill="%231FBF8F"/>' +

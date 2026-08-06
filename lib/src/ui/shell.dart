@@ -9,14 +9,17 @@ import '../core/game.dart';
 import '../core/game_adapter.dart';
 import 'app_controller.dart';
 import 'detail_view.dart';
+import 'game_skin.dart';
 import 'game_theme.dart';
 import 'install_destination_dialog.dart';
 import 'l10n.dart';
 import 'library_view.dart';
+import 'onboarding_view.dart';
 import 'packs_view.dart';
 import 'saves_view.dart';
 import 'settings_view.dart';
 import 'shop_view.dart';
+import 'trivia_buddy.dart';
 import 'widgets.dart';
 
 /// Window chrome: title bar, sidebar, and the active screen.
@@ -49,7 +52,10 @@ class _AppShellState extends State<AppShell> {
   Future<void> _handleDrop(
       AppController c, GameTheme t, DropDoneDetails details) async {
     setState(() => _dragging = false);
-    if (c.modsDir == null) return;
+    // Nothing installs while the walkthrough is up: the window is a card
+    // asking questions, and a file dropped on it was aimed at something
+    // the user cannot see yet.
+    if (c.modsDir == null || c.showOnboarding) return;
     final paths = [for (final f in details.files) f.path];
     // Filtered before asking: a drop of nothing but readmes has nothing
     // to ask about, and installDroppedPaths is still the one that says so.
@@ -84,7 +90,9 @@ class _AppShellState extends State<AppShell> {
           // install on drop; only meaningful once a mods folder resolved.
           body: DropTarget(
             onDragEntered: (_) {
-              if (c.modsDir != null) setState(() => _dragging = true);
+              if (c.modsDir != null && !c.showOnboarding) {
+                setState(() => _dragging = true);
+              }
             },
             onDragExited: (_) => setState(() => _dragging = false),
             onDragDone: (details) => _handleDrop(c, t, details),
@@ -97,7 +105,7 @@ class _AppShellState extends State<AppShell> {
                     Expanded(
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 450),
-                        color: t.bg,
+                        decoration: t.skin.backdrop(t),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
@@ -150,6 +158,14 @@ class _AppShellState extends State<AppShell> {
                     ),
                   ],
                 ),
+                // Over the whole window on the first run, but under the
+                // caption buttons and the drag strip below: a walkthrough
+                // nobody can move or close the window behind would be a
+                // worse first impression than no walkthrough at all.
+                if (c.showOnboarding)
+                  Positioned.fill(
+                    child: OnboardingOverlay(theme: t, controller: c),
+                  ),
                 // Invisible title-bar strip: drag to move, double-click to
                 // maximize/restore, stopping short of the caption buttons.
                 Positioned(
@@ -165,6 +181,11 @@ class _AppShellState extends State<AppShell> {
                     right: 0,
                     child: _WindowButtons(theme: t),
                   ),
+                // Over every screen rather than on one: the facts written
+                // about a screen have to be able to arrive while you are
+                // standing on it. Under the drop overlay, which is the one
+                // thing allowed to cover the window whole.
+                TriviaBuddy(theme: t, controller: c),
                 if (_dragging)
                   Positioned.fill(
                     child: IgnorePointer(
@@ -199,12 +220,12 @@ class _ErrorBanner extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(28, 8, 28, 0),
       child: Container(
         padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
-        decoration: BoxDecoration(
-          color: t.warning.withValues(alpha: .1),
-          border: Border.all(
-              color: t.warning.withValues(alpha: .45), width: 1.5),
-          borderRadius: BorderRadius.circular(12),
-        ),
+        decoration: t.skin.decorate(t, SkinSurface.panel,
+            radius: 12,
+            state: SkinState.active,
+            accent: t.warning,
+            fill: t.warning.withValues(alpha: .1),
+            outline: t.warning.withValues(alpha: .45)),
         child: Row(
           children: [
             Icon(Icons.error_outline_rounded, size: 20, color: t.warning),
@@ -256,11 +277,8 @@ class _DropOverlay extends StatelessWidget {
         constraints: const BoxConstraints(maxWidth: 520),
         margin: const EdgeInsets.symmetric(horizontal: 24),
         padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 28),
-        decoration: BoxDecoration(
-          color: t.surface,
-          border: Border.all(color: t.accent, width: 2),
-          borderRadius: BorderRadius.circular(20),
-        ),
+        decoration: t.skin.decorate(t, SkinSurface.panel,
+            radius: 20, state: SkinState.active, fill: t.surface),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -400,10 +418,7 @@ class _SidebarState extends State<_Sidebar> {
       // the sidebar content below them; other platforms keep the tight top.
       padding: EdgeInsets.fromLTRB(
           16, Platform.isMacOS ? kWindowCaptionHeight + 6 : 20, 16, 20),
-      decoration: BoxDecoration(
-        color: widget.glass ? t.surface.withValues(alpha: .55) : t.surface,
-        border: Border(right: BorderSide(color: t.border)),
-      ),
+      decoration: t.skin.sidebar(t, glass: widget.glass),
       // The column's height grows with the number of games and with what
       // the bottom cluster is carrying (the update banner, the disk bar),
       // and kMinWindowSize can't chase all of it - a short window scrolls
@@ -555,11 +570,12 @@ class _SidebarState extends State<_Sidebar> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
           padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-          decoration: BoxDecoration(
-            color: hovered ? t.tint : t.surfaceAlt,
-            border: Border.all(color: t.accent, width: 1.5),
-            borderRadius: BorderRadius.circular(13),
-          ),
+          // Ringed in the accent whether or not it is hovered: it is the
+          // one card in the sidebar that only exists because something
+          // happened.
+          decoration: t.skin.decorate(t, SkinSurface.panel,
+              state: SkinState.active,
+              fill: hovered ? t.tint : t.surfaceAlt),
           child: Row(
             children: [
               Container(
@@ -623,14 +639,9 @@ class _SidebarState extends State<_Sidebar> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
           padding: const EdgeInsets.fromLTRB(12, 11, 12, 11),
-          decoration: BoxDecoration(
-            color: active || hovered ? t.tint : t.surfaceAlt,
-            border: Border.all(
-              color: active ? t.accent : t.border,
-              width: active ? 1.5 : 1,
-            ),
-            borderRadius: BorderRadius.circular(13),
-          ),
+          decoration: t.skin.decorate(t, SkinSurface.panel,
+              state: active ? SkinState.active : SkinState.idle,
+              fill: active || hovered ? t.tint : t.surfaceAlt),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -738,14 +749,11 @@ class _SidebarState extends State<_Sidebar> {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 150),
             padding: const EdgeInsets.all(3),
-            decoration: BoxDecoration(
-              color: selected || hovered ? t.surface : Colors.transparent,
-              border: Border.all(
-                color: selected ? t.accent : Colors.transparent,
-                width: 1.5,
-              ),
-              borderRadius: BorderRadius.circular(9),
-            ),
+            decoration: t.skin.decorate(t, SkinSurface.row,
+                radius: 9,
+                state: skinState(active: selected, hovered: hovered),
+                fill: selected || hovered ? t.surface : null,
+                outline: selected ? t.accent : null),
             child: Opacity(
               opacity: empty ? .5 : 1,
               child: _gameGlyph(t, game, size: 20, dim: empty),
@@ -866,65 +874,70 @@ class _SidebarState extends State<_Sidebar> {
     final opacity = installed ? 1.0 : 0.45;
     return HoverBuilder(
       cursor: SystemMouseCursors.click,
-      builder: (context, hovered) => GestureDetector(
-        onTap: () => c.selectGame(game.id),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
-          decoration: BoxDecoration(
-            color: active || hovered ? t.tint : Colors.transparent,
-            borderRadius: BorderRadius.circular(11),
-          ),
-          child: Opacity(
-            opacity: opacity,
-            child: Row(
-              children: [
-                _gameGlyph(t, game, size: 27, dim: !installed),
-                const SizedBox(width: 11),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        game.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w800,
-                          height: 1.1,
-                          color: t.text,
+      builder: (context, hovered) {
+        final state = skinState(active: active, hovered: hovered);
+        return GestureDetector(
+          onTap: () => c.selectGame(game.id),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+            decoration: t.skin.decorate(t, SkinSurface.row, state: state),
+            child: Opacity(
+              opacity: opacity,
+              child: Row(
+                children: [
+                  _gameGlyph(t, game, size: 27, dim: !installed),
+                  const SizedBox(width: 11),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          game.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w800,
+                            height: 1.1,
+                            color: t.skin.ink(t, SkinSurface.row,
+                                state: state, otherwise: t.text),
+                          ),
                         ),
-                      ),
-                      Text(
-                        count == null
-                            ? l.sidebarNotInstalled(
-                                '${game.year ?? game.series}')
-                            : l.sidebarModCount(
-                                count, '${game.year ?? game.series}'),
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: t.muted,
+                        Text(
+                          count == null
+                              ? l.sidebarNotInstalled(
+                                  '${game.year ?? game.series}')
+                              : l.sidebarModCount(
+                                  count, '${game.year ?? game.series}'),
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: t.skin.ink(t, SkinSurface.row,
+                                state: state,
+                                secondary: true,
+                                otherwise: t.muted),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (active)
-                  Container(
-                    width: 7,
-                    height: 7,
-                    decoration: BoxDecoration(
-                      color: t.accent,
-                      shape: BoxShape.circle,
+                      ],
                     ),
                   ),
-              ],
+                  if (active)
+                    Container(
+                      width: 7,
+                      height: 7,
+                      decoration: BoxDecoration(
+                        color: t.skin.ink(t, SkinSurface.row,
+                            state: state, otherwise: t.accent),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -935,38 +948,41 @@ class _SidebarState extends State<_Sidebar> {
     required Widget Function(Color) iconBuilder,
     required VoidCallback onTap,
   }) {
-    final color = active ? t.accent : t.text;
     return HoverBuilder(
       cursor: SystemMouseCursors.click,
-      builder: (context, hovered) => GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: active || hovered ? t.tint : Colors.transparent,
-            borderRadius: BorderRadius.circular(11),
-          ),
-          child: Row(
-            children: [
-              iconBuilder(color),
-              const SizedBox(width: 11),
-              Flexible(
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w800,
-                    color: color,
+      builder: (context, hovered) {
+        final state = skinState(active: active, hovered: hovered);
+        // The icon is drawn in the label's colour, so a skin that turns
+        // the row into a pressed button takes the glyph with it.
+        final color = t.skin.ink(t, SkinSurface.row,
+            state: state, otherwise: active ? t.accent : t.text);
+        return GestureDetector(
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            padding: const EdgeInsets.all(10),
+            decoration: t.skin.decorate(t, SkinSurface.row, state: state),
+            child: Row(
+              children: [
+                iconBuilder(color),
+                const SizedBox(width: 11),
+                Flexible(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w800,
+                      color: color,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -979,11 +995,10 @@ class _SidebarState extends State<_Sidebar> {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 450),
       padding: const EdgeInsets.fromLTRB(14, 13, 14, 13),
-      decoration: BoxDecoration(
-        color: widget.glass ? t.surfaceAlt.withValues(alpha: .5) : t.surfaceAlt,
-        border: Border.all(color: t.border),
-        borderRadius: BorderRadius.circular(13),
-      ),
+      decoration: t.skin.decorate(t, SkinSurface.panel,
+          fill: widget.glass
+              ? t.surfaceAlt.withValues(alpha: .5)
+              : t.surfaceAlt),
       child: Column(
         children: [
           Row(

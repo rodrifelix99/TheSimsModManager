@@ -4,6 +4,7 @@ import '../core/mod.dart';
 import '../core/mod_tags.dart';
 import '../services/sfx.dart';
 import 'app_controller.dart';
+import 'game_skin.dart';
 import 'game_theme.dart';
 import 'l10n.dart';
 
@@ -213,14 +214,10 @@ class _TagDialogState extends State<_TagDialog> {
         borderRadius: BorderRadius.circular(11),
         child: Container(
           padding: const EdgeInsets.fromLTRB(10, 9, 12, 9),
-          decoration: BoxDecoration(
-            color: all || some ? t.tint : t.surfaceAlt,
-            border: Border.all(
-              color: all || some ? t.accent : t.border,
-              width: all || some ? 1.5 : 1,
-            ),
-            borderRadius: BorderRadius.circular(11),
-          ),
+          decoration: t.skin.decorate(t, SkinSurface.panel,
+              radius: 11,
+              state: all || some ? SkinState.active : SkinState.idle,
+              fill: all || some ? t.tint : t.surfaceAlt),
           child: Row(
             children: [
               Icon(

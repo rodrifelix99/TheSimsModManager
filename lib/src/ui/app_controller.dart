@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 import 'dart:ui' show Locale;
 
 import 'package:file_selector/file_selector.dart';
@@ -28,6 +29,7 @@ import '../core/mod_tags.dart';
 import '../core/package_insight.dart';
 import '../core/placed_mods.dart';
 import '../core/save_game.dart';
+import '../core/trivia.dart';
 import '../services/analytics.dart';
 import '../services/demo_shop.dart';
 import '../services/disk_space.dart';
@@ -54,6 +56,12 @@ enum LibraryLayout { grid, list, folders }
 /// the file name A to Z, which is how the library read before there was
 /// anything to choose.
 enum LibrarySort { name, recent, size }
+
+/// A page of the first-run walkthrough, in the order they are asked.
+/// [favorite] is the one that isn't always there: with a single game
+/// found there is nothing to choose between, so it drops out and the
+/// dots below the card count one fewer.
+enum OnboardingStep { welcome, games, favorite, look, library, done }
 
 /// The saves screen's sub-tabs. Which ones a save actually offers depends
 /// on what its files gave up ([AppController.availableSavesTabs]): every
@@ -206,7 +214,7 @@ class AppController extends ChangeNotifier {
         _reportDownload = reportDownload ?? reportShopDownload,
         _pickSavePath = pickSavePath ?? pickSaveFilePath,
         _probeServices = probeServices ?? probeReachability,
-        _adapter = registry.byGameId('sims4') ?? registry.adapters.first {
+        _adapter = _startingAdapter(registry, settings) {
     // Before anything lists a folder: every read and write of the disabled
     // marker asks the core layer for it, and the answer is this preference.
     disabledSuffix = settings.disabledSuffix ?? defaultDisabledSuffix;
@@ -217,6 +225,18 @@ class AppController extends ChangeNotifier {
     // Remote flags may land after the first frame (announcement banner,
     // kill switches); repaint when they do.
     this.analytics.onFlagsChanged = _onFlagsChanged;
+  }
+
+  /// The game the app opens on: the one the user chose (in the
+  /// walkthrough or in Settings), the Sims 4 if nobody ever said, and
+  /// failing both whatever the registry lists first - which is what a
+  /// test registry of one invented game gets.
+  static GameAdapter _startingAdapter(
+      GameRegistry registry, SettingsStore settings) {
+    final chosen = settings.defaultGameId;
+    return (chosen == null ? null : registry.byGameId(chosen)) ??
+        registry.byGameId('sims4') ??
+        registry.adapters.first;
   }
 
   final GameRegistry registry;
@@ -2481,6 +2501,25 @@ class AppController extends ChangeNotifier {
   }
 
   Future<void> init() async {
+    // Before everything else, so the very first frame is the walkthrough
+    // rather than a library flashing up behind it for a moment.
+    //
+    // An install that has been launched before is not a first run, even
+    // though it has never answered this: the walkthrough shipped in an
+    // update, and greeting somebody who has been using the app for
+    // months with a setup card is the update introducing itself to the
+    // wrong person. `launchCount` is bumped by `Analytics.init` before
+    // the app is built, so 1 is this launch and anything above it is a
+    // history. The question is then written down as answered rather than
+    // being asked again every launch.
+    if (!settings.onboardingDone) {
+      if (settings.launchCount > 1) {
+        await settings.setOnboardingDone(true);
+      } else {
+        _onboarding = true;
+        analytics.capture('onboarding_started', {'source': 'first_run'});
+      }
+    }
     // Before the first refresh, so the library's very first frame already
     // carries whatever the last download knew.
     _loadCachedAdvisories();
@@ -2509,6 +2548,10 @@ class AppController extends ChangeNotifier {
     // banner instead of adding it a moment later. It cannot change while
     // the app is open, so it is asked once.
     runningElevated = await _checkElevated();
+    // The buddy's own clock. Started before the refresh so the first fact
+    // is timed from launch rather than from however long the library took
+    // to scan, which on a big folder is most of a minute.
+    _armTrivia();
     await refresh();
     _captureLibraryOpened();
     // Not awaited, like the update check below it.
@@ -2535,6 +2578,10 @@ class AppController extends ChangeNotifier {
       refreshShop();
     }
     await _refreshCounts();
+    // Every game has now been asked whether it is here, which is what the
+    // walkthrough's second page is waiting to hear.
+    scanningGames = false;
+    notifyListeners();
   }
 
   /// Remote flags landing after the first frame. Beyond the repaint: a
@@ -2616,6 +2663,12 @@ class AppController extends ChangeNotifier {
     advisoriesOnly = false;
     tooDeepOnly = false;
     duplicatesOnly = false;
+    // Another game, another deck. The bubble closes rather than carrying
+    // a fact about The Sims 2 into The Sims 4, and the index goes back to
+    // the top of that game's own shuffle.
+    _triviaIndex = 0;
+    _triviaOpen = false;
+    _triviaBadge = false;
     // Another game's library, another set of labels on it - and another
     // set of things they turn out to be.
     tagFilter = null;
@@ -5384,6 +5437,340 @@ class AppController extends ChangeNotifier {
       'kind': pack.kind.name,
       'enabled': enabled,
     });
+  }
+
+  // ——— the first-run walkthrough ———
+
+  bool _onboarding = false;
+  int _onboardingAt = 0;
+
+  /// Whether the walkthrough is covering the window. The library loads
+  /// behind it either way: the questions it asks are about which game to
+  /// open and how things should look, and none of them is a reason to
+  /// keep the app from doing what it was started to do.
+  bool get showOnboarding => _onboarding;
+
+  /// Whether the launch scan is still working out which games this
+  /// machine has. The walkthrough's second page waits on it rather than
+  /// telling the user "no games found" while it is still looking.
+  bool scanningGames = true;
+
+  /// The games whose mods folder was found. Empty is a real answer - the
+  /// walkthrough says so and points at Settings.
+  List<GameAdapter> get installedGames => [
+        for (final adapter in registry.adapters)
+          if (hasModsFolder(adapter.game.id)) adapter,
+      ];
+
+  /// The pages this walkthrough actually has. Worked out per read rather
+  /// than fixed at the start, because [installedGames] fills in while the
+  /// user is reading page one.
+  List<OnboardingStep> get onboardingSteps => [
+        OnboardingStep.welcome,
+        OnboardingStep.games,
+        if (installedGames.length > 1) OnboardingStep.favorite,
+        OnboardingStep.look,
+        OnboardingStep.library,
+        OnboardingStep.done,
+      ];
+
+  /// Which page is up. Clamped rather than stored as a step, so a page
+  /// that appears or disappears under the user (the scan finishing while
+  /// they read) can never leave the index pointing past the end.
+  int get onboardingAt =>
+      _onboardingAt.clamp(0, onboardingSteps.length - 1);
+
+  OnboardingStep get onboardingStep => onboardingSteps[onboardingAt];
+
+  /// Whether Next means anything yet: the games page holds the walkthrough
+  /// until the scan has answered, since the page after it is built out of
+  /// what the scan found.
+  bool get canAdvanceOnboarding =>
+      onboardingStep != OnboardingStep.games || !scanningGames;
+
+  void nextOnboardingStep() {
+    if (!canAdvanceOnboarding) return;
+    if (onboardingAt >= onboardingSteps.length - 1) {
+      // Not awaited: the last press is "let me in", and what it waits on
+      // is a preference write and a folder scan.
+      unawaited(finishOnboarding());
+      return;
+    }
+    playSound(UiSound.click);
+    _onboardingAt = onboardingAt + 1;
+    analytics.capture('onboarding_step', {'step': onboardingStep.name});
+    notifyListeners();
+  }
+
+  void backOnboardingStep() {
+    if (onboardingAt == 0) return;
+    playSound(UiSound.click);
+    _onboardingAt = onboardingAt - 1;
+    notifyListeners();
+  }
+
+  /// The game to open on from now on. Written down and nothing more: the
+  /// switch itself happens at the end of the walkthrough (and at the next
+  /// launch when it is Settings asking), because loading a library is a
+  /// folder scan and a page of cards is somewhere people click about.
+  Future<void> setDefaultGame(String? gameId) async {
+    if (gameId == settings.defaultGameId) return;
+    await settings.setDefaultGameId(gameId);
+    playSound(UiSound.select);
+    analytics.capture('default_game_set', {'game': gameId ?? 'auto'});
+    notifyListeners();
+  }
+
+  /// The game the walkthrough's cards show as picked: what the user chose,
+  /// or the one the app happens to have loaded.
+  String get defaultGameId => settings.defaultGameId ?? _adapter.game.id;
+
+  /// Puts the walkthrough away for good, opening the game it was told to
+  /// open. [skipped] only colours the report - a walkthrough somebody
+  /// walked out of has still been through, and asking again next launch
+  /// would be arguing with them.
+  Future<void> finishOnboarding({bool skipped = false}) async {
+    if (!_onboarding) return;
+    playSound(skipped ? UiSound.click : UiSound.select);
+    analytics.capture('onboarding_finished', {
+      'skipped': skipped,
+      'step': onboardingStep.name,
+      'games': installedGames.length,
+      'default_game': settings.defaultGameId ?? 'auto',
+    });
+    _onboarding = false;
+    await settings.setOnboardingDone(true);
+    final chosen = settings.defaultGameId;
+    // selectGame notifies and reloads on its own; the plain notify is for
+    // the case where there is nothing to switch to.
+    if (chosen != null && chosen != _adapter.game.id) {
+      await selectGame(chosen);
+    } else {
+      notifyListeners();
+    }
+  }
+
+  /// The Settings row: run it again. Nothing is reset - the answers it
+  /// asks about are the settings themselves, and it opens showing what
+  /// they currently are.
+  void restartOnboarding() {
+    if (_onboarding) return;
+    playSound(UiSound.click);
+    _onboarding = true;
+    _onboardingAt = 0;
+    screen = AppScreen.library;
+    analytics.capture('onboarding_started', {'source': 'settings'});
+    notifyListeners();
+  }
+
+  // ——— the plumbob's trivia ———
+
+  /// How long the buddy waits before offering the next fact, and how long
+  /// the badge sits on the plumbob before the bubble follows it up. Four
+  /// minutes because this is a mod manager and not a quiz: often enough
+  /// to be a companion, rare enough that nobody reaches for the off
+  /// switch on the first afternoon.
+  static const _triviaEvery = Duration(minutes: 4);
+  static const _triviaBadgeLead = Duration(milliseconds: 1400);
+
+  /// One shuffled deck per game, built the first time that game's buddy
+  /// is asked and kept for the run. Shuffled rather than ordered so two
+  /// launches don't open on the same fact, and kept rather than
+  /// reshuffled so stepping back really does go back.
+  final Map<String, List<TriviaFact>> _triviaDecks = {};
+  final math.Random _triviaShuffle = math.Random();
+
+  int _triviaIndex = 0;
+  bool _triviaOpen = false;
+  bool _triviaBadge = false;
+  Timer? _triviaTimer;
+  Timer? _triviaOpenTimer;
+
+  /// Whether the buddy exists at all: the player hasn't switched it off,
+  /// and this game has facts written for it. A game added before anybody
+  /// researched it gets no plumbob rather than an empty bubble.
+  ///
+  /// Separate from [showTrivia] because the timer runs off this one: the
+  /// buddy is still *there* while you are reading a mod, it just isn't
+  /// drawn, and stopping the clock every time somebody opens Settings
+  /// would be a different thing entirely.
+  bool get triviaAvailable =>
+      settings.triviaBuddy && _adapter.triviaFacts.isNotEmpty;
+
+  /// Whether to draw it right now. Library, saves and packs only: those
+  /// are the screens you browse, where a plumbob in the corner is
+  /// company. The mod page, Settings and The Exchange are screens you
+  /// came to read or to decide something on, and it would be in the way -
+  /// and so is the walkthrough, which is a plumbob's worth of window
+  /// covered by a card the user is reading.
+  bool get showTrivia =>
+      triviaAvailable && triviaContext != null && !_onboarding;
+
+  bool get triviaOpen => showTrivia && _triviaOpen;
+
+  /// The little "!" on the plumbob: something new is waiting, and the
+  /// bubble isn't already showing it.
+  bool get triviaBadge => showTrivia && _triviaBadge && !_triviaOpen;
+
+  /// Which of the three screens the buddy lives on is up, and so which
+  /// facts written about a screen are allowed. Null is one of the
+  /// screens it stays off, which is also what [showTrivia] reads.
+  TriviaContext? get triviaContext => switch (screen) {
+        AppScreen.library => TriviaContext.library,
+        AppScreen.saves => TriviaContext.saves,
+        AppScreen.packs => TriviaContext.packs,
+        AppScreen.detail || AppScreen.settings || AppScreen.shop => null,
+      };
+
+  List<TriviaFact> get _triviaDeck => _triviaDecks.putIfAbsent(
+      _adapter.game.id, () => [..._adapter.triviaFacts]..shuffle(_triviaShuffle));
+
+  /// The facts that may be drawn on the screen the user is actually on.
+  List<TriviaFact> get _triviaPool =>
+      [for (final f in _triviaDeck) if (f.fitsContext(triviaContext)) f];
+
+  /// Where the bubble actually is, which is not always [_triviaIndex]:
+  /// walking onto another screen can make the fact you were reading
+  /// ineligible, and sliding to the next one that fits is a better answer
+  /// than blanking the bubble. Everything else works off this, so the
+  /// arrows step from what is on screen rather than from a stale index.
+  int? get _triviaShownIndex {
+    final deck = _triviaDeck;
+    if (deck.isEmpty) return null;
+    final at = _triviaIndex % deck.length;
+    for (var k = 0; k < deck.length; k++) {
+      final i = (at + k) % deck.length;
+      if (deck[i].fitsContext(triviaContext)) return i;
+    }
+    return null;
+  }
+
+  /// The fact on the bubble, or null when this game has none.
+  TriviaFact? get triviaFact {
+    final at = _triviaShownIndex;
+    return at == null ? null : _triviaDeck[at];
+  }
+
+  /// Where the current fact sits in what this screen can show, 1-based,
+  /// and how many that is. The count is the pool rather than the deck so
+  /// "fact 3 of 24" is a number the buttons can actually reach.
+  int get triviaNumber {
+    final fact = triviaFact;
+    if (fact == null) return 0;
+    return _triviaPool.indexOf(fact) + 1;
+  }
+
+  int get triviaTotal => _triviaPool.length;
+
+  /// The next index in [direction] whose fact fits the screen, wrapping.
+  /// Returns the index it started from when nothing else fits, which
+  /// only happens with a deck of one.
+  int? _triviaStep(int direction) {
+    final deck = _triviaDeck;
+    final from = _triviaShownIndex;
+    if (from == null) return null;
+    for (var k = 1; k <= deck.length; k++) {
+      final at = (from + direction * k) % deck.length;
+      final wrapped = at < 0 ? at + deck.length : at;
+      if (deck[wrapped].fitsContext(triviaContext)) return wrapped;
+    }
+    return from;
+  }
+
+  /// Starts (or stops) the timer that offers facts on its own. Called
+  /// from [init] and whenever the setting flips.
+  ///
+  /// Never runs under `flutter test`: a periodic timer outlives the
+  /// widget tree and every test that pumps the app would fail on a
+  /// pending one, which is a high price for a bubble no test is watching.
+  void _armTrivia() {
+    _triviaTimer?.cancel();
+    _triviaOpenTimer?.cancel();
+    _triviaTimer = null;
+    _triviaOpenTimer = null;
+    if (!triviaAvailable) return;
+    if (Platform.environment.containsKey('FLUTTER_TEST')) return;
+    _triviaTimer = Timer.periodic(_triviaEvery, (_) {
+      // Nothing to interrupt: a bubble already up is the user reading,
+      // and a screen the buddy stays off is not somewhere to queue one
+      // up to spring on them when they come back.
+      if (!showTrivia || _triviaOpen) return;
+      final next = _triviaStep(1);
+      if (next == null) return;
+      _triviaIndex = next;
+      _triviaBadge = true;
+      notifyListeners();
+      _triviaOpenTimer = Timer(_triviaBadgeLead, () {
+        if (!showTrivia || _triviaOpen) return;
+        _triviaOpen = true;
+        _triviaBadge = false;
+        notifyListeners();
+      });
+    });
+  }
+
+  /// The plumbob was clicked: show the bubble, or put it away.
+  void toggleTrivia() {
+    if (!showTrivia) return;
+    playSound(UiSound.click);
+    _triviaOpen = !_triviaOpen;
+    _triviaBadge = false;
+    if (_triviaOpen) {
+      analytics.capture('trivia_opened',
+          {'game': _adapter.game.id, 'source': 'plumbob'});
+    }
+    notifyListeners();
+  }
+
+  /// The ✕ on the bubble. Puts this one away without switching the buddy
+  /// off - that is what the Settings row is for, and the bubble links to
+  /// it so the difference is findable.
+  void closeTrivia() {
+    if (!_triviaOpen) return;
+    playSound(UiSound.click);
+    _triviaOpen = false;
+    _triviaBadge = false;
+    notifyListeners();
+  }
+
+  /// Steps to the next or previous fact this screen can show.
+  void stepTrivia(int direction) {
+    final next = _triviaStep(direction);
+    if (next == null) return;
+    playSound(UiSound.click);
+    _triviaIndex = next;
+    _triviaBadge = false;
+    analytics.capture('trivia_advanced',
+        {'game': _adapter.game.id, 'direction': direction > 0 ? 'next' : 'back'});
+    notifyListeners();
+  }
+
+  /// "Another one": somewhere else in the pool entirely, never the fact
+  /// already on screen.
+  void shuffleTrivia() {
+    final pool = _triviaPool;
+    final deck = _triviaDeck;
+    if (pool.length < 2) return stepTrivia(1);
+    final current = triviaFact;
+    final choices = [for (final f in pool) if (f != current) f];
+    final pick = choices[_triviaShuffle.nextInt(choices.length)];
+    playSound(UiSound.click);
+    _triviaIndex = deck.indexOf(pick);
+    _triviaBadge = false;
+    analytics.capture(
+        'trivia_advanced', {'game': _adapter.game.id, 'direction': 'shuffle'});
+    notifyListeners();
+  }
+
+  /// The Settings toggle, and the only way the buddy goes away for good.
+  /// Switching it back on re-arms the timer, so it isn't a one-way door.
+  Future<void> setTriviaBuddy(bool value) async {
+    await settings.setTriviaBuddy(value);
+    _triviaOpen = false;
+    _triviaBadge = false;
+    _armTrivia();
+    analytics.capture('trivia_toggled', {'enabled': value});
+    notifyListeners();
   }
 
   /// Opens the system file manager at [path] (selecting it when it's a

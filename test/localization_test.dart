@@ -4,6 +4,7 @@ import 'dart:ui' show Locale, Size;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show LogicalKeyboardKey;
+import 'package:flutter/material.dart' show OutlinedButton;
 import 'package:flutter/widgets.dart' show Directionality, Localizations;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,7 +15,9 @@ import 'package:sims_mod_manager/src/core/game_registry.dart';
 import 'package:sims_mod_manager/src/core/mod.dart';
 import 'package:sims_mod_manager/src/core/package_insight.dart';
 import 'package:sims_mod_manager/src/core/save_game.dart';
+import 'package:sims_mod_manager/src/core/trivia.dart';
 import 'package:sims_mod_manager/src/games/the_sims/sims_adapters.dart';
+import 'package:sims_mod_manager/src/games/the_sims/sims_trivia.dart';
 import 'package:sims_mod_manager/src/services/mod_shop.dart';
 import 'package:sims_mod_manager/src/services/settings_store.dart';
 import 'package:sims_mod_manager/src/ui/app.dart';
@@ -45,6 +48,12 @@ class _FakeAdapter extends FolderBasedGameAdapter {
 
   @override
   String get setupHelpKey => 'fake';
+
+  /// The shared franchise facts, so the plumbob's bubble is drawn and
+  /// measured by the minimum-window sweep below. Those are the wordiest
+  /// strings the app has, and the bubble is a fixed 348px wide.
+  @override
+  List<TriviaFact> get triviaFacts => seriesTrivia;
 
   @override
   Future<String?> defaultModsPath() async => dir.path;
@@ -349,6 +358,40 @@ void main() {
       expect(overflows, isEmpty, reason: 'library in ${language.name}');
 
       final strings = await L.delegate.load(Locale(language.code));
+
+      // The plumbob's bubble, every fact it can show on this screen. It
+      // is a fixed 348px wide carrying the longest prose in the app, and
+      // its footer puts a counter and three buttons on one row - which is
+      // where a translation runs out of room. Stepping through the whole
+      // pool measures the longest one rather than whichever the shuffle
+      // happened to open on.
+      await tester.tap(find.byTooltip(strings.triviaOpen));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.byTooltip(strings.triviaNext), findsOneWidget,
+          reason: 'trivia bubble in ${language.name}');
+      // "Another one" sits between the arrows, and left to its own
+      // intrinsic height it came out two pixels short of them, which
+      // reads as a misalignment rather than as a style. Its label is
+      // what sizes it, so this is a per-language check.
+      final arrow = find.byTooltip(strings.triviaNext);
+      final another =
+          find.widgetWithText(OutlinedButton, strings.triviaAnother);
+      expect(tester.getSize(another).height, tester.getSize(arrow).height,
+          reason: 'footer heights in ${language.name}');
+      expect(tester.getTopLeft(another).dy, tester.getTopLeft(arrow).dy,
+          reason: 'footer baseline in ${language.name}');
+      for (var i = 0; i < seriesTrivia.length; i++) {
+        await tester.tap(find.byTooltip(strings.triviaNext));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(overflows, isEmpty, reason: 'trivia in ${language.name}');
+      }
+      // Out of the way again: it floats over every screen, and the taps
+      // below are aimed at what is underneath it.
+      await tester.tap(find.byTooltip(strings.triviaClose));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
 
       // The duplicate banner in its wordiest state: a sentence carrying a
       // count and a size, with two actions beside it. Run from its own

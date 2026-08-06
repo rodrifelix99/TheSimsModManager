@@ -7,6 +7,7 @@ import '../core/game_adapter.dart' show defaultDisabledSuffix;
 import '../services/reachability.dart' show debugReachabilityScenarios;
 import '../services/sfx.dart';
 import 'app_controller.dart';
+import 'game_skin.dart';
 import 'game_theme.dart';
 import 'install_folder_dialog.dart';
 import 'l10n.dart';
@@ -161,6 +162,47 @@ class SettingsView extends StatelessWidget {
                     setting: 'soundEffects',
                     value: !s.soundEffects,
                   ),
+                ),
+                _divider(t),
+                // Its own action rather than setPref: switching it back on
+                // has to restart the timer, or the buddy would return
+                // silent until the next launch.
+                _prefRow(
+                  t,
+                  title: l.prefTriviaTitle,
+                  desc: l.prefTriviaDesc,
+                  value: s.triviaBuddy,
+                  onToggle: () => c.setTriviaBuddy(!s.triviaBuddy),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          _sectionLabel(t, l.sectionStartup),
+          Container(
+            decoration: _cardDecoration(t),
+            child: Column(
+              children: [
+                _pickerRow(
+                  t,
+                  title: l.prefDefaultGameTitle,
+                  desc: l.prefDefaultGameDesc,
+                  selected: s.defaultGameId ?? '',
+                  options: [
+                    (value: '', label: l.defaultGameAuto),
+                    for (final adapter in c.registry.adapters)
+                      (value: adapter.game.id, label: adapter.game.name),
+                  ],
+                  onSelected: (value) =>
+                      c.setDefaultGame(value.isEmpty ? null : value),
+                ),
+                _divider(t),
+                _linkRow(
+                  t,
+                  title: l.prefSetupGuideTitle,
+                  desc: l.prefSetupGuideDesc,
+                  buttonLabel: l.onboardingReplay,
+                  onTap: c.restartOnboarding,
                 ),
               ],
             ),
@@ -672,11 +714,8 @@ class SettingsView extends StatelessWidget {
             child: Container(
               padding:
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
-              decoration: BoxDecoration(
-                color: t.tint,
-                border: Border.all(color: t.accent, width: 1.5),
-                borderRadius: BorderRadius.circular(10),
-              ),
+              decoration: t.skin.decorate(t, SkinSurface.button,
+                  radius: 10, fill: t.tint, outline: t.accent),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -685,11 +724,15 @@ class SettingsView extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w800,
-                      color: t.accent,
+                      color: t.skin
+                          .ink(t, SkinSurface.button, otherwise: t.accent),
                     ),
                   ),
                   const SizedBox(width: 6),
-                  Icon(Icons.expand_more_rounded, size: 17, color: t.accent),
+                  Icon(Icons.expand_more_rounded,
+                      size: 17,
+                      color: t.skin
+                          .ink(t, SkinSurface.button, otherwise: t.accent)),
                 ],
               ),
             ),
@@ -752,11 +795,8 @@ class SettingsView extends StatelessWidget {
         ],
       );
 
-  static BoxDecoration _cardDecoration(GameTheme t) => BoxDecoration(
-        color: t.surface,
-        border: Border.all(color: t.border),
-        borderRadius: BorderRadius.circular(14),
-      );
+  static BoxDecoration _cardDecoration(GameTheme t) =>
+      t.skin.decorate(t, SkinSurface.panel, radius: 14);
 
   static Widget _sectionLabel(GameTheme t, String label) => Padding(
         padding: const EdgeInsets.only(bottom: 10),
@@ -969,7 +1009,17 @@ class _SuffixRowState extends State<_SuffixRow> {
           const SizedBox(width: 16),
           SizedBox(
             width: 132,
-            child: TextField(
+            // Drawn by the skin for the same reason the library's search
+            // field is: a sunken well needs a gradient, and a border side
+            // cannot carry one. The resting outline comes with it; the
+            // focus ring below paints over the top.
+            child: DecoratedBox(
+              decoration: t.skin.decorate(t, SkinSurface.well,
+                  radius: 10,
+                  accent: _refused ? t.warning : t.accent,
+                  fill: t.surfaceAlt,
+                  outline: _refused ? t.warning : null),
+              child: TextField(
               controller: _text,
               focusNode: _focus,
               onSubmitted: (_) => _commit(),
@@ -989,14 +1039,12 @@ class _SuffixRowState extends State<_SuffixRow> {
                   color: t.muted,
                 ),
                 isDense: true,
-                filled: true,
-                fillColor: t.surfaceAlt,
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(
-                      color: _refused ? t.warning : t.border, width: 1.5),
+                  borderSide: const BorderSide(
+                      color: Colors.transparent, width: 1.5),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -1004,6 +1052,7 @@ class _SuffixRowState extends State<_SuffixRow> {
                       color: _refused ? t.warning : t.accent, width: 1.5),
                 ),
               ),
+            ),
             ),
           ),
         ],

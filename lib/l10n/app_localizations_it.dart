@@ -926,6 +926,127 @@ class LIt extends L {
       'L’app parla undici lingue grazie a questi simmer.';
 
   @override
+  String get sectionStartup => 'AVVIO';
+
+  @override
+  String get prefDefaultGameTitle => 'Gioco all’avvio';
+
+  @override
+  String get prefDefaultGameDesc => 'Con quale libreria parte l’app';
+
+  @override
+  String get defaultGameAuto => 'Automatico';
+
+  @override
+  String get prefSetupGuideTitle => 'Guida iniziale';
+
+  @override
+  String get prefSetupGuideDesc =>
+      'Rifai il giro delle domande del primo avvio';
+
+  @override
+  String get onboardingReplay => 'Rifallo';
+
+  @override
+  String get onboardingSkip => 'Salta';
+
+  @override
+  String get onboardingSkipIntro => 'Salta l’intro';
+
+  @override
+  String get onboardingBack => 'Indietro';
+
+  @override
+  String get onboardingNext => 'Avanti';
+
+  @override
+  String get onboardingFinish => 'Apri la libreria';
+
+  @override
+  String onboardingStepOf(int current, int total) {
+    return 'Passo $current di $total';
+  }
+
+  @override
+  String get onboardingWelcomeTitle => 'Ciao! Sistemiamo tutto';
+
+  @override
+  String get onboardingWelcomeBody =>
+      'Due domande veloci e le tue mod sono pronte. Ci vuole meno di un minuto, e tutto si può cambiare dopo nelle Impostazioni.';
+
+  @override
+  String get onboardingGamesTitle => 'Stiamo cercando i tuoi giochi';
+
+  @override
+  String get onboardingGamesBody =>
+      'Guardiamo nei soliti posti per ogni gioco e per la cartella da cui legge le mod.';
+
+  @override
+  String get onboardingScanning => 'Sto ancora cercando…';
+
+  @override
+  String onboardingGamesFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count giochi trovati',
+      one: '1 gioco trovato',
+      zero: 'Ancora niente',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String onboardingGameMods(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mod già installate',
+      one: '1 mod già installata',
+      zero: 'Cartella mod pronta',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get onboardingGameMissing => 'Non è su questo computer';
+
+  @override
+  String get onboardingNoGamesTitle => 'Non abbiamo trovato niente';
+
+  @override
+  String get onboardingNoGamesBody =>
+      'Nessun problema. Indica tu una cartella mod nelle Impostazioni e funziona tutto uguale.';
+
+  @override
+  String get onboardingFavoriteTitle => 'A quale giochi di più?';
+
+  @override
+  String get onboardingFavoriteBody =>
+      'L’app si aprirà sempre su questo gioco. Puoi passare da un gioco all’altro quando vuoi dalla barra laterale.';
+
+  @override
+  String get onboardingLookTitle => 'Fallo tuo';
+
+  @override
+  String get onboardingLookBody =>
+      'Tutta l’app cambia colore in base al gioco in cui sei. Scegli come deve apparire e come deve suonare.';
+
+  @override
+  String get onboardingLibraryTitle => 'Come si legge la tua libreria';
+
+  @override
+  String get onboardingLibraryBody =>
+      'Due cose da decidere adesso, perché cambiano quello che la libreria ti mostra.';
+
+  @override
+  String get onboardingDoneTitle => 'Tutto pronto!';
+
+  @override
+  String get onboardingDoneBody =>
+      'La tua libreria è carica e ti aspetta. Trascina un file mod sulla finestra quando vuoi installarne una, e cambia tutto questo nelle Impostazioni.';
+
+  @override
   String get folderNotFound => 'Non trovata. Scegli una cartella';
 
   @override
@@ -2078,4 +2199,412 @@ class LIt extends L {
 
   @override
   String get deleteFolder => 'Elimina cartella';
+
+  @override
+  String triviaTitle(String game) {
+    return 'Il plumbob lo sa · $game';
+  }
+
+  @override
+  String get triviaContextLibrary => 'Sembra che tu stia guardando i tuoi mod';
+
+  @override
+  String get triviaContextSaves => 'Sembra che tu sia nei tuoi salvataggi';
+
+  @override
+  String get triviaContextPacks =>
+      'Sembra che tu stia sistemando i tuoi pacchetti';
+
+  @override
+  String triviaCounter(int index, int total) {
+    return 'Curiosità $index di $total';
+  }
+
+  @override
+  String get triviaOpen => 'Chiedi al plumbob';
+
+  @override
+  String get triviaClose => 'Non adesso';
+
+  @override
+  String get triviaPrevious => 'Curiosità precedente';
+
+  @override
+  String get triviaNext => 'Curiosità successiva';
+
+  @override
+  String get triviaAnother => 'Un’altra';
+
+  @override
+  String get triviaToSettings =>
+      'Ti basta? Spegni il plumbob nelle Impostazioni';
+
+  @override
+  String get prefTriviaTitle => 'Curiosità del plumbob';
+
+  @override
+  String get prefTriviaDesc =>
+      'Lascia che il plumbob spunti ogni tanto con una curiosità sul gioco in cui ti trovi';
+
+  @override
+  String get triviaCategoryOrigins => 'Origini';
+
+  @override
+  String get triviaCategoryDesign => 'Design';
+
+  @override
+  String get triviaCategoryLore => 'Lore';
+
+  @override
+  String get triviaCategoryDeath => 'Morte';
+
+  @override
+  String get triviaCategoryMusic => 'Musica';
+
+  @override
+  String get triviaCategoryCheats => 'Trucchi';
+
+  @override
+  String get triviaCategoryRecords => 'Record';
+
+  @override
+  String get triviaCategoryModding => 'Modding';
+
+  @override
+  String get triviaCategoryLanguage => 'Lingua';
+
+  @override
+  String get triviaCategoryCommunity => 'Community';
+
+  @override
+  String get triviaSeriesLlama =>
+      'Maxis una volta ha fatto votare tutto lo studio per scegliere una mascotte non ufficiale. I candidati erano una felce, una tenia bovina e un lama. Ha vinto il lama, e da allora continua a spuntare in ogni gioco.';
+
+  @override
+  String get triviaSeriesSimlish =>
+      'Il simlish è nato davanti al microfono. A Stephen Kearin e Gerri Lawlor davano spunti tipo “affamato” o “solo” e loro improvvisavano come doveva suonare, per ore.';
+
+  @override
+  String get triviaSeriesCheats =>
+      'rosebud e klapaucius danno §1.000 ciascuno. Rosebud viene da Quarto potere; Klapaucius è un robot costruttore della Ciberiade di Stanisław Lem, un libro che Will Wright cita come influenza fin dai tempi di SimCity.';
+
+  @override
+  String get triviaSeriesRecords =>
+      'Il Guinness riconosce The Sims come la serie per PC più venduta di sempre. Ha superato i 125 milioni di copie più di dieci anni fa ed è stata tradotta in 60 lingue.';
+
+  @override
+  String get triviaSeriesGoths =>
+      'I Goth sono una delle famiglie più longeve dei videogiochi. Mortimer e Bella compaiono in ogni capitolo principale dal 2000 in poi.';
+
+  @override
+  String get triviaSeriesReaper =>
+      'Il Tristo Mietitore ha una biografia che il gioco normale non ti mostra mai. Tra le altre cose, dice qual è il suo gruppo preferito: gli Styx.';
+
+  @override
+  String get triviaSeriesSimCity =>
+      'The Sims è nato da SimCity. Will Wright continuava a voler zoomare sulle personcine per cui la città veniva costruita.';
+
+  @override
+  String get triviaSeriesLegacy =>
+      'A gennaio 2025 EA ha rimesso in vendita The Sims e The Sims 2 come Legacy Collections, con tutte le espansioni. Sono correzioni di compatibilità, non remaster, quindi entrambi si giocano esattamente come prima.';
+
+  @override
+  String get triviaSeriesPlumbob =>
+      'Il diamante verde è stato scritto in tre modi: PlumbBob in The Sims, Plum Bob in The Sims 2 e plumbob da The Sims 4 in poi. Maxis dice che durante lo sviluppo si usavano tutti e tre.';
+
+  @override
+  String get triviaSeriesModScene =>
+      'La scena dei mod è vecchia quasi quanto la serie. Editor di skin e di oggetti giravano già pochi mesi dopo l’uscita del primo gioco nel 2000, molto prima che esistessero strumenti ufficiali.';
+
+  @override
+  String get triviaSeriesConflicts =>
+      'Un conflitto è più semplice di come suona. Due mod rivendicano la stessa risorsa, si caricano entrambi, e vince quello che il gioco legge per ultimo. Non si è rotto niente, uno è solo passato davanti.';
+
+  @override
+  String get triviaSeriesPackage =>
+      'Un file .package è un archivio DBPF, cioè Database Packed File. Maxis usa lo stesso contenitore da SimCity 4, ed è per questo che un solo strumento apre vent’anni di contenuti personalizzati.';
+
+  @override
+  String get triviaSeriesRename =>
+      'Spegnere un mod rinominandolo è il trucco più vecchio della scena. Il gioco carica solo ciò che riconosce, quindi un package rinominato resta esattamente dov’è e sta zitto.';
+
+  @override
+  String get triviaSeriesSaves =>
+      'I salvataggi di The Sims sono vicinati, non slot. Le famiglie, i lotti, i ricordi e i pettegolezzi stanno tutti in un’unica cartella, che cresce finché continui a giocare.';
+
+  @override
+  String get triviaSeriesPacks =>
+      'Spegnere un pacchetto non sposta nemmeno un file. Ogni gioco della serie tiene altrove il proprio elenco di cosa caricare, una riga di impostazioni o una chiave di registro, e nascondere un pacchetto vuol dire solo modificare quell’elenco.';
+
+  @override
+  String get triviaSims1Dollhouse =>
+      'The Sims è nato come simulatore di architettura chiamato Project Dollhouse. I sim sono stati aggiunti solo perché il giocatore potesse giudicare se in quella casa si vivesse bene.';
+
+  @override
+  String get triviaSims1Oakland =>
+      'Will Wright perse la casa nell’incendio di Oakland del 1991. Ricostruire una casa da zero, mobili ed elettrodomestici e abitudini, è stato il seme del gioco.';
+
+  @override
+  String get triviaSims1Toilet =>
+      'I dirigenti non si fecero convincere dal pitch e lo liquidarono come un “gioco del cesso”, perché ai sim serviva il bagno.';
+
+  @override
+  String get triviaSims1HomeTactics =>
+      'Prima di diventare The Sims era stato presentato come Home Tactics: The Experimental Domestic Simulator. Anche quella versione non piacque ai gruppi di prova.';
+
+  @override
+  String get triviaSims1Myst =>
+      'Nel 2002 The Sims superò Myst e divenne il gioco per PC più venduto di tutti i tempi.';
+
+  @override
+  String get triviaSims1Simlish =>
+      'Il simlish è stato improvvisato dai doppiatori giocando con pezzi di ucraino, navajo, tagalog ed estone, e tenuto privo di significato di proposito, così la lingua non invecchia mai.';
+
+  @override
+  String get triviaSims1Architecture =>
+      'Gli strumenti di costruzione erano così insoliti per il 2000 che c’è chi non ha mai piazzato un sim e usava il gioco come software di architettura gratuito.';
+
+  @override
+  String get triviaSims1Audience =>
+      'Cosa insolita per l’epoca, la maggioranza del pubblico era femminile, e in parte è per questo che il suo marketing non somigliava a nient’altro sullo scaffale.';
+
+  @override
+  String get triviaSims1Cowplant =>
+      'La mucca-pianta ha debuttato qui, con il nome scientifico Laganaphyllis Simnovorii, e da allora si mangia i sim in sordina a ogni generazione.';
+
+  @override
+  String get triviaSims1Plumbob =>
+      'La parola plumbob viene dal filo a piombo, quel peso appuntito che i muratori appendono a uno spago per trovare la verticale. Questo era un gioco di architettura prima di ogni altra cosa.';
+
+  @override
+  String get triviaSims1Release =>
+      'Il gioco è uscito il 4 febbraio 2000 e ha venduto più di qualunque previsione EA avesse fatto.';
+
+  @override
+  String get triviaSims1Edith =>
+      'Ogni oggetto del gioco è stato programmato in un linguaggio chiamato SimAntics, con uno strumento interno battezzato Edith in onore di Edith Bunker: il primo personaggio mai creato per The Sims.';
+
+  @override
+  String get triviaSims1Expansions =>
+      'Sette espansioni in tre anni e mezzo, una in primavera e una in autunno, da Livin’ Large nell’agosto 2000 a Makin’ Magic nell’ottobre 2003.';
+
+  @override
+  String get triviaSims1Unleashed =>
+      'Unleashed ha portato gli animali nella serie nel 2002 e si è preso il premio di gioco di simulazione dell’anno agli Interactive Achievement Awards.';
+
+  @override
+  String get triviaSims1Clown =>
+      'Il Clown Tragico arriva per tirare su un sim triste che possiede il suo quadro. È clamorosamente incapace, e la battuta sta tutta lì.';
+
+  @override
+  String get triviaSims1Llama =>
+      'Il manuale cartaceo originale conteneva un libro intitolato Making the Most of Your Llama. Nessuno l’ha mai spiegato.';
+
+  @override
+  String get triviaSims1Superstar =>
+      'Superstar permetteva a un sim di fare l’attore, il modello o il cantante, con tanto di barra della fama, undici anni prima che The Sims 4 riprovasse con la celebrità.';
+
+  @override
+  String get triviaSims1Catalogue =>
+      'Mentre ricostruiva casa dopo l’incendio, Will Wright continuava a chiedersi quali parti di una casa fossero indispensabili e quali potessero aspettare. Quella domanda è più o meno il catalogo della modalità compra.';
+
+  @override
+  String get triviaSims2Aging =>
+      'The Sims 2 è stato il primo della serie in cui i sim invecchiavano, morivano di vecchiaia e trasmettevano la genetica. Occhi, naso e mento arrivano da entrambi i genitori.';
+
+  @override
+  String get triviaSims2Memories =>
+      'Ogni sim porta con sé un elenco di ricordi nascosto. Assistere a una morte, a un primo bacio o a una promozione viene registrato e influenza l’umore più avanti.';
+
+  @override
+  String get triviaSims2Bella =>
+      'Bella Goth sparisce da Pleasantview all’inizio del gioco, e in vent’anni quella sparizione non ha mai avuto una spiegazione ufficiale.';
+
+  @override
+  String get triviaSims2Strangetown =>
+      'Bella ricompare viva a Strangetown, senza il minimo ricordo di Pleasantview. Maxis ha detto che entrambe le Bella sono reali e si è fermata lì.';
+
+  @override
+  String get triviaSims2FamilyTrees =>
+      'I vicinati di The Sims 2 poggiano su un vero albero genealogico: Pleasantview, Strangetown e Veronaville sono legati da matrimoni e chiacchiere.';
+
+  @override
+  String get triviaSims2Plead =>
+      'Il Tristo Mietitore si può supplicare. Parlagli al momento giusto e potrebbe restituirti il sim, ogni tanto in cambio di qualcun altro.';
+
+  @override
+  String get triviaSims2ReaperRomance =>
+      'Ci si può fidanzare con il Tristo Mietitore. Se giochi bene le tue carte, da quella relazione nasce un bebè fantasma.';
+
+  @override
+  String get triviaSims2Satellite =>
+      'Un sim che guarda le stelle ha una probabilità piccolissima di essere colpito da un satellite in caduta. È una delle morti più rare della serie.';
+
+  @override
+  String get triviaSims2Therapist =>
+      'Il crollo dell’aspirazione manda il sim dal terapeuta, una delle poche volte in cui il gioco rompe la propria quarta parete per far ridere.';
+
+  @override
+  String get triviaSims2WantsFears =>
+      'Desideri e paure muovono l’intero gioco. La barra dell’aspirazione reagisce con la stessa forza a ciò che il sim temeva e a ciò che sperava.';
+
+  @override
+  String get triviaSims2FaceSculpt =>
+      'Il gioco è uscito con un sistema completo di scultura di viso e corpo, ed è per questo che i volti di The Sims 2 sembrano ancora più vari di quelli dei capitoli successivi.';
+
+  @override
+  String get triviaSims2Aliens =>
+      'Il rapimento alieno capita solo ai sim maschi che guardano le stelle troppo a lungo, e sì, tornano incinti.';
+
+  @override
+  String get triviaSims2FreezerBunny =>
+      'Il Freezer Bunny è stato disegnato dall’artista Emmy Toyonaga per The Sims 2 ed è comparso la prima volta nascosto dentro un congelatore di un lotto comunitario. Da allora viene infilato di nascosto in ogni gioco.';
+
+  @override
+  String get triviaSims2SocialBunny =>
+      'Il Coniglio Sociale ha sostituito il Clown Tragico e, a differenza del clown, funziona davvero. In tanti hanno trovato la versione efficace ancora più inquietante.';
+
+  @override
+  String get triviaSims2Giveaway =>
+      'A luglio 2014 EA ha regalato la Ultimate Collection su Origin, riscattabile con il codice I-LOVE-THE-SIMS. Per il decennio successivo, fino alla Legacy Collection, quel regalo è stato l’unica copia in circolazione.';
+
+  @override
+  String get triviaSims3SunsetValley =>
+      'Sunset Valley è la Pleasantview di The Sims 2 circa 25 anni prima, quindi puoi conoscere i nonni di sim con cui hai già giocato.';
+
+  @override
+  String get triviaSims3Founders =>
+      'Sunset Valley è stata fondata dai Goth e tirata su dai Landgraab. Puoi giocare Mortimer Goth da bambino e vederlo conoscere Bella Bachelor.';
+
+  @override
+  String get triviaSims3OpenWorld =>
+      'The Sims 3 ha eliminato del tutto le schermate di caricamento. L’intera città viene simulata insieme, con ogni sim che invecchia e lavora sullo sfondo.';
+
+  @override
+  String get triviaSims3Simulation =>
+      'Tutti i sim della città vengono simulati insieme, ed è per questo che un salvataggio di lunga data rallenta. Il gioco sta portando avanti in silenzio vite che non hai mai incontrato.';
+
+  @override
+  String get triviaSims3CreateAStyle =>
+      'Crea uno Stile permetteva di ricolorare e ridecorare quasi qualsiasi oggetto, una funzione così esigente da non essere mai più tornata.';
+
+  @override
+  String get triviaSims3Exchange =>
+      'The Sims 3 è uscito con uno scambio online vero, dove si condividevano lotti, sim e fantasie direttamente dal launcher.';
+
+  @override
+  String get triviaSims3Downloads =>
+      'Solo nella prima settimana i giocatori hanno scaricato più di sette milioni di oggetti fatti dalla community proprio da quel launcher.';
+
+  @override
+  String get triviaSims3Traits =>
+      'I tratti hanno sostituito i vecchi cursori della personalità, e alcuni, come Cleptomane e Pazzo, infrangono in sordina le regole della vita normale.';
+
+  @override
+  String get triviaSims3Kleptomaniac =>
+      'Un sim cleptomane torna a casa con i mobili degli altri, senza che nessuno glielo chieda, e continua finché non te ne accorgi.';
+
+  @override
+  String get triviaSims3Simlish =>
+      'Katy Perry, Lily Allen, Depeche Mode e decine di altri artisti hanno reinciso le proprie canzoni in simlish per le colonne sonore.';
+
+  @override
+  String get triviaSims3Townies =>
+      'Siccome il mondo aperto simulava anche i sim fuori dallo schermo, capitava spesso di scoprire che gli abitanti si erano sposati e avevano avuto figli senza alcun intervento tuo.';
+
+  @override
+  String get triviaSims3Store =>
+      'Il Sims 3 Store ha finito per vendere più oggetti di quanti ne contenesse il gioco stesso all’uscita.';
+
+  @override
+  String get triviaSims3Launch =>
+      'The Sims 3 ha venduto 1,4 milioni di copie nella prima settimana, a giugno 2009, il lancio su PC più grosso che EA avesse mai avuto.';
+
+  @override
+  String get triviaSims4Flies =>
+      'Morire di mosche è una cosa vera. Lascia un lotto abbastanza sporco e uno sciame si porta via il tuo sim.';
+
+  @override
+  String get triviaSims4Emotions =>
+      'Qui sono le emozioni a muovere tutto. Un sim Ispirato dipinge meglio; uno Furioso può morire di rabbia.';
+
+  @override
+  String get triviaSims4EmotionDeaths =>
+      'Un sim può morire dal ridere, di rabbia e di imbarazzo. In questo capitolo l’emozione non è decorazione, è un pericolo.';
+
+  @override
+  String get triviaSims4CreateASim =>
+      'Crea un Sim ha sostituito i cursori con il tirare e spingere direttamente sul viso, ed è per questo che in The Sims 4 un volto si fa in un attimo.';
+
+  @override
+  String get triviaSims4Launch =>
+      'The Sims 4 è uscito senza piscine e senza bambini piccoli. Sono tornati entrambi gratis, con una patch, dopo lunghe pressioni dei giocatori.';
+
+  @override
+  String get triviaSims4Worlds =>
+      'Willow Creek e Oasis Springs erano gli unici due mondi al lancio, a settembre 2014. Oggi sono decine, e quasi tutti sono arrivati con un pacchetto.';
+
+  @override
+  String get triviaSims4Gender =>
+      'Il genere è stato sbloccato del tutto con una patch del 2016: qualsiasi sim può indossare qualsiasi vestito, avere qualsiasi voce e restare incinto oppure no.';
+
+  @override
+  String get triviaSims4Newcrest =>
+      'Newcrest è uscito completamente vuoto di proposito. Quindici lotti, nessun edificio e un invito aperto alla community a riempirlo.';
+
+  @override
+  String get triviaSims4Naming =>
+      'Nomi di vicinato come Willow Creek e Oasis Springs seguono una regola della casa che viene dalla vecchia Maxis: due parole inglesi semplici, niente grafie inventate.';
+
+  @override
+  String get triviaSims4Goths =>
+      'Anche qui c’è la famiglia Goth, il che ne fa una delle più longeve dei videogiochi, presente in ogni capitolo principale.';
+
+  @override
+  String get triviaSims4FreeToPlay =>
+      'Il gioco base è diventato gratuito a ottobre 2022, su PC, PlayStation e Xbox in contemporanea. I pacchetti sono rimasti a pagamento.';
+
+  @override
+  String get triviaSims4Mccc =>
+      'MC Command Center, il primo mod che quasi tutti installano in The Sims 4, ha superato i 14 milioni di download solo su CurseForge. Deaderpool lo aggiorna dal 2015.';
+
+  @override
+  String get triviaSims4Twallan =>
+      'MCCC esiste grazie a The Sims 3. Riprende da dove Master Controller e Story Progression di Twallan si erano fermati, portando un’idea di oltre dieci anni fa dentro un motore nuovo.';
+
+  @override
+  String get triviaSims4Deaths =>
+      'Un sim può essere ucciso da una mucca-pianta, da un distributore automatico, da uno stereo a forma di lama e da una risata. Non tutto insieme.';
+
+  @override
+  String get triviaMedievalWatcher =>
+      'Qui non sei una famiglia, sei l’Osservatore: una divinità benevola che spinge eroi in giro per un regno invece di gestire la giornata di una casa.';
+
+  @override
+  String get triviaMedievalHeroes =>
+      'Un regno ospita fino a dieci sim eroi divisi in dieci professioni, e ognuno sale dal livello 1 al 10 guadagnando nuove abilità e titoli via via più altisonanti.';
+
+  @override
+  String get triviaMedievalStocks =>
+      'Ogni eroe si sveglia con due responsabilità e una scadenza. Saltarle troppe volte viene punito, e vale anche per il monarca, che può finire alla gogna.';
+
+  @override
+  String get triviaMedievalAmbition =>
+      'Scegli un’Ambizione per l’intero regno prima di cominciare, e le missioni che accetti vengono valutate rispetto a quella. È la cosa più vicina a una condizione di vittoria che The Sims abbia mai avuto.';
+
+  @override
+  String get triviaMedievalQuests =>
+      'Questa è una conversione totale, non uno spin-off. Il sandbox lascia il posto a una catena di missioni, ed è per questo che è l’unico gioco di The Sims che si può davvero finire.';
+
+  @override
+  String get triviaMedievalPirates =>
+      'Pirates and Nobles, dell’agosto 2011, è l’unica espansione che abbia mai avuto: falchi e pappagalli, mappe del tesoro e pale, e una guerra tra due fazioni appena arrivate.';
+
+  @override
+  String get triviaMedievalProxy =>
+      'Il gioco non è mai stato pensato per caricare mod. I mod di script e di core hanno bisogno del proxy d3dx9_31.dll della community dentro Game/Bin prima che il gioco li degni di uno sguardo, mentre i contenuti personalizzati funzionano anche senza.';
+
+  @override
+  String get triviaMedievalEngine =>
+      'Gira sul motore di The Sims 3, ed è per questo che il Resource.cfg e i file .package sembrano così familiari a chi ha già moddato quel gioco.';
 }

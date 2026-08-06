@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -35,6 +37,35 @@ class SettingsStore {
       await _prefs.remove(_folderOrderKey(gameId));
     } else {
       await _prefs.setStringList(_folderOrderKey(gameId), order);
+    }
+  }
+
+  /// Whether the first-run walkthrough has already been through.
+  ///
+  /// Absent means it hasn't - except under `flutter test`, where absent
+  /// reads as done. Every widget test in the suite pumps the app against
+  /// empty preferences, and a walkthrough covering the window on the
+  /// first frame would be the answer to all of them; a test that wants
+  /// the walkthrough asks for it by storing `false`, which is a thing
+  /// only a test ever does (the app writes true and never writes false
+  /// except when the user asks to see it again, and that path sets it
+  /// back to true at the end).
+  bool get onboardingDone =>
+      _prefs.getBool('onboardingDone') ??
+      Platform.environment.containsKey('FLUTTER_TEST');
+
+  Future<void> setOnboardingDone(bool value) =>
+      _prefs.setBool('onboardingDone', value);
+
+  /// The game the app opens on, picked in the walkthrough or in Settings.
+  /// Null is the app's own choice - see `AppController`'s constructor.
+  String? get defaultGameId => _prefs.getString('defaultGame');
+
+  Future<void> setDefaultGameId(String? gameId) async {
+    if (gameId == null) {
+      await _prefs.remove('defaultGame');
+    } else {
+      await _prefs.setString('defaultGame', gameId);
     }
   }
 
@@ -197,6 +228,13 @@ class SettingsStore {
   bool get soundEffects => _prefs.getBool('soundEffects') ?? true;
   Future<void> setSoundEffects(bool value) =>
       _prefs.setBool('soundEffects', value);
+
+  /// Whether the plumbob in the corner offers facts about the game on
+  /// screen. On by default: it is the one thing here that is purely for
+  /// the fun of it, and something nobody ever finds is not much of one.
+  bool get triviaBuddy => _prefs.getBool('triviaBuddy') ?? true;
+  Future<void> setTriviaBuddy(bool value) =>
+      _prefs.setBool('triviaBuddy', value);
 
   /// What the last reachability probe found. Stored so the first frame of
   /// the next launch already knows, rather than offering The Exchange for

@@ -14,6 +14,7 @@ import '../../core/mod.dart';
 import '../../core/mod_archive.dart';
 import '../../core/resource_cfg.dart';
 import '../../core/save_game.dart';
+import '../../core/trivia.dart';
 import 'demo_packs.dart';
 import 'sims1_packs.dart';
 import 'sims1_saves.dart';
@@ -24,6 +25,7 @@ import 'sims3_saves.dart';
 import 'sims4_packs.dart';
 import 'sims4_saves.dart';
 import 'sims3pack.dart';
+import 'sims_trivia.dart';
 
 /// Adapters for the four mainline Sims games and The Sims Medieval.
 /// The Documents games (Sims 2/3/4) share [DocumentsSimsAdapter]; the
@@ -545,6 +547,10 @@ class Sims4Adapter extends DocumentsSimsAdapter {
   final List<String>? scanRootsOverride;
 
   @override
+  List<TriviaFact> get triviaFacts =>
+      const [...sims4Trivia, ...seriesTrivia];
+
+  @override
   Game get game =>
       const Game(id: 'sims4', name: 'The Sims 4', series: _series, year: 2014);
 
@@ -733,6 +739,10 @@ class Sims3Adapter extends DocumentsSimsAdapter {
   const Sims3Adapter({super.documentsOverride, super.homeOverride});
 
   @override
+  List<TriviaFact> get triviaFacts =>
+      const [...sims3Trivia, ...seriesTrivia];
+
+  @override
   Game get game =>
       const Game(id: 'sims3', name: 'The Sims 3', series: _series, year: 2009);
 
@@ -860,6 +870,10 @@ class Sims3Adapter extends DocumentsSimsAdapter {
 
 class Sims2Adapter extends DocumentsSimsAdapter {
   const Sims2Adapter({super.documentsOverride, super.homeOverride});
+
+  @override
+  List<TriviaFact> get triviaFacts =>
+      const [...sims2Trivia, ...seriesTrivia];
 
   @override
   Game get game =>
@@ -1027,6 +1041,10 @@ class SimsMedievalAdapter extends InstallFolderSimsAdapter {
   /// Test hook: pretend this is the user's Documents folder (where the
   /// stale cache files live).
   final Directory? documentsOverride;
+
+  @override
+  List<TriviaFact> get triviaFacts =>
+      const [...simsMedievalTrivia, ...seriesTrivia];
 
   @override
   Game get game => const Game(
@@ -1224,6 +1242,10 @@ class Sims1Adapter extends InstallFolderSimsAdapter {
       {super.installOverride,
       super.programFilesOverride,
       super.scanRootsOverride});
+
+  @override
+  List<TriviaFact> get triviaFacts =>
+      const [...sims1Trivia, ...seriesTrivia];
 
   @override
   Game get game =>

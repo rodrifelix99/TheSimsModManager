@@ -8,6 +8,7 @@ import '../core/mod.dart';
 import '../services/mod_shop.dart' show ShopMod;
 import '../services/sfx.dart';
 import 'app_controller.dart';
+import 'game_skin.dart';
 import 'game_theme.dart';
 import 'l10n.dart';
 import 'mod_presentation.dart' show modDate, modTitle, modVersion;
@@ -56,35 +57,38 @@ class DetailView extends StatelessWidget {
   Widget _backButton(GameTheme t, AppController c, L l) {
     return HoverBuilder(
       cursor: SystemMouseCursors.click,
-      builder: (context, hovered) => GestureDetector(
+      builder: (context, hovered) {
+        final back = t.skin.ink(t, SkinSurface.button,
+            state: skinState(hovered: hovered), otherwise: t.text);
+        return GestureDetector(
         onTap: c.backToLibrary,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 160),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(
-            color: t.surface,
-            border: Border.all(
-                color: hovered ? t.accent : t.border, width: 1.5),
-            borderRadius: BorderRadius.circular(10),
-          ),
+          decoration: t.skin.decorate(t, SkinSurface.button,
+              radius: 10,
+              state: skinState(hovered: hovered),
+              fill: t.surface,
+              outline: hovered ? t.accent : t.border),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text('←',
-                  style: TextStyle(fontSize: 15, color: t.text, height: 1)),
+                  style: TextStyle(fontSize: 15, color: back, height: 1)),
               const SizedBox(width: 7),
               Text(
                 l.navLibrary,
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w800,
-                  color: t.text,
+                  color: back,
                 ),
               ),
             ],
           ),
         ),
-      ),
+        );
+      },
     );
   }
 
@@ -145,10 +149,13 @@ class DetailView extends StatelessWidget {
               duration: const Duration(milliseconds: 220),
               padding:
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-              decoration: BoxDecoration(
-                color: mod.isEnabled ? t.accent : t.switchOff,
-                borderRadius: BorderRadius.circular(12),
-              ),
+              // A row rather than a primary: it carries no ring and no
+              // glow, and switching a mod off has to look like the same
+              // control gone quiet rather than a different one.
+              decoration: t.skin.decorate(t, SkinSurface.row,
+                  radius: 12,
+                  state: SkinState.active,
+                  fill: mod.isEnabled ? t.accent : t.switchOff),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -235,17 +242,23 @@ class DetailView extends StatelessWidget {
               0, hovered && hoverBackground == null ? -1 : 0, 0),
           padding: const EdgeInsets.symmetric(vertical: 12),
           alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: hovered ? (hoverBackground ?? background) : background,
-            border: Border.all(color: border, width: 1.5),
-            borderRadius: BorderRadius.circular(12),
-          ),
+          decoration: t.skin.decorate(t, SkinSurface.button,
+              radius: 12,
+              state: skinState(hovered: hovered),
+              // The label's colour is what this button is *about* -
+              // uninstall speaks in the warning orange - unless it is
+              // just the text colour, which says nothing and leaves the
+              // material to the skin.
+              accent: color == t.text ? null : color,
+              fill: hovered ? (hoverBackground ?? background) : background,
+              outline: border),
           child: Text(
             label,
             style: TextStyle(
               fontSize: 13.5,
               fontWeight: FontWeight.w800,
-              color: color,
+              color: t.skin.ink(t, SkinSurface.button,
+                  state: skinState(hovered: hovered), otherwise: color),
             ),
           ),
         ),
@@ -321,11 +334,8 @@ class DetailView extends StatelessWidget {
     final note = a.note;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: t.warning.withValues(alpha: .1),
-        border: Border.all(color: t.warning, width: 1.5),
-        borderRadius: BorderRadius.circular(11),
-      ),
+      decoration: t.skin
+          .decorate(t, SkinSurface.notice, radius: 11, accent: t.warning),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -438,11 +448,10 @@ class DetailView extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: t.warning.withValues(alpha: .1),
-        border: Border.all(color: t.warning.withValues(alpha: .3)),
-        borderRadius: BorderRadius.circular(11),
-      ),
+      decoration: t.skin.decorate(t, SkinSurface.notice,
+          radius: 11,
+          accent: t.warning,
+          outline: t.warning.withValues(alpha: .3)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -549,19 +558,22 @@ class DetailView extends StatelessWidget {
           onTap: onTap,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(
-              color: hovered
-                  ? t.warning.withValues(alpha: .18)
-                  : Colors.transparent,
-              border: Border.all(color: t.warning.withValues(alpha: .45)),
-              borderRadius: BorderRadius.circular(7),
-            ),
+            decoration: t.skin.decorate(t, SkinSurface.button,
+                radius: 7,
+                state: skinState(hovered: hovered),
+                accent: t.warning,
+                fill: hovered
+                    ? t.warning.withValues(alpha: .18)
+                    : Colors.transparent,
+                outline: t.warning.withValues(alpha: .45)),
             child: Text(
               l.conflictIgnore,
               style: TextStyle(
                 fontSize: 11.5,
                 fontWeight: FontWeight.w800,
-                color: t.onWarningTint,
+                color: t.skin.ink(t, SkinSurface.button,
+                    state: skinState(hovered: hovered),
+                    otherwise: t.onWarningTint),
               ),
             ),
           ),
@@ -578,11 +590,8 @@ class DetailView extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-      decoration: BoxDecoration(
-        color: t.surfaceAlt,
-        border: Border.all(color: t.border),
-        borderRadius: BorderRadius.circular(12),
-      ),
+      decoration: t.skin
+          .decorate(t, SkinSurface.panel, radius: 12, fill: t.surfaceAlt),
       child: Row(
         children: [
           Expanded(
@@ -686,11 +695,10 @@ class DetailView extends StatelessWidget {
   Widget _tagChip(GameTheme t, AppController c, L l, Mod mod, String tag) {
     return Container(
       padding: const EdgeInsets.fromLTRB(10, 4, 4, 4),
-      decoration: BoxDecoration(
-        color: t.tint,
-        border: Border.all(color: t.accent.withValues(alpha: .4)),
-        borderRadius: BorderRadius.circular(20),
-      ),
+      decoration: t.skin.decorate(t, SkinSurface.chip,
+          radius: 20,
+          fill: t.tint,
+          outline: t.accent.withValues(alpha: .4)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -699,7 +707,7 @@ class DetailView extends StatelessWidget {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w800,
-              color: t.accent,
+              color: t.skin.ink(t, SkinSurface.chip, otherwise: t.accent),
             ),
           ),
           const SizedBox(width: 4),
@@ -733,11 +741,8 @@ class DetailView extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 15),
-      decoration: BoxDecoration(
-        color: t.tint,
-        border: Border.all(color: t.accent, width: 1.5),
-        borderRadius: BorderRadius.circular(14),
-      ),
+      decoration: t.skin
+          .decorate(t, SkinSurface.notice, radius: 14, fill: t.tint),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -896,11 +901,8 @@ class DetailView extends StatelessWidget {
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
-          decoration: BoxDecoration(
-            color: t.surfaceAlt,
-            border: Border.all(color: t.border),
-            borderRadius: BorderRadius.circular(9),
-          ),
+          decoration: t.skin
+              .decorate(t, SkinSurface.panel, radius: 9, fill: t.surfaceAlt),
           child: Row(
             children: [
               Expanded(
@@ -969,11 +971,8 @@ class DetailView extends StatelessWidget {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: t.surfaceAlt,
-          border: Border.all(color: t.border),
-          borderRadius: BorderRadius.circular(12),
-        ),
+        decoration: t.skin
+            .decorate(t, SkinSurface.panel, radius: 12, fill: t.surfaceAlt),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

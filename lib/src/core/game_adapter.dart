@@ -13,6 +13,7 @@ import 'mod_archive.dart';
 import 'package_insight.dart';
 import 'resource_cfg.dart';
 import 'save_game.dart';
+import 'trivia.dart';
 
 /// What gets appended to a mod file to hide it from the game without
 /// deleting it, until something sets [disabledSuffix] otherwise.
@@ -290,6 +291,14 @@ abstract class GameAdapter {
   /// the joke gets told in the language the user is reading.
   AppMessage? packCollectionNote(List<GamePack> packs) => null;
 
+  /// What the plumbob knows about this game, as keys rather than wording
+  /// (see [TriviaFact]).
+  ///
+  /// Empty means this game has no trivia written for it yet, and the
+  /// buddy simply isn't offered - which is the honest answer for a game
+  /// added before anybody sat down and researched it.
+  List<TriviaFact> get triviaFacts => const [];
+
   /// Whether [listPacks] can say anything at all about this game, known
   /// without going to the disk so the UI can decide whether to offer the
   /// screen at all. False means the packs screen is not a thing this
@@ -517,6 +526,11 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
 
   @override
   AppMessage? packCollectionNote(List<GamePack> packs) => null;
+
+  /// No facts until a subclass brings a table of its own, which means no
+  /// plumbob in the corner rather than one with nothing to say.
+  @override
+  List<TriviaFact> get triviaFacts => const [];
 
   @override
   bool get hasPacks => false;

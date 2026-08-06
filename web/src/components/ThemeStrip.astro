@@ -23,16 +23,22 @@ const chips = [
   { id: 'dark', name: t.plain('themes.dark'), era: t.plain('themes.darkEra') },
 ];
 
-// Which screenshot each palette shows off. Only three exist, so the games
-// without one of their own keep the Sims 4 shot and the caption says what
-// actually changed: the page.
+// Game titles stay English inside the alt text too, so the sentence around
+// them is the only part that is translated.
+const shotAlt = (game: string) => t.plain('themes.shotAlt').replace('%s', game);
+
+// Every game has a shot of its own now, so the chips show the real thing
+// rather than the Sims 4 one standing in. The dark chip is the Sims 4 dark
+// palette, the app's own default, and its shot has to be one of these too:
+// they are all the same window at the same size, so switching chips swaps
+// the picture without the layout moving under it.
 const shots: Record<string, [string, string]> = {
-  sims1: ['library-grid.png', t.plain('hero.shotAlt')],
-  sims2: ['library-grid-ts2.png', t.plain('themes.shotAlt')],
-  sims3: ['library-grid.png', t.plain('hero.shotAlt')],
-  simsmedieval: ['library-grid.png', t.plain('hero.shotAlt')],
-  sims4: ['library-grid.png', t.plain('hero.shotAlt')],
-  dark: ['dark-mode.png', t.plain('themes.darkAlt')],
+  sims1: ['library-grid-ts1.png', shotAlt('The Sims')],
+  sims2: ['library-grid-ts2.png', shotAlt('The Sims 2')],
+  sims3: ['library-grid-ts3.png', shotAlt('The Sims 3')],
+  simsmedieval: ['library-grid-tsm.png', shotAlt('The Sims Medieval')],
+  sims4: ['library-grid-ts4.png', t.plain('hero.shotAlt')],
+  dark: ['library-grid-ts4-dark-mode.png', t.plain('themes.darkAlt')],
 };
 
 const themeStrings = Object.fromEntries(

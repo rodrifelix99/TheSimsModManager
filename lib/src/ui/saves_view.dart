@@ -5,6 +5,7 @@ import 'package:intl/intl.dart' show DateFormat, NumberFormat;
 
 import '../core/save_game.dart';
 import 'app_controller.dart';
+import 'game_skin.dart';
 import 'game_theme.dart';
 import 'l10n.dart';
 import 'widgets.dart';
@@ -287,14 +288,11 @@ class _SlotCard extends StatelessWidget {
           duration: const Duration(milliseconds: 180),
           width: 168,
           padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
-          decoration: BoxDecoration(
-            color: active ? t.tint : t.surface,
-            border: Border.all(
-              color: active || hovered ? t.accent : t.border,
-              width: 1.5,
-            ),
-            borderRadius: BorderRadius.circular(12),
-          ),
+          decoration: t.skin.decorate(t, SkinSurface.panel,
+              radius: 12,
+              state: skinState(active: active, hovered: hovered),
+              fill: active ? t.tint : t.surface,
+              outline: active || hovered ? t.accent : t.border),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -370,11 +368,8 @@ class _TabBar extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         child: Container(
           padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(
-            color: t.surfaceAlt,
-            border: Border.all(color: t.border),
-            borderRadius: BorderRadius.circular(12),
-          ),
+          decoration: t.skin.decorate(t, SkinSurface.well,
+              radius: 12, fill: t.surfaceAlt, outline: t.border),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -383,39 +378,48 @@ class _TabBar extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 1.5),
                   child: HoverBuilder(
                     cursor: SystemMouseCursors.click,
-                    builder: (context, hovered) => GestureDetector(
-                      onTap: () => c.setSavesTab(tab),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 180),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 18, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: tab == current
+                    builder: (context, hovered) {
+                      final segment = t.skin.decorate(t, SkinSurface.row,
+                          radius: 9,
+                          state: skinState(
+                              active: tab == current, hovered: hovered),
+                          fill: tab == current
                               ? t.surface
                               : hovered
                                   ? t.tint
-                                  : Colors.transparent,
-                          borderRadius: BorderRadius.circular(9),
-                          boxShadow: tab == current
-                              ? [
+                                  : null);
+                      return GestureDetector(
+                        onTap: () => c.setSavesTab(tab),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 18, vertical: 8),
+                          // Added to whatever the skin already casts
+                          // rather than replacing it: the flat skin's
+                          // segment has no shadow and needs this one to
+                          // sit above the track, and a skin with a relief
+                          // of its own must not lose it.
+                          decoration: tab == current
+                              ? segment.copyWith(boxShadow: [
+                                  ...?segment.boxShadow,
                                   BoxShadow(
                                     color: t.shadow.withValues(alpha: .25),
                                     blurRadius: 6,
                                     offset: const Offset(0, 2),
                                   ),
-                                ]
-                              : null,
-                        ),
-                        child: Text(
-                          _label(l, tab),
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w800,
-                            color: tab == current ? t.accent : t.muted,
+                                ])
+                              : segment,
+                          child: Text(
+                            _label(l, tab),
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w800,
+                              color: tab == current ? t.accent : t.muted,
+                            ),
                           ),
                         ),
-                      ),
-                    ),
+                      );
+                    },
                   ),
                 ),
             ],
@@ -579,14 +583,11 @@ class _HouseholdCard extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
           padding: const EdgeInsets.all(13),
-          decoration: BoxDecoration(
-            color: t.surface,
-            border: Border.all(
-              color: active || hovered ? t.accent : t.border,
-              width: 1.5,
-            ),
-            borderRadius: BorderRadius.circular(15),
-          ),
+          decoration: t.skin.decorate(t, SkinSurface.panel,
+              radius: 15,
+              state: skinState(active: active, hovered: hovered),
+              fill: t.surface,
+              outline: active || hovered ? t.accent : t.border),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -791,11 +792,7 @@ class _HouseholdDetail extends StatelessWidget {
     ].join(' · ');
 
     return Container(
-      decoration: BoxDecoration(
-        color: t.surface,
-        border: Border.all(color: t.border),
-        borderRadius: BorderRadius.circular(16),
-      ),
+      decoration: t.skin.decorate(t, SkinSurface.panel, radius: 16),
       child: ListView(
         padding: const EdgeInsets.all(18),
         children: [
@@ -841,11 +838,8 @@ class _HouseholdDetail extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: t.surfaceAlt,
-                        border: Border.all(color: t.border),
-                        borderRadius: BorderRadius.circular(11),
-                      ),
+                      decoration: t.skin.decorate(t, SkinSurface.panel,
+                          radius: 11, fill: t.surfaceAlt),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -1176,17 +1170,20 @@ class _PointChip extends StatelessWidget {
     final shown = points == 0 ? '<1' : '$points';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-      decoration: BoxDecoration(
-        color: accent ? t.tint : t.surfaceAlt,
-        border: Border.all(color: accent ? t.accent : t.border, width: 1),
-        borderRadius: BorderRadius.circular(7),
-      ),
+      decoration: t.skin.decorate(t, SkinSurface.chip,
+          radius: 7,
+          state: accent ? SkinState.active : SkinState.idle,
+          fill: accent ? t.tint : t.surfaceAlt,
+          outline: accent ? t.accent : t.border),
       child: Text(
         '$label $shown',
         style: TextStyle(
           fontSize: 10.5,
           fontWeight: FontWeight.w800,
-          color: accent ? t.accent : t.muted,
+          color: t.skin.ink(t, SkinSurface.chip,
+              state: accent ? SkinState.active : SkinState.idle,
+              secondary: !accent,
+              otherwise: accent ? t.accent : t.muted),
         ),
       ),
     );
@@ -1314,11 +1311,8 @@ class _AlbumTab extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Container(
-                        decoration: BoxDecoration(
-                          color: t.surfaceAlt,
-                          border: Border.all(color: t.border),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
+                        decoration: t.skin.decorate(t, SkinSurface.panel,
+                            radius: 16, fill: t.surfaceAlt),
                         clipBehavior: Clip.antiAlias,
                         child: _photoImage(hero, fit: BoxFit.contain),
                       ),
@@ -1689,11 +1683,7 @@ class _KpiCard extends StatelessWidget {
     final t = theme;
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 13),
-      decoration: BoxDecoration(
-        color: t.surface,
-        border: Border.all(color: t.border),
-        borderRadius: BorderRadius.circular(14),
-      ),
+      decoration: t.skin.decorate(t, SkinSurface.panel, radius: 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1835,11 +1825,7 @@ class _InfoCard extends StatelessWidget {
     final t = theme;
     return Container(
       padding: const EdgeInsets.fromLTRB(19, 16, 19, 12),
-      decoration: BoxDecoration(
-        color: t.surface,
-        border: Border.all(color: t.border),
-        borderRadius: BorderRadius.circular(14),
-      ),
+      decoration: t.skin.decorate(t, SkinSurface.panel, radius: 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

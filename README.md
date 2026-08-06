@@ -15,25 +15,34 @@
 
 Browse, install, enable/disable, and clean up your mods and custom content
 for every mainline Sims game (and The Sims Medieval), in one app, with a UI
-that re-themes itself to match the game you're managing.
+that redraws itself to match the game you're managing.
 
-<img src="web/public/images/library-grid.png" alt="Library view (The Sims 4)" width="800">
-
-<sub>The UI re-themes per game. Here's the same library managing The Sims 2:</sub>
-
-<img src="web/public/images/library-grid-ts2.png" alt="Library view (The Sims 2, warm cream theme)" width="800">
-
-<sub>Every palette comes in a dark version too, following your system or your own pick:</sub>
-
-<img src="web/public/images/dark-mode.png" alt="Library view in dark mode" width="800">
+<img src="web/public/images/library-grid-ts4.png" alt="Library view (The Sims 4)" width="800">
 
 </div>
 
+## One app, five interfaces
+
+Switching games does more than re-tint: each one gets its own chrome, drawn
+after the game's own interface. The Sims 1's chiselled blue plates, the Sims
+2's periwinkle lozenges lit in plumbob green, the Sims 3's blue glass, the
+Medieval's parchment and brass by day and carved wood after dark, and the
+Sims 4's flat mint. Every one of them comes in light and dark, following your
+system or your own pick in Settings.
+
+| Light | Dark |
+| --- | --- |
+| <img src="web/public/images/library-grid-ts1.png" alt="Library view for The Sims 1, in its deep blues with chiselled buttons" width="420"> | <img src="web/public/images/library-grid-ts1-dark-mode.png" alt="The same Sims 1 library in dark mode" width="420"> |
+| <img src="web/public/images/library-grid-ts2.png" alt="Library view for The Sims 2, in periwinkle with plumbob-green toggles" width="420"> | <img src="web/public/images/library-grid-ts2-dark-mode.png" alt="The same Sims 2 library in dark mode" width="420"> |
+| <img src="web/public/images/library-grid-ts3.png" alt="Library view for The Sims 3, in blue glass over pale panels" width="420"> | <img src="web/public/images/library-grid-ts3-dark-mode.png" alt="The same Sims 3 library in dark mode" width="420"> |
+| <img src="web/public/images/library-grid-tsm.png" alt="Library view for The Sims Medieval, in parchment and brass" width="420"> | <img src="web/public/images/library-grid-tsm-dark-mode.png" alt="The same Sims Medieval library in dark mode, carved dark wood" width="420"> |
+| <img src="web/public/images/library-grid-ts4.png" alt="Library view for The Sims 4, in flat mint" width="420"> | <img src="web/public/images/library-grid-ts4-dark-mode.png" alt="The same Sims 4 library in dark mode" width="420"> |
+
 ## Features
 
-- **Per-game themed UI**: the whole app re-tints as you switch between
-  The Sims 1, 2, 3, 4 and Medieval, complete with the classic Sims 1 UI
-  sounds, in light or dark.
+- **Per-game themed UI**: the whole app re-skins as you switch between
+  The Sims 1, 2, 3, 4 and Medieval - colors, logos and the shape of every
+  button - complete with the classic Sims 1 UI sounds, in light or dark.
 - **Real thumbnails & insights**: `.package` files are parsed (DBPF) to
   pull out embedded artwork and a content breakdown (CAS parts, textures,
   tuning...), so your library looks like a library, not a file list.

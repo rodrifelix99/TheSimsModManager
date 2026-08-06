@@ -1,7 +1,7 @@
 name: sims_mod_manager
 description: Cross-platform desktop mod manager for The Sims series (and future moddable games).
 publish_to: "none"
-version: 2.3.6
+version: 2.4.0
 environment:
   sdk: ^3.5.0
 
@@ -42,12 +42,14 @@ flutter:
   assets:
     - assets/games/icons/
     - assets/games/logos/
+    - assets/intro/
     - assets/packs/sims1/
     - assets/packs/sims2/
     - assets/packs/sims4/
     - assets/plumbobs/
     - assets/sounds/s1/ui/
     - assets/pirate-icon.webp
+    - assets/dark_wood_bg.jpg
   fonts:
     - family: Nunito
       fonts:

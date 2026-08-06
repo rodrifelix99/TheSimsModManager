@@ -3,10 +3,10 @@
 // lib/src/ui/game_theme.dart, light and dark, so the page really is showing
 // what the app shows; `dark` is the Sims 4 dark palette, the app's own default.
 const THEMES: Record<string, Record<string, string>> = {
-  sims1: { accent: '#12898A', accent2: '#E0A53A', bg: '#EEF2EC', surface: '#FFFFFF', surfaceAlt: '#F2F5EF', text: '#1E3A37', muted: '#6C827E', border: '#DBE4DE', tint: '#DCEFEE', danger: '#D6551F' },
-  sims2: { accent: '#5BA12C', accent2: '#E07B2E', bg: '#F4EFE4', surface: '#FFFDF6', surfaceAlt: '#F6F1E6', text: '#31301D', muted: '#83806B', border: '#E6DDC9', tint: '#EAF3DD', danger: '#D6551F' },
-  sims3: { accent: '#7CB518', accent2: '#2F7D9E', bg: '#ECEFF0', surface: '#FFFFFF', surfaceAlt: '#F1F4F5', text: '#22303A', muted: '#6C7F88', border: '#DDE4E7', tint: '#E9F2D8', danger: '#D6551F' },
-  sims4: { accent: '#1FBF8F', accent2: '#12B0D6', bg: '#EAF6F2', surface: '#FFFFFF', surfaceAlt: '#F2FAF7', text: '#0F2E28', muted: '#5F827A', border: '#D9ECE5', tint: '#DCF5EC', danger: '#D6551F' },
+  sims1: { accent: '#1665B0', accent2: '#2FA8DC', bg: '#D8E4F7', surface: '#F2F7FF', surfaceAlt: '#E4EDFB', text: '#12294F', muted: '#4A6591', border: '#A9C4E8', tint: '#CFE0F8', danger: '#D6551F' },
+  sims2: { accent: '#37801F', accent2: '#C08A15', bg: '#DDE0F5', surface: '#F4F5FF', surfaceAlt: '#E8EAFA', text: '#23265C', muted: '#5C639C', border: '#B7BDE6', tint: '#CDD3F2', danger: '#D6551F' },
+  sims3: { accent: '#1A6F9E', accent2: '#5CA83C', bg: '#DCE9F2', surface: '#F2F8FD', surfaceAlt: '#E4EFF7', text: '#123048', muted: '#4E7590', border: '#A9CBE2', tint: '#CBE4F4', danger: '#D6551F' },
+  sims4: { accent: '#189771', accent2: '#12B0D6', bg: '#EAF6F2', surface: '#FFFFFF', surfaceAlt: '#F2FAF7', text: '#0F2E28', muted: '#5F827A', border: '#D9ECE5', tint: '#DCF5EC', danger: '#D6551F' },
   simsmedieval: { accent: '#9C7B1E', accent2: '#5E9732', bg: '#F1EBDC', surface: '#FFFDF4', surfaceAlt: '#F5EFDF', text: '#33290F', muted: '#857A5C', border: '#E3DAC0', tint: '#F0E7CB', danger: '#D6551F' },
   dark: { accent: '#2FD3A1', accent2: '#32C5E8', bg: '#0C1614', surface: '#13201D', surfaceAlt: '#182724', text: '#E4F2EE', muted: '#8AA6A0', border: '#223330', tint: '#12332B', danger: '#E8794A' },
 };

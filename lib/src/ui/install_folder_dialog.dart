@@ -4,6 +4,7 @@ import '../core/app_message.dart';
 import '../core/game_adapter.dart';
 import '../services/sfx.dart';
 import 'app_controller.dart';
+import 'game_skin.dart';
 import 'game_theme.dart';
 import 'l10n.dart';
 import 'mod_presentation.dart';
@@ -201,14 +202,10 @@ class _InstallFolderDialogState extends State<_InstallFolderDialog> {
         borderRadius: BorderRadius.circular(11),
         child: Container(
           padding: const EdgeInsets.fromLTRB(10, 9, 12, 9),
-          decoration: BoxDecoration(
-            color: selected ? t.tint : t.surfaceAlt,
-            border: Border.all(
-              color: selected ? t.accent : t.border,
-              width: selected ? 1.5 : 1,
-            ),
-            borderRadius: BorderRadius.circular(11),
-          ),
+          decoration: t.skin.decorate(t, SkinSurface.panel,
+              radius: 11,
+              state: selected ? SkinState.active : SkinState.idle,
+              fill: selected ? t.tint : t.surfaceAlt),
           child: Row(
             children: [
               Icon(

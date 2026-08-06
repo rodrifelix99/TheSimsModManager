@@ -8,6 +8,7 @@ import '../core/game.dart';
 import '../services/mod_shop.dart';
 import '../services/sfx.dart';
 import 'app_controller.dart';
+import 'game_skin.dart';
 import 'game_theme.dart';
 import 'install_destination_dialog.dart';
 import 'install_folder_dialog.dart';
@@ -193,14 +194,13 @@ class ShopView extends StatelessWidget {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 150),
             padding: EdgeInsets.fromLTRB(asset == null ? 14 : 8, 7, 12, 7),
-            decoration: BoxDecoration(
-              color: selected ? t.tint : (hovered ? t.surfaceAlt : t.surface),
-              border: Border.all(
-                color: selected ? t.accent : t.border,
-                width: selected ? 1.5 : 1,
-              ),
-              borderRadius: BorderRadius.circular(11),
-            ),
+            decoration: t.skin.decorate(t, SkinSurface.panel,
+                radius: 11,
+                state: skinState(active: selected, hovered: hovered),
+                fill: selected
+                    ? t.tint
+                    : (hovered ? t.surfaceAlt : t.surface),
+                outline: selected ? t.accent : t.border),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -513,20 +513,10 @@ class ShopView extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
           transform: Matrix4.translationValues(0, hovered ? -3 : 0, 0),
-          decoration: BoxDecoration(
-            color: t.surface,
-            border: Border.all(color: hovered ? t.accent : t.border),
-            borderRadius: BorderRadius.circular(15),
-            boxShadow: hovered
-                ? [
-                    BoxShadow(
-                      color: t.shadow.withValues(alpha: .45),
-                      blurRadius: 34,
-                      offset: const Offset(0, 18),
-                    ),
-                  ]
-                : const [],
-          ),
+          decoration: t.skin.decorate(t, SkinSurface.panel,
+              radius: 15,
+              state: skinState(hovered: hovered),
+              elevated: hovered),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -656,20 +646,10 @@ class ShopView extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
           transform: Matrix4.translationValues(0, hovered ? -3 : 0, 0),
-          decoration: BoxDecoration(
-            color: t.surface,
-            border: Border.all(color: hovered ? t.accent : t.border),
-            borderRadius: BorderRadius.circular(15),
-            boxShadow: hovered
-                ? [
-                    BoxShadow(
-                      color: t.shadow.withValues(alpha: .45),
-                      blurRadius: 34,
-                      offset: const Offset(0, 18),
-                    ),
-                  ]
-                : const [],
-          ),
+          decoration: t.skin.decorate(t, SkinSurface.panel,
+              radius: 15,
+              state: skinState(hovered: hovered),
+              elevated: hovered),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -924,21 +904,14 @@ class ShopView extends StatelessWidget {
           duration: const Duration(milliseconds: 150),
           padding: EdgeInsets.symmetric(
               horizontal: compact ? 12 : 18, vertical: compact ? 6 : 10),
-          decoration: BoxDecoration(
-            gradient: quiet ? null : t.accentGradient,
-            color: quiet ? t.surfaceAlt : null,
-            border: quiet ? Border.all(color: t.border) : null,
-            borderRadius: BorderRadius.circular(compact ? 9 : 11),
-            boxShadow: !quiet && hovered
-                ? [
-                    BoxShadow(
-                      color: t.accent.withValues(alpha: .5),
-                      blurRadius: 14,
-                      offset: const Offset(0, 5),
-                    ),
-                  ]
-                : const [],
-          ),
+          decoration: quiet
+              ? t.skin.decorate(t, SkinSurface.button,
+                  radius: compact ? 9 : 11,
+                  state: skinState(hovered: hovered),
+                  fill: t.surfaceAlt)
+              : t.skin.decorate(t, SkinSurface.primary,
+                  radius: compact ? 9 : 11,
+                  state: skinState(hovered: hovered)),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -1080,11 +1053,11 @@ class ShopView extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
           padding: EdgeInsets.fromLTRB(asset == null ? 10 : 5, 4, 10, 4),
-          decoration: BoxDecoration(
-            color: hovered ? t.tint : t.surfaceAlt,
-            border: Border.all(color: hovered ? t.accent : t.border),
-            borderRadius: BorderRadius.circular(10),
-          ),
+          decoration: t.skin.decorate(t, SkinSurface.button,
+              radius: 10,
+              state: skinState(hovered: hovered),
+              fill: hovered ? t.tint : t.surfaceAlt,
+              outline: hovered ? t.accent : t.border),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -1105,7 +1078,9 @@ class ShopView extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w800,
-                  color: hovered ? t.accent : t.text,
+                  color: t.skin.ink(t, SkinSurface.button,
+                      state: skinState(hovered: hovered),
+                      otherwise: hovered ? t.accent : t.text),
                 ),
               ),
             ],
@@ -1150,14 +1125,11 @@ class ShopView extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.fromLTRB(12, 7, 12, 7),
-          decoration: BoxDecoration(
-            color: selected ? t.tint : (hovered ? t.surfaceAlt : t.surface),
-            border: Border.all(
-              color: selected ? t.accent : t.border,
-              width: selected ? 1.5 : 1,
-            ),
-            borderRadius: BorderRadius.circular(11),
-          ),
+          decoration: t.skin.decorate(t, SkinSurface.panel,
+              radius: 11,
+              state: skinState(active: selected, hovered: hovered),
+              fill: selected ? t.tint : (hovered ? t.surfaceAlt : t.surface),
+              outline: selected ? t.accent : t.border),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -1299,11 +1271,8 @@ class ShopView extends StatelessWidget {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.fromLTRB(16, 13, 16, 14),
-            decoration: BoxDecoration(
-              color: t.surfaceAlt,
-              border: Border.all(color: t.border),
-              borderRadius: BorderRadius.circular(13),
-            ),
+            decoration: t.skin.decorate(t, SkinSurface.panel,
+                radius: 13, fill: t.surfaceAlt),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1489,7 +1458,8 @@ class _SaveButtonState extends State<_SaveButton> {
     // than no button (a game with no mods folder set up shows both at
     // once).
     final quiet = !enabled && !saving;
-    final ink = quiet ? t.muted : t.accent;
+    final ink = t.skin
+        .ink(t, SkinSurface.button, otherwise: quiet ? t.muted : t.accent);
     return HoverBuilder(
       cursor: enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
       builder: (context, hovered) => GestureDetector(
@@ -1497,13 +1467,11 @@ class _SaveButtonState extends State<_SaveButton> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(
-            color: hovered && enabled ? t.tint : t.surfaceAlt,
-            border: Border.all(
-                color: quiet ? t.border : t.accent,
-                width: quiet ? 1 : 1.5),
-            borderRadius: BorderRadius.circular(11),
-          ),
+          decoration: t.skin.decorate(t, SkinSurface.button,
+              radius: 11,
+              state: skinState(hovered: hovered && enabled),
+              fill: hovered && enabled ? t.tint : t.surfaceAlt,
+              outline: quiet ? t.border : t.accent),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -1632,11 +1600,8 @@ class _GalleryState extends State<_Gallery> {
         AspectRatio(
           aspectRatio: 16 / 10,
           child: Container(
-            decoration: BoxDecoration(
-              color: t.surfaceAlt,
-              border: Border.all(color: t.border),
-              borderRadius: BorderRadius.circular(15),
-            ),
+            decoration: t.skin.decorate(t, SkinSurface.panel,
+                radius: 15, fill: t.surfaceAlt),
             // Contained rather than cropped: a screenshot is someone's
             // proof of what their mod does, and the interface they were
             // showing off sits right at its edges.
@@ -1665,14 +1630,13 @@ class _GalleryState extends State<_Gallery> {
                       duration: const Duration(milliseconds: 150),
                       width: 86,
                       height: 56,
-                      decoration: BoxDecoration(
-                        color: t.surfaceAlt,
-                        border: Border.all(
-                          color: i == _index || hovered ? t.accent : t.border,
-                          width: i == _index ? 2 : 1,
-                        ),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
+                      decoration: t.skin.decorate(t, SkinSurface.panel,
+                          radius: 10,
+                          state: skinState(
+                              active: i == _index, hovered: hovered),
+                          fill: t.surfaceAlt,
+                          outline:
+                              i == _index || hovered ? t.accent : t.border),
                       // Every chip is built at once, so each one decodes
                       // at the size it is drawn rather than at whatever
                       // the creator uploaded: ten full-size rasters held

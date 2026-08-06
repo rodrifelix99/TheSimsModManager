@@ -176,7 +176,7 @@ export const modPage = onRequest(
             title: shell.strings['mod.notFoundTitle'] ?? 'Not found',
             ogTitle: shell.strings['mod.notFoundTitle'] ?? 'Not found',
             description: shell.strings['mod.notFoundBody'] ?? '',
-            image: `${SITE}/images/library-grid.png`,
+            image: `${SITE}/images/library-grid-ts4.png`,
             data: { notFound: true },
           }),
         );
@@ -225,7 +225,7 @@ export const modPage = onRequest(
           title: `${name} · The Exchange · The Sims Mod Manager`,
           ogTitle: name,
           description,
-          image: images.length > 0 ? fileUrl(images[0]) : `${SITE}/images/library-grid.png`,
+          image: images.length > 0 ? fileUrl(images[0]) : `${SITE}/images/library-grid-ts4.png`,
           data: { doc },
         }),
       );

@@ -1471,6 +1471,192 @@ abstract class L {
   /// **'The app speaks eleven languages thanks to these simmers.'**
   String get translatorsDesc;
 
+  /// No description provided for @sectionStartup.
+  ///
+  /// In en, this message translates to:
+  /// **'STARTUP'**
+  String get sectionStartup;
+
+  /// No description provided for @prefDefaultGameTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Game to open on'**
+  String get prefDefaultGameTitle;
+
+  /// No description provided for @prefDefaultGameDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Which library the app starts on when you launch it'**
+  String get prefDefaultGameDesc;
+
+  /// No description provided for @defaultGameAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic'**
+  String get defaultGameAuto;
+
+  /// No description provided for @prefSetupGuideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Setup guide'**
+  String get prefSetupGuideTitle;
+
+  /// No description provided for @prefSetupGuideDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Walk through the first-run questions again'**
+  String get prefSetupGuideDesc;
+
+  /// No description provided for @onboardingReplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Run it again'**
+  String get onboardingReplay;
+
+  /// No description provided for @onboardingSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip setup'**
+  String get onboardingSkip;
+
+  /// No description provided for @onboardingSkipIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip intro'**
+  String get onboardingSkipIntro;
+
+  /// No description provided for @onboardingBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get onboardingBack;
+
+  /// No description provided for @onboardingNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get onboardingNext;
+
+  /// No description provided for @onboardingFinish.
+  ///
+  /// In en, this message translates to:
+  /// **'Open my library'**
+  String get onboardingFinish;
+
+  /// No description provided for @onboardingStepOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {current} of {total}'**
+  String onboardingStepOf(int current, int total);
+
+  /// No description provided for @onboardingWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Hey! Let’s get you set up'**
+  String get onboardingWelcomeTitle;
+
+  /// No description provided for @onboardingWelcomeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A few quick questions and your mods are ready to go. It takes under a minute, and everything here can be changed later in Settings.'**
+  String get onboardingWelcomeBody;
+
+  /// No description provided for @onboardingGamesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Looking for your games'**
+  String get onboardingGamesTitle;
+
+  /// No description provided for @onboardingGamesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking the usual places for each game and the folder it reads mods from.'**
+  String get onboardingGamesBody;
+
+  /// No description provided for @onboardingScanning.
+  ///
+  /// In en, this message translates to:
+  /// **'Still looking…'**
+  String get onboardingScanning;
+
+  /// No description provided for @onboardingGamesFound.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Nothing found yet} =1{1 game found} other{{count} games found}}'**
+  String onboardingGamesFound(int count);
+
+  /// No description provided for @onboardingGameMods.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Mods folder ready} =1{1 mod already installed} other{{count} mods already installed}}'**
+  String onboardingGameMods(int count);
+
+  /// No description provided for @onboardingGameMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Not on this computer'**
+  String get onboardingGameMissing;
+
+  /// No description provided for @onboardingNoGamesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t find a thing'**
+  String get onboardingNoGamesTitle;
+
+  /// No description provided for @onboardingNoGamesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No drama. Point the app at a mods folder yourself in Settings and everything works exactly the same.'**
+  String get onboardingNoGamesBody;
+
+  /// No description provided for @onboardingFavoriteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Which one do you play most?'**
+  String get onboardingFavoriteTitle;
+
+  /// No description provided for @onboardingFavoriteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The app opens on this game every time. You can jump between games whenever you like from the sidebar.'**
+  String get onboardingFavoriteBody;
+
+  /// No description provided for @onboardingLookTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Make it feel like yours'**
+  String get onboardingLookTitle;
+
+  /// No description provided for @onboardingLookBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The whole app re-tints itself for the game you’re on. Pick how it should look and sound.'**
+  String get onboardingLookBody;
+
+  /// No description provided for @onboardingLibraryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How your library reads'**
+  String get onboardingLibraryTitle;
+
+  /// No description provided for @onboardingLibraryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Two things worth deciding now, because they change what the library shows you.'**
+  String get onboardingLibraryBody;
+
+  /// No description provided for @onboardingDoneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'All set!'**
+  String get onboardingDoneTitle;
+
+  /// No description provided for @onboardingDoneBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your library is loaded and waiting. Drop a mod file onto the window whenever you want to install one, and change any of this in Settings.'**
+  String get onboardingDoneBody;
+
   /// No description provided for @folderNotFound.
   ///
   /// In en, this message translates to:
@@ -3252,6 +3438,642 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Delete folder'**
   String get deleteFolder;
+
+  /// No description provided for @triviaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plumbob knows · {game}'**
+  String triviaTitle(String game);
+
+  /// No description provided for @triviaContextLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'It looks like you’re browsing mods'**
+  String get triviaContextLibrary;
+
+  /// No description provided for @triviaContextSaves.
+  ///
+  /// In en, this message translates to:
+  /// **'It looks like you’re in your saves'**
+  String get triviaContextSaves;
+
+  /// No description provided for @triviaContextPacks.
+  ///
+  /// In en, this message translates to:
+  /// **'It looks like you’re sorting out your packs'**
+  String get triviaContextPacks;
+
+  /// No description provided for @triviaCounter.
+  ///
+  /// In en, this message translates to:
+  /// **'Fact {index} of {total}'**
+  String triviaCounter(int index, int total);
+
+  /// No description provided for @triviaOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask the plumbob'**
+  String get triviaOpen;
+
+  /// No description provided for @triviaClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get triviaClose;
+
+  /// No description provided for @triviaPrevious.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous fact'**
+  String get triviaPrevious;
+
+  /// No description provided for @triviaNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next fact'**
+  String get triviaNext;
+
+  /// No description provided for @triviaAnother.
+  ///
+  /// In en, this message translates to:
+  /// **'Another one'**
+  String get triviaAnother;
+
+  /// No description provided for @triviaToSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Had enough? Switch the plumbob off in Settings'**
+  String get triviaToSettings;
+
+  /// No description provided for @prefTriviaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plumbob trivia'**
+  String get prefTriviaTitle;
+
+  /// No description provided for @prefTriviaDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Let the plumbob pop up now and then with a fact about the game you’re in'**
+  String get prefTriviaDesc;
+
+  /// No description provided for @triviaCategoryOrigins.
+  ///
+  /// In en, this message translates to:
+  /// **'Origins'**
+  String get triviaCategoryOrigins;
+
+  /// No description provided for @triviaCategoryDesign.
+  ///
+  /// In en, this message translates to:
+  /// **'Design'**
+  String get triviaCategoryDesign;
+
+  /// No description provided for @triviaCategoryLore.
+  ///
+  /// In en, this message translates to:
+  /// **'Lore'**
+  String get triviaCategoryLore;
+
+  /// No description provided for @triviaCategoryDeath.
+  ///
+  /// In en, this message translates to:
+  /// **'Death'**
+  String get triviaCategoryDeath;
+
+  /// No description provided for @triviaCategoryMusic.
+  ///
+  /// In en, this message translates to:
+  /// **'Music'**
+  String get triviaCategoryMusic;
+
+  /// No description provided for @triviaCategoryCheats.
+  ///
+  /// In en, this message translates to:
+  /// **'Cheats'**
+  String get triviaCategoryCheats;
+
+  /// No description provided for @triviaCategoryRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Records'**
+  String get triviaCategoryRecords;
+
+  /// No description provided for @triviaCategoryModding.
+  ///
+  /// In en, this message translates to:
+  /// **'Modding'**
+  String get triviaCategoryModding;
+
+  /// No description provided for @triviaCategoryLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get triviaCategoryLanguage;
+
+  /// No description provided for @triviaCategoryCommunity.
+  ///
+  /// In en, this message translates to:
+  /// **'Community'**
+  String get triviaCategoryCommunity;
+
+  /// No description provided for @triviaSeriesLlama.
+  ///
+  /// In en, this message translates to:
+  /// **'Maxis once held a studio-wide vote for an unofficial mascot. The candidates were a Boston tree fern, a beef tapeworm and a llama. The llama won, and it has been turning up in the games ever since.'**
+  String get triviaSeriesLlama;
+
+  /// No description provided for @triviaSeriesSimlish.
+  ///
+  /// In en, this message translates to:
+  /// **'Simlish was co-created at the microphone. Stephen Kearin and Gerri Lawlor were handed prompts like “hungry” or “lonely” and improvised what those ought to sound like, for hours.'**
+  String get triviaSeriesSimlish;
+
+  /// No description provided for @triviaSeriesCheats.
+  ///
+  /// In en, this message translates to:
+  /// **'rosebud and klapaucius both pay out §1,000. Rosebud is Citizen Kane; Klapaucius is a robot constructor from Stanisław Lem’s The Cyberiad, a book Will Wright has credited as an influence since SimCity.'**
+  String get triviaSeriesCheats;
+
+  /// No description provided for @triviaSeriesRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Guinness lists The Sims as the best-selling PC game series of all time. It passed 125 million copies more than a decade ago and has been translated into 60 languages.'**
+  String get triviaSeriesRecords;
+
+  /// No description provided for @triviaSeriesGoths.
+  ///
+  /// In en, this message translates to:
+  /// **'The Goths are among the longest-running families in games. Mortimer and Bella have turned up in every mainline entry since 2000.'**
+  String get triviaSeriesGoths;
+
+  /// No description provided for @triviaSeriesReaper.
+  ///
+  /// In en, this message translates to:
+  /// **'The Grim Reaper has a biography ordinary play never shows you. Among other things, it names his favourite band: Styx.'**
+  String get triviaSeriesReaper;
+
+  /// No description provided for @triviaSeriesSimCity.
+  ///
+  /// In en, this message translates to:
+  /// **'The Sims grew out of SimCity. Will Wright kept wanting to zoom in on the little people the city was being built for.'**
+  String get triviaSeriesSimCity;
+
+  /// No description provided for @triviaSeriesLegacy.
+  ///
+  /// In en, this message translates to:
+  /// **'In January 2025 EA put The Sims and The Sims 2 back on sale as Legacy Collections, every expansion included. They are compatibility fixes rather than remasters, so both games play exactly as they did.'**
+  String get triviaSeriesLegacy;
+
+  /// No description provided for @triviaSeriesPlumbob.
+  ///
+  /// In en, this message translates to:
+  /// **'The green diamond has been spelled three ways: PlumbBob in The Sims, Plum Bob in The Sims 2, and plumbob since The Sims 4. Maxis says all three were used during development.'**
+  String get triviaSeriesPlumbob;
+
+  /// No description provided for @triviaSeriesModScene.
+  ///
+  /// In en, this message translates to:
+  /// **'The mod scene is nearly as old as the series. Skin and object editors were circulating within months of the first game shipping in 2000, long before there were official tools.'**
+  String get triviaSeriesModScene;
+
+  /// No description provided for @triviaSeriesConflicts.
+  ///
+  /// In en, this message translates to:
+  /// **'A conflict is simpler than it sounds. Two mods claim the same resource, both load, and whichever the game reads last wins. Nothing is broken, something is just overruled.'**
+  String get triviaSeriesConflicts;
+
+  /// No description provided for @triviaSeriesPackage.
+  ///
+  /// In en, this message translates to:
+  /// **'A .package file is a DBPF archive, short for Database Packed File. Maxis has used the same container since SimCity 4, which is why one tool can open twenty years of custom content.'**
+  String get triviaSeriesPackage;
+
+  /// No description provided for @triviaSeriesRename.
+  ///
+  /// In en, this message translates to:
+  /// **'Switching a mod off by renaming it is the oldest trick in the scene. The game only loads files it recognises, so a renamed package stays exactly where it is and stays quiet.'**
+  String get triviaSeriesRename;
+
+  /// No description provided for @triviaSeriesSaves.
+  ///
+  /// In en, this message translates to:
+  /// **'Sims saves are neighbourhoods, not slots. The families, the lots, the memories and the gossip all live in one folder that grows for as long as you keep playing.'**
+  String get triviaSeriesSaves;
+
+  /// No description provided for @triviaSeriesPacks.
+  ///
+  /// In en, this message translates to:
+  /// **'Switching a pack off never moves a file. Every game in the series keeps its own list of what to load somewhere else, a settings line or a registry key, and hiding one just means editing that list.'**
+  String get triviaSeriesPacks;
+
+  /// No description provided for @triviaSims1Dollhouse.
+  ///
+  /// In en, this message translates to:
+  /// **'The Sims started life as an architecture simulator called Project Dollhouse. The Sims themselves were added only so players could judge whether a house was any good to live in.'**
+  String get triviaSims1Dollhouse;
+
+  /// No description provided for @triviaSims1Oakland.
+  ///
+  /// In en, this message translates to:
+  /// **'Will Wright lost his home in the 1991 Oakland firestorm. Rebuilding a household from scratch, furniture and appliances and routines, became the seed of the game.'**
+  String get triviaSims1Oakland;
+
+  /// No description provided for @triviaSims1Toilet.
+  ///
+  /// In en, this message translates to:
+  /// **'Executives were famously unconvinced by the pitch, dismissing it as a “toilet game” because Sims needed bathrooms.'**
+  String get triviaSims1Toilet;
+
+  /// No description provided for @triviaSims1HomeTactics.
+  ///
+  /// In en, this message translates to:
+  /// **'Before it was The Sims it was pitched as Home Tactics: The Experimental Domestic Simulator. The focus groups disliked that version too.'**
+  String get triviaSims1HomeTactics;
+
+  /// No description provided for @triviaSims1Myst.
+  ///
+  /// In en, this message translates to:
+  /// **'In 2002 The Sims passed Myst to become the best-selling PC game of all time.'**
+  String get triviaSims1Myst;
+
+  /// No description provided for @triviaSims1Simlish.
+  ///
+  /// In en, this message translates to:
+  /// **'Simlish was improvised by voice actors riffing on fragments of Ukrainian, Navajo, Tagalog and Estonian, deliberately kept meaningless so the language never dates.'**
+  String get triviaSims1Simlish;
+
+  /// No description provided for @triviaSims1Architecture.
+  ///
+  /// In en, this message translates to:
+  /// **'The building tools were so unusual for 2000 that some players never placed a Sim at all and used the game as free architecture software.'**
+  String get triviaSims1Architecture;
+
+  /// No description provided for @triviaSims1Audience.
+  ///
+  /// In en, this message translates to:
+  /// **'Unusually for its era, the majority of the players were women, which is part of why the marketing looked like nothing else on the shelf.'**
+  String get triviaSims1Audience;
+
+  /// No description provided for @triviaSims1Cowplant.
+  ///
+  /// In en, this message translates to:
+  /// **'The cowplant debuted here under the in-game name Laganaphyllis Simnovorii, and has quietly eaten Sims in every generation since.'**
+  String get triviaSims1Cowplant;
+
+  /// No description provided for @triviaSims1Plumbob.
+  ///
+  /// In en, this message translates to:
+  /// **'The word plumbob comes from the plumb bob, a weighted pointer builders hang on a string to find true vertical. This was an architecture game first.'**
+  String get triviaSims1Plumbob;
+
+  /// No description provided for @triviaSims1Release.
+  ///
+  /// In en, this message translates to:
+  /// **'The game shipped on 4 February 2000 and outsold every expansion prediction EA had made for it.'**
+  String get triviaSims1Release;
+
+  /// No description provided for @triviaSims1Edith.
+  ///
+  /// In en, this message translates to:
+  /// **'Every object in the game was scripted in a language called SimAntics, through an in-house tool named Edith after Edith Bunker: the first character ever built for The Sims.'**
+  String get triviaSims1Edith;
+
+  /// No description provided for @triviaSims1Expansions.
+  ///
+  /// In en, this message translates to:
+  /// **'Seven expansions in three and a half years, one each spring and autumn, from Livin’ Large in August 2000 to Makin’ Magic in October 2003.'**
+  String get triviaSims1Expansions;
+
+  /// No description provided for @triviaSims1Unleashed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unleashed brought pets to the series in 2002 and took Computer Simulation Game of the Year at the Interactive Achievement Awards.'**
+  String get triviaSims1Unleashed;
+
+  /// No description provided for @triviaSims1Clown.
+  ///
+  /// In en, this message translates to:
+  /// **'The Tragic Clown turns up to cheer a sad Sim who owns his painting. He is comprehensively bad at it, which is the entire joke.'**
+  String get triviaSims1Clown;
+
+  /// No description provided for @triviaSims1Llama.
+  ///
+  /// In en, this message translates to:
+  /// **'The original printed manual contained a book called Making the Most of Your Llama. Nobody has ever explained it.'**
+  String get triviaSims1Llama;
+
+  /// No description provided for @triviaSims1Superstar.
+  ///
+  /// In en, this message translates to:
+  /// **'Superstar let a Sim become an actor, a model or a singer with a working fame meter, eleven years before The Sims 4 tried celebrity again.'**
+  String get triviaSims1Superstar;
+
+  /// No description provided for @triviaSims1Catalogue.
+  ///
+  /// In en, this message translates to:
+  /// **'Rebuilding after the fire, Will Wright kept asking which parts of a home were essential and which could wait. That question is more or less the buy-mode catalogue.'**
+  String get triviaSims1Catalogue;
+
+  /// No description provided for @triviaSims2Aging.
+  ///
+  /// In en, this message translates to:
+  /// **'The Sims 2 was the first game in the series where Sims aged, died of old age and passed genetics down. Eyes, noses and chins are inherited from both parents.'**
+  String get triviaSims2Aging;
+
+  /// No description provided for @triviaSims2Memories.
+  ///
+  /// In en, this message translates to:
+  /// **'Every Sim carries a hidden memory list. Witnessing a death, a first kiss or a promotion is stored and shapes later moods.'**
+  String get triviaSims2Memories;
+
+  /// No description provided for @triviaSims2Bella.
+  ///
+  /// In en, this message translates to:
+  /// **'Bella Goth vanishes from Pleasantview at the start of the game, and the disappearance has never been officially explained in twenty years.'**
+  String get triviaSims2Bella;
+
+  /// No description provided for @triviaSims2Strangetown.
+  ///
+  /// In en, this message translates to:
+  /// **'Bella turns up alive in Strangetown with no memory of Pleasantview at all. Maxis has said both Bellas are real and left it there.'**
+  String get triviaSims2Strangetown;
+
+  /// No description provided for @triviaSims2FamilyTrees.
+  ///
+  /// In en, this message translates to:
+  /// **'Sims 2 neighbourhoods run on a real family tree: Pleasantview, Strangetown and Veronaville are all connected by marriage and rumour.'**
+  String get triviaSims2FamilyTrees;
+
+  /// No description provided for @triviaSims2Plead.
+  ///
+  /// In en, this message translates to:
+  /// **'The Grim Reaper can be pleaded with. Talk to him at the right moment and he may hand your Sim back, occasionally in exchange for someone else.'**
+  String get triviaSims2Plead;
+
+  /// No description provided for @triviaSims2ReaperRomance.
+  ///
+  /// In en, this message translates to:
+  /// **'You can romance the Grim Reaper. Play it well enough and the relationship produces a ghost baby.'**
+  String get triviaSims2ReaperRomance;
+
+  /// No description provided for @triviaSims2Satellite.
+  ///
+  /// In en, this message translates to:
+  /// **'A Sim who stargazes has a very small chance of being hit by a falling satellite. It is one of the rarest deaths in the series.'**
+  String get triviaSims2Satellite;
+
+  /// No description provided for @triviaSims2Therapist.
+  ///
+  /// In en, this message translates to:
+  /// **'Aspiration failure sends a Sim to the therapist, one of the few times the game breaks its own fourth wall for laughs.'**
+  String get triviaSims2Therapist;
+
+  /// No description provided for @triviaSims2WantsFears.
+  ///
+  /// In en, this message translates to:
+  /// **'Wants and fears run the whole game. The aspiration meter reacts as strongly to the thing a Sim was dreading as to the thing they were hoping for.'**
+  String get triviaSims2WantsFears;
+
+  /// No description provided for @triviaSims2FaceSculpt.
+  ///
+  /// In en, this message translates to:
+  /// **'The game shipped with a full body-shape and face-sculpting system, which is why Sims 2 faces still look more varied than later entries.'**
+  String get triviaSims2FaceSculpt;
+
+  /// No description provided for @triviaSims2Aliens.
+  ///
+  /// In en, this message translates to:
+  /// **'Alien abduction only happens to male Sims who stargaze too long, and yes, they come back pregnant.'**
+  String get triviaSims2Aliens;
+
+  /// No description provided for @triviaSims2FreezerBunny.
+  ///
+  /// In en, this message translates to:
+  /// **'The Freezer Bunny was drawn by artist Emmy Toyonaga for The Sims 2 and first appeared hiding inside a community lot freezer. It has been smuggled into every game since.'**
+  String get triviaSims2FreezerBunny;
+
+  /// No description provided for @triviaSims2SocialBunny.
+  ///
+  /// In en, this message translates to:
+  /// **'The Social Bunny replaced the Tragic Clown, and unlike the clown it actually works. Plenty of players found the competent version more unsettling.'**
+  String get triviaSims2SocialBunny;
+
+  /// No description provided for @triviaSims2Giveaway.
+  ///
+  /// In en, this message translates to:
+  /// **'EA gave the Ultimate Collection away free through Origin in July 2014, redeemed with the code I-LOVE-THE-SIMS. For the decade until the Legacy Collection, that giveaway was the only copy going.'**
+  String get triviaSims2Giveaway;
+
+  /// No description provided for @triviaSims3SunsetValley.
+  ///
+  /// In en, this message translates to:
+  /// **'Sunset Valley is Pleasantview from The Sims 2 roughly 25 years earlier, so you can meet the grandparents of Sims you already played.'**
+  String get triviaSims3SunsetValley;
+
+  /// No description provided for @triviaSims3Founders.
+  ///
+  /// In en, this message translates to:
+  /// **'Sunset Valley was founded by the Goths and built up by the Landgraabs. You can play Mortimer Goth as a child and watch him meet Bella Bachelor.'**
+  String get triviaSims3Founders;
+
+  /// No description provided for @triviaSims3OpenWorld.
+  ///
+  /// In en, this message translates to:
+  /// **'The Sims 3 dropped loading screens entirely. The whole town simulates at once, with every Sim aging and working in the background.'**
+  String get triviaSims3OpenWorld;
+
+  /// No description provided for @triviaSims3Simulation.
+  ///
+  /// In en, this message translates to:
+  /// **'Every Sim in town is simulated at once, which is why a long save slows down. The game is quietly running lives you have never met.'**
+  String get triviaSims3Simulation;
+
+  /// No description provided for @triviaSims3CreateAStyle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create-a-Style let players recolour and re-pattern almost any object, a feature so demanding it was never brought back.'**
+  String get triviaSims3CreateAStyle;
+
+  /// No description provided for @triviaSims3Exchange.
+  ///
+  /// In en, this message translates to:
+  /// **'The Sims 3 shipped with a real online exchange where players traded lots, Sims and patterns directly from the launcher.'**
+  String get triviaSims3Exchange;
+
+  /// No description provided for @triviaSims3Downloads.
+  ///
+  /// In en, this message translates to:
+  /// **'In its first week alone, players downloaded more than seven million user-made items straight from that launcher.'**
+  String get triviaSims3Downloads;
+
+  /// No description provided for @triviaSims3Traits.
+  ///
+  /// In en, this message translates to:
+  /// **'Traits replaced the old personality sliders, and some of them, like Kleptomaniac and Insane, quietly break the rules of ordinary life.'**
+  String get triviaSims3Traits;
+
+  /// No description provided for @triviaSims3Kleptomaniac.
+  ///
+  /// In en, this message translates to:
+  /// **'A kleptomaniac Sim comes home with other people’s furniture, unprompted, and will keep doing it until you notice.'**
+  String get triviaSims3Kleptomaniac;
+
+  /// No description provided for @triviaSims3Simlish.
+  ///
+  /// In en, this message translates to:
+  /// **'Katy Perry, Lily Allen, Depeche Mode and dozens of other artists re-recorded their own songs in Simlish for the soundtracks.'**
+  String get triviaSims3Simlish;
+
+  /// No description provided for @triviaSims3Townies.
+  ///
+  /// In en, this message translates to:
+  /// **'Because the open world simulated off-screen Sims, players regularly found townies had married and had children without any input.'**
+  String get triviaSims3Townies;
+
+  /// No description provided for @triviaSims3Store.
+  ///
+  /// In en, this message translates to:
+  /// **'The Sims 3 Store sold more objects than the game itself contained at launch.'**
+  String get triviaSims3Store;
+
+  /// No description provided for @triviaSims3Launch.
+  ///
+  /// In en, this message translates to:
+  /// **'The Sims 3 sold 1.4 million copies in its first week in June 2009, the biggest PC launch EA had ever had.'**
+  String get triviaSims3Launch;
+
+  /// No description provided for @triviaSims4Flies.
+  ///
+  /// In en, this message translates to:
+  /// **'Death by flies is real. Leave a lot filthy enough and a swarm can finish a Sim off.'**
+  String get triviaSims4Flies;
+
+  /// No description provided for @triviaSims4Emotions.
+  ///
+  /// In en, this message translates to:
+  /// **'Emotions drive everything here. A Sim who is Inspired paints better; one who is Enraged can die of anger.'**
+  String get triviaSims4Emotions;
+
+  /// No description provided for @triviaSims4EmotionDeaths.
+  ///
+  /// In en, this message translates to:
+  /// **'A Sim can die of laughter, of anger and of embarrassment. Emotion is not decoration in this one, it is a hazard.'**
+  String get triviaSims4EmotionDeaths;
+
+  /// No description provided for @triviaSims4CreateASim.
+  ///
+  /// In en, this message translates to:
+  /// **'Create-a-Sim replaced sliders with direct pulling and pushing on the face, which is why Sims 4 faces are so quick to make.'**
+  String get triviaSims4CreateASim;
+
+  /// No description provided for @triviaSims4Launch.
+  ///
+  /// In en, this message translates to:
+  /// **'The Sims 4 launched without pools or toddlers. Both were patched in free of charge after sustained player pressure.'**
+  String get triviaSims4Launch;
+
+  /// No description provided for @triviaSims4Worlds.
+  ///
+  /// In en, this message translates to:
+  /// **'Willow Creek and Oasis Springs were the only two worlds at launch in September 2014. There are dozens now, and almost all of them arrived with a pack.'**
+  String get triviaSims4Worlds;
+
+  /// No description provided for @triviaSims4Gender.
+  ///
+  /// In en, this message translates to:
+  /// **'Gender was fully unlocked in a 2016 patch: any Sim can wear any clothing, take any voice, and get pregnant or not.'**
+  String get triviaSims4Gender;
+
+  /// No description provided for @triviaSims4Newcrest.
+  ///
+  /// In en, this message translates to:
+  /// **'Newcrest shipped completely empty on purpose. Fifteen lots, no buildings, and an open invitation to the community to fill it.'**
+  String get triviaSims4Newcrest;
+
+  /// No description provided for @triviaSims4Naming.
+  ///
+  /// In en, this message translates to:
+  /// **'Neighbourhood names like Willow Creek and Oasis Springs follow a house rule from early Maxis: two plain English words, no invented spellings.'**
+  String get triviaSims4Naming;
+
+  /// No description provided for @triviaSims4Goths.
+  ///
+  /// In en, this message translates to:
+  /// **'The Goth family appears here too, which makes them one of the longest-running families in games, present in every mainline entry.'**
+  String get triviaSims4Goths;
+
+  /// No description provided for @triviaSims4FreeToPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'The base game went free in October 2022 on PC, PlayStation and Xbox at once. The packs stayed paid.'**
+  String get triviaSims4FreeToPlay;
+
+  /// No description provided for @triviaSims4Mccc.
+  ///
+  /// In en, this message translates to:
+  /// **'MC Command Center, the first mod most Sims 4 players install, has passed 14 million downloads on CurseForge alone. Deaderpool has been updating it since 2015.'**
+  String get triviaSims4Mccc;
+
+  /// No description provided for @triviaSims4Twallan.
+  ///
+  /// In en, this message translates to:
+  /// **'MCCC exists because of The Sims 3. It picks up where Twallan’s Master Controller and Story Progression left off, carrying a decade-old idea into a new engine.'**
+  String get triviaSims4Twallan;
+
+  /// No description provided for @triviaSims4Deaths.
+  ///
+  /// In en, this message translates to:
+  /// **'Sims can be killed by a cowplant, a vending machine, a llama-shaped stereo and laughter. Not all at once.'**
+  String get triviaSims4Deaths;
+
+  /// No description provided for @triviaMedievalWatcher.
+  ///
+  /// In en, this message translates to:
+  /// **'You are not a household here, you are the Watcher: a benign deity who nudges heroes around a kingdom rather than running one family’s day.'**
+  String get triviaMedievalWatcher;
+
+  /// No description provided for @triviaMedievalHeroes.
+  ///
+  /// In en, this message translates to:
+  /// **'A kingdom holds up to ten hero Sims across ten professions, and each of them levels from 1 to 10 with new abilities and grander titles on the way up.'**
+  String get triviaMedievalHeroes;
+
+  /// No description provided for @triviaMedievalStocks.
+  ///
+  /// In en, this message translates to:
+  /// **'Every hero wakes up with two responsibilities and a deadline. Skip them often enough and you are punished for it, and that includes the monarch, who can be put in the stocks.'**
+  String get triviaMedievalStocks;
+
+  /// No description provided for @triviaMedievalAmbition.
+  ///
+  /// In en, this message translates to:
+  /// **'You pick an Ambition for the whole kingdom before you start, and the quests you take are scored against it. It is the closest The Sims has come to a win condition.'**
+  String get triviaMedievalAmbition;
+
+  /// No description provided for @triviaMedievalQuests.
+  ///
+  /// In en, this message translates to:
+  /// **'This is a total conversion rather than a spin-off. The sandbox is replaced by a chain of quests, which is why it is the only Sims game you can actually finish.'**
+  String get triviaMedievalQuests;
+
+  /// No description provided for @triviaMedievalPirates.
+  ///
+  /// In en, this message translates to:
+  /// **'Pirates and Nobles, from August 2011, was the only add-on it ever got: falcons and parrots, treasure maps and shovels, and a war between two arriving factions.'**
+  String get triviaMedievalPirates;
+
+  /// No description provided for @triviaMedievalProxy.
+  ///
+  /// In en, this message translates to:
+  /// **'The game was never built to load mods. Script and core mods need the community’s d3dx9_31.dll proxy dropped into Game/Bin before the game will read them at all, though custom content works without it.'**
+  String get triviaMedievalProxy;
+
+  /// No description provided for @triviaMedievalEngine.
+  ///
+  /// In en, this message translates to:
+  /// **'It runs on The Sims 3’s engine, which is why the Resource.cfg and the .package files look so familiar to anyone who has modded that game.'**
+  String get triviaMedievalEngine;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

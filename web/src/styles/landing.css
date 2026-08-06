@@ -124,9 +124,19 @@ header {
   background: radial-gradient(circle at 50% 60%, color-mix(in srgb, var(--accent) 42%, transparent), transparent 70%);
   animation-duration: 9s;
 }
-/* The screenshots carry their own rounded window and shadow, so nothing is
-   drawn around them here. */
-.hero-shot img { position: relative; border-radius: 18px; animation: floaty 9s ease-in-out infinite; }
+.hero-shot img { position: relative; animation: floaty 9s ease-in-out infinite; }
+
+/* Two kinds of screenshot share these slots. The macOS ones were captured
+   with the window's own rounded corners and drop shadow baked in, sitting in
+   transparent padding; the Windows ones are the client area and nothing else,
+   edge to edge. So the frame is drawn here for the second kind, at the size
+   and softness the first kind carries: 91% is the share of its own image a
+   macOS window takes up, which is what keeps the pair in the saves section
+   the same size on screen. */
+.framed {
+  display: block; width: 91%; margin-inline: auto; border-radius: 14px;
+  box-shadow: 0 3px 10px -4px rgba(0, 0, 0, .28), 0 15px 96px -8px rgba(0, 0, 0, .42);
+}
 
 /* ---------- theme strip ---------- */
 .themes { padding: clamp(40px, 5vw, 64px) 0 clamp(56px, 7vw, 88px); text-align: center; }
@@ -240,7 +250,6 @@ section .head h2 { font-size: clamp(26px, 3.6vw, 38px); }
 .art-search .count { margin-left: auto; font-size: 12px; font-weight: 900; color: var(--accent); }
 
 figure.shot { max-width: 980px; margin: 44px auto 0; }
-figure.shot img { border-radius: 18px; }
 figure.shot figcaption {
   margin-top: 14px; text-align: center; font-size: 13.5px; font-weight: 700; color: var(--muted);
 }
@@ -280,7 +289,6 @@ figure.shot figcaption {
   display: grid; gap: clamp(26px, 4vw, 38px); margin-top: clamp(34px, 5vw, 52px);
   grid-template-columns: repeat(auto-fit, minmax(min(430px, 100%), 1fr));
 }
-.exchange-shots img { border-radius: 18px; }
 .exchange-shots figcaption {
   margin-top: 14px; text-align: center; font-size: 13.5px; font-weight: 700; color: var(--muted);
 }
@@ -291,7 +299,6 @@ figure.shot figcaption {
   display: grid; gap: clamp(26px, 4vw, 38px); margin-top: clamp(34px, 5vw, 52px);
   grid-template-columns: repeat(auto-fit, minmax(min(430px, 100%), 1fr));
 }
-.saves-shots img { border-radius: 18px; }
 .saves-shots figcaption {
   margin-top: 14px; text-align: center; font-size: 13.5px; font-weight: 700; color: var(--muted);
 }

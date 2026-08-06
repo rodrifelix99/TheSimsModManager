@@ -860,6 +860,121 @@ class LJa extends L {
   String get translatorsDesc => 'アプリが11か国語で使えるのは、訳してくれたシマーたちのおかげです。';
 
   @override
+  String get sectionStartup => '起動';
+
+  @override
+  String get prefDefaultGameTitle => '起動時のゲーム';
+
+  @override
+  String get prefDefaultGameDesc => 'アプリを開いたときに表示するライブラリ';
+
+  @override
+  String get defaultGameAuto => '自動';
+
+  @override
+  String get prefSetupGuideTitle => 'セットアップガイド';
+
+  @override
+  String get prefSetupGuideDesc => '初回起動の質問をもう一度確認する';
+
+  @override
+  String get onboardingReplay => 'もう一度見る';
+
+  @override
+  String get onboardingSkip => 'スキップ';
+
+  @override
+  String get onboardingSkipIntro => 'イントロをスキップ';
+
+  @override
+  String get onboardingBack => '戻る';
+
+  @override
+  String get onboardingNext => '次へ';
+
+  @override
+  String get onboardingFinish => 'ライブラリを開く';
+
+  @override
+  String onboardingStepOf(int current, int total) {
+    return 'ステップ $current/$total';
+  }
+
+  @override
+  String get onboardingWelcomeTitle => 'ようこそ！さっそく準備しよう';
+
+  @override
+  String get onboardingWelcomeBody =>
+      'いくつか質問に答えるだけでMODの準備は完了。1分もかからないし、ここで選んだことは後から設定で変えられるよ。';
+
+  @override
+  String get onboardingGamesTitle => 'ゲームを探しています';
+
+  @override
+  String get onboardingGamesBody => 'それぞれのゲームと、MODを読み込むフォルダーをいつもの場所から探しているところ。';
+
+  @override
+  String get onboardingScanning => 'まだ探しています…';
+
+  @override
+  String onboardingGamesFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count本のゲームが見つかりました',
+      zero: 'まだ見つかっていません',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String onboardingGameMods(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'MODが$count件インストール済み',
+      zero: 'MODフォルダーの準備ができています',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get onboardingGameMissing => 'このパソコンにはありません';
+
+  @override
+  String get onboardingNoGamesTitle => '何も見つかりませんでした';
+
+  @override
+  String get onboardingNoGamesBody =>
+      '大丈夫。設定からMODフォルダーを自分で指定すれば、あとはまったく同じように使えるよ。';
+
+  @override
+  String get onboardingFavoriteTitle => 'いちばん遊ぶのはどれ？';
+
+  @override
+  String get onboardingFavoriteBody =>
+      'アプリは毎回このゲームで開くようになるよ。サイドバーからいつでも切り替えられる。';
+
+  @override
+  String get onboardingLookTitle => '自分好みにしよう';
+
+  @override
+  String get onboardingLookBody => 'アプリ全体が、いま開いているゲームの色に染まるよ。見た目と音の好みを選んでね。';
+
+  @override
+  String get onboardingLibraryTitle => 'ライブラリの見え方';
+
+  @override
+  String get onboardingLibraryBody => 'いま決めておきたいのはこの2つ。ライブラリに何が表示されるかが変わるから。';
+
+  @override
+  String get onboardingDoneTitle => '準備完了！';
+
+  @override
+  String get onboardingDoneBody =>
+      'ライブラリはもう読み込み済み。MODファイルをウィンドウにドロップすればインストールできるし、ここで選んだことは設定でいつでも変えられるよ。';
+
+  @override
   String get folderNotFound => '見つかりません。フォルダを選んでください';
 
   @override
@@ -1926,4 +2041,408 @@ class LJa extends L {
 
   @override
   String get deleteFolder => 'フォルダを削除';
+
+  @override
+  String triviaTitle(String game) {
+    return 'プラムボブ豆知識 · $game';
+  }
+
+  @override
+  String get triviaContextLibrary => 'Mod を眺めているみたいだね';
+
+  @override
+  String get triviaContextSaves => 'セーブデータを見ているみたいだね';
+
+  @override
+  String get triviaContextPacks => 'パックを整理しているみたいだね';
+
+  @override
+  String triviaCounter(int index, int total) {
+    return '$total 件中 $index 件目';
+  }
+
+  @override
+  String get triviaOpen => 'プラムボブに聞く';
+
+  @override
+  String get triviaClose => '今はいい';
+
+  @override
+  String get triviaPrevious => '前の豆知識';
+
+  @override
+  String get triviaNext => '次の豆知識';
+
+  @override
+  String get triviaAnother => 'もう一つ';
+
+  @override
+  String get triviaToSettings => 'もう十分？ 設定からプラムボブをオフにできるよ';
+
+  @override
+  String get prefTriviaTitle => 'プラムボブの豆知識';
+
+  @override
+  String get prefTriviaDesc => '今開いているゲームの豆知識を、プラムボブがときどき教えてくれるようにする';
+
+  @override
+  String get triviaCategoryOrigins => '誕生';
+
+  @override
+  String get triviaCategoryDesign => '設計';
+
+  @override
+  String get triviaCategoryLore => '設定';
+
+  @override
+  String get triviaCategoryDeath => '死因';
+
+  @override
+  String get triviaCategoryMusic => '音楽';
+
+  @override
+  String get triviaCategoryCheats => 'チート';
+
+  @override
+  String get triviaCategoryRecords => '記録';
+
+  @override
+  String get triviaCategoryModding => 'Mod';
+
+  @override
+  String get triviaCategoryLanguage => '言語';
+
+  @override
+  String get triviaCategoryCommunity => 'コミュニティ';
+
+  @override
+  String get triviaSeriesLlama =>
+      'Maxis はかつてスタジオ全体で非公式マスコットを投票で決めた。候補はタマシダ、無鉤条虫、そしてラマ。ラマが勝ち、それ以来どの作品にも顔を出し続けている。';
+
+  @override
+  String get triviaSeriesSimlish =>
+      'シムリッシュはマイクの前で生まれた。Stephen Kearin と Gerri Lawlor は「空腹」「孤独」といったお題を渡され、それがどう聞こえるべきかを何時間も即興でつくっていった。';
+
+  @override
+  String get triviaSeriesCheats =>
+      'rosebud も klapaucius もそれぞれ §1,000 くれる。rosebud は『市民ケーン』から。Klapaucius はスタニスワフ・レムの『宇宙創世記ロボットの旅』に出てくる建造ロボットで、この本は SimCity のころから Will Wright が影響源として挙げている。';
+
+  @override
+  String get triviaSeriesRecords =>
+      'ギネスは The Sims を史上最も売れた PC ゲームシリーズとして認定している。1 億 2500 万本を超えたのは 10 年以上前で、60 言語に翻訳されている。';
+
+  @override
+  String get triviaSeriesGoths =>
+      'ゴス家はゲーム史でも指折りの長寿一家。モーティマーとベラは 2000 年以降、すべてのナンバリング作品に登場している。';
+
+  @override
+  String get triviaSeriesReaper =>
+      '死神には、普通に遊んでいると決して表示されないプロフィールがある。そこには好きなバンドまで書いてあって、答えは Styx。';
+
+  @override
+  String get triviaSeriesSimCity =>
+      'The Sims は SimCity から生まれた。Will Wright は、その街が誰のために建てられているのか、小さな住人たちに寄って見たくて仕方がなかった。';
+
+  @override
+  String get triviaSeriesLegacy =>
+      '2025 年 1 月、EA は The Sims と The Sims 2 を Legacy Collection として再発売した。拡張パックはすべて同梱。リマスターではなく互換性の修正なので、遊び心地は当時のままだ。';
+
+  @override
+  String get triviaSeriesPlumbob =>
+      'あの緑の菱形には表記が三つある。The Sims では PlumbBob、The Sims 2 では Plum Bob、The Sims 4 以降は plumbob。Maxis いわく、開発中はどれも使われていた。';
+
+  @override
+  String get triviaSeriesModScene =>
+      'Mod シーンはシリーズとほぼ同い年だ。2000 年の第 1 作発売から数か月でスキンやオブジェクトのエディタが出回っていた。公式ツールなど影も形もない時代の話。';
+
+  @override
+  String get triviaSeriesConflicts =>
+      '競合は響きほど難しくない。二つの Mod が同じリソースを主張し、両方とも読み込まれ、ゲームが最後に読んだほうが勝つ。壊れたわけではなく、片方が上書きされただけだ。';
+
+  @override
+  String get triviaSeriesPackage =>
+      '.package ファイルの正体は DBPF アーカイブ、Database Packed File の略。Maxis は SimCity 4 のころから同じコンテナを使い続けていて、だからこそ一つのツールで 20 年分のカスタムコンテンツが開ける。';
+
+  @override
+  String get triviaSeriesRename =>
+      'ファイル名を変えて Mod を無効にするのは、この界隈で一番古い手だ。ゲームは自分が認識できるものしか読まないので、名前を変えた package はその場に置かれたまま黙っている。';
+
+  @override
+  String get triviaSeriesSaves =>
+      'The Sims のセーブは「スロット」ではなく「近隣」だ。家族も区画も思い出も噂話も、遊び続けるかぎり膨らんでいく一つのフォルダに一緒に入っている。';
+
+  @override
+  String get triviaSeriesPacks =>
+      'パックをオフにしてもファイルは一つも動かない。シリーズのどの作品も「何を読み込むか」の一覧を別の場所に持っていて、設定ファイルの一行だったりレジストリのキーだったりする。パックを隠すというのは、その一覧を書き換えるだけのことだ。';
+
+  @override
+  String get triviaSims1Dollhouse =>
+      'The Sims は Project Dollhouse という建築シミュレーターとして始まった。シムが加わったのは、その家が住み心地よく出来ているかをプレイヤーが判断できるようにするためだけだった。';
+
+  @override
+  String get triviaSims1Oakland =>
+      'Will Wright は 1991 年のオークランド大火で自宅を失った。家具も家電も生活習慣も一から組み直す作業が、このゲームの種になった。';
+
+  @override
+  String get triviaSims1Toilet =>
+      '経営陣はこの企画に納得せず、シムにトイレが要るという理由で「便所ゲーム」と切り捨てたことで知られている。';
+
+  @override
+  String get triviaSims1HomeTactics =>
+      'The Sims になる前、この企画は Home Tactics: The Experimental Domestic Simulator という名前で提案されていた。そちらもフォーカスグループには不評だった。';
+
+  @override
+  String get triviaSims1Myst =>
+      '2002 年、The Sims は Myst を抜いて史上最も売れた PC ゲームになった。';
+
+  @override
+  String get triviaSims1Simlish =>
+      'シムリッシュは声優たちがウクライナ語、ナバホ語、タガログ語、エストニア語の断片を素材に即興でつくったもの。言語が古びないよう、意味を持たせないまま残された。';
+
+  @override
+  String get triviaSims1Architecture =>
+      '2000 年当時としては建築ツールがあまりに独特で、シムを一人も置かないまま無料の建築ソフトとして使い続けた人までいた。';
+
+  @override
+  String get triviaSims1Audience =>
+      '当時としては珍しく、プレイヤーの多数は女性だった。売り場で他のどれとも似ていない広告になっていたのは、それも理由の一つだ。';
+
+  @override
+  String get triviaSims1Cowplant =>
+      'カウプラントの初登場はここ。ゲーム内での名前は Laganaphyllis Simnovorii で、以来どの世代でもこっそりシムを食べ続けている。';
+
+  @override
+  String get triviaSims1Plumbob =>
+      'plumbob という言葉は下げ振りから来ている。垂直を出すために職人が糸で吊るす、あの先のとがった重りだ。これは何よりもまず建築のゲームだった。';
+
+  @override
+  String get triviaSims1Release =>
+      '発売は 2000 年 2 月 4 日。EA が立てたどの販売予測も上回る売れ方をした。';
+
+  @override
+  String get triviaSims1Edith =>
+      'ゲーム内のすべてのオブジェクトは SimAntics という言語で書かれ、Edith という社内ツールで組まれた。名前の由来は Edith Bunker、The Sims のために最初に作られたキャラクターだ。';
+
+  @override
+  String get triviaSims1Expansions =>
+      '3 年半で 7 本の拡張パック。春と秋に 1 本ずつ、2000 年 8 月の Livin’ Large から 2003 年 10 月の Makin’ Magic まで。';
+
+  @override
+  String get triviaSims1Unleashed =>
+      'Unleashed は 2002 年にペットをシリーズへ持ち込み、Interactive Achievement Awards で年間最優秀シミュレーションゲームを獲得した。';
+
+  @override
+  String get triviaSims1Clown =>
+      '悲劇のピエロは、彼の絵を持っている落ち込んだシムを励ましに現れる。それが見事なまでに下手で、そこが笑いどころになっている。';
+
+  @override
+  String get triviaSims1Llama =>
+      'オリジナルの紙のマニュアルには『Making the Most of Your Llama』という本が収められていた。理由は今日まで誰も説明していない。';
+
+  @override
+  String get triviaSims1Superstar =>
+      'Superstar ではシムが俳優、モデル、歌手になれた。名声メーターまで付いていて、The Sims 4 が再び有名人に挑むより 11 年も早い。';
+
+  @override
+  String get triviaSims1Catalogue =>
+      '火事のあと家を建て直しながら、Will Wright は家のどの部分が不可欠で、どれは後回しでいいのかを問い続けた。その問いがほぼそのまま購入モードのカタログになっている。';
+
+  @override
+  String get triviaSims2Aging =>
+      'The Sims 2 はシリーズで初めて、シムが年を取り、寿命で亡くなり、遺伝を引き継ぐ作品になった。目も鼻もあごも両親から受け継がれる。';
+
+  @override
+  String get triviaSims2Memories =>
+      'どのシムも隠れた記憶リストを持っている。死を目撃したこと、初めてのキス、昇進などが記録され、あとの気分に影響する。';
+
+  @override
+  String get triviaSims2Bella =>
+      'ベラ・ゴスはゲーム開始時点で Pleasantview から姿を消しており、20 年経った今も公式な説明は一度もない。';
+
+  @override
+  String get triviaSims2Strangetown =>
+      'ベラは Strangetown で生きて見つかるが、Pleasantview の記憶がまったくない。Maxis は「どちらのベラも本物」と言い、それきりだ。';
+
+  @override
+  String get triviaSims2FamilyTrees =>
+      'The Sims 2 の近隣は本物の家系図の上に成り立っている。Pleasantview、Strangetown、Veronaville は婚姻と噂話でつながっている。';
+
+  @override
+  String get triviaSims2Plead =>
+      '死神には嘆願できる。ちょうどいい瞬間に話しかければシムを返してくれることがあり、ときには別の誰かと引き換えになる。';
+
+  @override
+  String get triviaSims2ReaperRomance =>
+      '死神と恋愛関係になれる。うまく運べば、その関係から幽霊の赤ちゃんが生まれる。';
+
+  @override
+  String get triviaSims2Satellite =>
+      '星を眺めているシムには、落ちてきた人工衛星に当たるというごく小さな確率がある。シリーズでもっとも珍しい死因の一つだ。';
+
+  @override
+  String get triviaSims2Therapist =>
+      '野望が崩壊するとシムはセラピストのもとへ送られる。ゲームが笑いのために自分から第四の壁を破る、数少ない場面だ。';
+
+  @override
+  String get triviaSims2WantsFears =>
+      '願望と恐怖がゲーム全体を動かしている。野望メーターは、シムが望んでいたことと同じ強さで、恐れていたことにも反応する。';
+
+  @override
+  String get triviaSims2FaceSculpt =>
+      '発売時から体型と顔を丸ごと造形できる仕組みが入っていた。The Sims 2 の顔が今でも後年の作品より多彩に見えるのはそのためだ。';
+
+  @override
+  String get triviaSims2Aliens =>
+      'エイリアンによる誘拐は、星を眺めすぎた男性シムにしか起こらない。そして、そのとおり妊娠して帰ってくる。';
+
+  @override
+  String get triviaSims2FreezerBunny =>
+      'Freezer Bunny はアーティストの Emmy Toyonaga が The Sims 2 のために描いたもので、最初は共有区画の冷凍庫の中に隠れて登場した。以来どの作品にもこっそり紛れ込んでいる。';
+
+  @override
+  String get triviaSims2SocialBunny =>
+      'ソーシャルバニーは悲劇のピエロの後任だが、ピエロと違ってこちらはちゃんと役に立つ。有能なほうが不気味だと感じたプレイヤーも少なくない。';
+
+  @override
+  String get triviaSims2Giveaway =>
+      'EA は 2014 年 7 月、Origin で Ultimate Collection を無料配布した。引き換えコードは I-LOVE-THE-SIMS。その後 Legacy Collection が出るまでの 10 年間、この配布分が唯一入手できる版だった。';
+
+  @override
+  String get triviaSims3SunsetValley =>
+      'Sunset Valley は The Sims 2 の Pleasantview のおよそ 25 年前の姿だ。つまり、すでに遊んだことのあるシムたちの祖父母に会える。';
+
+  @override
+  String get triviaSims3Founders =>
+      'Sunset Valley を興したのはゴス家で、育てたのは Landgraab 家。子どものモーティマー・ゴスを操作して、ベラ・バチェラーと出会う場面を見ることもできる。';
+
+  @override
+  String get triviaSims3OpenWorld =>
+      'The Sims 3 はロード画面を完全になくした。町全体が同時にシミュレートされ、どのシムも裏で年を取り、仕事に出ている。';
+
+  @override
+  String get triviaSims3Simulation =>
+      '町中のシムが同時に動いているので、長く遊んだセーブほど重くなる。ゲームは、あなたが一度も会っていない人生を静かに回し続けている。';
+
+  @override
+  String get triviaSims3CreateAStyle =>
+      'クリエイト・ア・スタイルはほぼどんなオブジェクトも色や柄を変えられる機能だった。あまりに負荷が重く、以後の作品には戻ってきていない。';
+
+  @override
+  String get triviaSims3Exchange =>
+      'The Sims 3 には本物のオンライン交換所が付いていて、区画もシムも柄もランチャーから直接やり取りできた。';
+
+  @override
+  String get triviaSims3Downloads =>
+      '発売週だけで、プレイヤーはそのランチャーからコミュニティ製アイテムを 700 万点以上ダウンロードした。';
+
+  @override
+  String get triviaSims3Traits =>
+      '特質が旧来の性格スライダーに取って代わった。中には「窃盗癖」や「狂気」のように、普通の生活のルールをさらりと破るものもある。';
+
+  @override
+  String get triviaSims3Kleptomaniac =>
+      '窃盗癖のシムは頼まれてもいないのに他人の家具を持ち帰ってくる。しかも、あなたが気づくまでずっと続ける。';
+
+  @override
+  String get triviaSims3Simlish =>
+      'Katy Perry、Lily Allen、Depeche Mode をはじめ数十組のアーティストが、自分の曲をシムリッシュで録り直してサントラに提供した。';
+
+  @override
+  String get triviaSims3Townies =>
+      'オープンワールドは画面外のシムもシミュレートしていたので、町の住人が勝手に結婚して子どもをもうけていた、ということがしょっちゅう起きた。';
+
+  @override
+  String get triviaSims3Store =>
+      'The Sims 3 ストアは最終的に、発売時のゲーム本体が持っていたより多くのオブジェクトを売った。';
+
+  @override
+  String get triviaSims3Launch =>
+      'The Sims 3 は 2009 年 6 月の発売週に 140 万本を売り上げた。EA にとって当時最大の PC タイトル発売だった。';
+
+  @override
+  String get triviaSims4Flies => 'ハエによる死は本当にある。区画を十分に汚くしておくと、群れがシムにとどめを刺す。';
+
+  @override
+  String get triviaSims4Emotions =>
+      'ここではすべて感情が動かしている。「ひらめいた」シムは絵がうまくなり、「激怒」したシムは怒りで死ぬことがある。';
+
+  @override
+  String get triviaSims4EmotionDeaths =>
+      'シムは笑い死にもするし、怒り死にもするし、恥ずかしさでも死ぬ。この作品では感情は飾りではなく危険物だ。';
+
+  @override
+  String get triviaSims4CreateASim =>
+      'クリエイト・ア・シムはスライダーをやめ、顔を直接つまんで引っ張る方式にした。The Sims 4 で顔があっという間に作れるのはそのためだ。';
+
+  @override
+  String get triviaSims4Launch =>
+      'The Sims 4 はプールも幼児もない状態で発売された。どちらもプレイヤーの粘り強い要望を受け、無料アップデートで戻ってきた。';
+
+  @override
+  String get triviaSims4Worlds =>
+      '2014 年 9 月の発売時、ワールドは Willow Creek と Oasis Springs の二つだけだった。今では数十あり、そのほとんどはパックと一緒にやって来た。';
+
+  @override
+  String get triviaSims4Gender =>
+      '2016 年のアップデートで性別の制約が完全に外れた。どのシムもどの服を着てもよく、どの声でもよく、妊娠する／しないも選べる。';
+
+  @override
+  String get triviaSims4Newcrest =>
+      'Newcrest はわざと完全に空の状態で出された。15 区画、建物ゼロ。コミュニティへの公開招待状のようなものだ。';
+
+  @override
+  String get triviaSims4Naming =>
+      'Willow Creek や Oasis Springs といった近隣名は、古い Maxis から続く社内ルールに従っている。平易な英単語を二つ、造語のつづりは使わない。';
+
+  @override
+  String get triviaSims4Goths =>
+      'ゴス家はここにも登場する。おかげで彼らはゲーム史でも屈指の長寿一家となり、ナンバリング全作に顔を出している。';
+
+  @override
+  String get triviaSims4FreeToPlay =>
+      '本体は 2022 年 10 月に無料化された。PC、PlayStation、Xbox で同時に。パックは有料のままだ。';
+
+  @override
+  String get triviaSims4Mccc =>
+      'The Sims 4 プレイヤーがまず入れる Mod、MC Command Center は CurseForge だけで 1400 万ダウンロードを超えた。作者の Deaderpool は 2015 年から更新を続けている。';
+
+  @override
+  String get triviaSims4Twallan =>
+      'MCCC があるのは The Sims 3 のおかげだ。Twallan の Master Controller と Story Progression が残した仕事を引き継ぎ、10 年以上前の発想を新しいエンジンへ持ち込んでいる。';
+
+  @override
+  String get triviaSims4Deaths =>
+      'シムはカウプラント、自動販売機、ラマ型のステレオ、そして笑いで死ぬことがある。さすがに全部同時ではない。';
+
+  @override
+  String get triviaMedievalWatcher =>
+      'ここでのあなたは一世帯ではなく「ウォッチャー」だ。一家の一日を回すのではなく、王国じゅうの英雄たちを後押しする善意の神である。';
+
+  @override
+  String get triviaMedievalHeroes =>
+      '一つの王国には 10 種の職業の英雄シムが最大 10 人まで。それぞれレベル 1 から 10 まで上がり、新しい能力とだんだん立派になる称号を手に入れていく。';
+
+  @override
+  String get triviaMedievalStocks =>
+      '英雄は毎朝、二つの責務と締切を渡される。サボりすぎれば罰が下り、それは君主も例外ではない。さらし台に入れられることもある。';
+
+  @override
+  String get triviaMedievalAmbition =>
+      '始める前に王国全体の「野望」を選び、受けるクエストはその野望に照らして採点される。The Sims が勝利条件にもっとも近づいた瞬間だ。';
+
+  @override
+  String get triviaMedievalQuests =>
+      'これはスピンオフではなく完全な作り替えだ。サンドボックスがクエストの連なりに置き換わっていて、だからこそ「終わらせられる」唯一の The Sims になっている。';
+
+  @override
+  String get triviaMedievalPirates =>
+      '2011 年 8 月の Pirates and Nobles が唯一の追加コンテンツだった。ハヤブサとオウム、宝の地図とシャベル、そしてやって来た二つの勢力の戦い。';
+
+  @override
+  String get triviaMedievalProxy =>
+      'このゲームはそもそも Mod を読み込む前提で作られていない。スクリプト Mod やコア Mod を動かすには、コミュニティ製の d3dx9_31.dll プロキシを Game/Bin に置く必要がある。カスタムコンテンツはそれなしでも動く。';
+
+  @override
+  String get triviaMedievalEngine =>
+      'エンジンは The Sims 3 のものだ。だから Resource.cfg も .package ファイルも、あのゲームを触ったことがある人には妙に見覚えがある。';
 }

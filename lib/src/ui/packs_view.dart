@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/app_message.dart';
 import '../core/game_pack.dart';
 import 'app_controller.dart';
+import 'game_skin.dart';
 import 'game_theme.dart';
 import 'l10n.dart';
 import 'pack_icons.dart';
@@ -153,11 +154,11 @@ class _PackTile extends StatelessWidget {
         builder: (context, hovered) => AnimatedContainer(
           duration: const Duration(milliseconds: 140),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-          decoration: BoxDecoration(
-            color: hovered ? t.surfaceAlt : t.surface,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: t.border),
-          ),
+          decoration: t.skin.decorate(t, SkinSurface.panel,
+              radius: 14,
+              state: skinState(hovered: hovered),
+              fill: hovered ? t.surfaceAlt : t.surface,
+              outline: t.border),
           child: Row(
             children: [
               _PackIcon(
@@ -297,11 +298,11 @@ class _CodeTile extends StatelessWidget {
       width: 42,
       height: 42,
       alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: on ? t.tint : t.surfaceAlt,
-        borderRadius: BorderRadius.circular(11),
-        border: Border.all(color: on ? t.accent : t.border, width: 1.5),
-      ),
+      decoration: t.skin.decorate(t, SkinSurface.panel,
+          radius: 11,
+          state: on ? SkinState.active : SkinState.idle,
+          fill: on ? t.tint : t.surfaceAlt,
+          outline: on ? t.accent : t.border),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -401,11 +402,10 @@ class _ExperimentalNotice extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.fromLTRB(28, 8, 28, 0),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-      decoration: BoxDecoration(
-        color: t.warning.withValues(alpha: .12),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: t.warning.withValues(alpha: .5)),
-      ),
+      decoration: t.skin.decorate(t, SkinSurface.notice,
+          accent: t.warning,
+          fill: t.warning.withValues(alpha: .12),
+          outline: t.warning.withValues(alpha: .5)),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -458,11 +458,8 @@ class _AdminNotice extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.fromLTRB(28, 8, 28, 0),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-      decoration: BoxDecoration(
-        color: t.surfaceAlt,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: t.border),
-      ),
+      decoration: t.skin
+          .decorate(t, SkinSurface.panel, radius: 12, fill: t.surfaceAlt),
       child: Row(
         children: [
           Icon(Icons.shield_outlined, size: 18, color: t.muted),
@@ -496,11 +493,10 @@ class _RestartNotice extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.fromLTRB(28, 8, 28, 0),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-      decoration: BoxDecoration(
-        color: t.warning.withValues(alpha: .12),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: t.warning.withValues(alpha: .5)),
-      ),
+      decoration: t.skin.decorate(t, SkinSurface.notice,
+          accent: t.warning,
+          fill: t.warning.withValues(alpha: .12),
+          outline: t.warning.withValues(alpha: .5)),
       child: Row(
         children: [
           Icon(Icons.restart_alt_rounded, size: 18, color: t.warning),
@@ -543,11 +539,8 @@ class _CollectionNote extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.fromLTRB(28, 8, 28, 0),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-      decoration: BoxDecoration(
-        color: t.tint,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: t.accent.withValues(alpha: .45)),
-      ),
+      decoration: t.skin.decorate(t, SkinSurface.notice,
+          fill: t.tint, outline: t.accent.withValues(alpha: .45)),
       child: Row(
         children: [
           Image.asset(

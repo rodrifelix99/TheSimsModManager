@@ -9,6 +9,7 @@ import '../core/mod.dart';
 import '../core/mod_folder.dart';
 import '../services/sfx.dart';
 import 'app_controller.dart';
+import 'game_skin.dart';
 import 'game_theme.dart';
 import 'install_destination_dialog.dart';
 import 'l10n.dart';
@@ -143,7 +144,19 @@ class LibraryView extends StatelessWidget {
               // the one thing up here that can give width back, and a
               // window narrower than kMinWindowSize (which macOS used to
               // hand us) overflowed this row rather than shrinking.
-              Flexible(child: _searchField(t, c, l)),
+              //
+              // It takes the whole share and hangs the box off the right
+              // of it, because a flexible child that uses less than its
+              // share leaves the difference at the *end* of the row: the
+              // box stopped at 210 and the Install button sat that far
+              // short of the window edge. The leftover is now a gap after
+              // the title, where nothing is drawn anyway.
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: _searchField(t, c, l),
+                ),
+              ),
               const SizedBox(width: 14),
               _sortButton(t, c, l),
               const SizedBox(width: 6),
@@ -225,11 +238,8 @@ class LibraryView extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(28, 14, 28, 0),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: t.tint,
-          border: Border.all(color: t.accent, width: 1.5),
-          borderRadius: BorderRadius.circular(12),
-        ),
+        decoration:
+            t.skin.decorate(t, SkinSurface.notice, fill: t.tint),
         child: Row(
           children: [
             Icon(Icons.campaign_rounded, size: 20, color: t.accent),
@@ -281,11 +291,8 @@ class LibraryView extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(28, 14, 28, 0),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: t.warning.withValues(alpha: .1),
-          border: Border.all(color: t.warning, width: 1.5),
-          borderRadius: BorderRadius.circular(12),
-        ),
+        decoration:
+            t.skin.decorate(t, SkinSurface.notice, accent: t.warning),
         child: Row(
           children: [
             Icon(Icons.admin_panel_settings_outlined, size: 20,
@@ -316,11 +323,8 @@ class LibraryView extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(28, 14, 28, 0),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: t.warning.withValues(alpha: .1),
-          border: Border.all(color: t.warning, width: 1.5),
-          borderRadius: BorderRadius.circular(12),
-        ),
+        decoration:
+            t.skin.decorate(t, SkinSurface.notice, accent: t.warning),
         child: Row(
           children: [
             Icon(Icons.lock_outline_rounded, size: 20, color: t.warning),
@@ -352,11 +356,8 @@ class LibraryView extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(28, 14, 28, 0),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: t.warning.withValues(alpha: .1),
-          border: Border.all(color: t.warning, width: 1.5),
-          borderRadius: BorderRadius.circular(12),
-        ),
+        decoration:
+            t.skin.decorate(t, SkinSurface.notice, accent: t.warning),
         child: Row(
           children: [
             Icon(Icons.extension_off_rounded, size: 20, color: t.warning),
@@ -397,11 +398,8 @@ class LibraryView extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(28, 14, 28, 0),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: t.warning.withValues(alpha: .1),
-          border: Border.all(color: t.warning, width: 1.5),
-          borderRadius: BorderRadius.circular(12),
-        ),
+        decoration:
+            t.skin.decorate(t, SkinSurface.notice, accent: t.warning),
         child: Row(
           children: [
             Icon(Icons.folder_off_rounded, size: 20, color: t.warning),
@@ -442,11 +440,8 @@ class LibraryView extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(28, 14, 28, 0),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: t.warning.withValues(alpha: .1),
-          border: Border.all(color: t.warning, width: 1.5),
-          borderRadius: BorderRadius.circular(12),
-        ),
+        decoration:
+            t.skin.decorate(t, SkinSurface.notice, accent: t.warning),
         child: Row(
           children: [
             Icon(Icons.error_outline_rounded, size: 20, color: t.warning),
@@ -505,11 +500,7 @@ class LibraryView extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(28, 14, 28, 0),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: .1),
-          border: Border.all(color: color, width: 1.5),
-          borderRadius: BorderRadius.circular(12),
-        ),
+        decoration: t.skin.decorate(t, SkinSurface.notice, accent: color),
         child: Row(
           children: [
             Icon(
@@ -540,24 +531,30 @@ class LibraryView extends StatelessWidget {
             const SizedBox(width: 12),
             // Wrapped rather than a plain row: translated labels run long,
             // and at the minimum window size two of them side by side is
-            // more width than this banner has.
-            Flexible(
-              child: Wrap(
-                alignment: WrapAlignment.end,
-                spacing: 2,
-                children: [
-                  if (progress != null)
-                    action(l.duplicatesStop, c.cancelDuplicateScan)
-                  else if (found) ...[
-                    action(l.duplicatesSelectExtras, c.selectDuplicateExtras),
-                    action(
-                        c.duplicatesOnly
-                            ? l.advisoryShowAll
-                            : l.duplicatesShow,
-                        c.showOnlyDuplicates),
-                  ] else
-                    action(l.duplicatesDismiss, c.dismissDuplicateResult),
-                ],
+            // more width than this banner has. Expanded and aligned for
+            // the same reason the search box up in the header is: a loose
+            // flexible child leaves its unused share at the end of the
+            // row, which left the actions floating short of the border.
+            Expanded(
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Wrap(
+                  alignment: WrapAlignment.end,
+                  spacing: 2,
+                  children: [
+                    if (progress != null)
+                      action(l.duplicatesStop, c.cancelDuplicateScan)
+                    else if (found) ...[
+                      action(l.duplicatesSelectExtras, c.selectDuplicateExtras),
+                      action(
+                          c.duplicatesOnly
+                              ? l.advisoryShowAll
+                              : l.duplicatesShow,
+                          c.showOnlyDuplicates),
+                    ] else
+                      action(l.duplicatesDismiss, c.dismissDuplicateResult),
+                  ],
+                ),
               ),
             ),
           ],
@@ -569,38 +566,49 @@ class LibraryView extends StatelessWidget {
   Widget _searchField(GameTheme t, AppController c, L l) {
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 210),
-      child: TextField(
-        onChanged: c.setQuery,
-        style: TextStyle(
-          fontSize: 13.5,
-          fontWeight: FontWeight.w600,
-          color: t.text,
-        ),
-        cursorColor: t.accent,
-        decoration: InputDecoration(
-          hintText: l.searchMods,
-          hintStyle: TextStyle(
+      // Drawn by the skin rather than by InputDecoration: a well sunk
+      // into the panel needs a gradient, and a border side cannot carry
+      // one. The three borders below stay transparent so Material still
+      // reserves their width and the text doesn't shift on focus.
+      child: DecoratedBox(
+        decoration: t.skin.decorate(t, SkinSurface.well),
+        child: TextField(
+          onChanged: c.setQuery,
+          style: TextStyle(
             fontSize: 13.5,
             fontWeight: FontWeight.w600,
-            color: t.muted,
+            color: t.skin.ink(t, SkinSurface.well, otherwise: t.text),
           ),
-          prefixIcon: Icon(Icons.search, size: 17, color: t.muted),
-          isDense: true,
-          filled: true,
-          fillColor: t.surface,
-          contentPadding: const EdgeInsets.symmetric(vertical: 10),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(11),
-            borderSide: BorderSide(color: t.border, width: 1.5),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(11),
-            borderSide: BorderSide(color: t.accent, width: 1.5),
+          cursorColor: t.accent,
+          decoration: InputDecoration(
+            hintText: l.searchMods,
+            hintStyle: TextStyle(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w600,
+              color: t.skin.ink(t, SkinSurface.well,
+                  secondary: true, otherwise: t.muted),
+            ),
+            prefixIcon: Icon(Icons.search,
+                size: 17,
+                color: t.skin.ink(t, SkinSurface.well,
+                    secondary: true, otherwise: t.muted)),
+            isDense: true,
+            contentPadding: const EdgeInsets.symmetric(vertical: 10),
+            border: _searchBorder(Colors.transparent),
+            enabledBorder: _searchBorder(Colors.transparent),
+            // The one ring Material keeps drawing: it paints over the
+            // skin's own outline, which is what a focus ring is for.
+            focusedBorder: _searchBorder(t.accent),
           ),
         ),
       ),
     );
   }
+
+  static OutlineInputBorder _searchBorder(Color color) => OutlineInputBorder(
+        borderRadius: BorderRadius.circular(11),
+        borderSide: BorderSide(color: color, width: 1.5),
+      );
 
   /// The order the library is drawn in, and whether the switched-off mods
   /// sink under the rest. One menu because they answer the same question:
@@ -661,19 +669,27 @@ class LibraryView extends StatelessWidget {
             duration: const Duration(milliseconds: 160),
             width: 34,
             height: 40,
-            decoration: BoxDecoration(
-              color: hovered ? t.surface : t.surfaceAlt,
-              border: Border.all(color: t.border),
-              borderRadius: BorderRadius.circular(11),
-            ),
+            decoration: t.skin.decorate(t, SkinSurface.button,
+                state: skinState(
+                    active: c.sort != LibrarySort.name || c.disabledLast,
+                    hovered: hovered)),
             child: Icon(
               Icons.sort_rounded,
               size: 18,
               // Lit while the library isn't in the order it opens in, so
               // an unexpected order says where it came from.
-              color: hovered || c.sort != LibrarySort.name || c.disabledLast
-                  ? t.accent
-                  : t.muted,
+              color: t.skin.ink(t, SkinSurface.button,
+                  state: skinState(
+                      active: c.sort != LibrarySort.name || c.disabledLast,
+                      hovered: hovered),
+                  secondary: !(hovered ||
+                      c.sort != LibrarySort.name ||
+                      c.disabledLast),
+                  otherwise: hovered ||
+                          c.sort != LibrarySort.name ||
+                          c.disabledLast
+                      ? t.accent
+                      : t.muted),
             ),
           ),
         ),
@@ -696,11 +712,18 @@ class LibraryView extends StatelessWidget {
               duration: const Duration(milliseconds: 160),
               width: 34,
               height: 32,
-              decoration: BoxDecoration(
-                color: active ? t.surface : Colors.transparent,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(icon, size: 16, color: active ? t.accent : t.muted),
+              // The segment that is in force is the only raised thing in
+              // the track; the other two are holes in it.
+              decoration: t.skin.decorate(t, SkinSurface.row,
+                  radius: 8,
+                  state: skinState(active: active),
+                  fill: active ? t.surface : null),
+              child: Icon(icon,
+                  size: 16,
+                  color: t.skin.ink(t, SkinSurface.row,
+                      state: skinState(active: active),
+                      secondary: !active,
+                      otherwise: active ? t.accent : t.muted)),
             ),
           ),
         ),
@@ -709,11 +732,7 @@ class LibraryView extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        color: t.surfaceAlt,
-        border: Border.all(color: t.border),
-        borderRadius: BorderRadius.circular(11),
-      ),
+      decoration: t.skin.decorate(t, SkinSurface.well, fill: t.surfaceAlt),
       child: Row(
         children: [
           button(LibraryLayout.grid, Icons.grid_view_rounded, l.viewGrid),
@@ -745,15 +764,15 @@ class LibraryView extends StatelessWidget {
             duration: const Duration(milliseconds: 160),
             width: 34,
             height: 40,
-            decoration: BoxDecoration(
-              color: hovered ? t.surface : t.surfaceAlt,
-              border: Border.all(color: t.border),
-              borderRadius: BorderRadius.circular(11),
-            ),
+            decoration: t.skin.decorate(t, SkinSurface.button,
+                state: skinState(hovered: hovered)),
             child: Icon(
               Icons.refresh_rounded,
               size: 18,
-              color: hovered ? t.accent : t.muted,
+              color: t.skin.ink(t, SkinSurface.button,
+                  state: skinState(hovered: hovered),
+                  secondary: !hovered,
+                  otherwise: hovered ? t.accent : t.muted),
             ),
           ),
         ),
@@ -776,19 +795,21 @@ class LibraryView extends StatelessWidget {
             duration: const Duration(milliseconds: 160),
             width: 34,
             height: 40,
-            decoration: BoxDecoration(
-              color: hovered ? t.surface : t.surfaceAlt,
-              border: Border.all(color: t.border),
-              borderRadius: BorderRadius.circular(11),
-            ),
+            decoration: t.skin.decorate(t, SkinSurface.button,
+                state: skinState(
+                    active: running || c.duplicatesOnly, hovered: hovered)),
             child: Icon(
               running ? Icons.stop_rounded : Icons.difference_outlined,
               size: 18,
               // Lit while a scan is running or while its answer is what
               // the library is showing, the way the sort button is.
-              color: hovered || running || c.duplicatesOnly
-                  ? t.accent
-                  : t.muted,
+              color: t.skin.ink(t, SkinSurface.button,
+                  state: skinState(
+                      active: running || c.duplicatesOnly, hovered: hovered),
+                  secondary: !(hovered || running || c.duplicatesOnly),
+                  otherwise: hovered || running || c.duplicatesOnly
+                      ? t.accent
+                      : t.muted),
             ),
           ),
         ),
@@ -810,15 +831,15 @@ class LibraryView extends StatelessWidget {
             duration: const Duration(milliseconds: 160),
             width: 34,
             height: 40,
-            decoration: BoxDecoration(
-              color: hovered ? t.surface : t.surfaceAlt,
-              border: Border.all(color: t.border),
-              borderRadius: BorderRadius.circular(11),
-            ),
+            decoration: t.skin.decorate(t, SkinSurface.button,
+                state: skinState(hovered: hovered)),
             child: Icon(
               Icons.create_new_folder_outlined,
               size: 18,
-              color: hovered ? t.accent : t.muted,
+              color: t.skin.ink(t, SkinSurface.button,
+                  state: skinState(hovered: hovered),
+                  secondary: !hovered,
+                  otherwise: hovered ? t.accent : t.muted),
             ),
           ),
         ),
@@ -829,45 +850,39 @@ class LibraryView extends StatelessWidget {
   Widget _installButton(GameTheme t, AppController c, L l) {
     return HoverBuilder(
       cursor: SystemMouseCursors.click,
-      builder: (context, hovered) => GestureDetector(
-        onTap: () => _pickAndInstall(context, t, c, l),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          transform: Matrix4.translationValues(0, hovered ? -1 : 0, 0),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(
-            gradient: t.accentGradient,
-            borderRadius: BorderRadius.circular(11),
-            boxShadow: [
-              BoxShadow(
-                color: t.accent.withValues(alpha: .5),
-                blurRadius: 18,
-                offset: const Offset(0, 7),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('＋',
+      builder: (context, hovered) {
+        final ink = t.skin.ink(t, SkinSurface.primary);
+        return GestureDetector(
+          onTap: () => _pickAndInstall(context, t, c, l),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            transform: Matrix4.translationValues(0, hovered ? -1 : 0, 0),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: t.skin.decorate(t, SkinSurface.primary,
+                state: skinState(hovered: hovered)),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('＋',
+                    style: TextStyle(
+                        color: ink,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                        height: 1)),
+                const SizedBox(width: 6),
+                Text(
+                  l.install,
                   style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 17,
-                      fontWeight: FontWeight.w800,
-                      height: 1)),
-              const SizedBox(width: 6),
-              Text(
-                l.install,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w800,
+                    color: ink,
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -1361,11 +1376,7 @@ class _SelectionBar extends StatelessWidget {
     return Container(
       height: 42,
       padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: t.tint,
-        border: Border.all(color: t.accent, width: 1.5),
-        borderRadius: BorderRadius.circular(12),
-      ),
+      decoration: t.skin.decorate(t, SkinSurface.notice, fill: t.tint),
       child: Row(
         children: [
           Icon(Icons.check_circle_rounded, size: 18, color: t.accent),
@@ -1471,13 +1482,16 @@ class _SelectionBar extends StatelessWidget {
               duration: const Duration(milliseconds: 150),
               width: 32,
               height: 30,
-              decoration: BoxDecoration(
-                color: hovered ? color.withValues(alpha: .13) : t.surface,
-                border: Border.all(
-                    color: hovered ? color.withValues(alpha: .55) : t.border),
-                borderRadius: BorderRadius.circular(9),
-              ),
-              child: Icon(icon, size: 16, color: color),
+              decoration: t.skin.decorate(t, SkinSurface.button,
+                  radius: 9,
+                  state: skinState(hovered: hovered),
+                  accent: color,
+                  fill: hovered ? color.withValues(alpha: .13) : t.surface,
+                  outline: hovered ? color.withValues(alpha: .55) : t.border),
+              child: Icon(icon,
+                  size: 16,
+                  color: t.skin.ink(t, SkinSurface.button,
+                      state: skinState(hovered: hovered), otherwise: color)),
             ),
           ),
         ),
@@ -1567,11 +1581,8 @@ class _FolderHeader extends StatelessWidget {
       c,
       folder,
       highlight: (child) => DecoratedBox(
-        decoration: BoxDecoration(
-          color: t.tint,
-          border: Border.all(color: t.accent, width: 1.5),
-          borderRadius: BorderRadius.circular(10),
-        ),
+        decoration:
+            t.skin.decorate(t, SkinSurface.notice, radius: 10, fill: t.tint),
         child: child,
       ),
       child: _header(t, c, l, folder),
@@ -1592,10 +1603,10 @@ class _FolderHeader extends StatelessWidget {
             : null,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-          decoration: BoxDecoration(
-            color: hovered ? t.surfaceAlt : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
-          ),
+          decoration: t.skin.decorate(t, SkinSurface.row,
+              radius: 10,
+              state: skinState(hovered: hovered),
+              fill: hovered ? t.surfaceAlt : null),
           child: Row(
             children: [
               AnimatedRotation(
@@ -2127,58 +2138,49 @@ class _FilterChipsState extends State<_FilterChips> {
   }) {
     return HoverBuilder(
       cursor: SystemMouseCursors.click,
-      builder: (context, hovered) => GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 160),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-          decoration: BoxDecoration(
-            color: active ? t.accent : t.surface,
-            border: Border.all(
-              color: active
-                  ? t.accent
-                  : hovered
-                      ? t.accent.withValues(alpha: .5)
-                      : t.border,
-              width: 1.5,
-            ),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (icon != null) ...[
-                Icon(
-                  icon,
-                  size: 13,
-                  color: (active ? Colors.white : t.text)
-                      .withValues(alpha: active ? .9 : .55),
-                ),
-                const SizedBox(width: 6),
-              ],
-              Text.rich(
-                TextSpan(
-                  text: label,
-                  children: [
-                    TextSpan(
-                      text: '  $count',
-                      style: TextStyle(
-                        color: (active ? Colors.white : t.text)
-                            .withValues(alpha: .55),
+      builder: (context, hovered) {
+        final state = skinState(active: active, hovered: hovered);
+        final ink = t.skin.ink(t, SkinSurface.chip,
+            state: state, otherwise: active ? Colors.white : t.text);
+        final quiet = t.skin.ink(t, SkinSurface.chip,
+            state: state,
+            secondary: true,
+            otherwise: (active ? Colors.white : t.text)
+                .withValues(alpha: .55));
+        return GestureDetector(
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+            decoration: t.skin.decorate(t, SkinSurface.chip, state: state),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (icon != null) ...[
+                  Icon(icon, size: 13, color: active ? ink : quiet),
+                  const SizedBox(width: 6),
+                ],
+                Text.rich(
+                  TextSpan(
+                    text: label,
+                    children: [
+                      TextSpan(
+                        text: '  $count',
+                        style: TextStyle(color: quiet),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w800,
+                    color: ink,
+                  ),
                 ),
-                style: TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w800,
-                  color: active ? Colors.white : t.text,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -2225,23 +2227,10 @@ class _GridCard extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
           transform: Matrix4.translationValues(0, hovered ? -3 : 0, 0),
-          decoration: BoxDecoration(
-            color: selected ? t.tint : t.surface,
-            border: Border.all(
-              color: selected || hovered ? t.accent : t.border,
-              width: selected ? 1.5 : 1,
-            ),
-            borderRadius: BorderRadius.circular(15),
-            boxShadow: hovered
-                ? [
-                    BoxShadow(
-                      color: t.shadow.withValues(alpha: .45),
-                      blurRadius: 34,
-                      offset: const Offset(0, 18),
-                    ),
-                  ]
-                : const [],
-          ),
+          decoration: t.skin.decorate(t, SkinSurface.panel,
+              radius: 15,
+              state: skinState(active: selected, hovered: hovered),
+              elevated: hovered),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -2420,14 +2409,8 @@ class _ListRow extends StatelessWidget {
           duration: const Duration(milliseconds: 160),
           transform: Matrix4.translationValues(hovered ? 3 : 0, 0, 0),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(
-            color: selected ? t.tint : t.surface,
-            border: Border.all(
-              color: selected || hovered ? t.accent : t.border,
-              width: selected ? 1.5 : 1,
-            ),
-            borderRadius: BorderRadius.circular(13),
-          ),
+          decoration: t.skin.decorate(t, SkinSurface.panel,
+              state: skinState(active: selected, hovered: hovered)),
           child: Row(
             children: [
               SizedBox(
