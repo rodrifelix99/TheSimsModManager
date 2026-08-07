@@ -348,10 +348,13 @@ void main() {
       return b.toBytes();
     }
 
+    /// [unknownWord] is the word between the lots and the funds - the one
+    /// that reads like a name-string instance and isn't. Real saves put
+    /// anything there, so the tests point it somewhere wrong on purpose.
     Uint8List fami({
       required int lot,
-      required int nameString,
       required int money,
+      int unknownWord = 0,
       int version = 0x4E,
     }) {
       final b = BytesBuilder();
@@ -363,7 +366,7 @@ void main() {
       // a real save gates them.
       if (version >= 0x51) u32(b, lot); // business lot
       if (version >= 0x55) u32(b, 0); // vacation lot
-      u32(b, nameString);
+      u32(b, unknownWord);
       u32(b, money);
       u32(b, 1); // family friends
       u32(b, 0); // flags
@@ -483,10 +486,14 @@ void main() {
                   gender: 0,
                   stats: {68: 0x1}), // ghost flags: this one is a ghost
               instance: 6),
-          Res(0x46414D49, fami(lot: 9, nameString: 0x21, money: 1234),
+          // The family's name is the string sharing its instance; the
+          // word inside the record points at another family's, which is
+          // exactly what a played hood does.
+          Res(0x46414D49, fami(lot: 9, money: 1234, unknownWord: 0x21),
               instance: 1),
           Res(0x0BF999E7, ltxt('42 Main Street'), instance: 9),
-          Res(0x53545223, strResource(['Pleasant']), instance: 0x21),
+          Res(0x53545223, strResource(['Pleasant']), instance: 1),
+          Res(0x53545223, strResource(['Somebody else']), instance: 0x21),
           // The hood's own catalog description: its name, then its blurb.
           Res(0x43545353, strResource(['Pleasantview', 'Where it all began.'])),
           Res(0xCC364C2A, srel(70, (1 << 4) | (1 << 3)), // friends + married
@@ -516,7 +523,9 @@ void main() {
       Directory(p.join(hood.path, 'Thumbnails')).createSync();
       File(p.join(hood.path, 'Thumbnails', 'N001_FamilyThumbnails.package'))
           .writeAsBytesSync(buildV1Package([
-        Res(0x856DDBAC, fakeJpeg(220, 160), instance: 0x21),
+        // Keyed by the family's instance, and written as the jpg type -
+        // which is the only one a real thumbnail package uses.
+        Res(0x8C3CE95A, fakeJpeg(220, 160), instance: 1),
       ]));
 
       File(p.join(hood.path, 'N001_Neighborhood.png'))
@@ -611,16 +620,22 @@ void main() {
       File(p.join(hood.path, 'N001_Neighborhood.package')).writeAsBytesSync(
         buildV1Package([
           for (final entry in versions.entries) ...[
-            Res(
-                0x46414D49,
-                fami(
-                    lot: 9,
-                    nameString: 0x30 + instance,
-                    money: entry.value,
-                    version: entry.key),
+            Res(0x46414D49,
+                fami(lot: 9, money: entry.value, version: entry.key),
                 instance: ++instance),
-            Res(0x53545223, strResource(['Family${entry.key.toRadixString(16)}']),
-                instance: 0x30 + instance - 1),
+            Res(
+                0x53545223,
+                strResource(['Family${entry.key.toRadixString(16)}']),
+                instance: instance),
+            Res(
+                0xAACE2EFB,
+                sdsc(
+                    instance: 0x50 + instance,
+                    guid: 0xC000 + instance,
+                    family: instance,
+                    age: 0x13,
+                    gender: 1),
+                instance: 0x50 + instance),
           ],
           Res(0x43545353, strResource(['Pleasantview', 'Where it began.'])),
         ]),
@@ -634,6 +649,49 @@ void main() {
         'Family4e': 1200,
         'Family54': 2500,
         'Family55': 72085,
+      });
+    });
+
+    // Issue #18: a played hood where the word inside each family record
+    // lands on the family after it. Reading names off it handed every
+    // household its neighbour's, which is what a real save reported -
+    // a single sim's home labelled with the dorm next door.
+    test('names a household from its own instance, never from that word',
+        () {
+      final hoods = Directory(p.join(tempDir.path, 'Neighborhoods'))
+        ..createSync();
+      final hood = Directory(p.join(hoods.path, 'N001'))..createSync();
+
+      const names = {1: 'Gen 2', 2: 'Brivio', 3: 'Dude Bros'};
+      File(p.join(hood.path, 'N001_Neighborhood.package')).writeAsBytesSync(
+        buildV1Package([
+          for (final entry in names.entries) ...[
+            Res(
+                0x46414D49,
+                fami(lot: 0, money: 100 * entry.key, unknownWord: entry.key + 1),
+                instance: entry.key),
+            Res(0x53545223, strResource([entry.value]), instance: entry.key),
+            Res(
+                0xAACE2EFB,
+                sdsc(
+                    instance: 0x50 + entry.key,
+                    guid: 0xD000 + entry.key,
+                    family: entry.key,
+                    age: 0x13,
+                    gender: 1),
+                instance: 0x50 + entry.key),
+          ],
+          Res(0x43545353, strResource(['Greystone Harbor', 'A harbor.'])),
+        ]),
+      );
+
+      final save = scanSims2Saves(hoods.path).single;
+      expect({
+        for (final household in save.households) household.funds: household.name
+      }, {
+        100: 'Gen 2',
+        200: 'Brivio',
+        300: 'Dude Bros',
       });
     });
 
@@ -661,28 +719,28 @@ void main() {
       File(p.join(hood.path, 'N001_Neighborhood.package')).writeAsBytesSync(
         buildV1Package([
           // A household: on a lot, and small enough to be one.
-          Res(0x46414D49, fami(lot: 9, nameString: 0x21, money: 1234),
-              instance: 1),
-          Res(0x53545223, strResource(['Pleasant']), instance: 0x21),
+          Res(0x46414D49, fami(lot: 9, money: 1234), instance: 1),
+          Res(0x53545223, strResource(['Pleasant']), instance: 1),
           Res(0x0BF999E7, ltxt('42 Main Street'), instance: 9),
           ...simsIn(1, 3),
           // The townie pool: a family record like any other, and every
           // sim without a home points at it.
-          Res(0x46414D49, fami(lot: 0, nameString: 0x22, money: 20000),
-              instance: 0x7FFF),
-          Res(0x53545223, strResource(['Townies']), instance: 0x22),
+          Res(0x46414D49, fami(lot: 0, money: 20000), instance: 0x7FFF),
+          Res(0x53545223, strResource(['Townies']), instance: 0x7FFF),
           ...simsIn(0x7FFF, 12),
           // The dead, who carry no family at all.
-          Res(0x46414D49, fami(lot: 0, nameString: 0x23, money: 0),
-              instance: 0),
-          Res(0x53545223, strResource(['Ancestors']), instance: 0x23),
+          Res(0x46414D49, fami(lot: 0, money: 0), instance: 0),
+          Res(0x53545223, strResource(['Ancestors']), instance: 0),
           ...simsIn(0, 9),
           // And a pool under a number this doesn't know, caught by the
           // eight-sim cap instead.
-          Res(0x46414D49, fami(lot: 0, nameString: 0x24, money: 20000),
-              instance: 0x7F00),
-          Res(0x53545223, strResource(['Unknown pool']), instance: 0x24),
+          Res(0x46414D49, fami(lot: 0, money: 20000), instance: 0x7F00),
+          Res(0x53545223, strResource(['Unknown pool']), instance: 0x7F00),
           ...simsIn(0x7F00, 11),
+          // A record with a name and nobody in it: an address the hood
+          // keeps after a household has left.
+          Res(0x46414D49, fami(lot: 0, money: 0), instance: 2),
+          Res(0x53545223, strResource(['Moved out']), instance: 2),
           Res(0x43545353, strResource(['Pleasantview', 'Where it began.'])),
         ]),
       );
@@ -717,8 +775,7 @@ void main() {
               0xAACE2EFB,
               sdsc(instance: 5, guid: 0xA001, family: 1, age: 0x13, gender: 1),
               instance: 5),
-          Res(0x46414D49, fami(lot: 9, nameString: 0x21, money: 1234),
-              instance: 1),
+          Res(0x46414D49, fami(lot: 9, money: 1234), instance: 1),
           // The lot predates UTF-8 and is in the code page Windows ran.
           Res(
               0x0BF999E7,
@@ -726,7 +783,7 @@ void main() {
                   encode: cp1252, blurb: 'Un coin très calme…'),
               instance: 9),
           Res(0x53545223, strResource(['Gonçalves'], encode: utf8.encode),
-              instance: 0x21),
+              instance: 1),
           Res(
               0x43545353,
               strResource(

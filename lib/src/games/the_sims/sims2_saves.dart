@@ -16,8 +16,8 @@ import '../../core/save_game.dart';
 /// which reads exactly these resources) and SimsWiki's format pages:
 /// SDSC carries each sim's stats in a ushort array whose indices Sims 2
 /// inherited from The Sims 1's person data, FAMI each family's funds and
-/// lot, SREL each relationship. Names are indirect: a family's name is a
-/// string resource the FAMI points at, a sim's name lives in its
+/// lot, SREL each relationship. Names are indirect: a family's name is
+/// the string resource sharing its instance, a sim's name lives in its
 /// character package's CTSS, joined over the OBJD GUID. Images are the
 /// loose neighborhood PNG, the ready-rendered family JPEGs in
 /// `Thumbnails/<hood>_FamilyThumbnails.package`, and the player's own
@@ -34,8 +34,7 @@ const _strType = 0x53545223;
 const _ctssType = 0x43545353;
 const _objdType = 0x4F424A44;
 
-/// The jpg/tga/png image resource; family thumbnails are these, keyed by
-/// the same instance as the family's name string.
+/// The jpg/tga/png image resource.
 const _imgType = 0x856DDBAC;
 
 /// The family numbers that mean "this sim has no household": the dead and
@@ -392,10 +391,12 @@ SaveGame? _parseHood(Directory folder, String code, File package) {
       if (family.lotInstance == 0 && members.length > _maxHouseholdSims) {
         continue;
       }
-      final familyName = hood.familyNames[family.nameInstance];
-      if ((familyName == null || familyName.isEmpty) && members.isEmpty) {
-        continue;
-      }
+      // Nobody lives here. Every hood keeps a handful of these - a record
+      // left behind by a household that moved out, an address the game
+      // reserved - and they were invisible only for as long as their
+      // names were unreadable: Riverblossom Hills alone carries eleven.
+      if (members.isEmpty) continue;
+      final familyName = hood.familyNames[family.instance];
       final lot = hood.lots[family.lotInstance];
       households.add(SaveHousehold(
         name: familyName != null && familyName.isNotEmpty
@@ -406,7 +407,7 @@ SaveGame? _parseHood(Directory folder, String code, File package) {
         description: lot?.description,
         lotTypeKey: lot?.typeKey,
         isPlayed: family.lotInstance != 0,
-        portrait: familyThumbs?[family.nameInstance],
+        portrait: familyThumbs?[family.instance],
         members: [
           for (final sim in members)
             _toSim(sim, names?[sim.guid], _portraitOf(sim, names?[sim.guid]),
@@ -468,7 +469,7 @@ class _Hood {
   final List<_SimRecord> sims;
   final List<_FamilyRecord> families;
 
-  /// Name-string instance -> the family's display name.
+  /// Family instance -> the family's display name.
   final Map<int, String> familyNames;
 
   /// Lot instance -> what its description resource says.
@@ -493,11 +494,10 @@ class _SimRecord {
 }
 
 class _FamilyRecord {
-  _FamilyRecord(this.instance, this.lotInstance, this.nameInstance, this.money);
+  _FamilyRecord(this.instance, this.lotInstance, this.money);
 
   final int instance;
   final int lotInstance;
-  final int nameInstance;
   final int money;
 }
 
@@ -544,17 +544,17 @@ _Hood _readHood(RandomAccessFile raf, List<DbpfEntry> entries) {
     }
   }
 
-  // Only the string tables and lot descriptions the families point at
-  // are decompressed - a hood package carries hundreds of others.
+  // Only the string tables and lot descriptions the families need are
+  // decompressed - a hood package carries hundreds of others.
   final familyNames = <int, String>{};
   final lots = <int, _LotInfo>{};
   for (final family in families) {
-    if (!familyNames.containsKey(family.nameInstance)) {
-      final entry = strEntries[family.nameInstance];
+    if (!familyNames.containsKey(family.instance)) {
+      final entry = strEntries[family.instance];
       final blob = entry == null ? null : readDbpfResource(raf, entry);
       final strings = blob == null ? const <String>[] : _parseStrResource(blob);
       if (strings.isNotEmpty && strings.first.trim().isNotEmpty) {
-        familyNames[family.nameInstance] = strings.first.trim();
+        familyNames[family.instance] = strings.first.trim();
       }
     }
     if (family.lotInstance != 0 && !lots.containsKey(family.lotInstance)) {
@@ -636,17 +636,28 @@ _SimRecord? _parseSdsc(RandomAccessFile raf, DbpfEntry entry) {
 }
 
 /// FAMI: type echo, version, zero, lot instance, the expansions' extra
-/// lots, then the name-string instance and the family funds. Only fields
-/// up to the money are read, so unknown later versions still parse.
+/// lots, a word this doesn't read, then the family funds. Only fields up
+/// to the money are read, so unknown later versions still parse.
 ///
 /// The version gates those extra lots, and the numbers are the file's
 /// own: one install carries 0x4E in the hoods EA shipped, 0x54 and 0x55
 /// in the ones the game has written since, each step inserting one more
-/// lot ahead of the name. They read 0x81 and 0x85 until this was checked
+/// lot ahead of the funds. They read 0x81 and 0x85 until this was checked
 /// against real saves - 81 and 85 written as though they were already
 /// hex - so a 0x55 hood took its funds from the word before, which is
 /// zero on every family in it, and the whole neighborhood was worth
 /// nothing.
+///
+/// The word before the money is not the family's name string, though it
+/// reads like one and was taken for one until issue #18: in a hood the
+/// game has only ever added to, it happens to equal the family's own
+/// instance, so Pleasantview and every other freshly started save named
+/// its households correctly. It drifts as soon as households are created
+/// and deleted out of step - across the shipped hoods it points at some
+/// other family's name (Riverblossom Hills' McGreggors read as
+/// "Goldstein", Belladonna Cove's Cordials as "Ottomas") or at nothing at
+/// all. The name is the STR# sharing the family's own instance, which is
+/// what the family thumbnails are keyed by too.
 _FamilyRecord? _parseFami(RandomAccessFile raf, DbpfEntry entry) {
   final blob = readDbpfResource(raf, entry);
   if (blob == null || blob.length < 24) return null;
@@ -658,11 +669,9 @@ _FamilyRecord? _parseFami(RandomAccessFile raf, DbpfEntry entry) {
     pos += 4;
     if (version >= 0x51) pos += 4; // Open for Business: business lot
     if (version >= 0x55) pos += 4; // Bon Voyage: vacation lot
-    final nameInstance = d.getUint32(pos, Endian.little);
-    pos += 4;
+    pos += 4; // the word that is not a name
     final money = d.getInt32(pos, Endian.little);
-    return _FamilyRecord(
-        entry.instance & 0xFFFFFFFF, lotInstance, nameInstance, money);
+    return _FamilyRecord(entry.instance & 0xFFFFFFFF, lotInstance, money);
   } catch (_) {
     return null;
   }
@@ -1027,7 +1036,14 @@ Uint8List? _readImage(RandomAccessFile raf, DbpfEntry entry) {
   return null;
 }
 
-/// Family portraits: name-string instance -> JPEG bytes.
+/// Family portraits: family instance -> JPEG bytes. The game renders one
+/// per household it has to draw in the family bin, so a hood where
+/// everyone is on a lot has none at all.
+///
+/// Both image types are accepted, and the jpg one is the point: every
+/// thumbnail package on this install writes 0x8C3CE95A, so reading only
+/// 0x856DDBAC - the type the character packages use for their sim
+/// portraits - meant no household ever had a picture.
 Map<int, Uint8List> _familyThumbnails(Directory folder, String code) {
   final thumbs = <int, Uint8List>{};
   final file = File(
@@ -1039,18 +1055,9 @@ Map<int, Uint8List> _familyThumbnails(Directory folder, String code) {
     final entries = readDbpfIndex(raf);
     if (entries == null) return thumbs;
     for (final e in entries) {
-      if (e.type != _imgType) continue;
-      var data = readDbpfResource(raf, e);
-      if (data == null) continue;
-      // Some carry a 64-byte header in front of the image (Sims2Tools
-      // retries exactly this way).
-      if (!isJpeg(data) && !isPng(data) && data.length > 0x40) {
-        final skipped = Uint8List.sublistView(data, 0x40);
-        if (isJpeg(skipped) || isPng(skipped)) data = skipped;
-      }
-      if (isJpeg(data) || isPng(data)) {
-        thumbs[e.instance & 0xFFFFFFFF] = data;
-      }
+      if (e.type != _imgType && e.type != _jpgType) continue;
+      final data = _readImage(raf, e);
+      if (data != null) thumbs[e.instance & 0xFFFFFFFF] = data;
     }
   } catch (_) {
   } finally {
