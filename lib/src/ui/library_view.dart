@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 
+import '../core/conflicts.dart' show ConflictReason;
 import '../core/mod.dart';
 import '../core/mod_folder.dart';
 import '../services/sfx.dart';
@@ -2209,7 +2210,14 @@ class _GridCard extends StatelessWidget {
       c.shopUpdateForMod(mod) != null,
     )) {
       (true, _, _) => ConflictBadge(theme: t, label: l.advisoryBadge),
-      (false, true, _) => ConflictBadge(theme: t),
+      // A conflict the scan can name as an outright copy says so: "copy"
+      // is a thing to go and delete, where "conflict" is a thing to go
+      // and read about.
+      (false, true, _) => ConflictBadge(
+          theme: t,
+          label: c.conflictReasonOf(mod) == ConflictReason.exactDuplicate
+              ? l.duplicateBadge
+              : null),
       (false, false, true) => ConflictBadge(
           theme: t, label: l.shopUpdateBadge, color: t.accent, icon: '↓'),
       _ => null,
@@ -2497,7 +2505,10 @@ class _ListRow extends StatelessWidget {
               ],
               if (c.isConflicted(mod)) ...[
                 TagChip(
-                  label: l.conflictBadge,
+                  label: c.conflictReasonOf(mod) ==
+                          ConflictReason.exactDuplicate
+                      ? l.duplicateBadge
+                      : l.conflictBadge,
                   color: t.warning,
                   background: t.warning.withValues(alpha: .12),
                 ),

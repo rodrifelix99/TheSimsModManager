@@ -479,6 +479,8 @@ class DetailView extends StatelessWidget {
               Expanded(
                 child: Text(
                   switch (reason) {
+                    ConflictReason.exactDuplicate =>
+                      l.conflictSameFileHeading(others.length),
                     ConflictReason.duplicateName =>
                       l.conflictSameNameHeading(others.length),
                     ConflictReason.versionPair =>
@@ -530,6 +532,7 @@ class DetailView extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             switch (reason) {
+              ConflictReason.exactDuplicate => l.conflictSameFileBody,
               ConflictReason.duplicateName => l.conflictSameNameBody,
               ConflictReason.versionPair => l.conflictVersionBody,
               ConflictReason.resourceOverlap => l.conflictResourcesBody,

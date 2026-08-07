@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sims_mod_manager/src/core/conflicts.dart';
 import 'package:sims_mod_manager/src/core/duplicates.dart';
 import 'package:sims_mod_manager/src/core/game.dart';
 import 'package:sims_mod_manager/src/core/game_adapter.dart';
@@ -373,6 +374,56 @@ void main() {
       expect(c.duplicatesOf(hair).single.name, 'hair-copy.package');
       expect(c.isDuplicate(eyes), isFalse);
       expect(c.duplicatesOf(eyes), isEmpty);
+    });
+
+    // Issue #15: two copies of one download were badged and worded as a
+    // conflict, which is the same thing the app says about two mods that
+    // genuinely fight. Once the scan knows they are the same file, that
+    // is what it has to say.
+    test('a copy is reported as a copy rather than as a name clash',
+        () async {
+      writeMod('hair.package', 'same');
+      writeMod('cc/hair.package', 'same');
+      final c = await makeController();
+      final hair = c.mods.firstWhere((m) => m.path.endsWith('cc\\hair.package')
+          || m.path.endsWith('cc/hair.package'));
+
+      // Before the scan there is nothing sharper to say than the names.
+      expect(c.isConflicted(hair), isTrue);
+      expect(c.conflictReasonOf(hair), ConflictReason.duplicateName);
+
+      await c.scanForDuplicates();
+
+      expect(c.conflictReasonOf(hair), ConflictReason.exactDuplicate);
+    });
+
+    test('identical files under different names become a conflict', () async {
+      writeMod('hair.package', 'same');
+      writeMod('cc/hair-copy.package', 'same');
+      final c = await makeController();
+      final hair = c.mods.firstWhere((m) => m.name == 'hair.package');
+
+      // Nothing lexical connects these two, and no package was scanned.
+      expect(c.isConflicted(hair), isFalse);
+
+      await c.scanForDuplicates();
+
+      expect(c.conflictReasonOf(hair), ConflictReason.exactDuplicate);
+      expect(c.conflictingWith(hair).single.name, 'hair-copy.package');
+    });
+
+    test('deleting the extra copy takes the conflict with it', () async {
+      writeMod('hair.package', 'same');
+      writeMod('cc/hair-copy.package', 'same');
+      final c = await makeController();
+      await c.scanForDuplicates();
+      c.selectDuplicateExtras();
+
+      await c.removeSelected();
+
+      final hair = c.mods.single;
+      expect(c.isConflicted(hair), isFalse);
+      expect(c.conflictReasonOf(hair), isNull);
     });
 
     test('a disabled copy is still a copy', () async {

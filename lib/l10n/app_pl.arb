@@ -138,6 +138,7 @@
   "emptyNoModsHint": "Obserwujemy ten folder:\n{path}",
   "openFolder": "Otwórz folder",
   "conflictBadge": "konflikt",
+  "duplicateBadge": "kopia",
 
   "modInFolder": "w {folder}",
   "modInModsFolder": "w folderze Mods",
@@ -162,10 +163,12 @@
   "cancel": "Anuluj",
   "uninstall": "Odinstaluj",
 
+  "conflictSameFileHeading": "{count, plural, one{Inny włączony mod to dokładnie ten sam plik:} few{{count} inne włączone mody to dokładnie ten sam plik:} many{{count} innych włączonych modów to dokładnie ten sam plik:} other{{count} innych włączonych modów to dokładnie ten sam plik:}}",
   "conflictSameNameHeading": "{count, plural, one{Inny włączony mod ma tę samą nazwę pliku:} few{{count} inne włączone mody mają tę samą nazwę pliku:} many{{count} innych włączonych modów ma tę samą nazwę pliku:} other{{count} innych włączonych modów ma tę samą nazwę pliku:}}",
   "conflictVersionHeading": "{count, plural, one{Inny włączony mod wygląda na inną wersję tego samego moda:} few{{count} inne włączone mody wyglądają na inne wersje tego samego moda:} many{{count} innych włączonych modów wygląda na inne wersje tego samego moda:} other{{count} innych włączonych modów wygląda na inne wersje tego samego moda:}}",
   "conflictResourcesHeading": "{count, plural, one{Inny włączony mod nadpisuje te same zasoby gry:} few{{count} inne włączone mody nadpisują te same zasoby gry:} many{{count} innych włączonych modów nadpisuje te same zasoby gry:} other{{count} innych włączonych modów nadpisuje te same zasoby gry:}}",
   "sharedResources": "{count, plural, one{{count} wspólny zasób} few{{count} wspólne zasoby} many{{count} wspólnych zasobów} other{{count} wspólnych zasobów}}",
+  "conflictSameFileBody": "Skanowanie duplikatów przeczytało te pliki i zgadzają się co do bajtu. To nie są dwa mody, które się gryzą, tylko to samo pobranie leżące w folderze kilka razy. Zostaw jeden, resztę usuń: w grze nic się nie zmieni, a miejsce wróci.",
   "conflictSameNameBody": "Identyczne nazwy zwykle znaczą, że ten sam mod jest zainstalowany dwa razy albo że gryzą się paczki dwóch twórców. Gra wczytuje ich nakładające się zasoby w nieprzewidywalnej kolejności: zostaw jednego, resztę wyłącz albo usuń.",
   "conflictVersionBody": "Kilka wersji tego samego moda naraz sprawia, że gra wczytuje ich nakładające się zasoby w nieprzewidywalnej kolejności: zostaw najnowszą, resztę wyłącz albo usuń.",
   "conflictResourcesBody": "Te paczki zawierają zasoby o tych samych identyfikatorach, więc gra zostawi tylko tę kopię, którą wczyta na końcu. Czasem tak ma być (mody-łatki i override celowo przykrywają zasoby innego moda), ale przy modach, które nie mają ze sobą nic wspólnego, oznacza to, że jeden po cichu przestaje działać: zostaw ten, na którym ci zależy, a resztę wyłącz.",

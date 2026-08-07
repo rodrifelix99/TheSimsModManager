@@ -138,6 +138,7 @@
   "emptyNoModsHint": "Esta é a pasta que está sendo observada:\n{path}",
   "openFolder": "Abrir pasta",
   "conflictBadge": "conflito",
+  "duplicateBadge": "cópia",
 
   "modInFolder": "em {folder}",
   "modInModsFolder": "na pasta Mods",
@@ -162,10 +163,12 @@
   "cancel": "Cancelar",
   "uninstall": "Desinstalar",
 
+  "conflictSameFileHeading": "{count, plural, one{Outro mod ativo é exatamente o mesmo arquivo:} other{Outros {count} mods ativos são exatamente o mesmo arquivo:}}",
   "conflictSameNameHeading": "{count, plural, one{Outro mod ativo tem o mesmo nome de arquivo:} other{Outros {count} mods ativos têm o mesmo nome de arquivo:}}",
   "conflictVersionHeading": "{count, plural, one{Outro mod ativo parece ser uma versão diferente deste mod:} other{Outros {count} mods ativos parecem versões diferentes deste mod:}}",
   "conflictResourcesHeading": "{count, plural, one{Outro mod ativo sobrescreve os mesmos recursos do jogo:} other{Outros {count} mods ativos sobrescrevem os mesmos recursos do jogo:}}",
   "sharedResources": "{count, plural, one{1 recurso em comum} other{{count} recursos em comum}}",
+  "conflictSameFileBody": "A busca por duplicatas leu esses arquivos e eles batem byte a byte, então não são dois mods brigando: é o mesmo download ocupando espaço na sua pasta mais de uma vez. Ficar com um e apagar o resto não muda nada no jogo e devolve o espaço.",
   "conflictSameNameBody": "Nomes idênticos normalmente querem dizer que o mesmo mod está instalado duas vezes, ou que os pacotes de dois criadores estão brigando. O jogo carrega os recursos que se sobrepõem numa ordem imprevisível: fique com um e desative ou remova o resto.",
   "conflictVersionBody": "Ter várias versões do mesmo mod instaladas faz o jogo carregar os recursos que se sobrepõem numa ordem imprevisível: fique com a mais nova e desative ou remova as outras.",
   "conflictResourcesBody": "Estes pacotes têm recursos com os mesmos identificadores, então o jogo só fica com a cópia que carrega por último. Isso pode ser de propósito (mods de patch e de override cobrem os recursos de outro mod intencionalmente), mas entre mods sem relação significa que um deles simplesmente para de funcionar sem avisar: fique com o que você quer e desative os outros.",

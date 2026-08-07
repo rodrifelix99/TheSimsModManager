@@ -138,6 +138,7 @@
   "emptyNoModsHint": "Voici le dossier surveillé :\n{path}",
   "openFolder": "Ouvrir le dossier",
   "conflictBadge": "conflit",
+  "duplicateBadge": "copie",
 
   "modInFolder": "dans {folder}",
   "modInModsFolder": "dans le dossier Mods",
@@ -162,10 +163,12 @@
   "cancel": "Annuler",
   "uninstall": "Désinstaller",
 
+  "conflictSameFileHeading": "{count, plural, one{Un autre mod actif est exactement le même fichier :} other{{count} autres mods actifs sont exactement le même fichier :}}",
   "conflictSameNameHeading": "{count, plural, one{Un autre mod actif porte le même nom de fichier :} other{{count} autres mods actifs portent le même nom de fichier :}}",
   "conflictVersionHeading": "{count, plural, one{Un autre mod actif ressemble à une autre version de ce mod :} other{{count} autres mods actifs ressemblent à d’autres versions de ce mod :}}",
   "conflictResourcesHeading": "{count, plural, one{Un autre mod actif écrase les mêmes ressources du jeu :} other{{count} autres mods actifs écrasent les mêmes ressources du jeu :}}",
   "sharedResources": "{count, plural, one{1 ressource en commun} other{{count} ressources en commun}}",
+  "conflictSameFileBody": "L’analyse des doublons a lu ces fichiers et ils sont identiques octet pour octet : ce ne sont pas deux mods qui se disputent, c’est le même téléchargement présent plusieurs fois dans ton dossier. Garde-en un et supprime le reste : rien ne change dans le jeu et tu récupères la place.",
   "conflictSameNameBody": "Deux fichiers qui portent le même nom, c’est en général le même mod installé deux fois, ou les paquets de deux créateurs qui se marchent dessus. Le jeu charge leurs ressources communes dans un ordre imprévisible : garde-en un et désactive ou supprime le reste.",
   "conflictVersionBody": "Avoir plusieurs versions d’un même mod installées oblige le jeu à charger leurs ressources communes dans un ordre imprévisible : garde la plus récente et désactive ou supprime les autres.",
   "conflictResourcesBody": "Ces paquets contiennent des ressources aux mêmes identifiants, donc le jeu ne garde que la copie chargée en dernier. Ça peut être voulu (les mods correctifs et les overrides recouvrent les ressources d’un autre mod exprès), mais entre mods sans rapport, ça veut dire que l’un d’eux cesse de fonctionner sans rien dire : garde celui que tu veux et désactive les autres.",

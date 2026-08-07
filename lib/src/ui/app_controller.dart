@@ -1368,18 +1368,38 @@ class AppController extends ChangeNotifier {
   /// inexplicably empty list. The remote kill switch can turn the scan
   /// off for everyone if the heuristic ever misbehaves.
   ///
-  /// [findConflictPairs] folds both signals: its own lexical heuristics
-  /// and the real resource-key overlaps handed to it
+  /// [findConflictPairs] folds every signal there is: its own lexical
+  /// heuristics, the real resource-key overlaps handed to it
   /// ([findResourceOverlaps], via the insight cache - so with the artwork
-  /// scan off only the lexical pass runs). What each mod is flagged for
-  /// then follows from the pairs it has left once [_applyIgnored] has
-  /// taken out the ones the user settled.
+  /// scan off only the lexical pass runs), and the whole-file digests
+  /// ([digestOf], which answers for nothing until the user has run the
+  /// duplicate scan). What each mod is flagged for then follows from the
+  /// pairs it has left once [_applyIgnored] has taken out the ones the
+  /// user settled.
   void _rescanConflicts() {
-    final scan = settings.warnConflicts &&
-        analytics.isEnabled('conflict-detection', fallback: true);
-    resourceOverlaps = scan ? findResourceOverlaps(mods, insightFor) : const {};
-    _allConflictPairs =
-        scan ? findConflictPairs(mods, resourceOverlaps) : const {};
+    resourceOverlaps = _conflictScanOn
+        ? findResourceOverlaps(mods, insightFor)
+        : const {};
+    _rebuildConflictPairs();
+  }
+
+  bool get _conflictScanOn =>
+      settings.warnConflicts &&
+      analytics.isEnabled('conflict-detection', fallback: true);
+
+  /// The pairs again from the overlaps already in hand.
+  ///
+  /// Split off [_rescanConflicts] for the duplicate scan's sake: finishing
+  /// one changes what [digestOf] can answer, so the pairs have to be
+  /// rebuilt for the identical files to be reported as identical rather
+  /// than as whatever they resembled. Nothing it reads has moved, though -
+  /// the packages, the library and the insight cache are where they were -
+  /// so redoing the resource pass would be several seconds of frozen
+  /// window bought for an answer that cannot have changed.
+  void _rebuildConflictPairs() {
+    _allConflictPairs = _conflictScanOn
+        ? findConflictPairs(mods, resourceOverlaps, digestOf: digestOf)
+        : const {};
     _applyIgnored();
   }
 
@@ -2238,6 +2258,7 @@ class AppController extends ChangeNotifier {
       // the screen saying so rather than saying nothing happened.
       duplicatesScanned = true;
       _regroupDuplicates();
+      _rebuildConflictPairs();
       notifyListeners();
       return;
     }
@@ -2277,6 +2298,9 @@ class AppController extends ChangeNotifier {
     // which is not the same as having looked at it.
     duplicatesScanned = !_cancelDuplicateScan;
     _regroupDuplicates();
+    // A stopped scan still hashed some of the library, and the pairs it
+    // did settle are as true as a finished scan's.
+    _rebuildConflictPairs();
     analytics.capture('duplicate_scan_completed', {
       'game': _adapter.game.id,
       'mods': real.length,

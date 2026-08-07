@@ -524,6 +524,9 @@ class LEl extends L {
   String get conflictBadge => 'ασυμβατότητα';
 
   @override
+  String get duplicateBadge => 'αντίγραφο';
+
+  @override
   String modInFolder(String folder) {
     return 'στο $folder';
   }
@@ -598,6 +601,17 @@ class LEl extends L {
   String get uninstall => 'Απεγκατάσταση';
 
   @override
+  String conflictSameFileHeading(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count άλλα ενεργά mod είναι ακριβώς το ίδιο αρχείο:',
+      one: 'Κάποιο άλλο ενεργό mod είναι ακριβώς το ίδιο αρχείο:',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String conflictSameNameHeading(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -644,6 +658,10 @@ class LEl extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get conflictSameFileBody =>
+      'Η σάρωση διπλότυπων διάβασε αυτά τα αρχεία και ταιριάζουν byte προς byte. Δεν πρόκειται για δύο mod που συγκρούονται, αλλά για την ίδια λήψη που βρίσκεται στον φάκελο περισσότερες από μία φορές. Κρατήστε ένα και αφαιρέστε τα υπόλοιπα: τίποτα δεν αλλάζει στο παιχνίδι και κερδίζετε τον χώρο πίσω.';
 
   @override
   String get conflictSameNameBody =>

@@ -489,6 +489,9 @@ class LJa extends L {
   String get conflictBadge => '競合';
 
   @override
+  String get duplicateBadge => '重複';
+
+  @override
   String modInFolder(String folder) {
     return '$folder 内';
   }
@@ -563,6 +566,16 @@ class LJa extends L {
   String get uninstall => 'アンインストール';
 
   @override
+  String conflictSameFileHeading(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '他に $count 個の有効な MOD がまったく同じファイルです：',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String conflictSameNameHeading(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -596,6 +609,10 @@ class LJa extends L {
   String sharedResources(int count) {
     return '共通リソース $count 件';
   }
+
+  @override
+  String get conflictSameFileBody =>
+      '重複スキャンがこれらのファイルを読んだところ、バイト単位で一致しました。MOD 同士がぶつかっているのではなく、同じダウンロードがフォルダーに何度も入っているだけです。ひとつだけ残して他を削除しても、ゲームの中身は何も変わらず、容量だけ戻ってきます。';
 
   @override
   String get conflictSameNameBody =>

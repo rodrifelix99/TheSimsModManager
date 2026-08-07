@@ -138,6 +138,7 @@
   "emptyNoModsHint": "このフォルダを見ています：\n{path}",
   "openFolder": "フォルダを開く",
   "conflictBadge": "競合",
+  "duplicateBadge": "重複",
 
   "modInFolder": "{folder} 内",
   "modInModsFolder": "Mods フォルダ内",
@@ -162,10 +163,12 @@
   "cancel": "キャンセル",
   "uninstall": "アンインストール",
 
+  "conflictSameFileHeading": "{count, plural, other{他に {count} 個の有効な MOD がまったく同じファイルです：}}",
   "conflictSameNameHeading": "{count, plural, other{他に {count} 個の有効な MOD が同じファイル名です：}}",
   "conflictVersionHeading": "{count, plural, other{他に {count} 個の有効な MOD が、この MOD の別バージョンのようです：}}",
   "conflictResourcesHeading": "{count, plural, other{他に {count} 個の有効な MOD が同じゲーム内リソースを上書きしています：}}",
   "sharedResources": "共通リソース {count} 件",
+  "conflictSameFileBody": "重複スキャンがこれらのファイルを読んだところ、バイト単位で一致しました。MOD 同士がぶつかっているのではなく、同じダウンロードがフォルダーに何度も入っているだけです。ひとつだけ残して他を削除しても、ゲームの中身は何も変わらず、容量だけ戻ってきます。",
   "conflictSameNameBody": "ファイル名がまったく同じなのは、たいてい同じ MOD が二重に入っているか、別々の作者のパッケージがぶつかっているサインです。重なったリソースの読み込み順は予測できないので、ひとつだけ残して他は無効にするか削除してください。",
   "conflictVersionBody": "同じ MOD のバージョンが複数入っていると、重なったリソースの読み込み順が予測できません。いちばん新しいものだけ残して、他は無効にするか削除してください。",
   "conflictResourcesBody": "これらのパッケージには同じ識別子のリソースが入っているため、ゲームは最後に読み込んだものだけを残します。パッチ系や上書き系の MOD はわざと他の MOD のリソースを隠すので意図的なこともありますが、無関係な MOD 同士だと片方が黙って効かなくなります。使いたいほうを残して、他は無効にしてください。",

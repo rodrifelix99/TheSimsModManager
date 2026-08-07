@@ -138,6 +138,7 @@
   "emptyNoModsHint": "Dieser Ordner wird beobachtet:\n{path}",
   "openFolder": "Ordner öffnen",
   "conflictBadge": "Konflikt",
+  "duplicateBadge": "Kopie",
 
   "modInFolder": "in {folder}",
   "modInModsFolder": "im Mods-Ordner",
@@ -162,10 +163,12 @@
   "cancel": "Abbrechen",
   "uninstall": "Deinstallieren",
 
+  "conflictSameFileHeading": "{count, plural, one{Ein anderer aktiver Mod ist exakt dieselbe Datei:} other{{count} andere aktive Mods sind exakt dieselbe Datei:}}",
   "conflictSameNameHeading": "{count, plural, one{Ein anderer aktiver Mod hat denselben Dateinamen:} other{{count} andere aktive Mods haben denselben Dateinamen:}}",
   "conflictVersionHeading": "{count, plural, one{Ein anderer aktiver Mod sieht aus wie eine andere Version dieses Mods:} other{{count} andere aktive Mods sehen aus wie andere Versionen dieses Mods:}}",
   "conflictResourcesHeading": "{count, plural, one{Ein anderer aktiver Mod überschreibt dieselben Spielressourcen:} other{{count} andere aktive Mods überschreiben dieselben Spielressourcen:}}",
   "sharedResources": "{count, plural, one{1 gemeinsame Ressource} other{{count} gemeinsame Ressourcen}}",
+  "conflictSameFileBody": "Der Duplikat-Scan hat diese Dateien gelesen und sie stimmen Byte für Byte überein. Das sind also nicht zwei Mods, die sich streiten, sondern derselbe Download, der mehrfach in deinem Ordner liegt. Behalte einen und lösche den Rest: im Spiel ändert sich nichts und du bekommst den Speicher zurück.",
   "conflictSameNameBody": "Gleiche Dateinamen heißen meistens, dass derselbe Mod zweimal installiert ist, oder dass die Pakete von zwei Creators kollidieren. Das Spiel lädt die überlappenden Ressourcen in unvorhersehbarer Reihenfolge: behalte einen und deaktiviere oder lösche den Rest.",
   "conflictVersionBody": "Wenn mehrere Versionen eines Mods installiert sind, lädt das Spiel die überlappenden Ressourcen in unvorhersehbarer Reihenfolge: behalte die neueste und deaktiviere oder lösche die anderen.",
   "conflictResourcesBody": "Diese Pakete enthalten Ressourcen mit denselben Kennungen, also behält das Spiel nur die zuletzt geladene Kopie. Das kann Absicht sein (Patch- und Override-Mods überdecken die Ressourcen anderer Mods bewusst), aber bei Mods, die nichts miteinander zu tun haben, hört einer davon einfach still auf zu funktionieren: behalte den, den du willst, und deaktiviere die anderen.",
