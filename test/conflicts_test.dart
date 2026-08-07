@@ -234,6 +234,103 @@ void main() {
     });
   });
 
+  group('exact duplicates', () {
+    String? Function(Mod) digests(Map<String, String> byPath) =>
+        (mod) => byPath[mod.path];
+
+    test('same digest outranks every weaker reason for that pair', () {
+      final a = _mod('hair.package', r'C:\mods\hair.package');
+      final b = _mod('hair.package', r'C:\mods\sub\hair.package');
+
+      final pairs = findConflictPairs([a, b], {
+        a.path: {b.path: 9},
+        b.path: {a.path: 9},
+      }, digestOf: digests({a.path: 'abc', b.path: 'abc'}));
+
+      // Same name and a real resource overlap are both true here, and
+      // both are the long way round of saying it is the same file.
+      expect(pairs[a.path], {b.path: ConflictReason.exactDuplicate});
+      expect(conflictReasonsOf(pairs), {
+        a.path: ConflictReason.exactDuplicate,
+        b.path: ConflictReason.exactDuplicate,
+      });
+    });
+
+    test('the same download under two names is caught with nothing else', () {
+      final a = _mod('hair.package', r'C:\mods\hair.package');
+      final b = _mod('hair-copy.package', r'C:\mods\hair-copy.package');
+
+      // No shared name, no version token, no overlaps: the digest is the
+      // only thing that knows.
+      expect(_flagged([a, b]), isEmpty);
+      expect(
+        conflictReasonsOf(findConflictPairs([a, b], const {},
+            digestOf: digests({a.path: 'abc', b.path: 'abc'}))),
+        {
+          a.path: ConflictReason.exactDuplicate,
+          b.path: ConflictReason.exactDuplicate,
+        },
+      );
+    });
+
+    test('a disabled copy is not a conflict', () {
+      final on = _mod('hair.package', r'C:\mods\hair.package');
+      final off = _mod('hair.package', r'C:\mods\sub\hair.package.disabled',
+          enabled: false);
+
+      expect(
+        findConflictPairs([on, off], const {},
+            digestOf: digests({on.path: 'abc', off.path: 'abc'})),
+        isEmpty,
+      );
+    });
+
+    test('mods nothing has hashed are left to the weaker signals', () {
+      final a = _mod('hair.package', r'C:\mods\hair.package');
+      final b = _mod('hair.package', r'C:\mods\sub\hair.package');
+
+      expect(
+        conflictReasonsOf(
+            findConflictPairs([a, b], const {}, digestOf: (_) => null)),
+        {
+          a.path: ConflictReason.duplicateName,
+          b.path: ConflictReason.duplicateName,
+        },
+      );
+    });
+
+    test('different digests are not a duplicate', () {
+      final a = _mod('hair.package', r'C:\mods\hair.package');
+      final b = _mod('hair.package', r'C:\mods\sub\hair.package');
+
+      expect(
+        conflictReasonsOf(findConflictPairs([a, b], const {},
+            digestOf: digests({a.path: 'abc', b.path: 'def'}))),
+        {
+          a.path: ConflictReason.duplicateName,
+          b.path: ConflictReason.duplicateName,
+        },
+      );
+    });
+
+    // The budget is what a mod with 32 same-named siblings spends before
+    // anything sharper is recorded, so the copies go in first.
+    test('name twins do not crowd out an identical file', () {
+      final many = [
+        for (var i = 0; i < 40; i++)
+          _mod('same.package', 'C:\\mods\\m$i\\same.package'),
+      ];
+      final copy = _mod('other.package', r'C:\mods\other.package');
+
+      final pairs = findConflictPairs([...many, copy], const {},
+          digestOf: digests({many.last.path: 'abc', copy.path: 'abc'}));
+
+      expect(pairs[many.last.path], contains(copy.path));
+      expect(
+          pairs[many.last.path]![copy.path], ConflictReason.exactDuplicate);
+    });
+  });
+
   group('findResourceOverlaps', () {
     const casp = ResourceKey(0x034AEECB, 0, 0x100);
     const tuning = ResourceKey(0x0333406C, 0, 0x200);

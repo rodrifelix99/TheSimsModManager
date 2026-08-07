@@ -138,6 +138,7 @@
   "emptyNoModsHint": "Esta es la carpeta que se está vigilando:\n{path}",
   "openFolder": "Abrir carpeta",
   "conflictBadge": "conflicto",
+  "duplicateBadge": "copia",
 
   "modInFolder": "en {folder}",
   "modInModsFolder": "en la carpeta Mods",
@@ -162,10 +163,12 @@
   "cancel": "Cancelar",
   "uninstall": "Desinstalar",
 
+  "conflictSameFileHeading": "{count, plural, one{Otro mod activo es exactamente el mismo archivo:} other{Otros {count} mods activos son exactamente el mismo archivo:}}",
   "conflictSameNameHeading": "{count, plural, one{Otro mod activo tiene el mismo nombre de archivo:} other{Otros {count} mods activos tienen el mismo nombre de archivo:}}",
   "conflictVersionHeading": "{count, plural, one{Otro mod activo parece una versión distinta de este mismo mod:} other{Otros {count} mods activos parecen versiones distintas de este mismo mod:}}",
   "conflictResourcesHeading": "{count, plural, one{Otro mod activo sobrescribe los mismos recursos del juego:} other{Otros {count} mods activos sobrescriben los mismos recursos del juego:}}",
   "sharedResources": "{count, plural, one{1 recurso compartido} other{{count} recursos compartidos}}",
+  "conflictSameFileBody": "El escaneo de duplicados leyó estos archivos y coinciden byte a byte, así que no son dos mods peleando: es la misma descarga repetida en tu carpeta. Quédate con uno y borra el resto: en el juego no cambia nada y recuperas el espacio.",
   "conflictSameNameBody": "Que dos archivos se llamen igual suele significar que el mismo mod está instalado dos veces, o que chocan los paquetes de dos creadores distintos. El juego carga sus recursos solapados en un orden impredecible: quédate con uno y desactiva o elimina el resto.",
   "conflictVersionBody": "Tener varias versiones del mismo mod instaladas hace que el juego cargue sus recursos solapados en un orden impredecible: quédate con la más nueva y desactiva o elimina las demás.",
   "conflictResourcesBody": "Estos paquetes contienen recursos con los mismos identificadores, así que el juego solo conserva la copia que carga en último lugar. Puede ser a propósito (los mods de parche y de sobrescritura tapan los recursos de otro mod aposta), pero entre mods que no tienen nada que ver significa que uno de ellos deja de funcionar sin avisar: quédate con el que quieras y desactiva el resto.",

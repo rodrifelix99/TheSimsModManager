@@ -541,6 +541,9 @@ class LRu extends L {
   String get conflictBadge => 'конфликт';
 
   @override
+  String get duplicateBadge => 'копия';
+
+  @override
   String modInFolder(String folder) {
     return 'в $folder';
   }
@@ -615,6 +618,19 @@ class LRu extends L {
   String get uninstall => 'Удалить';
 
   @override
+  String conflictSameFileHeading(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ещё у $count включённых модов точно такой же файл:',
+      many: 'Ещё у $count включённых модов точно такой же файл:',
+      few: 'Ещё у $count включённых модов точно такой же файл:',
+      one: 'Ещё у одного включённого мода точно такой же файл:',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String conflictSameNameHeading(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -667,6 +683,10 @@ class LRu extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get conflictSameFileBody =>
+      'Поиск дубликатов прочитал эти файлы, и они совпадают байт в байт. Это не два мода, которые конфликтуют, а одна и та же загрузка, лежащая в папке несколько раз. Оставь один, остальные удали: в игре ничего не изменится, а место вернётся.';
 
   @override
   String get conflictSameNameBody =>

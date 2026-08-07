@@ -484,6 +484,9 @@ class LZh extends L {
   String get conflictBadge => '冲突';
 
   @override
+  String get duplicateBadge => '重复';
+
+  @override
   String modInFolder(String folder) {
     return '位于 $folder';
   }
@@ -557,6 +560,16 @@ class LZh extends L {
   String get uninstall => '卸载';
 
   @override
+  String conflictSameFileHeading(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '另外 $count 个已启用的 MOD 和它是完全相同的文件：',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String conflictSameNameHeading(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -590,6 +603,10 @@ class LZh extends L {
   String sharedResources(int count) {
     return '$count 个共同资源';
   }
+
+  @override
+  String get conflictSameFileBody =>
+      '重复扫描读过这些文件，它们逐字节完全一致。这不是两个 MOD 在打架，而是同一个下载在文件夹里存了好几份。留一个、把其余删掉，游戏里不会有任何变化，空间却能拿回来。';
 
   @override
   String get conflictSameNameBody =>

@@ -523,6 +523,9 @@ class LPt extends L {
   String get conflictBadge => 'conflito';
 
   @override
+  String get duplicateBadge => 'cópia';
+
+  @override
   String modInFolder(String folder) {
     return 'em $folder';
   }
@@ -597,6 +600,17 @@ class LPt extends L {
   String get uninstall => 'Desinstalar';
 
   @override
+  String conflictSameFileHeading(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Outros $count mods ativos são exatamente o mesmo arquivo:',
+      one: 'Outro mod ativo é exatamente o mesmo arquivo:',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String conflictSameNameHeading(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -640,6 +654,10 @@ class LPt extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get conflictSameFileBody =>
+      'A busca por duplicatas leu esses arquivos e eles batem byte a byte, então não são dois mods brigando: é o mesmo download ocupando espaço na sua pasta mais de uma vez. Ficar com um e apagar o resto não muda nada no jogo e devolve o espaço.';
 
   @override
   String get conflictSameNameBody =>

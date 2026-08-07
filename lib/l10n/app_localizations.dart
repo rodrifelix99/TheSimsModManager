@@ -883,6 +883,12 @@ abstract class L {
   /// **'conflict'**
   String get conflictBadge;
 
+  /// No description provided for @duplicateBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'copy'**
+  String get duplicateBadge;
+
   /// No description provided for @modInFolder.
   ///
   /// In en, this message translates to:
@@ -1003,6 +1009,12 @@ abstract class L {
   /// **'Uninstall'**
   String get uninstall;
 
+  /// No description provided for @conflictSameFileHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Another enabled mod is exactly the same file:} other{{count} other enabled mods are exactly the same file:}}'**
+  String conflictSameFileHeading(int count);
+
   /// No description provided for @conflictSameNameHeading.
   ///
   /// In en, this message translates to:
@@ -1026,6 +1038,12 @@ abstract class L {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 shared resource} other{{count} shared resources}}'**
   String sharedResources(int count);
+
+  /// No description provided for @conflictSameFileBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The duplicate scan read these files and they match byte for byte, so this isn\'t two mods arguing - it\'s the same download sitting in your folder more than once. Keeping one and removing the rest changes nothing in the game and gives you the space back.'**
+  String get conflictSameFileBody;
 
   /// No description provided for @conflictSameNameBody.
   ///

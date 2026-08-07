@@ -243,6 +243,7 @@
   },
   "openFolder": "Open folder",
   "conflictBadge": "conflict",
+  "duplicateBadge": "copy",
 
   "modInFolder": "in {folder}",
   "@modInFolder": {
@@ -285,6 +286,10 @@
   "cancel": "Cancel",
   "uninstall": "Uninstall",
 
+  "conflictSameFileHeading": "{count, plural, =1{Another enabled mod is exactly the same file:} other{{count} other enabled mods are exactly the same file:}}",
+  "@conflictSameFileHeading": {
+    "placeholders": { "count": { "type": "int" } }
+  },
   "conflictSameNameHeading": "{count, plural, =1{Another enabled mod has the same file name:} other{{count} other enabled mods have the same file name:}}",
   "@conflictSameNameHeading": {
     "placeholders": { "count": { "type": "int" } }
@@ -301,6 +306,7 @@
   "@sharedResources": {
     "placeholders": { "count": { "type": "int" } }
   },
+  "conflictSameFileBody": "The duplicate scan read these files and they match byte for byte, so this isn't two mods arguing - it's the same download sitting in your folder more than once. Keeping one and removing the rest changes nothing in the game and gives you the space back.",
   "conflictSameNameBody": "Identical names usually mean the same mod is installed twice, or two creators' packages clash. The game loads their overlapping resources in an unpredictable order: keep one and disable or remove the rest.",
   "conflictVersionBody": "Having several versions of a mod installed means the game loads their overlapping resources in an unpredictable order: keep the newest and disable or remove the rest.",
   "conflictResourcesBody": "These packages contain resources with the same identifiers, so the game only keeps the copy it loads last. That can be intentional (patch and override mods shadow another mod's resources on purpose), but for unrelated mods it means one of them silently stops working: keep the one you want and disable the rest.",

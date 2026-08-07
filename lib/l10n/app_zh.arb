@@ -138,6 +138,7 @@
   "emptyNoModsHint": "正在监视这个文件夹：\n{path}",
   "openFolder": "打开文件夹",
   "conflictBadge": "冲突",
+  "duplicateBadge": "重复",
 
   "modInFolder": "位于 {folder}",
   "modInModsFolder": "位于 Mods 文件夹",
@@ -162,10 +163,12 @@
   "cancel": "取消",
   "uninstall": "卸载",
 
+  "conflictSameFileHeading": "{count, plural, other{另外 {count} 个已启用的 MOD 和它是完全相同的文件：}}",
   "conflictSameNameHeading": "{count, plural, other{另外 {count} 个已启用的 MOD 文件名相同：}}",
   "conflictVersionHeading": "{count, plural, other{另外 {count} 个已启用的 MOD 看起来是这个 MOD 的其他版本：}}",
   "conflictResourcesHeading": "{count, plural, other{另外 {count} 个已启用的 MOD 覆盖了同样的游戏资源：}}",
   "sharedResources": "{count} 个共同资源",
+  "conflictSameFileBody": "重复扫描读过这些文件，它们逐字节完全一致。这不是两个 MOD 在打架，而是同一个下载在文件夹里存了好几份。留一个、把其余删掉，游戏里不会有任何变化，空间却能拿回来。",
   "conflictSameNameBody": "文件名完全一样，通常意味着同一个 MOD 装了两遍，或者两位作者的包撞车了。游戏加载重叠资源的顺序无法预料：留一个，其余的停用或删掉。",
   "conflictVersionBody": "同一个 MOD 装了好几个版本，游戏加载重叠资源的顺序就无法预料：留最新的那个，其余的停用或删掉。",
   "conflictResourcesBody": "这些包里有标识符相同的资源，所以游戏只会保留最后加载的那一份。这有时是故意的（补丁类和覆盖类 MOD 本来就是要盖住别的 MOD 的资源），但如果两个 MOD 毫不相干，那就意味着其中一个悄悄失效了：留下你想要的那个，把其余的停用。",

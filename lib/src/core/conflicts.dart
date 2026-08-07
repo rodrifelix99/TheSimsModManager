@@ -13,6 +13,15 @@ import 'package_insight.dart';
 /// resource scan caught is reported as the lexical one, and [mostSpecificConflict]
 /// is that rule.
 enum ConflictReason {
+  /// Another enabled mod is byte-for-byte the same file
+  /// (`core/duplicates.dart`). The sharpest reason there is, and the only
+  /// one that is a fact rather than a resemblance, so it outranks the
+  /// three below: the same download saved twice reads as a name clash or
+  /// a resource overlap to every one of them, and "these two files are
+  /// identical" is both the truer sentence and the one with an obvious
+  /// answer next to it.
+  exactDuplicate,
+
   /// Another enabled mod carries the same file name.
   duplicateName,
 
@@ -54,15 +63,23 @@ ConflictReason mostSpecificConflict(Iterable<ConflictReason> reasons) =>
 /// `const {}` for the lexical pass alone (which is what the library falls
 /// back to with the package scan switched off).
 ///
-/// Lexical pairs are recorded first and against their own budget of
+/// [digestOf] is the fourth and sharpest, and the only optional one: the
+/// whole-file hashes the duplicate scan collected, answering null for
+/// every mod it never read. Two enabled mods sharing a digest are the
+/// same file, which is a fact rather than a resemblance - so they are
+/// paired first, before any budget can be spent on the weaker signals
+/// that were about to describe the same two files less well.
+///
+/// Lexical pairs are recorded next and against their own budget of
 /// [_maxPartnersPerMod]; the overlaps then fill up to twice that. Sharing
 /// one budget meant a mod with 32 same-named siblings lost the package
 /// that really overrides its resources, which is the sharper signal of
 /// the two and the one the scan went to the trouble of reading.
 Map<String, Map<String, ConflictReason>> findConflictPairs(
   List<Mod> mods,
-  Map<String, Map<String, int>> overlaps,
-) {
+  Map<String, Map<String, int>> overlaps, {
+  String? Function(Mod mod)? digestOf,
+}) {
   final enabled = mods.where((m) => m.isEnabled).toList();
   final pairs = <String, Map<String, ConflictReason>>{};
 
@@ -98,6 +115,16 @@ Map<String, Map<String, ConflictReason>> findConflictPairs(
     byIdentity.putIfAbsent(infoOf[mod.path]!.identity, () => []).add(mod);
   }
 
+  if (digestOf != null) {
+    final byDigest = <String, List<Mod>>{};
+    for (final mod in enabled) {
+      final digest = digestOf(mod);
+      if (digest != null) byDigest.putIfAbsent(digest, () => []).add(mod);
+    }
+    for (final group in byDigest.values) {
+      if (group.length > 1) pairAll(group, ConflictReason.exactDuplicate);
+    }
+  }
   for (final group in byName.values) {
     if (group.length > 1) pairAll(group, ConflictReason.duplicateName);
   }

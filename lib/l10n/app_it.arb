@@ -138,6 +138,7 @@
   "emptyNoModsHint": "La cartella sotto osservazione è questa:\n{path}",
   "openFolder": "Apri cartella",
   "conflictBadge": "conflitto",
+  "duplicateBadge": "copia",
 
   "modInFolder": "in {folder}",
   "modInModsFolder": "nella cartella Mods",
@@ -162,10 +163,12 @@
   "cancel": "Annulla",
   "uninstall": "Disinstalla",
 
+  "conflictSameFileHeading": "{count, plural, one{Un’altra mod attiva è esattamente lo stesso file:} other{Altre {count} mod attive sono esattamente lo stesso file:}}",
   "conflictSameNameHeading": "{count, plural, one{Un’altra mod attiva ha lo stesso nome file:} other{Altre {count} mod attive hanno lo stesso nome file:}}",
   "conflictVersionHeading": "{count, plural, one{Un’altra mod attiva sembra una versione diversa di questa mod:} other{Altre {count} mod attive sembrano versioni diverse di questa mod:}}",
   "conflictResourcesHeading": "{count, plural, one{Un’altra mod attiva sovrascrive le stesse risorse di gioco:} other{Altre {count} mod attive sovrascrivono le stesse risorse di gioco:}}",
   "sharedResources": "{count, plural, one{1 risorsa in comune} other{{count} risorse in comune}}",
+  "conflictSameFileBody": "La scansione dei duplicati ha letto questi file e combaciano byte per byte: non sono due mod che litigano, è lo stesso download finito più volte nella tua cartella. Tienine una ed elimina il resto: nel gioco non cambia niente e ti riprendi lo spazio.",
   "conflictSameNameBody": "Due nomi identici di solito vogliono dire che la stessa mod è installata due volte, o che i pacchetti di due creator si pestano i piedi. Il gioco carica le risorse che si sovrappongono in un ordine imprevedibile: tienine una e disattiva o elimina il resto.",
   "conflictVersionBody": "Avere più versioni della stessa mod installate fa sì che il gioco carichi le risorse che si sovrappongono in un ordine imprevedibile: tieni la più recente e disattiva o elimina le altre.",
   "conflictResourcesBody": "Questi pacchetti contengono risorse con gli stessi identificatori, quindi il gioco tiene solo la copia che carica per ultima. Può essere voluto (le mod correttive e gli override coprono di proposito le risorse di un’altra mod), ma tra mod che non c’entrano nulla significa che una delle due smette di funzionare senza dire niente: tieni quella che vuoi e disattiva le altre.",
