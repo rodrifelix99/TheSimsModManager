@@ -3305,9 +3305,16 @@ class AppController extends ChangeNotifier {
       try {
         final dir =
             Directory(p.joinAll([root.path, ...folderSegments(folder)]));
-        if (dir.existsSync()) await dir.delete(recursive: true);
+        if (dir.existsSync()) await _deleteTree(dir);
       } catch (e, stack) {
-        analytics.captureException(e, stack, mechanism: 'deleteFolder');
+        // A folder Windows won't part with is a verdict on the machine
+        // rather than a bug: the mods inside are already gone, the banner
+        // says the folder isn't, and folder_deleted counts it. Reporting
+        // it as an exception too would only bury real ones - the same
+        // bargain installFiles strikes for a refused copy.
+        if (e is! PathAccessException) {
+          analytics.captureException(e, stack, mechanism: 'deleteFolder');
+        }
         failure ??= errorMessage(e);
         failed++;
       }
@@ -3334,6 +3341,30 @@ class AppController extends ChangeNotifier {
     }
     await _refreshKeepingError(_batchError(failure, failed, 'bulkRemoveFailed'));
   }
+
+  /// Removes [dir] and everything left in it, retrying while the system
+  /// refuses.
+  ///
+  /// The mods have just been deleted out of this folder, and on Windows
+  /// that is the worst possible moment to ask for the folder itself: an
+  /// antivirus scanning what changed, an Explorer window sitting in it or
+  /// the search indexer holding a handle all answer "access denied" to a
+  /// directory that is perfectly deletable a second later. The same
+  /// growing pause the adapter gives a locked file, for the same reason.
+  Future<void> _deleteTree(Directory dir) async {
+    for (var attempt = 1;; attempt++) {
+      try {
+        await dir.delete(recursive: true);
+        return;
+      } on PathAccessException {
+        if (attempt >= _lockedFolderAttempts) rethrow;
+        await Future<void>.delayed(_lockedFolderDelay * attempt);
+      }
+    }
+  }
+
+  static const _lockedFolderAttempts = 4;
+  static const _lockedFolderDelay = Duration(milliseconds: 250);
 
   /// Whether [folder] holds nothing but invented mods, so deleting it
   /// must not reach for the disk. The demo library is drawn in a mods
@@ -4163,7 +4194,24 @@ class AppController extends ChangeNotifier {
   Future<void> pickFolderOverride() async {
     final path = await getDirectoryPath();
     if (path == null) return;
-    if (!await Directory(path).exists()) return;
+    // Windows' folder picker browses more than the filesystem: a phone
+    // over MTP, a cloud namespace extension, a network drive that isn't
+    // answering all hand back something that looks like a path and then
+    // throws when anything asks whether it exists. Silence was the worst
+    // possible answer - one user picked the same place eight times over
+    // two days, each press doing nothing at all.
+    bool there;
+    try {
+      there = await Directory(path).exists();
+    } catch (_) {
+      there = false;
+    }
+    if (!there) {
+      lastError = AppMessage('errorFolderUnreadable', [path]);
+      playSound(UiSound.error);
+      notifyListeners();
+      return;
+    }
     await setFolderOverride(path);
   }
 

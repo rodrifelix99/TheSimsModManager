@@ -26,6 +26,7 @@ const appLanguages = <({String code, String name, String by})>[
   (code: 'pl', name: 'Polski', by: 'kasia_pxl'),
   (code: 'ja', name: '日本語', by: 'mochi_simjp'),
   (code: 'el', name: 'Ελληνικά', by: 'friendofbellas'),
+  (code: 'nl', name: 'Nederlands', by: 'Lien'),
 ];
 
 /// What [MaterialApp.supportedLocales] gets, in [appLanguages] order rather
@@ -156,6 +157,7 @@ extension AppText on L {
       'folderNameBad' => errorFolderNameBad(arg(0)),
       'folderTooDeep' => errorFolderTooDeep(int.tryParse(arg(0)) ?? 0),
       'errorNoWriteAccess' => errorNoWriteAccess(arg(0)),
+      'errorFolderUnreadable' => errorFolderUnreadable(arg(0)),
       'shopDownloadFailed' => errorShopDownload(arg(0)),
       'shopNoModFiles' => errorShopNoModFiles(arg(0)),
       'shopNeedsFolder' => shopNeedsFolder(arg(0)),

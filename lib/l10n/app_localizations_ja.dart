@@ -874,7 +874,7 @@ class LJa extends L {
   String get translatorsTitle => '翻訳';
 
   @override
-  String get translatorsDesc => 'アプリが11か国語で使えるのは、訳してくれたシマーたちのおかげです。';
+  String get translatorsDesc => 'アプリが12か国語で使えるのは、訳してくれたシマーたちのおかげです。';
 
   @override
   String get sectionStartup => '起動';
@@ -1371,6 +1371,11 @@ class LJa extends L {
   @override
   String folderAlsoReading(String folders) {
     return 'ゲームは $folders も読み込むから、そこに入ってるMODもこのライブラリーに出てくるよ。';
+  }
+
+  @override
+  String errorFolderUnreadable(String folder) {
+    return '「$folder」を開けませんでした。このパソコンから見えるドライブのフォルダーを選んでください。スマホやカメラ、切断されたネットワークドライブにはMODを置けません。';
   }
 
   @override

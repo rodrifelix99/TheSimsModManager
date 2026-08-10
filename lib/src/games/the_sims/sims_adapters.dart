@@ -1623,7 +1623,7 @@ class Sims1Adapter extends InstallFolderSimsAdapter {
         target = installTargetPath(targetDir.path, p.basename(file.path));
       }
       await File(target).parent.create(recursive: true);
-      final copied = await file.copy(target);
+      final copied = await copyOnto(file, target);
       mods.add(toMod(copied)!);
     }
     return mods;

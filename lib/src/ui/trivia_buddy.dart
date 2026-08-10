@@ -227,7 +227,7 @@ class _Bubble extends StatelessWidget {
                 ),
                 const SizedBox(width: 5),
                 // Flexible so the one labelled button in here can give
-                // ground: eleven languages write "Another one" at eleven
+                // ground: twelve languages write "Another one" at twelve
                 // different widths, and the bubble is a fixed 348.
                 Flexible(
                   child: SizedBox(

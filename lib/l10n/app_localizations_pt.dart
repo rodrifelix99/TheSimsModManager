@@ -940,7 +940,7 @@ class LPt extends L {
 
   @override
   String get translatorsDesc =>
-      'O app fala onze idiomas graças a estes simmers.';
+      'O app fala doze idiomas graças a estes simmers.';
 
   @override
   String get sectionStartup => 'INÍCIO';
@@ -1471,6 +1471,11 @@ class LPt extends L {
   @override
   String folderAlsoReading(String folders) {
     return 'Seu jogo também lê $folders, então os mods que estão lá também aparecem nesta biblioteca.';
+  }
+
+  @override
+  String errorFolderUnreadable(String folder) {
+    return 'Não deu pra abrir “$folder”. Escolhe uma pasta num disco que este computador alcance: um celular, uma câmera ou uma unidade de rede desconectada não podem guardar teus mods.';
   }
 
   @override

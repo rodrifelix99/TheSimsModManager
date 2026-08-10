@@ -30,10 +30,23 @@ SolidCompression=yes
 WizardStyle=modern
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
+; Windows 10 is where Flutter's own support starts, and the app cannot be
+; made to run below it from here: the runtime imports GetHostNameW from
+; WS2_32.dll, which arrived in Windows 8, so the process dies while
+; Windows is still loading it - before any of our code runs, and with an
+; entry-point error naming a DLL. Without this line setup installs
+; cheerfully on 7 and leaves the user to decode that message.
+MinVersion=10.0
 ; Per-user install by default (no admin prompt); the dialog lets users
 ; choose an all-users install if they prefer.
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
+
+[Messages]
+; Inno's own wording is "requires Windows version 10.0 or later", which
+; reads like a build number nobody has heard of. Say the name instead,
+; and say it before the download is blamed for being broken.
+WinVersionTooLowError={#AppName} needs Windows 10 or later, so it can't be installed on this PC. Sorry!
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked

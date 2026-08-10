@@ -184,6 +184,13 @@ class GrainTexture {
         image: AssetImage(asset),
         fit: BoxFit.cover,
         opacity: opacity,
+        // A decoration has no errorBuilder to fall back to, and it needs
+        // none: the plate underneath is already the right colour, and
+        // [over] has costed the label's contrast against the wash either
+        // way. Swallowed so a texture the antivirus is still scanning on
+        // the first launch after an install is a plate without grain
+        // rather than a crash report.
+        onError: (_, __) {},
       );
 
   /// [c] with this texture over it, as far as one colour can say it.

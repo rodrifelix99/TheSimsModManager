@@ -246,7 +246,7 @@
   "languageDesc": "アプリを表示する言語を選べます。「システム」はパソコンの言語に合わせます。",
   "languageSystem": "システム",
   "translatorsTitle": "翻訳",
-  "translatorsDesc": "アプリが11か国語で使えるのは、訳してくれたシマーたちのおかげです。",
+  "translatorsDesc": "アプリが12か国語で使えるのは、訳してくれたシマーたちのおかげです。",
 
   "sectionStartup": "起動",
   "prefDefaultGameTitle": "起動時のゲーム",
@@ -380,6 +380,10 @@
   "tagRemove": "「{tag}」を外す",
   "selectionTag": "タグを付ける…",
   "folderAlsoReading": "ゲームは {folders} も読み込むから、そこに入ってるMODもこのライブラリーに出てくるよ。",
+  "errorFolderUnreadable": "「{folder}」を開けませんでした。このパソコンから見えるドライブのフォルダーを選んでください。スマホやカメラ、切断されたネットワークドライブにはMODを置けません。",
+  "@errorFolderUnreadable": {
+    "placeholders": { "folder": { "type": "String" } }
+  },
   "errorNoWriteAccess": "アプリに「{folder}」への書き込み権限がありません。このフォルダーはシステムに保護されています。アカウントに書き込み権限を付けるか、設定で別のフォルダーを選んでください。",
   "folderReadOnlyBanner": "このMODフォルダーは読み取り専用なので、アカウントが書き込めるようになるまでMODのインストールと削除はできません。",
   "elevatedNoDropBanner": "管理者として実行しているので、Windows がウィンドウへのファイルのドラッグをブロックしてるよ。かわりにインストールボタンを使ってね。そっちは普通に使えるよ。",

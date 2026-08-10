@@ -12,6 +12,7 @@ import 'app_localizations_es.dart';
 import 'app_localizations_fr.dart';
 import 'app_localizations_it.dart';
 import 'app_localizations_ja.dart';
+import 'app_localizations_nl.dart';
 import 'app_localizations_pl.dart';
 import 'app_localizations_pt.dart';
 import 'app_localizations_ru.dart';
@@ -109,6 +110,7 @@ abstract class L {
     Locale('fr'),
     Locale('it'),
     Locale('ja'),
+    Locale('nl'),
     Locale('pl'),
     Locale('pt'),
     Locale('ru'),
@@ -1486,7 +1488,7 @@ abstract class L {
   /// No description provided for @translatorsDesc.
   ///
   /// In en, this message translates to:
-  /// **'The app speaks eleven languages thanks to these simmers.'**
+  /// **'The app speaks twelve languages thanks to these simmers.'**
   String get translatorsDesc;
 
   /// No description provided for @sectionStartup.
@@ -2232,6 +2234,12 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Your game reads {folders} as well, so mods in there are in this library too.'**
   String folderAlsoReading(String folders);
+
+  /// No description provided for @errorFolderUnreadable.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t open “{folder}”. Pick a folder on a drive this computer can reach - a phone, a camera or a disconnected network drive can’t hold your mods.'**
+  String errorFolderUnreadable(String folder);
 
   /// No description provided for @errorNoWriteAccess.
   ///
@@ -4111,6 +4119,7 @@ class _LDelegate extends LocalizationsDelegate<L> {
         'fr',
         'it',
         'ja',
+        'nl',
         'pl',
         'pt',
         'ru',
@@ -4138,6 +4147,8 @@ L lookupL(Locale locale) {
       return LIt();
     case 'ja':
       return LJa();
+    case 'nl':
+      return LNl();
     case 'pl':
       return LPl();
     case 'pt':

@@ -72,7 +72,15 @@ class BrandMark extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       height: size,
-      child: Image.asset(plumbobAsset(gameId), fit: BoxFit.contain),
+      // The same first-launch race the sidebar's game icons hit: an
+      // install that has just finished hands the app files the antivirus
+      // is still scanning, and a plumbob that failed to load reached
+      // FlutterError.onError as a crash report for artwork that draws
+      // fine on the next run. The space it would have taken is a better
+      // answer than that - the mark is decoration, and everything it
+      // sits beside says the same thing in words.
+      child: Image.asset(plumbobAsset(gameId),
+          fit: BoxFit.contain, errorBuilder: (_, __, ___) => const SizedBox()),
     );
   }
 }

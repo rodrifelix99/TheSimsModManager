@@ -73,6 +73,7 @@
   "download.macos.p": "Signed &amp; notarized by Apple. Open the .dmg and <b>drag the app into Applications</b>, then open it like any other app.",
   "download.linux.p": "Extract the archive and run <b>sims_mod_manager</b>. Works with Wine/CrossOver game installs too.",
   "download.getTarGz": "Download .tar.gz",
+  "download.requirements": "You'll need 64-bit Windows 10 or newer, macOS 10.15 Catalina or newer, or a recent 64-bit Linux distro.",
   "download.note": "Every version is built automatically for all three platforms, and the app lets you know when an update is out.",
   "download.smartscreen.h": "Windows may warn you",
   "download.smartscreen.p": "The installer isn't code-signed yet, so SmartScreen steps in the first time you run it. Click <b>More info → Run anyway</b>.",

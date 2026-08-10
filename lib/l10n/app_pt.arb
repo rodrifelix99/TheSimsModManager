@@ -246,7 +246,7 @@
   "languageDesc": "Escolha em que idioma o app aparece. “Sistema” segue o idioma do seu computador.",
   "languageSystem": "Sistema",
   "translatorsTitle": "Traduzido por",
-  "translatorsDesc": "O app fala onze idiomas graças a estes simmers.",
+  "translatorsDesc": "O app fala doze idiomas graças a estes simmers.",
 
   "sectionStartup": "INÍCIO",
   "prefDefaultGameTitle": "Jogo ao abrir",
@@ -380,6 +380,10 @@
   "tagRemove": "Tirar “{tag}”",
   "selectionTag": "Etiquetar…",
   "folderAlsoReading": "Seu jogo também lê {folders}, então os mods que estão lá também aparecem nesta biblioteca.",
+  "errorFolderUnreadable": "Não deu pra abrir “{folder}”. Escolhe uma pasta num disco que este computador alcance: um celular, uma câmera ou uma unidade de rede desconectada não podem guardar teus mods.",
+  "@errorFolderUnreadable": {
+    "placeholders": { "folder": { "type": "String" } }
+  },
   "errorNoWriteAccess": "O app não tem permissão para escrever em “{folder}”. O sistema protege essa pasta: dá permissão de escrita pra sua conta, ou escolhe outra pasta nas Configurações.",
   "folderReadOnlyBanner": "Esta pasta de mods é somente leitura, então instalar e remover mods não vai funcionar até sua conta poder escrever nela.",
   "elevatedNoDropBanner": "Você está rodando como administrador, então o Windows não deixa arrastar arquivos para a janela. Use o botão Instalar, que continua funcionando.",

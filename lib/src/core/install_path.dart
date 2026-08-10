@@ -169,6 +169,30 @@ String claimDistinctInstallTarget(
   return claimed;
 }
 
+/// Copies [source] to [target], replacing whatever is already there.
+///
+/// Every install here overwrites - the whole point of resolving a target
+/// before the copy is that reinstalling the same archive leaves one copy
+/// rather than a pile of them - and `File.copy` mostly does that by
+/// itself. On Windows it sometimes doesn't: over a folder OneDrive is
+/// syncing, or where the name already exists in another case, CopyFile
+/// answers ERROR_ALREADY_EXISTS and the install fails on the one file
+/// the user most expected it to replace. Taking the old file out of the
+/// way first is the same result the copy was asked for.
+Future<File> copyOnto(File source, String target) async {
+  try {
+    return await source.copy(target);
+  } on PathExistsException {
+    try {
+      await File(target).delete();
+    } on PathNotFoundException {
+      // Gone between the failed copy and here (an antivirus, the game's
+      // own housekeeping). The copy below is what was wanted anyway.
+    }
+    return await source.copy(target);
+  }
+}
+
 /// The `\\?\` form of [path], which lifts [windowsPathLimit] and turns
 /// off the name normalisation that otherwise hides files whose names end
 /// in a dot or a space. Only meaningful for absolute Windows paths;

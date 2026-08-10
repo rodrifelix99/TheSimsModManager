@@ -4,7 +4,7 @@
 /// localizations, so what reaches the screen is resolved by
 /// `AppText.triviaFact` at the moment it is drawn - the same bargain
 /// [Mod.category] and [GameAdapter.setupHelpKey] make. That is also what
-/// keeps a fact translatable: the eleven ARB files carry the prose and
+/// keeps a fact translatable: the twelve ARB files carry the prose and
 /// this table carries only which fact goes with which game.
 library;
 

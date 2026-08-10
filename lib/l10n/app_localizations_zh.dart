@@ -864,7 +864,7 @@ class LZh extends L {
   String get translatorsTitle => '翻译者';
 
   @override
-  String get translatorsDesc => '这个应用能有十一种语言，全靠这些模拟人生玩家。';
+  String get translatorsDesc => '这个应用能有十二种语言，全靠这些模拟人生玩家。';
 
   @override
   String get sectionStartup => '启动';
@@ -1355,6 +1355,11 @@ class LZh extends L {
   @override
   String folderAlsoReading(String folders) {
     return '你的游戏也会读取 $folders，所以那里的模组也在这个库里。';
+  }
+
+  @override
+  String errorFolderUnreadable(String folder) {
+    return '打不开「$folder」。请选一个这台电脑能访问的驱动器上的文件夹，手机、相机或者已断开的网络驱动器放不了你的模组。';
   }
 
   @override

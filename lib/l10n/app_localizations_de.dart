@@ -945,7 +945,7 @@ class LDe extends L {
 
   @override
   String get translatorsDesc =>
-      'Die App spricht elf Sprachen dank dieser Simmer.';
+      'Die App spricht zwölf Sprachen dank dieser Simmer.';
 
   @override
   String get sectionStartup => 'START';
@@ -1476,6 +1476,11 @@ class LDe extends L {
   @override
   String folderAlsoReading(String folders) {
     return 'Dein Spiel liest auch $folders, deshalb sind die Mods von dort ebenfalls in dieser Bibliothek.';
+  }
+
+  @override
+  String errorFolderUnreadable(String folder) {
+    return '„$folder“ ließ sich nicht öffnen. Wähl einen Ordner auf einem Laufwerk, das dieser Computer erreicht - ein Handy, eine Kamera oder ein getrenntes Netzlaufwerk kann deine Mods nicht halten.';
   }
 
   @override

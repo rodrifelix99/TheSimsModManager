@@ -941,7 +941,7 @@ class LIt extends L {
 
   @override
   String get translatorsDesc =>
-      'L’app parla undici lingue grazie a questi simmer.';
+      'L’app parla dodici lingue grazie a questi simmer.';
 
   @override
   String get sectionStartup => 'AVVIO';
@@ -1471,6 +1471,11 @@ class LIt extends L {
   @override
   String folderAlsoReading(String folders) {
     return 'Il tuo gioco legge anche $folders, quindi i mod che stanno lì sono in questa libreria pure loro.';
+  }
+
+  @override
+  String errorFolderUnreadable(String folder) {
+    return 'Non è stato possibile aprire «$folder». Scegli una cartella su un disco che questo computer riesce a raggiungere: un telefono, una fotocamera o un’unità di rete scollegata non possono ospitare i tuoi mod.';
   }
 
   @override

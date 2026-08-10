@@ -943,7 +943,7 @@ class LFr extends L {
 
   @override
   String get translatorsDesc =>
-      'L’appli parle onze langues grâce à ces simmers.';
+      'L’appli parle douze langues grâce à ces simmers.';
 
   @override
   String get sectionStartup => 'DÉMARRAGE';
@@ -1475,6 +1475,11 @@ class LFr extends L {
   @override
   String folderAlsoReading(String folders) {
     return 'Ton jeu lit aussi $folders, donc les mods qui s’y trouvent sont dans cette bibliothèque également.';
+  }
+
+  @override
+  String errorFolderUnreadable(String folder) {
+    return 'Impossible d’ouvrir « $folder ». Choisis un dossier sur un disque que cet ordinateur peut atteindre : un téléphone, un appareil photo ou un lecteur réseau déconnecté ne peuvent pas héberger tes mods.';
   }
 
   @override

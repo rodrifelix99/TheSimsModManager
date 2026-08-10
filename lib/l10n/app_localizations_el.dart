@@ -944,7 +944,7 @@ class LEl extends L {
 
   @override
   String get translatorsDesc =>
-      'Η εφαρμογή μιλάει έντεκα γλώσσες χάρη σε αυτούς τους simmers.';
+      'Η εφαρμογή μιλάει δώδεκα γλώσσες χάρη σε αυτούς τους simmers.';
 
   @override
   String get sectionStartup => 'ΕΚΚΙΝΗΣΗ';
@@ -1475,6 +1475,11 @@ class LEl extends L {
   @override
   String folderAlsoReading(String folders) {
     return 'Το παιχνίδι σου διαβάζει και το $folders, οπότε τα mods που είναι εκεί μέσα είναι κι αυτά στη βιβλιοθήκη.';
+  }
+
+  @override
+  String errorFolderUnreadable(String folder) {
+    return 'Δεν ήταν δυνατό το άνοιγμα του «$folder». Διάλεξε φάκελο σε δίσκο που φτάνει αυτός ο υπολογιστής - ένα κινητό, μια κάμερα ή ένας αποσυνδεδεμένος δίσκος δικτύου δεν μπορούν να κρατήσουν τα mod σου.';
   }
 
   @override

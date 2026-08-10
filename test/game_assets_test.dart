@@ -48,10 +48,13 @@ class _Sims4Adapter extends FolderBasedGameAdapter {
 /// Refuses the game artwork the way a machine whose antivirus is still
 /// working through a fresh install does, and hands everything else - the
 /// asset manifest above all - to the real bundle.
+///
+/// Both folders, because both were reported: the icons first, and then
+/// the plumbobs from the release that started drawing them.
 class _ScanningBundle extends CachingAssetBundle {
   @override
   Future<ByteData> load(String key) {
-    if (key.startsWith('assets/games/')) {
+    if (key.startsWith('assets/games/') || key.startsWith('assets/plumbobs/')) {
       throw FlutterError('Unable to load asset: "$key".');
     }
     return rootBundle.load(key);

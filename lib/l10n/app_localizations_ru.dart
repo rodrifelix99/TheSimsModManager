@@ -975,7 +975,7 @@ class LRu extends L {
 
   @override
   String get translatorsDesc =>
-      'Приложение говорит на одиннадцати языках благодаря этим симмерам.';
+      'Приложение говорит на двенадцати языках благодаря этим симмерам.';
 
   @override
   String get sectionStartup => 'ЗАПУСК';
@@ -1521,6 +1521,11 @@ class LRu extends L {
   @override
   String folderAlsoReading(String folders) {
     return 'Твоя игра читает ещё и $folders, так что моды оттуда тоже есть в этой библиотеке.';
+  }
+
+  @override
+  String errorFolderUnreadable(String folder) {
+    return 'Не удалось открыть «$folder». Выбери папку на диске, до которого этот компьютер достаёт: телефон, камера или отключённый сетевой диск не смогут хранить твои моды.';
   }
 
   @override

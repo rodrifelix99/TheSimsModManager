@@ -246,7 +246,7 @@
   "languageDesc": "Wybierz, w jakim języku ma być aplikacja. „Systemowy” idzie za językiem komputera.",
   "languageSystem": "Systemowy",
   "translatorsTitle": "Tłumaczenie",
-  "translatorsDesc": "Aplikacja mówi w jedenastu językach dzięki tym simmerom.",
+  "translatorsDesc": "Aplikacja mówi w dwunastu językach dzięki tym simmerom.",
 
   "sectionStartup": "URUCHAMIANIE",
   "prefDefaultGameTitle": "Gra przy starcie",
@@ -380,6 +380,10 @@
   "tagRemove": "Zdejmij „{tag}”",
   "selectionTag": "Otaguj…",
   "folderAlsoReading": "Twoja gra czyta też {folders}, więc mody z tego folderu też są w tej bibliotece.",
+  "errorFolderUnreadable": "Nie udało się otworzyć „{folder}”. Wybierz folder na dysku, do którego ten komputer ma dostęp: telefon, aparat albo odłączony dysk sieciowy nie pomieszczą twoich modów.",
+  "@errorFolderUnreadable": {
+    "placeholders": { "folder": { "type": "String" } }
+  },
   "errorNoWriteAccess": "Apka nie ma uprawnień do zapisu w „{folder}”. System chroni ten folder: nadaj swojemu kontu prawo zapisu albo wskaż inny folder w Ustawieniach.",
   "folderReadOnlyBanner": "Ten folder modów jest tylko do odczytu, więc instalowanie i usuwanie modów nie zadziała, dopóki twoje konto nie będzie mogło w nim zapisywać.",
   "elevatedNoDropBanner": "Działasz jako administrator, więc Windows nie pozwala przeciągać plików na okno. Skorzystaj z przycisku Zainstaluj, ten dalej działa.",

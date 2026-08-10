@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
@@ -197,6 +198,40 @@ void main() {
       const path = r'C:\Temp\unpack\mod.package';
       expect(windowsExtendedPath(path).endsWith(path), isTrue);
       expect(p.windows.basename(windowsExtendedPath(path)), 'mod.package');
+    });
+  });
+
+  // The branch that deletes first answers a Windows CopyFile that reports
+  // ERROR_ALREADY_EXISTS instead of replacing, which needs a OneDrive
+  // folder or a name differing only in case to reproduce and so isn't
+  // built here. What is worth holding either way is the contract that
+  // branch exists to keep: after copyOnto, the target is the source.
+  group('copyOnto', () {
+    late Directory dir;
+
+    setUp(() => dir = Directory.systemTemp.createTempSync('mod_manager_copy'));
+    tearDown(() => dir.deleteSync(recursive: true));
+
+    test('replaces a file already sitting at the target', () async {
+      final source = File(p.join(dir.path, 'source.package'))
+        ..writeAsStringSync('the new one');
+      final target = p.join(dir.path, 'hair.package');
+      File(target).writeAsStringSync('the old one');
+
+      final copied = await copyOnto(source, target);
+
+      expect(copied.path, target);
+      expect(File(target).readAsStringSync(), 'the new one');
+    });
+
+    test('writes one that was not there', () async {
+      final source = File(p.join(dir.path, 'source.package'))
+        ..writeAsStringSync('bytes');
+      final target = p.join(dir.path, 'hair.package');
+
+      await copyOnto(source, target);
+
+      expect(File(target).readAsStringSync(), 'bytes');
     });
   });
 }

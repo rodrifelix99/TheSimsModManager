@@ -941,7 +941,7 @@ class LEs extends L {
 
   @override
   String get translatorsDesc =>
-      'La app habla once idiomas gracias a estos simmers.';
+      'La app habla doce idiomas gracias a estos simmers.';
 
   @override
   String get sectionStartup => 'INICIO';
@@ -1472,6 +1472,11 @@ class LEs extends L {
   @override
   String folderAlsoReading(String folders) {
     return 'Tu juego también lee $folders, así que los mods que haya ahí también están en esta biblioteca.';
+  }
+
+  @override
+  String errorFolderUnreadable(String folder) {
+    return 'No se pudo abrir «$folder». Elige una carpeta en una unidad que este equipo pueda ver: un móvil, una cámara o una unidad de red desconectada no pueden guardar tus mods.';
   }
 
   @override

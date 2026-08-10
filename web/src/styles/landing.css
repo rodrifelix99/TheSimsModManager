@@ -339,7 +339,11 @@ html[data-theme='dark'] .dl-card[data-platform='macos'] img { filter: invert(1);
   transition: filter .2s ease;
 }
 .dl-card.recommended .get:hover { filter: brightness(1.07); }
-.dl-note { margin-top: 24px; text-align: center; font-size: 13.5px; font-weight: 600; color: var(--muted); }
+/* Sits above the note, quieter than it: a spec line rather than a promise.
+   The installer now refuses anything below Windows 10, so this is what
+   stops the download being started in the first place. */
+.dl-req { margin-top: 22px; text-align: center; font-size: 13px; color: var(--muted); opacity: .85; }
+.dl-note { margin-top: 6px; text-align: center; font-size: 13.5px; font-weight: 600; color: var(--muted); }
 
 /* The SmartScreen heads-up, shown once the installer is on its way down. The
    form is the only child so a click that lands on the dialog itself came from

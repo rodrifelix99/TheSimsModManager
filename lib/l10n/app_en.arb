@@ -416,7 +416,7 @@
   "languageDesc": "Choose the language the app is shown in. “System” follows your computer's language.",
   "languageSystem": "System",
   "translatorsTitle": "Translated by",
-  "translatorsDesc": "The app speaks eleven languages thanks to these simmers.",
+  "translatorsDesc": "The app speaks twelve languages thanks to these simmers.",
 
   "sectionStartup": "STARTUP",
   "prefDefaultGameTitle": "Game to open on",
@@ -694,6 +694,10 @@
   "folderAlsoReading": "Your game reads {folders} as well, so mods in there are in this library too.",
   "@folderAlsoReading": {
     "placeholders": { "folders": { "type": "String" } }
+  },
+  "errorFolderUnreadable": "Couldn’t open “{folder}”. Pick a folder on a drive this computer can reach - a phone, a camera or a disconnected network drive can’t hold your mods.",
+  "@errorFolderUnreadable": {
+    "placeholders": { "folder": { "type": "String" } }
   },
   "errorNoWriteAccess": "The app isn’t allowed to write to “{folder}”. Your system protects that folder - give your account write access to it, or point the app somewhere else in Settings.",
   "@errorNoWriteAccess": {

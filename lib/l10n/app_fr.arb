@@ -246,7 +246,7 @@
   "languageDesc": "Choisis la langue dans laquelle l’appli s’affiche. « Système » suit la langue de ton ordinateur.",
   "languageSystem": "Système",
   "translatorsTitle": "Traduit par",
-  "translatorsDesc": "L’appli parle onze langues grâce à ces simmers.",
+  "translatorsDesc": "L’appli parle douze langues grâce à ces simmers.",
 
   "sectionStartup": "DÉMARRAGE",
   "prefDefaultGameTitle": "Jeu à l’ouverture",
@@ -380,6 +380,10 @@
   "tagRemove": "Enlever « {tag} »",
   "selectionTag": "Étiqueter…",
   "folderAlsoReading": "Ton jeu lit aussi {folders}, donc les mods qui s’y trouvent sont dans cette bibliothèque également.",
+  "errorFolderUnreadable": "Impossible d’ouvrir « {folder} ». Choisis un dossier sur un disque que cet ordinateur peut atteindre : un téléphone, un appareil photo ou un lecteur réseau déconnecté ne peuvent pas héberger tes mods.",
+  "@errorFolderUnreadable": {
+    "placeholders": { "folder": { "type": "String" } }
+  },
   "errorNoWriteAccess": "L’appli n’a pas le droit d’écrire dans « {folder} ». Ton système protège ce dossier : donne à ton compte l’accès en écriture, ou choisis un autre dossier dans les Réglages.",
   "folderReadOnlyBanner": "Ce dossier de mods est en lecture seule : installer et retirer des mods ne marchera pas tant que ton compte ne peut pas y écrire.",
   "elevatedNoDropBanner": "Tu es en administrateur, du coup Windows empêche de glisser des fichiers sur la fenêtre. Passe par le bouton Installer, lui marche toujours.",

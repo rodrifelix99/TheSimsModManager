@@ -80,7 +80,7 @@ matches.
 ## Wording
 
 Same tone as the app: friendly, casual, informal address. These strings
-are shown untranslated in all eleven languages, so keep them short and plain
+are shown untranslated in all twelve languages, so keep them short and plain
 - no idioms, no jokes that only work in English.
 
 Only publish what you can stand behind. An advisory says a named person's

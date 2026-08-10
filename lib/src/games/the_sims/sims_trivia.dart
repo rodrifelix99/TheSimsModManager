@@ -7,10 +7,10 @@ import '../../core/trivia.dart';
 /// and core is not allowed to know a game exists. Another series added
 /// later brings its own table or none at all.
 ///
-/// Only keys live here. The wording is in the eleven ARB files, resolved
+/// Only keys live here. The wording is in the twelve ARB files, resolved
 /// by `AppText.triviaFact` when it is drawn, so a fact reaches a Polish
 /// player in Polish. Adding one means a key here, a message in
-/// `app_en.arb`, and the same message in the other ten - `trivia_test`
+/// `app_en.arb`, and the same message in the other eleven - `trivia_test`
 /// fails on any of the three going missing.
 
 /// The facts that hold for the whole franchise, mixed into every game's

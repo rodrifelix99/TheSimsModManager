@@ -482,7 +482,7 @@ Future<List<String>> _collectModFiles(
     final target = _safeTarget(destination.path, relative, extensions, taken);
     if (target == null) continue;
     await File(target).parent.create(recursive: true);
-    await file.copy(target);
+    await copyOnto(file, target);
     extracted.add(target);
   }
   return extracted;

@@ -579,7 +579,7 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
     final dir = await resolvePlacement(modsDir, placement);
     await dir.create(recursive: true);
     final target = p.join(dir.path, p.basename(source.path));
-    final copied = await source.copy(target);
+    final copied = await copyOnto(source, target);
     return toMod(copied)!;
   }
 
@@ -607,7 +607,7 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
       final target = claimInstallTarget(
           dir.path, p.relative(file.path, from: source.parent.path), taken);
       await File(target).parent.create(recursive: true);
-      final copied = await file.copy(target);
+      final copied = await copyOnto(file, target);
       mods.add(toMod(copied)!);
     }
     return mods;

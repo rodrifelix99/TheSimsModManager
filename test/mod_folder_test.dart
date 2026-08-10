@@ -47,6 +47,10 @@ class _FakeAdapter extends FolderBasedGameAdapter {
   Future<String?> defaultModsPath() async => dir.path;
 }
 
+/// chmod is the only way to build a folder this process may not write to,
+/// and Windows doesn't have it.
+const _posixOnly = 'read-only folders are built with chmod here';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -362,6 +366,29 @@ void main() {
 
         expect(Directory(p.join(modsDir.path, 'cc')).existsSync(), isFalse);
       });
+
+      // A folder the system won't part with is a verdict on the machine
+      // rather than a bug: the mods inside are already gone, and what is
+      // left is a folder that is still there and has to keep saying so.
+      test('a folder the system refuses to remove is reported, not thrown',
+          () async {
+        writeMod('loose.package');
+        final c = await makeController();
+        await c.createFolder(null, 'cc');
+        expect(c.folders, ['cc']);
+
+        // Removing an entry needs write permission on the folder holding
+        // it, so it is the mods folder that goes read-only here, not the
+        // one being deleted.
+        Process.runSync('chmod', ['500', modsDir.path]);
+        addTearDown(() => Process.runSync('chmod', ['700', modsDir.path]));
+
+        await c.deleteFolder('cc');
+
+        expect(c.lastError, isNotNull);
+        expect(Directory(p.join(modsDir.path, 'cc')).existsSync(), isTrue);
+        expect(c.folders, ['cc']);
+      }, skip: Platform.isWindows ? _posixOnly : false);
 
       test('an empty folder the user made is forgotten as well', () async {
         writeMod('loose.package');

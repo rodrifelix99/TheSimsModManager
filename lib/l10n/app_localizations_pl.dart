@@ -977,7 +977,7 @@ class LPl extends L {
 
   @override
   String get translatorsDesc =>
-      'Aplikacja mówi w jedenastu językach dzięki tym simmerom.';
+      'Aplikacja mówi w dwunastu językach dzięki tym simmerom.';
 
   @override
   String get sectionStartup => 'URUCHAMIANIE';
@@ -1524,6 +1524,11 @@ class LPl extends L {
   @override
   String folderAlsoReading(String folders) {
     return 'Twoja gra czyta też $folders, więc mody z tego folderu też są w tej bibliotece.';
+  }
+
+  @override
+  String errorFolderUnreadable(String folder) {
+    return 'Nie udało się otworzyć „$folder”. Wybierz folder na dysku, do którego ten komputer ma dostęp: telefon, aparat albo odłączony dysk sieciowy nie pomieszczą twoich modów.';
   }
 
   @override
