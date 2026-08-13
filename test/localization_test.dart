@@ -9,6 +9,7 @@ import 'package:flutter/widgets.dart' show Directionality, Localizations;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sims_mod_manager/src/core/app_message.dart';
+import 'package:sims_mod_manager/src/core/creation.dart';
 import 'package:sims_mod_manager/src/core/game.dart';
 import 'package:sims_mod_manager/src/core/game_adapter.dart';
 import 'package:sims_mod_manager/src/core/game_registry.dart';
@@ -57,6 +58,65 @@ class _FakeAdapter extends FolderBasedGameAdapter {
 
   @override
   Future<String?> defaultModsPath() async => dir.path;
+
+  @override
+  bool get hasCreations => true;
+
+  /// One of each kind, so the chip row is at its widest, plus a household
+  /// carrying everything a creation's own page can draw.
+  ///
+  /// The household comes first because the sweep opens it, and at the
+  /// minimum window the shelf wraps to a second row that the viewport
+  /// cannot scroll far enough to reach in the languages whose labels run
+  /// long. First card, always on screen, whatever the language does.
+  /// Newest first is also what the interface asks an adapter for.
+  @override
+  Future<List<Creation>> listCreations() async => [
+        Creation(
+          name: 'Riley',
+          kindKey: kindHousehold,
+          path: '${dir.path}/0x01!0xaa.trayitem',
+          files: [
+            '${dir.path}/0x01!0xaa.trayitem',
+            '${dir.path}/0x00!0xaa.householdbinary',
+          ],
+          sizeBytes: 120 << 10,
+          modifiedAt: DateTime(2026, 8, 1),
+          creatorName: 'anadius',
+          sims: const [
+            CreationSim(
+              firstName: 'Connor',
+              lastName: 'Riley',
+              ageKey: 'youngAdult',
+              genderKey: 'male',
+              traits: ['Creative', 'Ambitious', 'Good'],
+              aspiration: 'Eco Innovator',
+            ),
+          ],
+        ),
+        Creation(
+          name: 'Gothique Library',
+          kindKey: kindLot,
+          path: '${dir.path}/lot.package',
+          sizeBytes: 3 << 20,
+          modifiedAt: DateTime(2026, 7, 20),
+          worldName: 'Sunset Valley',
+          description:
+              'Built by the very first Goths that ever settled in the valley.',
+        ),
+        Creation(
+          name: 'Corner study',
+          kindKey: kindRoom,
+          path: '${dir.path}/room.trayitem',
+          modifiedAt: DateTime(2026, 6, 1),
+        ),
+        Creation(
+          name: 'Bella Goth',
+          kindKey: kindSim,
+          path: '${dir.path}/sim.package',
+          modifiedAt: DateTime(2026, 5, 1),
+        ),
+      ];
 
   /// A save touching every translated saves label: stat tiles, life
   /// stages, skills, personality, relationship flags, photo kinds.
@@ -488,6 +548,39 @@ void main() {
       await tester.tap(find.text(strings.savesTabStats));
       await tester.pump(const Duration(milliseconds: 500));
       expect(overflows, isEmpty, reason: 'saves stats in ${language.name}');
+
+      // The creations shelf: the chip row is four kinds and a count each
+      // on one line, which is where a translation runs out of width, and
+      // a creation's own page carries a blurb, a sim card and two buttons
+      // side by side.
+      await tester.runAsync(() async {
+        await tester.tap(find.text(strings.navCreations).last);
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      });
+      await tester.pump(const Duration(milliseconds: 500));
+      // A second frame, because the shell slides a screen in and the
+      // first pump only starts that animation: a card tapped while it is
+      // still running sits 200px lower than where it comes to rest,
+      // which at the minimum window is off the bottom. Not
+      // pumpAndSettle - the loading spinner never settles.
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text('Gothique Library'), findsOneWidget,
+          reason: 'creations in ${language.name}');
+      expect(overflows, isEmpty, reason: 'creations in ${language.name}');
+
+      await tester.tap(find.text('Riley'));
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(overflows, isEmpty,
+          reason: 'creation details in ${language.name}');
+
+      // The delete dialog, which is the wordiest thing this screen draws.
+      await tester.tap(find.text(strings.creationsDelete));
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(overflows, isEmpty,
+          reason: 'creation delete dialog in ${language.name}');
+      await tester.tap(find.text(strings.cancel).last);
+      await tester.pump(const Duration(milliseconds: 500));
+
     });
   }
 

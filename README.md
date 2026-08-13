@@ -209,7 +209,7 @@ modding slang instead of a dictionary translation:
 | Polski | kasia_pxl |
 | 日本語 | mochi_simjp |
 | Ελληνικά | [friendofbellas](https://www.tumblr.com/friendofbellas) |
-| Nederlands | Lien |
+| Nederlands | [sims2idea](https://www.tumblr.com/sims2idea) |
 
 Spotted something that reads wrong in your language, or want to add one that
 isn't here? The strings live in [lib/l10n](lib/l10n) (app) and

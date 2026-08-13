@@ -2,6 +2,7 @@ import 'dart:ui' show Locale;
 
 import '../../l10n/app_localizations.dart';
 import '../core/app_message.dart';
+import '../core/creation.dart';
 import '../core/game_pack.dart';
 import '../core/mod_kind.dart';
 
@@ -26,7 +27,7 @@ const appLanguages = <({String code, String name, String by})>[
   (code: 'pl', name: 'Polski', by: 'kasia_pxl'),
   (code: 'ja', name: '日本語', by: 'mochi_simjp'),
   (code: 'el', name: 'Ελληνικά', by: 'friendofbellas'),
-  (code: 'nl', name: 'Nederlands', by: 'Lien'),
+  (code: 'nl', name: 'Nederlands', by: 'sims2idea'),
 ];
 
 /// What [MaterialApp.supportedLocales] gets, in [appLanguages] order rather
@@ -169,9 +170,41 @@ extension AppText on L {
       'errorPackNotSupported' => errorPackNotSupported,
       'errorPackIsTheGame' => errorPackIsTheGame,
       'errorPackToggleRefused' => errorPackToggleRefused,
+      'creationBadFileName' => creationBadFileName(arg(0)),
+      'creationFileInUse' => creationFileInUse(arg(0)),
+      'creationNeighborhoodFull' => creationNeighborhoodFull,
+      'creationInstallFailed' =>
+        creationInstallFailed(int.tryParse(arg(0)) ?? 1),
+      'creationRemoveFailed' => creationRemoveFailed(arg(0)),
+      'creationsNothingToAdd' => creationsNothingToAdd,
       _ => '$message',
     };
   }
+
+  /// What a player-built thing is, from the stable key the readers use.
+  /// An unknown kind draws as itself rather than blanking, the same
+  /// bargain [savesAge] and [modKind] make - a game that files something
+  /// this app has never heard of still gets a chip.
+  String creationKind(String key) => switch (key) {
+        kindLot => creationKindLot,
+        kindRoom => creationKindRoom,
+        kindHousehold => creationKindHousehold,
+        kindSim => creationKindSim,
+        _ => key,
+      };
+
+  /// The game's own name for one of its creation folders. [args] carries
+  /// what a label needs to tell two of them apart - The Sims 1 has a
+  /// Houses folder per neighborhood and the number is all there is.
+  String creationFolderLabel(String key, List<String> args) => switch (key) {
+        'sims4Tray' => creationFolderSims4Tray,
+        'sims3Library' => creationFolderSims3Library,
+        'sims2LotCatalog' => creationFolderSims2LotCatalog,
+        'sims2SavedSims' => creationFolderSims2SavedSims,
+        'sims1Houses' =>
+          creationFolderSims1Houses(args.isEmpty ? '1' : args.first),
+        _ => key,
+      };
 
   /// What belongs in one of a game's install folders. [key] comes from
   /// the adapter, so the install dialog can list The Sims 1's folders

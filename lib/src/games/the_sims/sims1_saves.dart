@@ -75,7 +75,7 @@ const _adultAge = 18;
 /// The chunk id of a house's thumbnail with its roof on, inside
 /// `Houses/HouseNN.iff`. 512 is the same shot with the roof taken off,
 /// which the game cross-fades to on hover and this has no use for.
-const _houseThumbnailChunk = 513;
+const houseThumbnailChunk = 513;
 
 /// Above this a neighbor is one of those props rather than somebody who
 /// lives here, and counting them would inflate every total.
@@ -117,9 +117,9 @@ SaveGame? _parseNeighborhood(Directory userData, int number) {
     size = stat.size;
   } catch (_) {}
 
-  List<_IffChunk> chunks;
+  List<IffChunk> chunks;
   try {
-    chunks = _readIffChunks(file.readAsBytesSync());
+    chunks = readIffChunks(file.readAsBytesSync());
   } catch (_) {
     chunks = const [];
   }
@@ -142,7 +142,7 @@ SaveGame? _parseNeighborhood(Directory userData, int number) {
   }
   final familyNames = <int, String>{
     for (final chunk in chunks.where((c) => c.type == 'FAMs'))
-      chunk.id: _firstOrEmpty(_parseStrings(chunk.data)),
+      chunk.id: _firstOrEmpty(parseIffStrings(chunk.data)),
   };
 
   final characterNames = _CharacterNames(userData);
@@ -242,8 +242,8 @@ Uint8List? _houseThumbnail(Directory userData, int number) {
     final file = File(p.join(userData.path, 'Houses',
         'House${number.toString().padLeft(2, '0')}.iff'));
     if (!file.existsSync()) return null;
-    for (final chunk in _readIffChunks(file.readAsBytesSync())) {
-      if (chunk.type == 'BMP_' && chunk.id == _houseThumbnailChunk) {
+    for (final chunk in readIffChunks(file.readAsBytesSync())) {
+      if (chunk.type == 'BMP_' && chunk.id == houseThumbnailChunk) {
         return bmpToPng(chunk.data);
       }
     }
@@ -320,21 +320,25 @@ List<SaveRelationship> _familyBonds(
 // ---------------------------------------------------------------------------
 // The IFF container (EA's variant): a 64-byte file header, then chunks
 // back to back. Chunk headers are big-endian, chunk payloads little-endian.
+//
+// Public because `sims1_creations.dart` reads the same containers: a
+// downloaded house is one of these files, and a second copy of a parser
+// this hard-won would only ever drift from the one that is tested.
 
-class _IffChunk {
-  const _IffChunk(this.type, this.id, this.data);
+class IffChunk {
+  const IffChunk(this.type, this.id, this.data);
 
   final String type;
   final int id;
   final Uint8List data;
 }
 
-List<_IffChunk> _readIffChunks(Uint8List bytes) {
+List<IffChunk> readIffChunks(Uint8List bytes) {
   if (bytes.length < 64) return const [];
   final signature = latin1.decode(bytes.sublist(0, 60)).split('\x00').first;
   if (!signature.startsWith('IFF FILE')) return const [];
 
-  final chunks = <_IffChunk>[];
+  final chunks = <IffChunk>[];
   final d = ByteData.sublistView(bytes);
   var pos = 64;
   while (pos + 76 <= bytes.length) {
@@ -344,7 +348,7 @@ List<_IffChunk> _readIffChunks(Uint8List bytes) {
     // Corrupt files declare sizes past EOF (FreeSO cites walls2.iff):
     // clamp to what is actually there.
     final dataSize = (declared - 76).clamp(0, bytes.length - pos - 76);
-    chunks.add(_IffChunk(
+    chunks.add(IffChunk(
         type, id, Uint8List.sublistView(bytes, pos + 76, pos + 76 + dataSize)));
     if (declared <= 76) break; // malformed: no forward progress possible
     pos += declared;
@@ -464,9 +468,10 @@ _Family? _parseFami(Uint8List data) {
 
 // ---------------------------------------------------------------------------
 // STR# string tables (FAMs and CTSS are the same format under other
-// names). Only the default-language strings are wanted.
+// names). Only the default-language strings are wanted. Public for the
+// same reason as [readIffChunks].
 
-List<String> _parseStrings(Uint8List data) {
+List<String> parseIffStrings(Uint8List data) {
   final reader = _LeReader(data);
   try {
     if (!reader.hasBytes(2)) return const [];
@@ -537,14 +542,14 @@ class _CharacterNames {
         final path = files[stem.toLowerCase()];
         if (path == null) return (name: null, bio: null);
         try {
-          final chunks = _readIffChunks(File(path).readAsBytesSync());
+          final chunks = readIffChunks(File(path).readAsBytesSync());
           // The sim's own catalog description: name first, then the
           // biography. The body strings also carry a name at index 11,
           // but that is the pool a townie's name is rolled from rather
           // than the name this sim ended up with.
           for (final chunk in chunks) {
             if (chunk.type != 'CTSS') continue;
-            final strings = _parseStrings(chunk.data);
+            final strings = parseIffStrings(chunk.data);
             if (strings.isEmpty) continue;
             final name = strings.first.trim();
             if (name.isEmpty) continue;
@@ -557,7 +562,7 @@ class _CharacterNames {
           if (strChunks.isEmpty) return (name: null, bio: null);
           final body = strChunks.firstWhere((c) => c.id == 200,
               orElse: () => strChunks.first);
-          final strings = _parseStrings(body.data);
+          final strings = parseIffStrings(body.data);
           if (strings.length <= 11) return (name: null, bio: null);
           final name = strings[11]
               .split(';')
@@ -592,7 +597,7 @@ class _HouseNames {
       : _houses = Directory(p.join(userData.path, 'Houses'));
 
   final Directory _houses;
-  final Map<String, List<_IffChunk>?> _descs = {};
+  final Map<String, List<IffChunk>?> _descs = {};
 
   /// House number -> the strings of its entry: name first, then the
   /// description the player typed for it.
@@ -611,7 +616,7 @@ class _HouseNames {
               : 'MTDesc.iff';
       final chunks = _descs.putIfAbsent(file, () {
         try {
-          return _readIffChunks(
+          return readIffChunks(
               File(p.join(_houses.path, file)).readAsBytesSync());
         } catch (_) {
           return null;
@@ -620,7 +625,7 @@ class _HouseNames {
       if (chunks == null) return const [];
       for (final chunk in chunks) {
         if (chunk.type == 'STR#' && chunk.id == house + 2000) {
-          return _parseStrings(chunk.data);
+          return parseIffStrings(chunk.data);
         }
       }
       return const [];

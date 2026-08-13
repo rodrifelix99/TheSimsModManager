@@ -2630,4 +2630,149 @@ class LEs extends L {
   @override
   String get triviaMedievalEngine =>
       'Funciona con el motor de The Sims 3, y por eso el Resource.cfg y los archivos .package le resultan tan familiares a cualquiera que haya modeado aquel juego.';
+
+  @override
+  String get navCreations => 'Creaciones';
+
+  @override
+  String creationsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count creaciones',
+      one: '1 creación',
+      zero: 'Todavía no has guardado nada',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get creationsScanning => 'Leyendo tus solares y familias…';
+
+  @override
+  String get creationsRefresh => 'Actualizar';
+
+  @override
+  String get creationsAll => 'Todo';
+
+  @override
+  String get creationsBack => '← Volver a todo';
+
+  @override
+  String get creationsNoneOfKind => 'Aquí no hay nada de ese tipo.';
+
+  @override
+  String get creationsEmptyTitle => 'Aquí no hay nada todavía';
+
+  @override
+  String get creationsEmptyBody =>
+      'Los solares, cuartos, familias y sims que guardes en el juego aparecen aquí, igual que todo lo que descargues y sueltes sobre la ventana.';
+
+  @override
+  String creationsBy(String creator) {
+    return 'de $creator';
+  }
+
+  @override
+  String get creationsWhoLivesHere => 'QUIÉN VIENE INCLUIDO';
+
+  @override
+  String get creationsShowInFolder => 'Mostrar en la carpeta';
+
+  @override
+  String get creationsDelete => 'Eliminar';
+
+  @override
+  String creationsDeleteTitle(String name) {
+    return '¿Eliminar «$name»?';
+  }
+
+  @override
+  String get creationsDeleteBody =>
+      'Desaparece de la carpeta del juego para siempre. No se puede deshacer.';
+
+  @override
+  String creationsFileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count archivos',
+      one: '1 archivo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get creationKindLot => 'Solar';
+
+  @override
+  String get creationKindRoom => 'Cuarto';
+
+  @override
+  String get creationKindHousehold => 'Familia';
+
+  @override
+  String get creationKindSim => 'Sim';
+
+  @override
+  String get creationFolderSims4Tray => 'Tray';
+
+  @override
+  String get creationFolderSims3Library => 'Library';
+
+  @override
+  String get creationFolderSims2LotCatalog => 'Colección de solares y casas';
+
+  @override
+  String get creationFolderSims2SavedSims => 'Sims empaquetados';
+
+  @override
+  String creationFolderSims1Houses(String number) {
+    return 'Vecindario $number';
+  }
+
+  @override
+  String creationBadFileName(String name) {
+    return '«$name» lleva caracteres que este sistema no admite en un nombre de archivo, así que el juego nunca lo encontraría. Cámbiale el nombre y vuelve a intentarlo.';
+  }
+
+  @override
+  String creationFileInUse(String name) {
+    return '«$name» está en uso. Cierra el juego y vuelve a intentarlo.';
+  }
+
+  @override
+  String get creationNeighborhoodFull =>
+      'Este vecindario ya tiene las 99 casas que caben. Borra alguna que no juegues antes de añadir otra.';
+
+  @override
+  String creationInstallFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Esos $count archivos no se pudieron añadir.',
+      one: 'Ese archivo no se pudo añadir.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String creationRemoveFailed(String name) {
+    return 'No se pudo eliminar «$name».';
+  }
+
+  @override
+  String get creationsAdd => 'Añadir';
+
+  @override
+  String get creationsAdding => 'Añadiendo…';
+
+  @override
+  String creationsPickerLabel(String game) {
+    return 'Solares, cuartos, familias y sims de $game';
+  }
+
+  @override
+  String get creationsNothingToAdd =>
+      'Ahí dentro no había ningún solar, cuarto, familia ni sim que este juego pueda usar. El contenido personalizado y los mods entran por la biblioteca.';
 }

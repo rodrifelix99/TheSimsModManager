@@ -143,7 +143,16 @@ class DetailView extends StatelessWidget {
         // Enable/disable: colored slab with an embedded switch.
         HoverBuilder(
           cursor: SystemMouseCursors.click,
-          builder: (context, hovered) => GestureDetector(
+          builder: (context, hovered) {
+            final colour = mod.isEnabled ? t.accent : t.switchOff;
+            // The skin says what the label is; a skin that answers white
+            // needs the slab dark enough to carry it, and one that paints
+            // its own lettering (the Medieval's brown on parchment) must
+            // keep the colour it was given.
+            final ink = t.skin.ink(t, SkinSurface.row,
+                state: SkinState.active, otherwise: Colors.white);
+            final slab = ink == Colors.white ? bearsWhite(colour) : colour;
+            return GestureDetector(
             onTap: () => c.toggleMod(mod),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 220),
@@ -155,14 +164,14 @@ class DetailView extends StatelessWidget {
               decoration: t.skin.decorate(t, SkinSurface.row,
                   radius: 12,
                   state: SkinState.active,
-                  fill: mod.isEnabled ? t.accent : t.switchOff),
+                  fill: slab),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     mod.isEnabled ? l.enabled : l.disabled,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: ink,
                       fontSize: 14,
                       fontWeight: FontWeight.w800,
                     ),
@@ -182,7 +191,8 @@ class DetailView extends StatelessWidget {
                 ],
               ),
             ),
-          ),
+            );
+          },
         ),
         const SizedBox(height: 10),
         _outlineButton(

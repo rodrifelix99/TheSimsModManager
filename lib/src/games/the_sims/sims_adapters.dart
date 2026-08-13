@@ -4,6 +4,8 @@ import 'dart:isolate';
 import 'package:path/path.dart' as p;
 
 import '../../core/app_message.dart';
+import '../../core/creation.dart';
+import '../../core/creation_files.dart';
 import '../../core/documents_dir.dart';
 import '../../core/game.dart';
 import '../../core/game_adapter.dart';
@@ -16,12 +18,16 @@ import '../../core/resource_cfg.dart';
 import '../../core/save_game.dart';
 import '../../core/trivia.dart';
 import 'demo_packs.dart';
+import 'sims1_creations.dart';
 import 'sims1_packs.dart';
 import 'sims1_saves.dart';
+import 'sims2_creations.dart';
 import 'sims2_packs.dart';
 import 'sims2_saves.dart';
+import 'sims3_creations.dart';
 import 'sims3_packs.dart';
 import 'sims3_saves.dart';
+import 'sims4_creations.dart';
 import 'sims4_packs.dart';
 import 'sims4_saves.dart';
 import 'sims3pack.dart';
@@ -149,6 +155,58 @@ Future<List<SaveGame>> scanSavesIn(
     // A save folder that can't be read means no saves to show, not an
     // error banner over the library.
   }
+  return const [];
+}
+
+/// `UserData`, `UserData2`, ...: one per Sims 1 neighborhood.
+final _userDataFolder = RegExp(r'^UserData(\d*)$', caseSensitive: false);
+
+/// Runs a creation [scan] over the first of [roots] whose [subfolder]
+/// exists, inside an isolate. The counterpart of [scanSavesIn], and the
+/// same bargain: a folder of a few hundred lots means a few hundred
+/// packages opened and a thumbnail decoded out of each, which the UI
+/// thread has no business waiting on. [scan] crosses the isolate
+/// boundary, so it must be a top-level function.
+Future<List<Creation>> scanCreationsIn(
+  Future<List<Directory>> Function() roots,
+  String subfolder,
+  List<Creation> Function(String path) scan,
+) async {
+  try {
+    for (final dir in await roots()) {
+      final target =
+          subfolder.isEmpty ? dir : Directory(p.join(dir.path, subfolder));
+      if (!await target.exists()) continue;
+      final path = target.path;
+      return await Isolate.run(() => scan(path));
+    }
+  } catch (_) {
+    // A folder that can't be read means nothing to show, not an error
+    // banner over the library.
+  }
+  return const [];
+}
+
+/// The first of [roots] that has [subfolder], as a [CreationFolder].
+/// Empty when the game isn't installed or has never made the folder,
+/// which is what stops an install offering somewhere that isn't there.
+Future<List<CreationFolder>> creationFolderIn(
+  Future<List<Directory>> Function() roots,
+  String subfolder,
+  String labelKey, {
+  List<String> kinds = const [],
+}) async {
+  try {
+    for (final dir in await roots()) {
+      final target =
+          subfolder.isEmpty ? dir : Directory(p.join(dir.path, subfolder));
+      if (await target.exists()) {
+        return [
+          CreationFolder(labelKey: labelKey, path: target.path, kinds: kinds)
+        ];
+      }
+    }
+  } catch (_) {}
   return const [];
 }
 
@@ -639,6 +697,63 @@ class Sims4Adapter extends DocumentsSimsAdapter {
   Future<List<SaveGame>> listSaveGames() =>
       scanSavesIn(gameDataFolders, 'saves', scanSims4Saves);
 
+  @override
+  bool get hasCreations => true;
+
+  /// The tray's own extensions. `.package` is deliberately not here: in
+  /// this game a package really is always a mod, and the tray files
+  /// announce themselves.
+  @override
+  Set<String> get creationFileExtensions => const {
+        '.trayitem',
+        '.householdbinary',
+        '.blueprint',
+        '.room',
+        '.hhi',
+        '.bpi',
+        '.rmi',
+        '.sgi',
+      };
+
+  @override
+  Future<List<CreationFolder>> creationFolders() =>
+      creationFolderIn(gameDataFolders, 'Tray', 'sims4Tray');
+
+  @override
+  Future<List<Creation>> listCreations() =>
+      scanCreationsIn(gameDataFolders, 'Tray', scanSims4Creations);
+
+  /// A tray file says what it is in its own name, so nothing is opened to
+  /// decide - but a set is only useful whole, and people drag in the four
+  /// files they can see and miss the fifth. So whatever is recognised
+  /// drags the rest of its set along from wherever it was found.
+  @override
+  Future<CreationRouting?> routeCreations(List<String> paths) async {
+    if (sims4TrayFiles(paths).isEmpty) return null;
+    final folder = (await creationFolders()).firstOrNull;
+    if (folder == null) return null;
+    final whole = <String>{
+      for (final path in sims4TrayFiles(paths)) ...sims4TraySiblings(path),
+    };
+    return CreationRouting(
+      folder: folder,
+      files: whole.toList(),
+      unrecognised: [
+        for (final path in paths)
+          if (!whole.contains(path)) path,
+      ],
+    );
+  }
+
+  @override
+  Future<void> installCreations(
+          List<String> paths, CreationFolder folder) =>
+      copyCreationFiles(paths, folder);
+
+  @override
+  Future<void> removeCreation(Creation creation) =>
+      deleteCreationFiles(creation);
+
   /// Where the game itself is installed, which is nowhere near where its
   /// mods live: Documents holds the user's data, the packs sit beside the
   /// binaries under whichever launcher's folder installed them. Launcher
@@ -825,6 +940,60 @@ class Sims3Adapter extends DocumentsSimsAdapter {
   }
 
   @override
+  bool get hasCreations => true;
+
+  @override
+  Future<List<CreationFolder>> creationFolders() =>
+      creationFolderIn(gameDataFolders, 'Library', 'sims3Library');
+
+  @override
+  Future<List<Creation>> listCreations() =>
+      scanCreationsIn(gameDataFolders, 'Library', scanSims3Creations);
+
+  /// The hard case: a lot and a mod are both `.package` files, so every
+  /// candidate has to be opened. Cheap enough - only the index is read,
+  /// and only for files that are packages to begin with - and it is the
+  /// difference between a downloaded house working and sitting in Mods
+  /// doing nothing.
+  @override
+  Future<CreationRouting?> routeCreations(List<String> paths) async {
+    final recognised = <String>[];
+    final rest = <String>[];
+    String? kind;
+    for (final path in paths) {
+      if (p.extension(path).toLowerCase() != '.package') {
+        rest.add(path);
+        continue;
+      }
+      final creation = await Isolate.run(() => readSims3Creation(File(path)));
+      if (creation == null) {
+        rest.add(path);
+      } else {
+        recognised.add(path);
+        kind ??= creation.kindKey;
+      }
+    }
+    if (recognised.isEmpty) return null;
+    final folder = (await creationFolders()).firstOrNull;
+    if (folder == null) return null;
+    return CreationRouting(
+      folder: folder,
+      files: recognised,
+      kindKey: kind,
+      unrecognised: rest,
+    );
+  }
+
+  @override
+  Future<void> installCreations(
+          List<String> paths, CreationFolder folder) =>
+      copyCreationFiles(paths, folder);
+
+  @override
+  Future<void> removeCreation(Creation creation) =>
+      deleteCreationFiles(creation);
+
+  @override
   Future<List<SaveGame>> listSaveGames() => scanSavesIn(gameDataFolders,
       'Saves', (path) => scanSims3Saves(path, extension: '.sims3'));
 
@@ -921,6 +1090,99 @@ class Sims2Adapter extends DocumentsSimsAdapter {
   @override
   Future<List<SaveGame>> listSaveGames() =>
       scanSavesIn(gameDataFolders, 'Neighborhoods', scanSims2Saves);
+
+  @override
+  bool get hasCreations => true;
+
+  /// The one game in the series that files its two kinds apart, so both
+  /// folders are offered and each says what it takes. `SavedSims` is not
+  /// made until the player packages somebody, so a copy that has one bin
+  /// and not the other is normal rather than broken.
+  @override
+  Future<List<CreationFolder>> creationFolders() async => [
+        ...await creationFolderIn(
+            gameDataFolders, 'LotCatalog', 'sims2LotCatalog',
+            kinds: const [kindLot]),
+        ...await creationFolderIn(
+            gameDataFolders, 'SavedSims', 'sims2SavedSims',
+            kinds: const [kindSim, kindHousehold]),
+      ];
+
+  @override
+  Future<List<Creation>> listCreations() async {
+    final found = <Creation>[
+      ...await scanCreationsIn(gameDataFolders, 'LotCatalog', scanSims2Lots),
+      ...await scanCreationsIn(gameDataFolders, 'SavedSims', scanSims2Sims),
+    ];
+    found.sort(compareCreations);
+    return found;
+  }
+
+  /// Both bins hold packages and so does the mods folder, so each
+  /// candidate is opened - and unlike the Sims 3, what it turns out to be
+  /// decides *which* folder it goes to rather than just whether it is a
+  /// creation at all.
+  @override
+  Future<CreationRouting?> routeCreations(List<String> paths) async {
+    final folders = await creationFolders();
+    final lotFolder =
+        folders.where((f) => f.accepts(kindLot)).firstOrNull;
+    final simFolder =
+        folders.where((f) => f.accepts(kindSim)).firstOrNull;
+
+    final lots = <String>[];
+    final sims = <String>[];
+    final rest = <String>[];
+    for (final path in paths) {
+      if (p.extension(path).toLowerCase() != '.package') {
+        rest.add(path);
+        continue;
+      }
+      final verdict = await Isolate.run(() {
+        final file = File(path);
+        if (isSims2Lot(file)) return kindLot;
+        if (isSims2Sim(file)) return kindSim;
+        return null;
+      });
+      switch (verdict) {
+        case kindLot when lotFolder != null:
+          lots.add(path);
+        case kindSim when simFolder != null:
+          sims.add(path);
+        default:
+          rest.add(path);
+      }
+    }
+    // One routing per call, so a download holding both a lot and its
+    // residents sends the lot and leaves the sims for the next pass
+    // rather than putting either in the wrong bin.
+    if (lots.isNotEmpty) {
+      return CreationRouting(
+        folder: lotFolder!,
+        files: lots,
+        kindKey: kindLot,
+        unrecognised: [...sims, ...rest],
+      );
+    }
+    if (sims.isNotEmpty) {
+      return CreationRouting(
+        folder: simFolder!,
+        files: sims,
+        kindKey: kindSim,
+        unrecognised: rest,
+      );
+    }
+    return null;
+  }
+
+  @override
+  Future<void> installCreations(
+          List<String> paths, CreationFolder folder) =>
+      copyCreationFiles(paths, folder);
+
+  @override
+  Future<void> removeCreation(Creation creation) =>
+      deleteCreationFiles(creation);
 
   /// The Legacy Collection records its packs in the user's own hive, so
   /// unlike The Sims 3 this needs no special rights to read or write.
@@ -1304,6 +1566,113 @@ class Sims1Adapter extends InstallFolderSimsAdapter {
   @override
   Future<List<SaveGame>> listSaveGames() =>
       scanSavesIn(installCandidates, '', scanSims1Saves);
+
+  @override
+  bool get hasCreations => true;
+
+  /// A Houses folder per neighborhood, because that is how the game files
+  /// them: `UserData` is the first neighborhood, `UserData2` the second,
+  /// and a house belongs to one of them rather than to the install.
+  @override
+  Future<List<CreationFolder>> creationFolders() async {
+    final folders = <CreationFolder>[];
+    try {
+      for (final install in await installCandidates()) {
+        for (final entity in await install.list().toList()) {
+          if (entity is! Directory) continue;
+          final match = _userDataFolder.firstMatch(p.basename(entity.path));
+          if (match == null) continue;
+          final houses = Directory(p.join(entity.path, 'Houses'));
+          if (!await houses.exists()) continue;
+          final number =
+              match.group(1)!.isEmpty ? '1' : match.group(1)!;
+          folders.add(CreationFolder(
+            labelKey: 'sims1Houses',
+            path: houses.path,
+            labelArgs: [number],
+            kinds: const [kindLot],
+          ));
+        }
+        if (folders.isNotEmpty) break;
+      }
+    } catch (_) {}
+    folders.sort((a, b) => a.path.compareTo(b.path));
+    return folders;
+  }
+
+  @override
+  Future<List<Creation>> listCreations() async {
+    final found = <Creation>[];
+    for (final folder in await creationFolders()) {
+      final path = folder.path;
+      try {
+        found.addAll(await Isolate.run(() => scanSims1Creations(path)));
+      } catch (_) {}
+    }
+    found.sort(compareCreations);
+    return found;
+  }
+
+  /// Only ever offers the first neighborhood: a house has to go in one of
+  /// them and the app has no way to know which, so it picks the one the
+  /// game opens on and the user moves it if that was wrong. Which house
+  /// it becomes is not a choice at all - see [installCreations].
+  @override
+  Future<CreationRouting?> routeCreations(List<String> paths) async {
+    final houses = [
+      for (final path in paths)
+        if (isSims1HouseFile(path)) path,
+    ];
+    if (houses.isEmpty) return null;
+    final folder = (await creationFolders()).firstOrNull;
+    if (folder == null) return null;
+    return CreationRouting(
+      folder: folder,
+      files: houses,
+      kindKey: kindLot,
+      unrecognised: [
+        for (final path in paths)
+          if (!houses.contains(path)) path,
+      ],
+    );
+  }
+
+  /// Installing a house is a rename, not a copy.
+  ///
+  /// The game reads houses by slot - `House07.iff` *is* house 7 - so
+  /// copying a download in under its own name would either land on a slot
+  /// somebody already lives on or, more often, arrive as a name the game
+  /// never looks at. So each file claims the lowest free number instead,
+  /// which is what every "how to install a Sims 1 house" guide has told
+  /// people to do by hand for twenty-five years.
+  @override
+  Future<void> installCreations(
+      List<String> paths, CreationFolder folder) async {
+    final destination = Directory(folder.path);
+    await destination.create(recursive: true);
+    for (final path in paths) {
+      final number = nextFreeHouseNumber(folder.path);
+      if (number == null) {
+        throw ModActionException(
+          ModActionFailure.nameTaken,
+          const AppMessage('creationNeighborhoodFull'),
+        );
+      }
+      final target = p.join(folder.path, houseFileName(number));
+      await retryWhileLocked(
+        () async {
+          final part = File('$target.part');
+          await File(path).copy(part.path);
+          await part.rename(target);
+        },
+        giveUp: () => AppMessage('creationFileInUse', [p.basename(path)]),
+      );
+    }
+  }
+
+  @override
+  Future<void> removeCreation(Creation creation) =>
+      deleteCreationFiles(creation);
 
   /// File types that belong in a skins folder. A skin is a trio: the
   /// .bmp texture, the .cmx animation link and the .skn mesh - all three

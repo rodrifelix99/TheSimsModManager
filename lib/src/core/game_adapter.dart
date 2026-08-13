@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'package:path/path.dart' as p;
 
 import 'app_message.dart';
+import 'creation.dart';
 import 'game.dart';
 import 'game_pack.dart';
 import 'install_destination.dart';
@@ -88,6 +89,37 @@ class ModActionException implements Exception {
 
   @override
   String toString() => '$detail';
+}
+
+/// Attempts before a locked file is given up on; antivirus and indexer
+/// locks are usually released within a second.
+const lockedFileAttempts = 4;
+
+/// Runs [action], retrying with a growing pause while the OS reports the
+/// file as locked: Windows refuses to delete or rename a file the game or
+/// an antivirus scan still has open (sharing violation), and those locks
+/// usually clear within a moment. After the last attempt the failure is
+/// worded by [giveUp].
+///
+/// Top-level rather than a method because the creation actions need the
+/// same patience for the same reason, and a game with the Tray open is
+/// exactly when someone reaches for the app.
+Future<T> retryWhileLocked<T>(
+  Future<T> Function() action, {
+  required AppMessage Function() giveUp,
+  Duration delay = const Duration(milliseconds: 250),
+}) async {
+  for (var attempt = 1;; attempt++) {
+    try {
+      return await action();
+    } on PathAccessException {
+      if (attempt < lockedFileAttempts) {
+        await Future<void>.delayed(delay * attempt);
+        continue;
+      }
+      throw ModActionException(ModActionFailure.fileInUse, giveUp());
+    }
+  }
 }
 
 /// Everything the manager needs to know to handle mods for one game.
@@ -264,6 +296,74 @@ abstract class GameAdapter {
   /// saves can't be located, and for games without a save reader yet.
   /// Runs off the UI thread and must never throw.
   Future<List<SaveGame>> listSaveGames() async => const [];
+
+  /// Whether this game keeps player-built lots, rooms, households and
+  /// sims somewhere of its own, known without going to the disk so the UI
+  /// can decide whether to offer the screen at all. The same split
+  /// [hasPacks] makes: false means the game has no such folder, not that
+  /// the folder happens to be empty today.
+  bool get hasCreations => false;
+
+  /// Extensions that could be player-built content and are nothing else,
+  /// so the drop overlay and the file picker let them through.
+  ///
+  /// Empty for the games whose creations wear the same extension as their
+  /// mods - a Sims 3 lot is a `.package`, which [modFileExtensions]
+  /// already accepts, and only [routeCreations] can tell the two apart.
+  /// This is for the game that gave its tray files names of their own.
+  Set<String> get creationFileExtensions => const {};
+
+  /// Where this game reads player-built content from - the Sims 4 Tray,
+  /// the Sims 3 Library, the Sims 2 bins, the Sims 1 Houses folder.
+  ///
+  /// More than one for a game that files lots and sims apart, and the
+  /// order is the order the UI offers them in. Empty when the game isn't
+  /// installed or has no such folder, which is what makes this the one
+  /// question [installCreations] has to answer before it can do anything.
+  /// Never throws.
+  Future<List<CreationFolder>> creationFolders() async => const [];
+
+  /// This game's player-built content as found on this machine, newest
+  /// first - a best-effort read of whatever each format gives up (see
+  /// [Creation]). Empty when the game or its folders can't be located.
+  /// Runs off the UI thread and must never throw.
+  Future<List<Creation>> listCreations() async => const [];
+
+  /// Whether [paths] look like content for this game's creation folders
+  /// rather than mods, and if so which folder they belong in.
+  ///
+  /// This is what stands between a downloaded lot and the mods folder,
+  /// where it would sit forever doing nothing. Deliberately a question
+  /// about the *files*, asked before an install picks a destination: a
+  /// Sims 4 tray set announces itself by extension, while a Sims 3 lot is
+  /// a `.package` like every mod in the library and can only be told
+  /// apart by what is inside it. Returns null when nothing here is a
+  /// creation, which is the answer for almost every install.
+  ///
+  /// Reads the files it is given and must never throw.
+  Future<CreationRouting?> routeCreations(List<String> paths) async => null;
+
+  /// Copies [paths] into [folder].
+  ///
+  /// Separate from [installFiles] because none of that machinery applies:
+  /// there is no enable marker, no subfolder to file into, no conflict
+  /// scan, and a set of files that belong together must land whole or not
+  /// at all. Says nothing about what arrived - the caller re-lists, which
+  /// it has to do anyway and which is the only answer that agrees with
+  /// the disk. Throws [ModActionException] the way the mod actions do.
+  Future<void> installCreations(
+    List<String> paths,
+    CreationFolder folder,
+  ) async =>
+      throw UnsupportedError('${game.id} cannot install creations');
+
+  /// Deletes [creation] and every file it is made of.
+  ///
+  /// Takes the whole of [Creation.allFiles] rather than one path, because
+  /// a Sims 4 tray item is a set and leaving the rest behind gives the
+  /// game a half-item to trip over. Throws [ModActionException].
+  Future<void> removeCreation(Creation creation) async =>
+      throw UnsupportedError('${game.id} cannot remove creations');
 
   /// The publisher's own packs installed beside this game - expansions,
   /// stuff packs, kits - as the install describes them.
@@ -516,6 +616,34 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
   @override
   Future<List<SaveGame>> listSaveGames() async => const [];
 
+  /// No player-built content until a subclass knows where this game keeps
+  /// it. Repeated from the interface for the same reason as above.
+  @override
+  bool get hasCreations => false;
+
+  @override
+  Set<String> get creationFileExtensions => const {};
+
+  @override
+  Future<List<CreationFolder>> creationFolders() async => const [];
+
+  @override
+  Future<List<Creation>> listCreations() async => const [];
+
+  @override
+  Future<CreationRouting?> routeCreations(List<String> paths) async => null;
+
+  @override
+  Future<void> installCreations(
+    List<String> paths,
+    CreationFolder folder,
+  ) async =>
+      throw UnsupportedError('${game.id} cannot install creations');
+
+  @override
+  Future<void> removeCreation(Creation creation) async =>
+      throw UnsupportedError('${game.id} cannot remove creations');
+
   /// No packs, and nothing to toggle, until a subclass knows this game's.
   /// Repeated from the interface for the same reason as above.
   @override
@@ -643,25 +771,9 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
     }
   }
 
-  /// Runs [action], retrying with a growing pause while the OS reports
-  /// the file as locked: Windows refuses to delete or rename a file the
-  /// game or an antivirus scan still has open (sharing violation), and
-  /// those locks usually clear within a moment. After the last attempt
-  /// the failure is worded by [giveUp].
   Future<T> _retryWhileLocked<T>(Future<T> Function() action,
-      {required AppMessage Function() giveUp}) async {
-    for (var attempt = 1;; attempt++) {
-      try {
-        return await action();
-      } on PathAccessException {
-        if (attempt < _lockedFileAttempts) {
-          await Future<void>.delayed(lockedFileRetryDelay * attempt);
-          continue;
-        }
-        throw ModActionException(ModActionFailure.fileInUse, giveUp());
-      }
-    }
-  }
+          {required AppMessage Function() giveUp}) =>
+      retryWhileLocked(action, giveUp: giveUp, delay: lockedFileRetryDelay);
 
   @override
   Future<Mod> moveMod(Mod mod, Directory destination) async {
@@ -694,10 +806,6 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
   /// The on-disk delete behind [removeMod]; a seam for tests to simulate
   /// OS failures (locked or vanished files).
   Future<void> deleteModFile(File file) => file.delete();
-
-  /// Attempts before a locked file is given up on; antivirus and indexer
-  /// locks are usually released within a second.
-  static const _lockedFileAttempts = 4;
 
   /// Base wait between retries on a locked file; grows linearly per
   /// attempt. Overridable so tests don't sit through real delays.

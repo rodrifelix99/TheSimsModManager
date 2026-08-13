@@ -2624,4 +2624,149 @@ class LEn extends L {
   @override
   String get triviaMedievalEngine =>
       'It runs on The Sims 3’s engine, which is why the Resource.cfg and the .package files look so familiar to anyone who has modded that game.';
+
+  @override
+  String get navCreations => 'Creations';
+
+  @override
+  String creationsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count creations',
+      one: '1 creation',
+      zero: 'Nothing saved yet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get creationsScanning => 'Reading your lots and households…';
+
+  @override
+  String get creationsRefresh => 'Refresh';
+
+  @override
+  String get creationsAll => 'All';
+
+  @override
+  String get creationsBack => '← Back to everything';
+
+  @override
+  String get creationsNoneOfKind => 'Nothing of that kind here.';
+
+  @override
+  String get creationsEmptyTitle => 'Nothing here yet';
+
+  @override
+  String get creationsEmptyBody =>
+      'Lots, rooms, households and sims you save in the game show up here — and so does anything you download and drop onto the window.';
+
+  @override
+  String creationsBy(String creator) {
+    return 'by $creator';
+  }
+
+  @override
+  String get creationsWhoLivesHere => 'WHO COMES WITH IT';
+
+  @override
+  String get creationsShowInFolder => 'Show in folder';
+
+  @override
+  String get creationsDelete => 'Delete';
+
+  @override
+  String creationsDeleteTitle(String name) {
+    return 'Delete “$name”?';
+  }
+
+  @override
+  String get creationsDeleteBody =>
+      'It goes from the game’s folder for good. There’s no undo.';
+
+  @override
+  String creationsFileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count files',
+      one: '1 file',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get creationKindLot => 'Lot';
+
+  @override
+  String get creationKindRoom => 'Room';
+
+  @override
+  String get creationKindHousehold => 'Household';
+
+  @override
+  String get creationKindSim => 'Sim';
+
+  @override
+  String get creationFolderSims4Tray => 'Tray';
+
+  @override
+  String get creationFolderSims3Library => 'Library';
+
+  @override
+  String get creationFolderSims2LotCatalog => 'Lots & Houses bin';
+
+  @override
+  String get creationFolderSims2SavedSims => 'Packaged Sims';
+
+  @override
+  String creationFolderSims1Houses(String number) {
+    return 'Neighborhood $number';
+  }
+
+  @override
+  String creationBadFileName(String name) {
+    return '“$name” has characters this system can’t use in a file name, so the game would never find it. Rename it and try again.';
+  }
+
+  @override
+  String creationFileInUse(String name) {
+    return '“$name” is in use. Close the game and try again.';
+  }
+
+  @override
+  String get creationNeighborhoodFull =>
+      'This neighborhood already has all 99 houses it can hold. Delete one you don’t play before adding another.';
+
+  @override
+  String creationInstallFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Those $count files couldn’t be added.',
+      one: 'That file couldn’t be added.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String creationRemoveFailed(String name) {
+    return '“$name” couldn’t be deleted.';
+  }
+
+  @override
+  String get creationsAdd => 'Add';
+
+  @override
+  String get creationsAdding => 'Adding…';
+
+  @override
+  String creationsPickerLabel(String game) {
+    return '$game lots, rooms, households and Sims';
+  }
+
+  @override
+  String get creationsNothingToAdd =>
+      'Nothing in there was a lot, a room, a household or a Sim this game can use. Custom content and mods go in through the library instead.';
 }

@@ -4100,6 +4100,210 @@ abstract class L {
   /// In en, this message translates to:
   /// **'It runs on The Sims 3’s engine, which is why the Resource.cfg and the .package files look so familiar to anyone who has modded that game.'**
   String get triviaMedievalEngine;
+
+  /// No description provided for @navCreations.
+  ///
+  /// In en, this message translates to:
+  /// **'Creations'**
+  String get navCreations;
+
+  /// No description provided for @creationsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Nothing saved yet} =1{1 creation} other{{count} creations}}'**
+  String creationsCount(int count);
+
+  /// No description provided for @creationsScanning.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading your lots and households…'**
+  String get creationsScanning;
+
+  /// No description provided for @creationsRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get creationsRefresh;
+
+  /// No description provided for @creationsAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get creationsAll;
+
+  /// No description provided for @creationsBack.
+  ///
+  /// In en, this message translates to:
+  /// **'← Back to everything'**
+  String get creationsBack;
+
+  /// No description provided for @creationsNoneOfKind.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing of that kind here.'**
+  String get creationsNoneOfKind;
+
+  /// No description provided for @creationsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here yet'**
+  String get creationsEmptyTitle;
+
+  /// No description provided for @creationsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Lots, rooms, households and sims you save in the game show up here — and so does anything you download and drop onto the window.'**
+  String get creationsEmptyBody;
+
+  /// No description provided for @creationsBy.
+  ///
+  /// In en, this message translates to:
+  /// **'by {creator}'**
+  String creationsBy(String creator);
+
+  /// No description provided for @creationsWhoLivesHere.
+  ///
+  /// In en, this message translates to:
+  /// **'WHO COMES WITH IT'**
+  String get creationsWhoLivesHere;
+
+  /// No description provided for @creationsShowInFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Show in folder'**
+  String get creationsShowInFolder;
+
+  /// No description provided for @creationsDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get creationsDelete;
+
+  /// No description provided for @creationsDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete “{name}”?'**
+  String creationsDeleteTitle(String name);
+
+  /// No description provided for @creationsDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It goes from the game’s folder for good. There’s no undo.'**
+  String get creationsDeleteBody;
+
+  /// No description provided for @creationsFileCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 file} other{{count} files}}'**
+  String creationsFileCount(int count);
+
+  /// No description provided for @creationKindLot.
+  ///
+  /// In en, this message translates to:
+  /// **'Lot'**
+  String get creationKindLot;
+
+  /// No description provided for @creationKindRoom.
+  ///
+  /// In en, this message translates to:
+  /// **'Room'**
+  String get creationKindRoom;
+
+  /// No description provided for @creationKindHousehold.
+  ///
+  /// In en, this message translates to:
+  /// **'Household'**
+  String get creationKindHousehold;
+
+  /// No description provided for @creationKindSim.
+  ///
+  /// In en, this message translates to:
+  /// **'Sim'**
+  String get creationKindSim;
+
+  /// No description provided for @creationFolderSims4Tray.
+  ///
+  /// In en, this message translates to:
+  /// **'Tray'**
+  String get creationFolderSims4Tray;
+
+  /// No description provided for @creationFolderSims3Library.
+  ///
+  /// In en, this message translates to:
+  /// **'Library'**
+  String get creationFolderSims3Library;
+
+  /// No description provided for @creationFolderSims2LotCatalog.
+  ///
+  /// In en, this message translates to:
+  /// **'Lots & Houses bin'**
+  String get creationFolderSims2LotCatalog;
+
+  /// No description provided for @creationFolderSims2SavedSims.
+  ///
+  /// In en, this message translates to:
+  /// **'Packaged Sims'**
+  String get creationFolderSims2SavedSims;
+
+  /// No description provided for @creationFolderSims1Houses.
+  ///
+  /// In en, this message translates to:
+  /// **'Neighborhood {number}'**
+  String creationFolderSims1Houses(String number);
+
+  /// No description provided for @creationBadFileName.
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” has characters this system can’t use in a file name, so the game would never find it. Rename it and try again.'**
+  String creationBadFileName(String name);
+
+  /// No description provided for @creationFileInUse.
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” is in use. Close the game and try again.'**
+  String creationFileInUse(String name);
+
+  /// No description provided for @creationNeighborhoodFull.
+  ///
+  /// In en, this message translates to:
+  /// **'This neighborhood already has all 99 houses it can hold. Delete one you don’t play before adding another.'**
+  String get creationNeighborhoodFull;
+
+  /// No description provided for @creationInstallFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{That file couldn’t be added.} other{Those {count} files couldn’t be added.}}'**
+  String creationInstallFailed(int count);
+
+  /// No description provided for @creationRemoveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” couldn’t be deleted.'**
+  String creationRemoveFailed(String name);
+
+  /// No description provided for @creationsAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get creationsAdd;
+
+  /// No description provided for @creationsAdding.
+  ///
+  /// In en, this message translates to:
+  /// **'Adding…'**
+  String get creationsAdding;
+
+  /// No description provided for @creationsPickerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{game} lots, rooms, households and Sims'**
+  String creationsPickerLabel(String game);
+
+  /// No description provided for @creationsNothingToAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing in there was a lot, a room, a household or a Sim this game can use. Custom content and mods go in through the library instead.'**
+  String get creationsNothingToAdd;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

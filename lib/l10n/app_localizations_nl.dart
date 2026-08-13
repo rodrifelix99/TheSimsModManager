@@ -2633,4 +2633,149 @@ class LNl extends L {
   @override
   String get triviaMedievalEngine =>
       'Het draait op de engine van The Sims 3, en daarom komen de Resource.cfg en de .package-bestanden zo bekend voor als je dat spel ooit gemod hebt.';
+
+  @override
+  String get navCreations => 'Creaties';
+
+  @override
+  String creationsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count creaties',
+      one: '1 creatie',
+      zero: 'Nog niets opgeslagen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get creationsScanning => 'Je kavels en huishoudens worden gelezen…';
+
+  @override
+  String get creationsRefresh => 'Vernieuwen';
+
+  @override
+  String get creationsAll => 'Alles';
+
+  @override
+  String get creationsBack => '← Terug naar alles';
+
+  @override
+  String get creationsNoneOfKind => 'Niets van dat soort hier.';
+
+  @override
+  String get creationsEmptyTitle => 'Hier staat nog niets';
+
+  @override
+  String get creationsEmptyBody =>
+      'Kavels, kamers, huishoudens en sims die je in het spel opslaat komen hier terecht — net als alles wat je downloadt en op het venster sleept.';
+
+  @override
+  String creationsBy(String creator) {
+    return 'van $creator';
+  }
+
+  @override
+  String get creationsWhoLivesHere => 'WIE ER MEEKOMT';
+
+  @override
+  String get creationsShowInFolder => 'In map tonen';
+
+  @override
+  String get creationsDelete => 'Verwijderen';
+
+  @override
+  String creationsDeleteTitle(String name) {
+    return '“$name” verwijderen?';
+  }
+
+  @override
+  String get creationsDeleteBody =>
+      'Het verdwijnt definitief uit de map van het spel. Ongedaan maken kan niet.';
+
+  @override
+  String creationsFileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bestanden',
+      one: '1 bestand',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get creationKindLot => 'Kavel';
+
+  @override
+  String get creationKindRoom => 'Kamer';
+
+  @override
+  String get creationKindHousehold => 'Huishouden';
+
+  @override
+  String get creationKindSim => 'Sim';
+
+  @override
+  String get creationFolderSims4Tray => 'Tray';
+
+  @override
+  String get creationFolderSims3Library => 'Library';
+
+  @override
+  String get creationFolderSims2LotCatalog => 'Kavel- en huizenverzameling';
+
+  @override
+  String get creationFolderSims2SavedSims => 'Ingepakte sims';
+
+  @override
+  String creationFolderSims1Houses(String number) {
+    return 'Buurt $number';
+  }
+
+  @override
+  String creationBadFileName(String name) {
+    return '“$name” bevat tekens die dit systeem niet toestaat in een bestandsnaam, dus het spel zou het nooit vinden. Geef het een andere naam en probeer het opnieuw.';
+  }
+
+  @override
+  String creationFileInUse(String name) {
+    return '“$name” is in gebruik. Sluit het spel en probeer het opnieuw.';
+  }
+
+  @override
+  String get creationNeighborhoodFull =>
+      'Deze buurt zit al vol met alle 99 huizen die erin passen. Verwijder er een die je niet speelt voordat je een nieuwe toevoegt.';
+
+  @override
+  String creationInstallFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Die $count bestanden konden niet worden toegevoegd.',
+      one: 'Dat bestand kon niet worden toegevoegd.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String creationRemoveFailed(String name) {
+    return '“$name” kon niet worden verwijderd.';
+  }
+
+  @override
+  String get creationsAdd => 'Toevoegen';
+
+  @override
+  String get creationsAdding => 'Bezig met toevoegen…';
+
+  @override
+  String creationsPickerLabel(String game) {
+    return 'Kavels, kamers, huishoudens en sims voor $game';
+  }
+
+  @override
+  String get creationsNothingToAdd =>
+      'Er zat niets tussen dat dit spel als kavel, kamer, huishouden of sim kan lezen. Custom content en mods gaan via de bibliotheek.';
 }

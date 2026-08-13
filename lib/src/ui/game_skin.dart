@@ -160,6 +160,28 @@ abstract class GameSkin {
   Decoration sidebar(GameTheme t, {required bool glass});
 }
 
+/// [c] darkened, if it has to be, until a white label clears 3:1 on it.
+///
+/// A big bold button in this app is white lettering on the game's colour,
+/// and that is the part worth keeping - so when the colour is too bright
+/// to carry white, the colour moves rather than the lettering. The Sims
+/// 4's mint measured 1.92 against white on the Install button, and this
+/// is what brings it back without the label going dark.
+///
+/// The flat skin's version of what [PlateSkin.bearsWhite] does for the
+/// hand-painted ones, and the same remedy already applied by hand to
+/// three of the light accents. Bounded rather than `while` for the same
+/// reason [PlateSkin.bearsLabel] is: a caller may hand over any colour,
+/// and a loop that must reach black to stop is one argument away from
+/// spinning.
+Color bearsWhite(Color c) {
+  var out = c;
+  for (var i = 0; i < 16 && _ratio(Colors.white, out) < 3.2; i++) {
+    out = _sink(out, .08);
+  }
+  return out;
+}
+
 /// A texture laid over the face of a plate: the asset, how strongly, and
 /// the single colour it averages to.
 ///
@@ -269,7 +291,9 @@ class FlatSkin extends GameSkin {
           borderRadius: br,
         ),
       SkinSurface.chip => BoxDecoration(
-          color: fill ?? (state == SkinState.active ? a : t.surface),
+          // A lit chip carries a white label, so it is held to the shade
+          // that can read one - the same bargain the primary makes below.
+          color: fill ?? (state == SkinState.active ? bearsWhite(a) : t.surface),
           border: Border.all(
             color: outline ??
                 switch (state) {
@@ -288,9 +312,22 @@ class FlatSkin extends GameSkin {
           border: Border.all(color: outline ?? a, width: 1.5),
           borderRadius: br,
         ),
+      // The loud button: the game's own colour with white lettering
+      // across it, held to the shade that can carry the lettering. The
+      // glow underneath keeps the undarkened accent, because nothing is
+      // read against a glow.
       SkinSurface.primary => BoxDecoration(
-          color: fill,
-          gradient: fill == null ? t.accentGradient : null,
+          color: fill == null ? null : bearsWhite(fill),
+          gradient: fill == null
+              ? LinearGradient(
+                  begin: t.accentGradient.begin,
+                  end: t.accentGradient.end,
+                  colors: [
+                    for (final stop in t.accentGradient.colors)
+                      bearsWhite(stop),
+                  ],
+                )
+              : null,
           borderRadius: br,
           boxShadow: [
             BoxShadow(
@@ -320,6 +357,9 @@ class FlatSkin extends GameSkin {
     Color? otherwise,
   }) {
     if (otherwise != null) return otherwise;
+    // White on the two surfaces this skin fills with the accent, which is
+    // what makes them read as the loud control. [decorate] is what keeps
+    // that legible, by darkening the material until white sits on it.
     final onFill = surface == SkinSurface.primary ||
         (surface == SkinSurface.chip && state == SkinState.active);
     if (onFill) return Colors.white.withValues(alpha: secondary ? .55 : 1);

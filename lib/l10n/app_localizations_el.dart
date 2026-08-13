@@ -2634,4 +2634,149 @@ class LEl extends L {
   @override
   String get triviaMedievalEngine =>
       'Τρέχει στη μηχανή του The Sims 3, και γι’ αυτό το Resource.cfg και τα αρχεία .package φαίνονται τόσο οικεία σε όποιον έχει κάνει modding σε εκείνο το παιχνίδι.';
+
+  @override
+  String get navCreations => 'Κατασκευές';
+
+  @override
+  String creationsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count κατασκευές',
+      one: '1 κατασκευή',
+      zero: 'Δεν έχεις αποθηκεύσει τίποτα ακόμα',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get creationsScanning => 'Διαβάζω τα οικόπεδα και τα νοικοκυριά σου…';
+
+  @override
+  String get creationsRefresh => 'Ανανέωση';
+
+  @override
+  String get creationsAll => 'Όλα';
+
+  @override
+  String get creationsBack => '← Πίσω σε όλα';
+
+  @override
+  String get creationsNoneOfKind => 'Δεν υπάρχει τίποτα τέτοιο εδώ.';
+
+  @override
+  String get creationsEmptyTitle => 'Δεν υπάρχει τίποτα ακόμα';
+
+  @override
+  String get creationsEmptyBody =>
+      'Τα οικόπεδα, τα δωμάτια, τα νοικοκυριά και τα sims που αποθηκεύεις μέσα στο παιχνίδι εμφανίζονται εδώ — όπως και ό,τι κατεβάζεις και ρίχνεις στο παράθυρο.';
+
+  @override
+  String creationsBy(String creator) {
+    return 'από $creator';
+  }
+
+  @override
+  String get creationsWhoLivesHere => 'ΠΟΙΟΙ ΕΡΧΟΝΤΑΙ ΜΑΖΙ';
+
+  @override
+  String get creationsShowInFolder => 'Εμφάνιση στον φάκελο';
+
+  @override
+  String get creationsDelete => 'Διαγραφή';
+
+  @override
+  String creationsDeleteTitle(String name) {
+    return 'Διαγραφή «$name»;';
+  }
+
+  @override
+  String get creationsDeleteBody =>
+      'Φεύγει οριστικά από τον φάκελο του παιχνιδιού. Δεν αναιρείται.';
+
+  @override
+  String creationsFileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count αρχεία',
+      one: '1 αρχείο',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get creationKindLot => 'Οικόπεδο';
+
+  @override
+  String get creationKindRoom => 'Δωμάτιο';
+
+  @override
+  String get creationKindHousehold => 'Νοικοκυριό';
+
+  @override
+  String get creationKindSim => 'Sim';
+
+  @override
+  String get creationFolderSims4Tray => 'Tray';
+
+  @override
+  String get creationFolderSims3Library => 'Library';
+
+  @override
+  String get creationFolderSims2LotCatalog => 'Συλλογή οικοπέδων και σπιτιών';
+
+  @override
+  String get creationFolderSims2SavedSims => 'Πακεταρισμένα sims';
+
+  @override
+  String creationFolderSims1Houses(String number) {
+    return 'Γειτονιά $number';
+  }
+
+  @override
+  String creationBadFileName(String name) {
+    return 'Το «$name» έχει χαρακτήρες που δεν επιτρέπει το σύστημα σε όνομα αρχείου, οπότε το παιχνίδι δεν θα το έβρισκε ποτέ. Μετονόμασέ το και δοκίμασε ξανά.';
+  }
+
+  @override
+  String creationFileInUse(String name) {
+    return 'Το «$name» χρησιμοποιείται. Κλείσε το παιχνίδι και δοκίμασε ξανά.';
+  }
+
+  @override
+  String get creationNeighborhoodFull =>
+      'Αυτή η γειτονιά έχει ήδη και τα 99 σπίτια που χωράει. Σβήσε κάποιο που δεν παίζεις πριν προσθέσεις άλλο.';
+
+  @override
+  String creationInstallFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Αυτά τα $count αρχεία δεν μπήκαν.',
+      one: 'Αυτό το αρχείο δεν μπήκε.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String creationRemoveFailed(String name) {
+    return 'Το «$name» δεν διαγράφηκε.';
+  }
+
+  @override
+  String get creationsAdd => 'Προσθήκη';
+
+  @override
+  String get creationsAdding => 'Γίνεται προσθήκη…';
+
+  @override
+  String creationsPickerLabel(String game) {
+    return 'Οικόπεδα, δωμάτια, νοικοκυριά και sims για $game';
+  }
+
+  @override
+  String get creationsNothingToAdd =>
+      'Τίποτα εκεί μέσα δεν ήταν οικόπεδο, δωμάτιο, νοικοκυριό ή sim που να διαβάζει αυτό το παιχνίδι. Το custom content και τα mods μπαίνουν από τη βιβλιοθήκη.';
 }

@@ -9,6 +9,7 @@ import 'package:path/path.dart' as p;
 
 import '../core/app_message.dart';
 import '../core/conflicts.dart';
+import '../core/creation.dart';
 import '../core/deep_link.dart';
 import '../core/demo_library.dart';
 import '../core/duplicates.dart';
@@ -40,7 +41,7 @@ import '../services/reachability.dart';
 import '../services/settings_store.dart';
 import '../services/sfx.dart';
 
-enum AppScreen { library, detail, settings, shop, saves, packs }
+enum AppScreen { library, detail, settings, shop, saves, packs, creations }
 
 /// Which half of the library the Enabled/Disabled stats are showing.
 /// [all] is both, i.e. no narrowing at all.
@@ -2718,6 +2719,13 @@ class AppController extends ChangeNotifier {
     packsLoading = false;
     _packsAreDemo = false;
     _packsChanged.clear();
+    // And the same for the lots and households: another game's folders,
+    // read when that game's shelf is next opened.
+    creations = null;
+    creationsLoading = false;
+    creationBusy = false;
+    selectedCreationKinds.clear();
+    _openCreationPath = null;
     // The Exchange is deliberately left alone: its shelves span every
     // game, so switching the library doesn't re-shelve them.
     await refresh();
@@ -4063,13 +4071,21 @@ class AppController extends ChangeNotifier {
   /// made again on the way in rather than refused - the adapters create
   /// their destination, and an install is a bad moment to find out a
   /// folder set months ago is gone.
-  Future<List<Mod>> installFiles(List<FileSystemEntity> sources,
+  Future<List<Mod>> installFiles(List<FileSystemEntity> sourceEntities,
       {String method = 'picker',
       GameAdapter? into,
       Directory? target,
       String? destination,
       InstallPlacement placement = const SortedPlacement()}) async {
     final adapter = into ?? _adapter;
+    // Player-built content is filed before mods are, because a lot or a
+    // household put in the mods folder is the loudest silent failure this
+    // app has: the file is there, the library lists it, and the game
+    // never looks at it. Only what the game reads as a creation is taken
+    // out of the way; anything else in the same download goes on to the
+    // ordinary install below.
+    final sources = await _fileCreationsFrom(sourceEntities, adapter);
+    if (sources.isEmpty) return const [];
     final modsFolder = target ?? modsDir;
     if (modsFolder == null) return const [];
     // A chosen folder is an answer about the whole install, so the
@@ -4164,6 +4180,7 @@ class AppController extends ChangeNotifier {
     final accepted = {
       ..._adapter.modFileExtensions,
       ..._adapter.containerFileExtensions,
+      ..._adapter.creationFileExtensions,
     };
     final sources = <FileSystemEntity>[];
     for (final path in paths) {
@@ -4174,6 +4191,32 @@ class AppController extends ChangeNotifier {
       }
     }
     return sources;
+  }
+
+  /// Files [sources]' player-built content into the game's own folders
+  /// and hands back whatever is left for the mod install to deal with.
+  ///
+  /// Folders are passed straight through: what is inside one is the
+  /// archive walker's business, and a folder of custom content that
+  /// happens to hold a lot is still a mod install. What this catches is
+  /// the case that actually happens - a lot, a tray set or a packaged sim
+  /// downloaded on its own and dropped on the window.
+  Future<List<FileSystemEntity>> _fileCreationsFrom(
+      List<FileSystemEntity> sources, GameAdapter adapter) async {
+    if (!adapter.hasCreations) return sources;
+    final files = [
+      for (final source in sources)
+        if (source is File) source.path,
+    ];
+    if (files.isEmpty) return sources;
+    // Whatever was filed away is off the list; a download that was
+    // nothing but a lot leaves nothing behind and the install stops here.
+    final taken = (await installCreationFiles(files)).toSet();
+    if (taken.isEmpty) return sources;
+    return [
+      for (final source in sources)
+        if (!taken.contains(source.path)) source,
+    ];
   }
 
   Future<void> installDroppedPaths(List<String> paths,
@@ -5507,6 +5550,319 @@ class AppController extends ChangeNotifier {
     });
   }
 
+  // =========================================================================
+  // Creations - the lots, rooms, households and sims the player built
+
+  /// The current game's player-built content, or null before the first
+  /// look. Cleared on a game switch, like the saves and the packs, so
+  /// each game's folder is read when it is first asked for rather than on
+  /// every launch.
+  List<Creation>? creations;
+
+  bool creationsLoading = false;
+
+  /// Which kinds the shelf is narrowed to, empty meaning all of them -
+  /// the same "any of these" reading the folder and category chips use,
+  /// and the same chord.
+  final Set<String> selectedCreationKinds = {};
+
+  /// The creation whose page is open, by path, or null on the shelf.
+  /// Kept by path rather than by index because the shelf is re-read after
+  /// every install and delete.
+  String? _openCreationPath;
+
+  Creation? get openCreation {
+    final path = _openCreationPath;
+    if (path == null) return null;
+    return creations?.where((c) => c.path == path).firstOrNull;
+  }
+
+  /// Whether this game keeps player-built content anywhere. Behind a kill
+  /// switch for the same reason the packs screen is: this one writes into
+  /// the game's own folders, and a game patch that moves them is worth
+  /// being able to stop before shipping a fix.
+  bool get showCreations =>
+      _adapter.hasCreations &&
+      analytics.isEnabled('creation-manager', fallback: true);
+
+  /// The shelf after the kind chips, in the order the reader gave it.
+  List<Creation> get visibleCreations {
+    final all = creations ?? const <Creation>[];
+    if (selectedCreationKinds.isEmpty) return all;
+    return [
+      for (final creation in all)
+        if (selectedCreationKinds.contains(creation.kindKey)) creation,
+    ];
+  }
+
+  /// How many of each kind there are, for the chips. Counted over
+  /// everything rather than over what is on screen, so a chip's number is
+  /// the number you get when you press it.
+  Map<String, int> get creationKindCounts =>
+      countCreationKinds(creations ?? const []);
+
+  void openCreations() {
+    if (screen != AppScreen.creations) {
+      playSound(UiSound.open);
+      analytics.capture('creations_opened', {'game': _adapter.game.id});
+    }
+    screen = AppScreen.creations;
+    if (creations == null && !creationsLoading) {
+      _loadCreations();
+    }
+    notifyListeners();
+  }
+
+  /// Re-reads the folders - the refresh button, and how something saved
+  /// from inside the game while the app was open turns up.
+  Future<void> refreshCreations() {
+    playSound(UiSound.click);
+    return _loadCreations();
+  }
+
+  Future<void> _loadCreations() async {
+    final scanned = _adapter;
+    creationsLoading = true;
+    notifyListeners();
+    List<Creation> found = const [];
+    try {
+      found = await scanned.listCreations();
+    } catch (_) {
+      // The adapter contract says never throw; a surprise here still must
+      // not take the screen down.
+    }
+    // The user may have switched games mid-scan; those results belong to
+    // the game that was asked.
+    if (!identical(scanned, _adapter)) return;
+    creations = found;
+    creationsLoading = false;
+    if (openCreation == null) _openCreationPath = null;
+    analytics.capture('creations_loaded', {
+      'game': scanned.game.id,
+      'creations': found.length,
+      for (final entry in countCreationKinds(found).entries)
+        entry.key: entry.value,
+    });
+    notifyListeners();
+  }
+
+  void selectCreation(Creation creation) {
+    playSound(UiSound.select);
+    _openCreationPath = creation.path;
+    analytics.capture('creation_opened', {
+      'game': _adapter.game.id,
+      'kind': creation.kindKey,
+    });
+    notifyListeners();
+  }
+
+  void closeCreation() {
+    if (_openCreationPath == null) return;
+    playSound(UiSound.click);
+    _openCreationPath = null;
+    notifyListeners();
+  }
+
+  /// Lights a kind chip. Plain click means "just this one", ctrl/cmd adds
+  /// to what is lit, and clicking the only lit chip clears it - the same
+  /// chord the folder and category chips use.
+  void toggleCreationKind(String kind, {bool add = false}) {
+    playSound(UiSound.click);
+    if (add) {
+      if (!selectedCreationKinds.remove(kind)) selectedCreationKinds.add(kind);
+    } else if (selectedCreationKinds.length == 1 &&
+        selectedCreationKinds.contains(kind)) {
+      selectedCreationKinds.clear();
+    } else {
+      selectedCreationKinds
+        ..clear()
+        ..add(kind);
+    }
+    notifyListeners();
+  }
+
+  void clearCreationKinds() {
+    if (selectedCreationKinds.isEmpty) return;
+    playSound(UiSound.click);
+    selectedCreationKinds.clear();
+    notifyListeners();
+  }
+
+  /// True while an install or a delete is in flight, so neither button is
+  /// live twice and the two cannot run at once.
+  bool creationBusy = false;
+
+  /// Puts [paths] where this game keeps player-built content.
+  ///
+  /// Returns the paths it took, which is empty when none of them was a
+  /// creation - and for the install button that means the ordinary mod
+  /// install should have them all. Whether the copy then succeeded or
+  /// failed, the files are still this method's: a lot that could not be
+  /// written is not a mod to fall back on.
+  Future<List<String>> installCreationFiles(List<String> paths) async {
+    if (creationBusy || paths.isEmpty) return const [];
+    final adapter = _adapter;
+    CreationRouting? routing;
+    try {
+      routing = await adapter.routeCreations(paths);
+    } catch (_) {
+      // Reading a file to find out what it is must not be able to fail
+      // the install; an unreadable one is simply not a creation.
+    }
+    if (routing == null) return const [];
+    // What the routing pulled in from beside the dropped files is copied
+    // too, but only what the caller offered counts as taken.
+    final taken = [
+      for (final path in paths)
+        if (routing.files.contains(path)) path,
+    ];
+
+    creationBusy = true;
+    notifyListeners();
+    try {
+      await adapter.installCreations(routing.files, routing.folder);
+      analytics.capture('creation_installed', {
+        'game': adapter.game.id,
+        'kind': routing.kindKey ?? 'unknown',
+        'files': routing.files.length,
+      });
+    } catch (error, stack) {
+      lastError = error is ModActionException
+          ? error.detail
+          : AppMessage('creationInstallFailed', [
+              '${routing.files.length}',
+            ]);
+      playSound(UiSound.error);
+      if (error is! ModActionException) {
+        analytics.captureException(error, stack);
+      }
+      analytics.capture('creation_install_failed', {
+        'game': adapter.game.id,
+        'kind': routing.kindKey ?? 'unknown',
+      });
+      creationBusy = false;
+      notifyListeners();
+      return taken;
+    }
+    creationBusy = false;
+    playSound(UiSound.install);
+    await _loadCreations();
+    return taken;
+  }
+
+  /// Extensions the Add button offers: what this game reads as
+  /// player-built content, the mod extensions too (a Sims 3 lot and a
+  /// Sims 3 mod are both `.package`, and only [routeCreations] can tell
+  /// them apart), and the archives a download actually arrives in.
+  Set<String> get creationPickerExtensions => {
+        ..._adapter.creationFileExtensions,
+        ..._adapter.modFileExtensions,
+        ..._adapter.containerFileExtensions,
+      };
+
+  /// Adds downloaded content: [paths] straight through, and archives
+  /// unpacked first.
+  ///
+  /// Unpacking is the whole reason this exists rather than the drop
+  /// handler being the only way in. Almost nothing is shared as a loose
+  /// `.trayitem`: a household is five files and the scene zips them, so
+  /// an Add button that only took loose files would refuse the shape the
+  /// content actually comes in.
+  Future<void> addCreations(List<String> paths) async {
+    if (creationBusy || paths.isEmpty) return;
+    final adapter = _adapter;
+    final containers = adapter.containerFileExtensions;
+    final loose = <String>[];
+    final archives = <String>[];
+    for (final path in paths) {
+      if (containers.contains(p.extension(path).toLowerCase())) {
+        archives.add(path);
+      } else {
+        loose.add(path);
+      }
+    }
+
+    Directory? scratch;
+    try {
+      if (archives.isNotEmpty) {
+        creationBusy = true;
+        notifyListeners();
+        scratch = await Directory.systemTemp.createTemp('creations_');
+        // Everything the game could read out of the container; what it
+        // turns out to be is still the routing's question, since an
+        // archive of custom content and an archive of a lot look the
+        // same from out here.
+        final wanted = {
+          ...adapter.creationFileExtensions,
+          ...adapter.modFileExtensions,
+        };
+        for (final archive in archives) {
+          try {
+            final extracted =
+                await extractModFiles(File(archive), scratch, wanted);
+            loose.addAll([for (final file in extracted) file.path]);
+          } catch (_) {
+            // An archive nothing here reads, or one holding none of this
+            // game's files. The rest of the selection still installs;
+            // the count below is what says something was left out.
+          }
+        }
+        creationBusy = false;
+      }
+
+      final taken = await installCreationFiles(loose);
+      if (taken.isEmpty && lastError == null) {
+        // Nothing in the selection was content this game files away.
+        // Said plainly rather than silently: the user pressed a button.
+        lastError = const AppMessage('creationsNothingToAdd');
+        playSound(UiSound.alert);
+        notifyListeners();
+      }
+    } finally {
+      creationBusy = false;
+      try {
+        await scratch?.delete(recursive: true);
+      } catch (_) {}
+    }
+  }
+
+  /// Deletes [creation] and every file it is made of. There is no undo,
+  /// so the caller is expected to have asked first.
+  Future<void> removeCreation(Creation creation) async {
+    if (creationBusy) return;
+    final adapter = _adapter;
+    creationBusy = true;
+    notifyListeners();
+    try {
+      await adapter.removeCreation(creation);
+      analytics.capture('creation_removed', {
+        'game': adapter.game.id,
+        'kind': creation.kindKey,
+      });
+    } catch (error, stack) {
+      lastError = error is ModActionException
+          ? error.detail
+          : AppMessage('creationRemoveFailed', [creation.name]);
+      playSound(UiSound.error);
+      if (error is! ModActionException) {
+        analytics.captureException(error, stack);
+      }
+      creationBusy = false;
+      notifyListeners();
+      return;
+    }
+    creationBusy = false;
+    playSound(UiSound.uninstall);
+    if (_openCreationPath == creation.path) _openCreationPath = null;
+    await _loadCreations();
+  }
+
+  /// Opens the folder a creation sits in, for the file manager.
+  Future<void> revealCreation(Creation creation) async {
+    playSound(UiSound.click);
+    await revealInFileManager(creation.path);
+  }
+
   // ——— the first-run walkthrough ———
 
   bool _onboarding = false;
@@ -5687,7 +6043,15 @@ class AppController extends ChangeNotifier {
         AppScreen.library => TriviaContext.library,
         AppScreen.saves => TriviaContext.saves,
         AppScreen.packs => TriviaContext.packs,
-        AppScreen.detail || AppScreen.settings || AppScreen.shop => null,
+        // The creations shelf is a screen you browse, so the buddy would
+        // belong there - but a context only earns its place once facts
+        // have been written for it, and none have. Until then no plumbob
+        // is a better answer than one with nothing of its own to say.
+        AppScreen.detail ||
+        AppScreen.settings ||
+        AppScreen.shop ||
+        AppScreen.creations =>
+          null,
       };
 
   List<TriviaFact> get _triviaDeck => _triviaDecks.putIfAbsent(

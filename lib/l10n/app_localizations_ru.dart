@@ -2696,4 +2696,153 @@ class LRu extends L {
   @override
   String get triviaMedievalEngine =>
       'Она работает на движке The Sims 3, и потому Resource.cfg и файлы .package кажутся до боли знакомыми любому, кто модил ту игру.';
+
+  @override
+  String get navCreations => 'Творения';
+
+  @override
+  String creationsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count творения',
+      many: '$count творений',
+      few: '$count творения',
+      one: '$count творение',
+      zero: 'Пока ничего не сохранено',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get creationsScanning => 'Читаю твои участки и семьи…';
+
+  @override
+  String get creationsRefresh => 'Обновить';
+
+  @override
+  String get creationsAll => 'Всё';
+
+  @override
+  String get creationsBack => '← Назад ко всему';
+
+  @override
+  String get creationsNoneOfKind => 'Ничего такого тут нет.';
+
+  @override
+  String get creationsEmptyTitle => 'Тут пока пусто';
+
+  @override
+  String get creationsEmptyBody =>
+      'Участки, комнаты, семьи и симы, которых ты сохраняешь в игре, появляются здесь — и всё, что ты скачаешь и перетащишь в окно, тоже.';
+
+  @override
+  String creationsBy(String creator) {
+    return 'автор: $creator';
+  }
+
+  @override
+  String get creationsWhoLivesHere => 'КТО ИДЁТ В КОМПЛЕКТЕ';
+
+  @override
+  String get creationsShowInFolder => 'Показать в папке';
+
+  @override
+  String get creationsDelete => 'Удалить';
+
+  @override
+  String creationsDeleteTitle(String name) {
+    return 'Удалить «$name»?';
+  }
+
+  @override
+  String get creationsDeleteBody =>
+      'Оно исчезнет из папки игры навсегда. Отменить не получится.';
+
+  @override
+  String creationsFileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count файла',
+      many: '$count файлов',
+      few: '$count файла',
+      one: '$count файл',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get creationKindLot => 'Участок';
+
+  @override
+  String get creationKindRoom => 'Комната';
+
+  @override
+  String get creationKindHousehold => 'Семья';
+
+  @override
+  String get creationKindSim => 'Сим';
+
+  @override
+  String get creationFolderSims4Tray => 'Tray';
+
+  @override
+  String get creationFolderSims3Library => 'Library';
+
+  @override
+  String get creationFolderSims2LotCatalog => 'Коллекция участков и домов';
+
+  @override
+  String get creationFolderSims2SavedSims => 'Упакованные симы';
+
+  @override
+  String creationFolderSims1Houses(String number) {
+    return 'Район $number';
+  }
+
+  @override
+  String creationBadFileName(String name) {
+    return 'В имени «$name» есть символы, которые система не разрешает, — игра такой файл просто не найдёт. Переименуй его и попробуй ещё раз.';
+  }
+
+  @override
+  String creationFileInUse(String name) {
+    return '«$name» сейчас занят. Закрой игру и попробуй ещё раз.';
+  }
+
+  @override
+  String get creationNeighborhoodFull =>
+      'В этом районе уже все 99 домов, которые в него влезают. Удали тот, в который не играешь, прежде чем добавлять новый.';
+
+  @override
+  String creationInstallFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Эти $count файлов добавить не вышло.',
+      one: 'Этот файл добавить не вышло.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String creationRemoveFailed(String name) {
+    return '«$name» удалить не вышло.';
+  }
+
+  @override
+  String get creationsAdd => 'Добавить';
+
+  @override
+  String get creationsAdding => 'Добавляю…';
+
+  @override
+  String creationsPickerLabel(String game) {
+    return 'Участки, комнаты, семьи и симы для $game';
+  }
+
+  @override
+  String get creationsNothingToAdd =>
+      'Там не оказалось ни участка, ни комнаты, ни семьи, ни сима, которые эта игра умеет читать. Кастомный контент и моды добавляются через библиотеку.';
 }

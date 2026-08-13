@@ -2467,4 +2467,146 @@ class LJa extends L {
   @override
   String get triviaMedievalEngine =>
       'エンジンは The Sims 3 のものだ。だから Resource.cfg も .package ファイルも、あのゲームを触ったことがある人には妙に見覚えがある。';
+
+  @override
+  String get navCreations => 'クリエイション';
+
+  @override
+  String creationsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'クリエイション $count 件',
+      zero: 'まだ何も保存されていません',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get creationsScanning => '区画と世帯を読み込み中…';
+
+  @override
+  String get creationsRefresh => '更新';
+
+  @override
+  String get creationsAll => 'すべて';
+
+  @override
+  String get creationsBack => '← すべてに戻る';
+
+  @override
+  String get creationsNoneOfKind => 'その種類のものはここにありません。';
+
+  @override
+  String get creationsEmptyTitle => 'まだ何もありません';
+
+  @override
+  String get creationsEmptyBody =>
+      'ゲーム内で保存した区画・部屋・世帯・シムがここに出てきます。ダウンロードしてウィンドウにドロップしたものも同じです。';
+
+  @override
+  String creationsBy(String creator) {
+    return '作者：$creator';
+  }
+
+  @override
+  String get creationsWhoLivesHere => '一緒についてくるシム';
+
+  @override
+  String get creationsShowInFolder => 'フォルダーで表示';
+
+  @override
+  String get creationsDelete => '削除';
+
+  @override
+  String creationsDeleteTitle(String name) {
+    return '「$name」を削除しますか？';
+  }
+
+  @override
+  String get creationsDeleteBody => 'ゲームのフォルダーから完全になくなります。元には戻せません。';
+
+  @override
+  String creationsFileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 個のファイル',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get creationKindLot => '区画';
+
+  @override
+  String get creationKindRoom => '部屋';
+
+  @override
+  String get creationKindHousehold => '世帯';
+
+  @override
+  String get creationKindSim => 'シム';
+
+  @override
+  String get creationFolderSims4Tray => 'Tray';
+
+  @override
+  String get creationFolderSims3Library => 'Library';
+
+  @override
+  String get creationFolderSims2LotCatalog => '区画と家のコレクション';
+
+  @override
+  String get creationFolderSims2SavedSims => 'パッケージ化したシム';
+
+  @override
+  String creationFolderSims1Houses(String number) {
+    return '近所 $number';
+  }
+
+  @override
+  String creationBadFileName(String name) {
+    return '「$name」のファイル名にはこのシステムで使えない文字が入っていて、ゲームからは見つけられません。名前を変えてもう一度試してください。';
+  }
+
+  @override
+  String creationFileInUse(String name) {
+    return '「$name」は使用中です。ゲームを閉じてからもう一度試してください。';
+  }
+
+  @override
+  String get creationNeighborhoodFull =>
+      'この近所にはもう入る限界の99軒が入っています。遊んでいない家を削除してから追加してください。';
+
+  @override
+  String creationInstallFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'その $count 個のファイルは追加できませんでした。',
+      one: 'そのファイルは追加できませんでした。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String creationRemoveFailed(String name) {
+    return '「$name」は削除できませんでした。';
+  }
+
+  @override
+  String get creationsAdd => '追加';
+
+  @override
+  String get creationsAdding => '追加中…';
+
+  @override
+  String creationsPickerLabel(String game) {
+    return '$game の区画・部屋・世帯・シム';
+  }
+
+  @override
+  String get creationsNothingToAdd =>
+      'この中に、このゲームが読み込める区画・部屋・世帯・シムはありませんでした。カスタムコンテンツやMODはライブラリから追加してください。';
 }

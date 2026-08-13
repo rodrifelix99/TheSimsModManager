@@ -2432,4 +2432,145 @@ class LZh extends L {
   @override
   String get triviaMedievalEngine =>
       '它跑在《模拟人生 3》的引擎上，所以只要你给那款游戏做过模组，这里的 Resource.cfg 和 .package 文件都会让你觉得眼熟。';
+
+  @override
+  String get navCreations => '创作';
+
+  @override
+  String creationsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个创作',
+      zero: '还没有保存任何东西',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get creationsScanning => '正在读取你的地块和家庭……';
+
+  @override
+  String get creationsRefresh => '刷新';
+
+  @override
+  String get creationsAll => '全部';
+
+  @override
+  String get creationsBack => '← 返回全部';
+
+  @override
+  String get creationsNoneOfKind => '这里没有这一类的东西。';
+
+  @override
+  String get creationsEmptyTitle => '这里还空着';
+
+  @override
+  String get creationsEmptyBody =>
+      '你在游戏里保存的地块、房间、家庭和模拟市民都会出现在这里 —— 下载后拖到窗口上的东西也一样。';
+
+  @override
+  String creationsBy(String creator) {
+    return '作者：$creator';
+  }
+
+  @override
+  String get creationsWhoLivesHere => '一起带过来的人';
+
+  @override
+  String get creationsShowInFolder => '在文件夹中显示';
+
+  @override
+  String get creationsDelete => '删除';
+
+  @override
+  String creationsDeleteTitle(String name) {
+    return '删除“$name”？';
+  }
+
+  @override
+  String get creationsDeleteBody => '它会从游戏的文件夹里彻底消失，无法撤销。';
+
+  @override
+  String creationsFileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个文件',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get creationKindLot => '地块';
+
+  @override
+  String get creationKindRoom => '房间';
+
+  @override
+  String get creationKindHousehold => '家庭';
+
+  @override
+  String get creationKindSim => '模拟市民';
+
+  @override
+  String get creationFolderSims4Tray => 'Tray';
+
+  @override
+  String get creationFolderSims3Library => 'Library';
+
+  @override
+  String get creationFolderSims2LotCatalog => '地块与住宅收藏';
+
+  @override
+  String get creationFolderSims2SavedSims => '已打包的市民';
+
+  @override
+  String creationFolderSims1Houses(String number) {
+    return '第 $number 个街区';
+  }
+
+  @override
+  String creationBadFileName(String name) {
+    return '“$name”的文件名里有本系统不能用的字符，游戏永远找不到它。改个名字再试一次。';
+  }
+
+  @override
+  String creationFileInUse(String name) {
+    return '“$name”正在被占用。关掉游戏再试一次。';
+  }
+
+  @override
+  String get creationNeighborhoodFull => '这个街区已经放满 99 栋房子了。先删掉一栋你不玩的，再添加新的。';
+
+  @override
+  String creationInstallFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '那 $count 个文件没能添加进来。',
+      one: '那个文件没能添加进来。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String creationRemoveFailed(String name) {
+    return '“$name”没能删除。';
+  }
+
+  @override
+  String get creationsAdd => '添加';
+
+  @override
+  String get creationsAdding => '正在添加……';
+
+  @override
+  String creationsPickerLabel(String game) {
+    return '$game 的地块、房间、家庭和市民';
+  }
+
+  @override
+  String get creationsNothingToAdd =>
+      '里面没有这个游戏能用的地块、房间、家庭或市民。自定义内容和模组请从模组库那边添加。';
 }

@@ -414,7 +414,20 @@ class _TabBar extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w800,
-                              color: tab == current ? t.accent : t.muted,
+                              // Asked of the skin rather than stated,
+                              // because a skin raises the selected
+                              // segment into a plate of its own colour
+                              // and the accent then sits on top of the
+                              // shade it was drawn from. Accent-on-track
+                              // is the flat skin's answer, so it travels
+                              // as `otherwise` and survives only where
+                              // the skin left the background alone.
+                              color: t.skin.ink(t, SkinSurface.row,
+                                  state: skinState(
+                                      active: tab == current,
+                                      hovered: hovered),
+                                  otherwise:
+                                      tab == current ? t.accent : t.muted),
                             ),
                           ),
                         ),

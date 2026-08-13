@@ -2630,4 +2630,150 @@ class LIt extends L {
   @override
   String get triviaMedievalEngine =>
       'Gira sul motore di The Sims 3, ed è per questo che il Resource.cfg e i file .package sembrano così familiari a chi ha già moddato quel gioco.';
+
+  @override
+  String get navCreations => 'Creazioni';
+
+  @override
+  String creationsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count creazioni',
+      one: '1 creazione',
+      zero: 'Non hai ancora salvato niente',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get creationsScanning =>
+      'Sto leggendo i tuoi lotti e le tue famiglie…';
+
+  @override
+  String get creationsRefresh => 'Aggiorna';
+
+  @override
+  String get creationsAll => 'Tutto';
+
+  @override
+  String get creationsBack => '← Torna a tutto';
+
+  @override
+  String get creationsNoneOfKind => 'Qui non c’è niente di quel tipo.';
+
+  @override
+  String get creationsEmptyTitle => 'Qui non c’è ancora niente';
+
+  @override
+  String get creationsEmptyBody =>
+      'I lotti, le stanze, le famiglie e i sim che salvi nel gioco finiscono qui — e lo stesso vale per quello che scarichi e trascini sulla finestra.';
+
+  @override
+  String creationsBy(String creator) {
+    return 'di $creator';
+  }
+
+  @override
+  String get creationsWhoLivesHere => 'CHI ARRIVA INSIEME';
+
+  @override
+  String get creationsShowInFolder => 'Mostra nella cartella';
+
+  @override
+  String get creationsDelete => 'Elimina';
+
+  @override
+  String creationsDeleteTitle(String name) {
+    return 'Eliminare “$name”?';
+  }
+
+  @override
+  String get creationsDeleteBody =>
+      'Sparisce dalla cartella del gioco per sempre. Non si torna indietro.';
+
+  @override
+  String creationsFileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count file',
+      one: '1 file',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get creationKindLot => 'Lotto';
+
+  @override
+  String get creationKindRoom => 'Stanza';
+
+  @override
+  String get creationKindHousehold => 'Famiglia';
+
+  @override
+  String get creationKindSim => 'Sim';
+
+  @override
+  String get creationFolderSims4Tray => 'Tray';
+
+  @override
+  String get creationFolderSims3Library => 'Library';
+
+  @override
+  String get creationFolderSims2LotCatalog => 'Raccolta lotti e case';
+
+  @override
+  String get creationFolderSims2SavedSims => 'Sim impacchettati';
+
+  @override
+  String creationFolderSims1Houses(String number) {
+    return 'Vicinato $number';
+  }
+
+  @override
+  String creationBadFileName(String name) {
+    return '“$name” ha caratteri che questo sistema non accetta nel nome di un file, quindi il gioco non lo troverebbe mai. Rinominalo e riprova.';
+  }
+
+  @override
+  String creationFileInUse(String name) {
+    return '“$name” è in uso. Chiudi il gioco e riprova.';
+  }
+
+  @override
+  String get creationNeighborhoodFull =>
+      'Questo vicinato ha già tutte le 99 case che può contenere. Cancellane una che non giochi prima di aggiungerne un’altra.';
+
+  @override
+  String creationInstallFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Quei $count file non sono stati aggiunti.',
+      one: 'Quel file non è stato aggiunto.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String creationRemoveFailed(String name) {
+    return 'Non è stato possibile eliminare “$name”.';
+  }
+
+  @override
+  String get creationsAdd => 'Aggiungi';
+
+  @override
+  String get creationsAdding => 'Aggiunta in corso…';
+
+  @override
+  String creationsPickerLabel(String game) {
+    return 'Lotti, stanze, famiglie e sim di $game';
+  }
+
+  @override
+  String get creationsNothingToAdd =>
+      'Lì dentro non c’era nessun lotto, stanza, famiglia o sim che questo gioco possa usare. I contenuti personalizzati e le mod passano dalla libreria.';
 }

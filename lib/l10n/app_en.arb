@@ -1123,5 +1123,89 @@
   "triviaMedievalQuests": "This is a total conversion rather than a spin-off. The sandbox is replaced by a chain of quests, which is why it is the only Sims game you can actually finish.",
   "triviaMedievalPirates": "Pirates and Nobles, from August 2011, was the only add-on it ever got: falcons and parrots, treasure maps and shovels, and a war between two arriving factions.",
   "triviaMedievalProxy": "The game was never built to load mods. Script and core mods need the community’s d3dx9_31.dll proxy dropped into Game/Bin before the game will read them at all, though custom content works without it.",
-  "triviaMedievalEngine": "It runs on The Sims 3’s engine, which is why the Resource.cfg and the .package files look so familiar to anyone who has modded that game."
+  "triviaMedievalEngine": "It runs on The Sims 3’s engine, which is why the Resource.cfg and the .package files look so familiar to anyone who has modded that game.",
+  "navCreations": "Creations",
+  "creationsCount": "{count, plural, =0{Nothing saved yet} =1{1 creation} other{{count} creations}}",
+  "@creationsCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "creationsScanning": "Reading your lots and households…",
+  "creationsRefresh": "Refresh",
+  "creationsAll": "All",
+  "creationsBack": "← Back to everything",
+  "creationsNoneOfKind": "Nothing of that kind here.",
+  "creationsEmptyTitle": "Nothing here yet",
+  "creationsEmptyBody": "Lots, rooms, households and sims you save in the game show up here — and so does anything you download and drop onto the window.",
+  "creationsBy": "by {creator}",
+  "@creationsBy": {
+    "placeholders": {
+      "creator": {"type": "String"}
+    }
+  },
+  "creationsWhoLivesHere": "WHO COMES WITH IT",
+  "creationsShowInFolder": "Show in folder",
+  "creationsDelete": "Delete",
+  "creationsDeleteTitle": "Delete “{name}”?",
+  "@creationsDeleteTitle": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "creationsDeleteBody": "It goes from the game’s folder for good. There’s no undo.",
+  "creationsFileCount": "{count, plural, =1{1 file} other{{count} files}}",
+  "@creationsFileCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "creationKindLot": "Lot",
+  "creationKindRoom": "Room",
+  "creationKindHousehold": "Household",
+  "creationKindSim": "Sim",
+  "creationFolderSims4Tray": "Tray",
+  "creationFolderSims3Library": "Library",
+  "creationFolderSims2LotCatalog": "Lots & Houses bin",
+  "creationFolderSims2SavedSims": "Packaged Sims",
+  "creationFolderSims1Houses": "Neighborhood {number}",
+  "@creationFolderSims1Houses": {
+    "placeholders": {
+      "number": {"type": "String"}
+    }
+  },
+  "creationBadFileName": "“{name}” has characters this system can’t use in a file name, so the game would never find it. Rename it and try again.",
+  "@creationBadFileName": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "creationFileInUse": "“{name}” is in use. Close the game and try again.",
+  "@creationFileInUse": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "creationNeighborhoodFull": "This neighborhood already has all 99 houses it can hold. Delete one you don’t play before adding another.",
+  "creationInstallFailed": "{count, plural, =1{That file couldn’t be added.} other{Those {count} files couldn’t be added.}}",
+  "@creationInstallFailed": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "creationRemoveFailed": "“{name}” couldn’t be deleted.",
+  "@creationRemoveFailed": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "creationsAdd": "Add",
+  "creationsAdding": "Adding…",
+  "@creationsPickerLabel": {
+    "placeholders": {
+      "game": {"type": "String"}
+    }
+  },
+  "creationsPickerLabel": "{game} lots, rooms, households and Sims",
+  "creationsNothingToAdd": "Nothing in there was a lot, a room, a household or a Sim this game can use. Custom content and mods go in through the library instead."
 }

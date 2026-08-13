@@ -8,6 +8,7 @@ import 'package:window_manager/window_manager.dart';
 import '../core/game.dart';
 import '../core/game_adapter.dart';
 import 'app_controller.dart';
+import 'creations_view.dart';
 import 'detail_view.dart';
 import 'game_skin.dart';
 import 'game_theme.dart';
@@ -148,6 +149,8 @@ class _AppShellState extends State<AppShell> {
                                       SavesView(theme: t, controller: c),
                                     AppScreen.packs =>
                                       PacksView(theme: t, controller: c),
+                                    AppScreen.creations =>
+                                      CreationsView(theme: t, controller: c),
                                   },
                                 ),
                               ),
@@ -525,6 +528,45 @@ class _SidebarState extends State<_Sidebar> {
                 ],
               ),
               onTap: c.openPacks,
+            ),
+          ],
+          // Only for the games that keep player-built content somewhere
+          // of their own. The Sims Medieval has no such folder, and an
+          // empty shelf would be a worse answer than no shelf.
+          if (c.showCreations) ...[
+            const SizedBox(height: 4),
+            _navButton(
+              t,
+              label: l.navCreations,
+              active: c.screen == AppScreen.creations,
+              // A house: a square with a roof over it.
+              iconBuilder: (color) => Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Transform.rotate(
+                    angle: 0.785398, // 45 degrees: the roof
+                    child: Container(
+                      width: 9,
+                      height: 9,
+                      decoration: BoxDecoration(
+                        border: Border(
+                          top: BorderSide(color: color, width: 2.5),
+                          left: BorderSide(color: color, width: 2.5),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    width: 15,
+                    height: 9,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: color, width: 2.5),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ],
+              ),
+              onTap: c.openCreations,
             ),
           ],
           const SizedBox(height: 4),

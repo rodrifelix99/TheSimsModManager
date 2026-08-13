@@ -2637,4 +2637,150 @@ class LDe extends L {
   @override
   String get triviaMedievalEngine =>
       'Es läuft auf der Engine von The Sims 3, und deshalb kommen einem die Resource.cfg und die .package-Dateien so bekannt vor, wenn man dieses Spiel schon gemoddet hat.';
+
+  @override
+  String get navCreations => 'Kreationen';
+
+  @override
+  String creationsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Kreationen',
+      one: '1 Kreation',
+      zero: 'Noch nichts gespeichert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get creationsScanning =>
+      'Deine Grundstücke und Haushalte werden gelesen…';
+
+  @override
+  String get creationsRefresh => 'Aktualisieren';
+
+  @override
+  String get creationsAll => 'Alle';
+
+  @override
+  String get creationsBack => '← Zurück zu allem';
+
+  @override
+  String get creationsNoneOfKind => 'Von der Sorte ist hier nichts.';
+
+  @override
+  String get creationsEmptyTitle => 'Hier ist noch nichts';
+
+  @override
+  String get creationsEmptyBody =>
+      'Grundstücke, Räume, Haushalte und Sims, die du im Spiel speicherst, landen hier — und alles, was du herunterlädst und auf das Fenster ziehst, auch.';
+
+  @override
+  String creationsBy(String creator) {
+    return 'von $creator';
+  }
+
+  @override
+  String get creationsWhoLivesHere => 'WER MITKOMMT';
+
+  @override
+  String get creationsShowInFolder => 'Im Ordner zeigen';
+
+  @override
+  String get creationsDelete => 'Löschen';
+
+  @override
+  String creationsDeleteTitle(String name) {
+    return '„$name“ löschen?';
+  }
+
+  @override
+  String get creationsDeleteBody =>
+      'Es verschwindet endgültig aus dem Ordner des Spiels. Rückgängig geht nicht.';
+
+  @override
+  String creationsFileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Dateien',
+      one: '1 Datei',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get creationKindLot => 'Grundstück';
+
+  @override
+  String get creationKindRoom => 'Raum';
+
+  @override
+  String get creationKindHousehold => 'Haushalt';
+
+  @override
+  String get creationKindSim => 'Sim';
+
+  @override
+  String get creationFolderSims4Tray => 'Tray';
+
+  @override
+  String get creationFolderSims3Library => 'Library';
+
+  @override
+  String get creationFolderSims2LotCatalog => 'Grundstücks- und Häusersammlung';
+
+  @override
+  String get creationFolderSims2SavedSims => 'Verpackte Sims';
+
+  @override
+  String creationFolderSims1Houses(String number) {
+    return 'Nachbarschaft $number';
+  }
+
+  @override
+  String creationBadFileName(String name) {
+    return '„$name“ hat Zeichen im Namen, die dieses System nicht erlaubt — das Spiel würde die Datei nie finden. Benenn sie um und versuch es nochmal.';
+  }
+
+  @override
+  String creationFileInUse(String name) {
+    return '„$name“ ist gerade in Benutzung. Schließ das Spiel und versuch es nochmal.';
+  }
+
+  @override
+  String get creationNeighborhoodFull =>
+      'Diese Nachbarschaft hat schon alle 99 Häuser, die reinpassen. Lösch eins, das du nicht spielst, bevor du ein neues hinzufügst.';
+
+  @override
+  String creationInstallFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Diese $count Dateien konnten nicht hinzugefügt werden.',
+      one: 'Die Datei konnte nicht hinzugefügt werden.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String creationRemoveFailed(String name) {
+    return '„$name“ konnte nicht gelöscht werden.';
+  }
+
+  @override
+  String get creationsAdd => 'Hinzufügen';
+
+  @override
+  String get creationsAdding => 'Wird hinzugefügt…';
+
+  @override
+  String creationsPickerLabel(String game) {
+    return 'Grundstücke, Räume, Haushalte und Sims für $game';
+  }
+
+  @override
+  String get creationsNothingToAdd =>
+      'Da war nichts dabei, was dieses Spiel als Grundstück, Raum, Haushalt oder Sim lesen kann. Custom Content und Mods gehen über die Bibliothek rein.';
 }

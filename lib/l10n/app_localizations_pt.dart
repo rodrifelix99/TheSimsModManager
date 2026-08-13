@@ -2629,4 +2629,149 @@ class LPt extends L {
   @override
   String get triviaMedievalEngine =>
       'Ele roda no motor de The Sims 3, e é por isso que o Resource.cfg e os arquivos .package parecem tão familiares para quem já modificou aquele jogo.';
+
+  @override
+  String get navCreations => 'Criações';
+
+  @override
+  String creationsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count criações',
+      one: '1 criação',
+      zero: 'Você ainda não salvou nada',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get creationsScanning => 'Lendo seus terrenos e famílias…';
+
+  @override
+  String get creationsRefresh => 'Atualizar';
+
+  @override
+  String get creationsAll => 'Tudo';
+
+  @override
+  String get creationsBack => '← Voltar para tudo';
+
+  @override
+  String get creationsNoneOfKind => 'Não tem nada desse tipo aqui.';
+
+  @override
+  String get creationsEmptyTitle => 'Ainda não tem nada aqui';
+
+  @override
+  String get creationsEmptyBody =>
+      'Os terrenos, cômodos, famílias e sims que você salvar no jogo aparecem aqui — e o que você baixar e soltar na janela também.';
+
+  @override
+  String creationsBy(String creator) {
+    return 'de $creator';
+  }
+
+  @override
+  String get creationsWhoLivesHere => 'QUEM VEM JUNTO';
+
+  @override
+  String get creationsShowInFolder => 'Mostrar na pasta';
+
+  @override
+  String get creationsDelete => 'Excluir';
+
+  @override
+  String creationsDeleteTitle(String name) {
+    return 'Excluir “$name”?';
+  }
+
+  @override
+  String get creationsDeleteBody =>
+      'Ele some da pasta do jogo de vez. Não dá para desfazer.';
+
+  @override
+  String creationsFileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count arquivos',
+      one: '1 arquivo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get creationKindLot => 'Terreno';
+
+  @override
+  String get creationKindRoom => 'Cômodo';
+
+  @override
+  String get creationKindHousehold => 'Família';
+
+  @override
+  String get creationKindSim => 'Sim';
+
+  @override
+  String get creationFolderSims4Tray => 'Tray';
+
+  @override
+  String get creationFolderSims3Library => 'Library';
+
+  @override
+  String get creationFolderSims2LotCatalog => 'Coleção de terrenos e casas';
+
+  @override
+  String get creationFolderSims2SavedSims => 'Sims empacotados';
+
+  @override
+  String creationFolderSims1Houses(String number) {
+    return 'Vizinhança $number';
+  }
+
+  @override
+  String creationBadFileName(String name) {
+    return '“$name” tem caracteres que este sistema não aceita em nome de arquivo, então o jogo nunca acharia ele. Renomeie e tente de novo.';
+  }
+
+  @override
+  String creationFileInUse(String name) {
+    return '“$name” está em uso. Feche o jogo e tente de novo.';
+  }
+
+  @override
+  String get creationNeighborhoodFull =>
+      'Esta vizinhança já está com as 99 casas que cabem. Apague alguma que você não joga antes de colocar outra.';
+
+  @override
+  String creationInstallFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Não deu para adicionar esses $count arquivos.',
+      one: 'Não deu para adicionar esse arquivo.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String creationRemoveFailed(String name) {
+    return 'Não deu para excluir “$name”.';
+  }
+
+  @override
+  String get creationsAdd => 'Adicionar';
+
+  @override
+  String get creationsAdding => 'Adicionando…';
+
+  @override
+  String creationsPickerLabel(String game) {
+    return 'Terrenos, cômodos, famílias e sims de $game';
+  }
+
+  @override
+  String get creationsNothingToAdd =>
+      'Nada ali dentro era terreno, cômodo, família ou sim que este jogo consiga usar. Conteúdo personalizado e mods entram pela biblioteca.';
 }

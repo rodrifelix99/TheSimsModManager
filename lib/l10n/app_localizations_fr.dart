@@ -2634,4 +2634,150 @@ class LFr extends L {
   @override
   String get triviaMedievalEngine =>
       'Il tourne sur le moteur de The Sims 3, et c’est pour ça que le Resource.cfg et les fichiers .package semblent si familiers à quiconque a moddé ce jeu-là.';
+
+  @override
+  String get navCreations => 'Créations';
+
+  @override
+  String creationsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count créations',
+      one: '1 création',
+      zero: 'Rien d’enregistré pour l’instant',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get creationsScanning => 'Lecture de tes terrains et familles…';
+
+  @override
+  String get creationsRefresh => 'Actualiser';
+
+  @override
+  String get creationsAll => 'Tout';
+
+  @override
+  String get creationsBack => '← Retour à tout';
+
+  @override
+  String get creationsNoneOfKind => 'Rien de ce type ici.';
+
+  @override
+  String get creationsEmptyTitle => 'Encore rien ici';
+
+  @override
+  String get creationsEmptyBody =>
+      'Les terrains, pièces, familles et sims que tu enregistres dans le jeu apparaissent ici — tout comme ce que tu télécharges et déposes sur la fenêtre.';
+
+  @override
+  String creationsBy(String creator) {
+    return 'par $creator';
+  }
+
+  @override
+  String get creationsWhoLivesHere => 'QUI VIENT AVEC';
+
+  @override
+  String get creationsShowInFolder => 'Afficher dans le dossier';
+
+  @override
+  String get creationsDelete => 'Supprimer';
+
+  @override
+  String creationsDeleteTitle(String name) {
+    return 'Supprimer « $name » ?';
+  }
+
+  @override
+  String get creationsDeleteBody =>
+      'Ça disparaît définitivement du dossier du jeu. Pas de retour en arrière.';
+
+  @override
+  String creationsFileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fichiers',
+      one: '1 fichier',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get creationKindLot => 'Terrain';
+
+  @override
+  String get creationKindRoom => 'Pièce';
+
+  @override
+  String get creationKindHousehold => 'Foyer';
+
+  @override
+  String get creationKindSim => 'Sim';
+
+  @override
+  String get creationFolderSims4Tray => 'Tray';
+
+  @override
+  String get creationFolderSims3Library => 'Library';
+
+  @override
+  String get creationFolderSims2LotCatalog =>
+      'Collection de terrains et maisons';
+
+  @override
+  String get creationFolderSims2SavedSims => 'Sims empaquetés';
+
+  @override
+  String creationFolderSims1Houses(String number) {
+    return 'Quartier $number';
+  }
+
+  @override
+  String creationBadFileName(String name) {
+    return '« $name » contient des caractères que ce système refuse dans un nom de fichier, donc le jeu ne le trouverait jamais. Renomme-le et réessaie.';
+  }
+
+  @override
+  String creationFileInUse(String name) {
+    return '« $name » est en cours d’utilisation. Ferme le jeu et réessaie.';
+  }
+
+  @override
+  String get creationNeighborhoodFull =>
+      'Ce quartier a déjà ses 99 maisons. Supprimes-en une à laquelle tu ne joues pas avant d’en ajouter une autre.';
+
+  @override
+  String creationInstallFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ces $count fichiers n’ont pas pu être ajoutés.',
+      one: 'Ce fichier n’a pas pu être ajouté.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String creationRemoveFailed(String name) {
+    return '« $name » n’a pas pu être supprimé.';
+  }
+
+  @override
+  String get creationsAdd => 'Ajouter';
+
+  @override
+  String get creationsAdding => 'Ajout en cours…';
+
+  @override
+  String creationsPickerLabel(String game) {
+    return 'Terrains, pièces, foyers et sims de $game';
+  }
+
+  @override
+  String get creationsNothingToAdd =>
+      'Rien là-dedans n’était un terrain, une pièce, un foyer ou un sim que ce jeu peut utiliser. Le contenu personnalisé et les mods passent par la bibliothèque.';
 }

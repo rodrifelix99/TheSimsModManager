@@ -172,6 +172,40 @@ void main() {
   // three skins whose plates are dark, brown ink on the Medieval's
   // parchment - is the skin's own answer, so the test asks rather than
   // assuming: `ink` is the public form of exactly that question.
+  /// The flat skin fills two of its surfaces with the accent, and until
+  /// this test reached it the label on them was assumed to be white. The
+  /// Sims 4's mint is bright enough that white measured 1.92 on the
+  /// primary button, on a lit chip and on the detail panel's enable slab.
+  /// It is the only game wearing this skin, so nothing else was affected
+  /// and nothing else was watching.
+  test('a label reads on the flat skin too', () {
+    for (final brightness in Brightness.values) {
+      final t = GameTheme.forGame(game('sims4'), brightness);
+      expect(t.skin, isA<FlatSkin>());
+      for (final (name, surface, decoration) in [
+        ('primary', SkinSurface.primary,
+            t.skin.decorate(t, SkinSurface.primary)),
+        ('chip on', SkinSurface.chip,
+            t.skin.decorate(t, SkinSurface.chip, state: SkinState.active)),
+      ]) {
+        final label = t.skin.ink(t, surface, state: SkinState.active);
+        final stops = (decoration.gradient as LinearGradient?)?.colors ??
+            [decoration.color!];
+        for (final stop in stops) {
+          expect(_contrast(label, stop), greaterThan(3.0),
+              reason: 'sims4 $brightness label on $name');
+        }
+      }
+      // The slab the detail panel fills itself, both ways round. The ink
+      // is white there like every other loud control, so it is the plate
+      // that has to move.
+      for (final fill in [t.accent, t.switchOff]) {
+        expect(_contrast(Colors.white, bearsWhite(fill)), greaterThan(3.0),
+            reason: 'sims4 $brightness white on a filled slab');
+      }
+    }
+  });
+
   test('a label reads on every raised plate', () {
     for (final (id, brightness) in [
       for (final id in ['sims1', 'sims2', 'sims3', 'simsmedieval'])
@@ -202,6 +236,14 @@ void main() {
         ('row off', SkinSurface.row,
             t.skin.decorate(t, SkinSurface.row,
                 state: SkinState.active, fill: t.switchOff)),
+        // A segment raised out of a track says so by asking for the
+        // panel colour, which a skin reads as "on" and answers with its
+        // lit plate. It was missing here, and the saves tab strip drew
+        // its label in the accent on top of it - 1.02 against the plate
+        // on the Sims 3 in daylight, which is the same colour twice.
+        ('row selected', SkinSurface.row,
+            t.skin.decorate(t, SkinSurface.row,
+                state: SkinState.active, fill: t.surface)),
       ]) {
         final label = t.skin.ink(t, surface, state: SkinState.active);
         // The label ends up on top of any texture, not on top of the
