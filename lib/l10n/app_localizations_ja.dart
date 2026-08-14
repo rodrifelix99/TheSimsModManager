@@ -797,6 +797,24 @@ class LJa extends L {
       'ファイル名が重なっている、または他の MOD と同じゲーム内リソースを上書きしている有効な MOD に印を付けます';
 
   @override
+  String get prefConflictKindsTitle => 'どの競合を知らせるか';
+
+  @override
+  String get prefConflictKindsDesc => '印を付けてほしくない種類はオフにしてください。ほかはこれまでどおりです';
+
+  @override
+  String get conflictKindSameFile => '同一のコピー';
+
+  @override
+  String get conflictKindSameName => '同じファイル名';
+
+  @override
+  String get conflictKindVersions => '別バージョン';
+
+  @override
+  String get conflictKindResources => '共通リソース';
+
+  @override
   String get prefConfirmDeleteTitle => 'アンインストール前に確認';
 
   @override
@@ -2609,4 +2627,50 @@ class LJa extends L {
   @override
   String get creationsNothingToAdd =>
       'この中に、このゲームが読み込める区画・部屋・世帯・シムはありませんでした。カスタムコンテンツやMODはライブラリから追加してください。';
+
+  @override
+  String get householdEdit => '編集';
+
+  @override
+  String get householdEditTitle => '世帯を編集';
+
+  @override
+  String householdEditBody(String name) {
+    return 'セーブデータの「$name」の内容を変更するよ。';
+  }
+
+  @override
+  String get householdEditName => '名前';
+
+  @override
+  String get householdEditFunds => '所持金';
+
+  @override
+  String householdEditFundsMax(String max) {
+    return '$max まで。このゲームが持てる上限だよ。';
+  }
+
+  @override
+  String get householdEditSave => '保存';
+
+  @override
+  String get householdEditNotice =>
+      '先にゲームを閉じてね：終了時に自分でセーブを書き戻すよ。変更前にファイルのコピーを取っておくよ。';
+
+  @override
+  String get errorSaveEditHouseholdGone =>
+      'その世帯はもうセーブデータにないよ。リストを更新してもう一度試してね。';
+
+  @override
+  String errorSaveEditUnreadable(String file) {
+    return '「$file」はこのアプリが書き換えられる構造じゃないから、何も変更してないよ。';
+  }
+
+  @override
+  String errorSaveEditVerification(String file) {
+    return '書き換えた「$file」が正しく読み戻せなかったから破棄したよ。セーブデータはそのままだよ。';
+  }
+
+  @override
+  String get errorSaveEditUnsupported => 'このゲームのセーブは読めるけど、変更はできないよ。';
 }

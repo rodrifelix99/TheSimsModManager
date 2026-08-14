@@ -331,6 +331,88 @@ void main() {
     });
   });
 
+  // Which of the four signals the user still wants to hear about. Asked
+  // for by a player whose CC is deliberately kept in several versions:
+  // every shelf of it was flagged, and settling those pairs one at a time
+  // was the only way out (issue #20).
+  group('the kinds Settings switches off', () {
+    test('a muted signal is not reported', () {
+      final mods = [
+        _mod('CoolHair_v1.package', r'C:\mods\CoolHair_v1.package'),
+        _mod('CoolHair_v2.package', r'C:\mods\CoolHair_v2.package'),
+      ];
+
+      expect(
+        findConflictPairs(mods, const {},
+            reasons: allConflictReasons.difference(
+                {ConflictReason.versionPair})),
+        isEmpty,
+      );
+    });
+
+    test('the others keep working', () {
+      final mods = [
+        _mod('CoolHair_v1.package', r'C:\mods\CoolHair_v1.package'),
+        _mod('CoolHair_v2.package', r'C:\mods\CoolHair_v2.package'),
+        _mod('sofa.package', r'C:\mods\sofa.package'),
+        _mod('sofa.package', r'C:\mods\sub\sofa.package'),
+      ];
+
+      expect(
+        conflictReasonsOf(findConflictPairs(mods, const {},
+            reasons: allConflictReasons
+                .difference({ConflictReason.versionPair}))),
+        {
+          r'C:\mods\sofa.package': ConflictReason.duplicateName,
+          r'C:\mods\sub\sofa.package': ConflictReason.duplicateName,
+        },
+      );
+    });
+
+    // Muting the sharpest reason a pair has must leave the pair standing
+    // under the next one, not take the pair with it: these two files
+    // really do share a name whether or not anyone wants to hear that
+    // they are also byte-identical.
+    test('a pair falls back to the sharpest reason it has left', () {
+      final a = _mod('hair.package', r'C:\mods\hair.package');
+      final b = _mod('hair.package', r'C:\mods\sub\hair.package');
+
+      expect(
+        conflictReasonsOf(findConflictPairs([a, b], const {},
+            digestOf: (mod) => 'abc',
+            reasons: allConflictReasons
+                .difference({ConflictReason.exactDuplicate}))),
+        {
+          a.path: ConflictReason.duplicateName,
+          b.path: ConflictReason.duplicateName,
+        },
+      );
+    });
+
+    test('muted overlaps are dropped even when they were scanned', () {
+      final a = _mod('a.package', r'C:\mods\a.package');
+      final b = _mod('b.package', r'C:\mods\b.package');
+
+      expect(
+        findConflictPairs([a, b], {
+          a.path: {b.path: 12},
+          b.path: {a.path: 12},
+        }, reasons: allConflictReasons
+            .difference({ConflictReason.resourceOverlap})),
+        isEmpty,
+      );
+    });
+
+    test('nothing wanted is nothing flagged', () {
+      final mods = [
+        _mod('hair.package', r'C:\mods\hair.package'),
+        _mod('hair.package', r'C:\mods\sub\hair.package'),
+      ];
+
+      expect(findConflictPairs(mods, const {}, reasons: const {}), isEmpty);
+    });
+  });
+
   group('findResourceOverlaps', () {
     const casp = ResourceKey(0x034AEECB, 0, 0x100);
     const tuning = ResourceKey(0x0333406C, 0, 0x200);

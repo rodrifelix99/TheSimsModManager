@@ -7,12 +7,14 @@ import '../core/save_game.dart';
 import 'app_controller.dart';
 import 'game_skin.dart';
 import 'game_theme.dart';
+import 'household_dialog.dart';
 import 'l10n.dart';
 import 'widgets.dart';
 
 /// The Saves screen: what the current game's save files say about the
 /// worlds the user actually plays - households, funds, sims, portraits,
-/// photo albums - read straight off the disk, never written back.
+/// photo albums - read straight off the disk, and written back only
+/// through the one household editor a game's format allows.
 ///
 /// Every game fills a different subset of [SaveGame] - a Sims 2 hood has
 /// careers and relationships, a Sims 3 save has portraits and little
@@ -821,14 +823,28 @@ class _HouseholdDetail extends StatelessWidget {
             ),
             const SizedBox(height: 14),
           ],
-          Text(
-            household.name,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w900,
-              color: t.text,
-              height: 1.15,
-            ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  household.name,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    color: t.text,
+                    height: 1.15,
+                  ),
+                ),
+              ),
+              // Only for a game whose save can actually be written back
+              // into, which is not all of them.
+              if (controller.canEditHousehold(household)) ...[
+                const SizedBox(width: 8),
+                _EditHouseholdButton(
+                    theme: t, controller: controller, household: household),
+              ],
+            ],
           ),
           if (subtitle.isNotEmpty) ...[
             const SizedBox(height: 3),
@@ -912,6 +928,53 @@ class _HouseholdDetail extends StatelessWidget {
           ],
         ],
       ),
+    );
+  }
+}
+
+/// Opens the household editor. A small labelled button rather than a
+/// bare icon: this is the one control on the screen that changes the
+/// save rather than the view of it, and it should read as a verb.
+class _EditHouseholdButton extends StatelessWidget {
+  const _EditHouseholdButton(
+      {required this.theme, required this.controller, required this.household});
+
+  final GameTheme theme;
+  final AppController controller;
+  final SaveHousehold household;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = theme;
+    final l = L.of(context);
+    return HoverBuilder(
+      cursor: SystemMouseCursors.click,
+      builder: (context, hovered) {
+        final ink = t.skin.ink(t, SkinSurface.button, otherwise: t.text);
+        return GestureDetector(
+          onTap: controller.savingHousehold
+              ? null
+              : () => askAboutHousehold(context, controller,
+                  theme: t, household: household),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(10, 7, 12, 7),
+            decoration: t.skin.decorate(t, SkinSurface.button,
+                radius: 10, state: skinState(hovered: hovered)),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.edit_rounded, size: 14, color: ink),
+                const SizedBox(width: 6),
+                Text(
+                  l.householdEdit,
+                  style: TextStyle(
+                      fontSize: 12, fontWeight: FontWeight.w800, color: ink),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

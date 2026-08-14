@@ -98,6 +98,7 @@ class SaveGame {
 class SaveHousehold {
   const SaveHousehold({
     required this.name,
+    this.id,
     this.funds,
     this.lotName,
     this.isPlayed = true,
@@ -113,6 +114,15 @@ class SaveHousehold {
   });
 
   final String name;
+
+  /// The game's own id for this household, as the save writes it down:
+  /// the family chunk number in The Sims 1, the FAMI instance in The
+  /// Sims 2, the household id in The Sims 4. Null for a save that names
+  /// no such thing (The Sims 3 hands over a household name and nothing
+  /// behind it), which is also what makes that save unwritable - an edit
+  /// has to be able to say which household it means, and a name is not
+  /// an answer when two families are called Newbie.
+  final int? id;
 
   /// Household funds in simoleons.
   final int? funds;

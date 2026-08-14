@@ -29,6 +29,7 @@ import '../core/mod_kind.dart';
 import '../core/mod_tags.dart';
 import '../core/package_insight.dart';
 import '../core/placed_mods.dart';
+import '../core/save_edit.dart';
 import '../core/save_game.dart';
 import '../core/trivia.dart';
 import '../services/analytics.dart';
@@ -1378,15 +1379,55 @@ class AppController extends ChangeNotifier {
   /// pairs it has left once [_applyIgnored] has taken out the ones the
   /// user settled.
   void _rescanConflicts() {
-    resourceOverlaps = _conflictScanOn
-        ? findResourceOverlaps(mods, insightFor)
-        : const {};
+    resourceOverlaps =
+        _conflictScanOn && conflictKinds.contains(ConflictReason.resourceOverlap)
+            ? findResourceOverlaps(mods, insightFor)
+            : const {};
     _rebuildConflictPairs();
   }
 
   bool get _conflictScanOn =>
       settings.warnConflicts &&
       analytics.isEnabled('conflict-detection', fallback: true);
+
+  /// Which of the scan's four signals still get a badge. All of them
+  /// until the user switches one off in Settings.
+  ///
+  /// The four answer different questions and only the player knows which
+  /// of them is about their own library: a shelf of CC deliberately kept
+  /// in several versions has the version rule wrong about every mod on it,
+  /// and the per-pair Ignore was never an answer to a whole shelf of them
+  /// (issue #20).
+  Set<ConflictReason> get conflictKinds {
+    final muted = settings.mutedConflictKinds;
+    if (muted.isEmpty) return allConflictReasons;
+    return {
+      for (final reason in ConflictReason.values)
+        if (!muted.contains(reason.name)) reason,
+    };
+  }
+
+  /// Whether [reason] is one the scan is still reporting.
+  bool warnsAbout(ConflictReason reason) => conflictKinds.contains(reason);
+
+  /// Starts or stops reporting one kind of clash. Goes through [setPref],
+  /// so the library is rescanned and redrawn on the spot the way the
+  /// master switch above it is - what a mod is flagged for can change
+  /// without a single file moving.
+  Future<void> setConflictKind(ConflictReason reason, bool warn) async {
+    final muted = {...settings.mutedConflictKinds};
+    if (warn) {
+      muted.remove(reason.name);
+    } else {
+      muted.add(reason.name);
+    }
+    await setPref(
+      () => settings.setMutedConflictKinds(muted),
+      sound: warn ? UiSound.toggleOn : UiSound.toggleOff,
+      setting: 'conflictKind.${reason.name}',
+      value: warn,
+    );
+  }
 
   /// The pairs again from the overlaps already in hand.
   ///
@@ -1399,7 +1440,8 @@ class AppController extends ChangeNotifier {
   /// window bought for an answer that cannot have changed.
   void _rebuildConflictPairs() {
     _allConflictPairs = _conflictScanOn
-        ? findConflictPairs(mods, resourceOverlaps, digestOf: digestOf)
+        ? findConflictPairs(mods, resourceOverlaps,
+            digestOf: digestOf, reasons: conflictKinds)
         : const {};
     _applyIgnored();
   }
@@ -5357,6 +5399,85 @@ class AppController extends ChangeNotifier {
     playSound(UiSound.click);
     savesPhotoIndex = index;
     notifyListeners();
+  }
+
+  /// What the current game lets the app change about a household, once
+  /// the kill switch has had its say. Empty means no Edit button: The
+  /// Sims 3 keeps its households somewhere nothing outside the game can
+  /// read, and a button that always failed would be worse than none.
+  Set<SaveEditField> get editableSaveFields =>
+      analytics.isEnabled('save-editing', fallback: true)
+          ? _adapter.editableSaveFields
+          : const {};
+
+  int get maxHouseholdFunds => _adapter.maxHouseholdFunds;
+
+  /// Whether [household] can be edited at all: the game has to allow it,
+  /// the save has to have named the household, and the invented library
+  /// writes nothing anywhere.
+  bool canEditHousehold(SaveHousehold household) =>
+      editableSaveFields.isNotEmpty && household.id != null && !demoLibrary;
+
+  /// True while an edit is being written, which is what stops a second
+  /// one starting on top of it.
+  bool savingHousehold = false;
+
+  /// Where the copy of the save went, for the line that says so after an
+  /// edit lands. Null when no copy could be taken, which is worth
+  /// wording differently rather than silently.
+  String? lastSaveBackupPath;
+
+  /// Applies [edit] to [household] and re-reads the saves.
+  ///
+  /// The re-read is the point: everything on this screen was parsed out
+  /// of a file that has just been rewritten, and going back to the disk
+  /// is the only honest way to show what is in it now. Returns whether
+  /// the edit landed, so the dialog knows whether to close.
+  Future<bool> editSaveHousehold(
+      SaveHousehold household, HouseholdEdit edit) async {
+    final save = selectedSave;
+    if (save == null || savingHousehold || !canEditHousehold(household)) {
+      return false;
+    }
+    if (edit.isEmpty) return true;
+    savingHousehold = true;
+    lastSaveBackupPath = null;
+    notifyListeners();
+    final adapter = _adapter;
+    try {
+      await adapter.editSaveHousehold(save, household, edit);
+      lastSaveBackupPath =
+          saveBackupFolder(adapter.game.id)?.path;
+      playSound(UiSound.install);
+      analytics.capture('save_household_edited', {
+        'game': adapter.game.id,
+        'renamed': edit.name != null,
+        'funds': edit.funds != null,
+      });
+    } catch (error, stack) {
+      lastError = error is SaveEditException
+          ? error.detail
+          : AppMessage.verbatim('$error');
+      playSound(UiSound.error);
+      if (error is! SaveEditException) {
+        analytics.captureException(error, stack);
+      }
+      analytics.capture('save_household_edit_failed', {
+        'game': adapter.game.id,
+        'reason': error is SaveEditException ? error.detail.key : 'unexpected',
+      });
+      savingHousehold = false;
+      notifyListeners();
+      return false;
+    }
+    savingHousehold = false;
+    // The screen is drawn from a file that is no longer the file it was
+    // drawn from.
+    final household0 = _selectedHouseholdIndex;
+    await _loadSaves();
+    _selectedHouseholdIndex = household0;
+    notifyListeners();
+    return true;
   }
 
   // =========================================================================

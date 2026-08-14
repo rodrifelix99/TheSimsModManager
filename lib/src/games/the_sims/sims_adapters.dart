@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:typed_data';
 
 import 'package:path/path.dart' as p;
 
@@ -15,6 +16,7 @@ import '../../core/install_path.dart';
 import '../../core/mod.dart';
 import '../../core/mod_archive.dart';
 import '../../core/resource_cfg.dart';
+import '../../core/save_edit.dart';
 import '../../core/save_game.dart';
 import '../../core/trivia.dart';
 import 'demo_packs.dart';
@@ -156,6 +158,36 @@ Future<List<SaveGame>> scanSavesIn(
     // error banner over the library.
   }
   return const [];
+}
+
+/// Rewrites the one file a household lives in, inside an isolate.
+///
+/// [rewrite] does the reading, the editing and the proving and hands
+/// back the bytes; nothing it does touches the disk, so a failure
+/// anywhere in it leaves the save alone. Only [replaceSaveFile] writes,
+/// and only once there are bytes to write. [rewrite] crosses the isolate
+/// boundary, so it closes over the path and nothing else.
+Future<void> editSaveFile(
+  File file,
+  String gameId,
+  Uint8List Function(File file) rewrite,
+) async {
+  if (!await file.exists()) {
+    throw SaveEditException.unreadable(p.basename(file.path));
+  }
+  final path = file.path;
+  final bytes = await Isolate.run(() => rewrite(File(path)));
+  await replaceSaveFile(file, bytes, gameId: gameId);
+}
+
+/// The household [household] names, or the complaint that it is gone.
+/// Every editor needs the same two things checked first: the save has to
+/// have given the household an id, and the edit has to be asking for
+/// something.
+int requireHouseholdId(SaveHousehold household, HouseholdEdit edit) {
+  final id = household.id;
+  if (id == null || edit.isEmpty) throw SaveEditException.householdGone();
+  return id;
 }
 
 /// `UserData`, `UserData2`, ...: one per Sims 1 neighborhood.
@@ -698,6 +730,24 @@ class Sims4Adapter extends DocumentsSimsAdapter {
       scanSavesIn(gameDataFolders, 'saves', scanSims4Saves);
 
   @override
+  Set<SaveEditField> get editableSaveFields =>
+      const {SaveEditField.name, SaveEditField.funds};
+
+  /// The game's own ceiling: `money` above this is clamped back down to
+  /// it, and the live-mode panel starts clipping past eight digits.
+  @override
+  int get maxHouseholdFunds => 9999999;
+
+  /// A slot is one file, which is the whole save.
+  @override
+  Future<void> editSaveHousehold(
+      SaveGame save, SaveHousehold household, HouseholdEdit edit) async {
+    final id = requireHouseholdId(household, edit);
+    await editSaveFile(File(save.path), game.id,
+        (file) => editSims4Save(file, id, edit));
+  }
+
+  @override
   bool get hasCreations => true;
 
   /// The tray's own extensions. `.package` is deliberately not here: in
@@ -1090,6 +1140,28 @@ class Sims2Adapter extends DocumentsSimsAdapter {
   @override
   Future<List<SaveGame>> listSaveGames() =>
       scanSavesIn(gameDataFolders, 'Neighborhoods', scanSims2Saves);
+
+  @override
+  Set<SaveEditField> get editableSaveFields =>
+      const {SaveEditField.name, SaveEditField.funds};
+
+  /// The engine stops short of nine digits: past this the game cannot
+  /// draw or add up what a household owns, which is the number every
+  /// familyfunds write-up ends on.
+  @override
+  int get maxHouseholdFunds => 99999999;
+
+  /// A save is the neighborhood folder; the households are in the master
+  /// package inside it, named after the folder.
+  @override
+  Future<void> editSaveHousehold(
+      SaveGame save, SaveHousehold household, HouseholdEdit edit) async {
+    final id = requireHouseholdId(household, edit);
+    final code = p.basename(save.path);
+    final package = File(p.join(save.path, '${code}_Neighborhood.package'));
+    await editSaveFile(
+        package, game.id, (file) => editSims2Hood(file, id, edit));
+  }
 
   @override
   bool get hasCreations => true;

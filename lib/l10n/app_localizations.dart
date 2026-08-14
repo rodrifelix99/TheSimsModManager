@@ -1341,6 +1341,42 @@ abstract class L {
   /// **'Badge enabled mods that duplicate a file name or override the same in-game resources as another mod'**
   String get prefWarnConflictsDesc;
 
+  /// No description provided for @prefConflictKindsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Which conflicts to warn about'**
+  String get prefConflictKindsTitle;
+
+  /// No description provided for @prefConflictKindsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch off the kinds you don\'t want flagged. The rest carry on as they are'**
+  String get prefConflictKindsDesc;
+
+  /// No description provided for @conflictKindSameFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Identical copies'**
+  String get conflictKindSameFile;
+
+  /// No description provided for @conflictKindSameName.
+  ///
+  /// In en, this message translates to:
+  /// **'Same file name'**
+  String get conflictKindSameName;
+
+  /// No description provided for @conflictKindVersions.
+  ///
+  /// In en, this message translates to:
+  /// **'Different versions'**
+  String get conflictKindVersions;
+
+  /// No description provided for @conflictKindResources.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared resources'**
+  String get conflictKindResources;
+
   /// No description provided for @prefConfirmDeleteTitle.
   ///
   /// In en, this message translates to:
@@ -4304,6 +4340,78 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Nothing in there was a lot, a room, a household or a Sim this game can use. Custom content and mods go in through the library instead.'**
   String get creationsNothingToAdd;
+
+  /// No description provided for @householdEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get householdEdit;
+
+  /// No description provided for @householdEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit household'**
+  String get householdEditTitle;
+
+  /// No description provided for @householdEditBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Change what the save says about “{name}”.'**
+  String householdEditBody(String name);
+
+  /// No description provided for @householdEditName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get householdEditName;
+
+  /// No description provided for @householdEditFunds.
+  ///
+  /// In en, this message translates to:
+  /// **'Funds'**
+  String get householdEditFunds;
+
+  /// No description provided for @householdEditFundsMax.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to {max}, which is as much as this game will hold.'**
+  String householdEditFundsMax(String max);
+
+  /// No description provided for @householdEditSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes'**
+  String get householdEditSave;
+
+  /// No description provided for @householdEditNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Close the game first: it writes its own save back when it quits. A copy of the file is kept before anything changes.'**
+  String get householdEditNotice;
+
+  /// No description provided for @errorSaveEditHouseholdGone.
+  ///
+  /// In en, this message translates to:
+  /// **'That household isn’t in the save any more. Refresh the list and try again.'**
+  String get errorSaveEditHouseholdGone;
+
+  /// No description provided for @errorSaveEditUnreadable.
+  ///
+  /// In en, this message translates to:
+  /// **'“{file}” isn’t laid out the way this app knows how to rewrite, so nothing was changed.'**
+  String errorSaveEditUnreadable(String file);
+
+  /// No description provided for @errorSaveEditVerification.
+  ///
+  /// In en, this message translates to:
+  /// **'The rewritten “{file}” didn’t read back the way it should have, so it was thrown away. Your save is untouched.'**
+  String errorSaveEditVerification(String file);
+
+  /// No description provided for @errorSaveEditUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'This game’s saves can be read, but not changed.'**
+  String get errorSaveEditUnsupported;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

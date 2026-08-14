@@ -220,6 +220,12 @@
 
   "prefWarnConflictsTitle": "Προειδοποίηση για ασυμβατότητες",
   "prefWarnConflictsDesc": "Να μαρκάρονται τα ενεργά mod που έχουν ίδιο όνομα αρχείου ή παρακάμπτουν τους ίδιους πόρους του παιχνιδιού με άλλο mod",
+  "prefConflictKindsTitle": "Για ποιες ασυμβατότητες να ειδοποιεί",
+  "prefConflictKindsDesc": "Απενεργοποιήστε τα είδη που δεν θέλετε να μαρκάρονται. Τα υπόλοιπα συνεχίζουν κανονικά",
+  "conflictKindSameFile": "Πανομοιότυπα αντίγραφα",
+  "conflictKindSameName": "Ίδιο όνομα αρχείου",
+  "conflictKindVersions": "Διαφορετικές εκδόσεις",
+  "conflictKindResources": "Κοινοί πόροι",
   "prefConfirmDeleteTitle": "Επιβεβαίωση πριν την απεγκατάσταση",
   "prefConfirmDeleteDesc": "Να ζητείται επιβεβαίωση πριν από τη διαγραφή ενός αρχείου mod από τον δίσκο",
   "prefShowDisabledTitle": "Εμφάνιση ανενεργών mod",
@@ -753,5 +759,18 @@
   "creationsAdd": "Προσθήκη",
   "creationsAdding": "Γίνεται προσθήκη…",
   "creationsPickerLabel": "Οικόπεδα, δωμάτια, νοικοκυριά και sims για {game}",
-  "creationsNothingToAdd": "Τίποτα εκεί μέσα δεν ήταν οικόπεδο, δωμάτιο, νοικοκυριό ή sim που να διαβάζει αυτό το παιχνίδι. Το custom content και τα mods μπαίνουν από τη βιβλιοθήκη."
+  "creationsNothingToAdd": "Τίποτα εκεί μέσα δεν ήταν οικόπεδο, δωμάτιο, νοικοκυριό ή sim που να διαβάζει αυτό το παιχνίδι. Το custom content και τα mods μπαίνουν από τη βιβλιοθήκη.",
+
+  "householdEdit": "Επεξεργασία",
+  "householdEditTitle": "Επεξεργασία νοικοκυριού",
+  "householdEditBody": "Άλλαξε ό,τι λέει το αρχείο για το «{name}».",
+  "householdEditName": "Όνομα",
+  "householdEditFunds": "Χρήματα",
+  "householdEditFundsMax": "Έως {max}, όσο αντέχει αυτό το παιχνίδι.",
+  "householdEditSave": "Αποθήκευση",
+  "householdEditNotice": "Κλείσε πρώτα το παιχνίδι: ξαναγράφει το αρχείο του όταν βγαίνει. Κρατάμε αντίγραφο πριν από κάθε αλλαγή.",
+  "errorSaveEditHouseholdGone": "Αυτό το νοικοκυριό δεν υπάρχει πια στο αρχείο. Ανανέωσε τη λίστα και ξαναδοκίμασε.",
+  "errorSaveEditUnreadable": "Το «{file}» δεν έχει τη δομή που ξέρει να ξαναγράφει η εφαρμογή, οπότε δεν άλλαξε τίποτα.",
+  "errorSaveEditVerification": "Το «{file}» που ξαναγράφτηκε δεν διαβάστηκε σωστά, οπότε πετάχτηκε. Το αρχείο σου είναι άθικτο.",
+  "errorSaveEditUnsupported": "Τα αρχεία αυτού του παιχνιδιού διαβάζονται, αλλά δεν αλλάζουν."
 }

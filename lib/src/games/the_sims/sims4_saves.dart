@@ -1,10 +1,13 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:path/path.dart' as p;
 
 import '../../core/dbpf.dart';
+import '../../core/dbpf_write.dart';
 import '../../core/protobuf_wire.dart';
+import '../../core/save_edit.dart';
 import '../../core/save_game.dart';
 
 /// Reads The Sims 4 save slots out of `saves/`.
@@ -202,6 +205,7 @@ SaveGame _buildSave(SaveGame base, List<ProtoField> top,
     final lot = homeZone == null ? null : zones[homeZone];
     households.add(SaveHousehold(
       name: name,
+      id: id,
       funds: fields.firstInt(5),
       lotName: lot?.name,
       bedrooms: lot?.bedrooms,
@@ -250,3 +254,139 @@ SaveGame _buildSave(SaveGame base, List<ProtoField> top,
 /// treats empty as absent - the serializer writes `""` for unset fields.
 List<String>? _nonEmpty(String? value) =>
     value == null || value.isEmpty ? null : [value];
+
+// ---------------------------------------------------------------------------
+// Writing one household back.
+
+/// The household's name (3) and funds (5) inside the household message,
+/// the same field numbers [_buildSave] reads them from.
+const _householdName = 3;
+const _householdFunds = 5;
+const _householdId = 2;
+
+/// The whole save with household [householdId] changed, as bytes ready
+/// to go on disk. Nothing is written here and nothing is read from the
+/// disk twice: [replaceSaveFile] does the writing, and this is the part
+/// worth running off the UI thread.
+///
+/// The world blob comes back **stored plainly** rather than RefPack'd
+/// again. Writing a compressor for a format this app only ever needed to
+/// read would put the one piece of a save that holds every sim in it
+/// behind code nothing else in the app exercises; a save already carries
+/// resources stored that way (28 of the 426 in the one this was built
+/// against), so it is a shape the game's own reader meets every time it
+/// opens the file. It costs a few megabytes until the game next saves.
+Uint8List editSims4Save(File file, int householdId, HouseholdEdit edit) {
+  RandomAccessFile? raf;
+  try {
+    raf = file.openSync();
+    final header = readAt(raf, 0, 96);
+    if (header.length < 96) throw SaveEditException.unreadable(file.path);
+    final declared =
+        ByteData.sublistView(header).getUint32(36, Endian.little);
+    final entries = readDbpfIndex(raf);
+    // A short index means the reader gave up part way through it, and
+    // rewriting the file from what it did read would drop the rest of
+    // the save on the floor.
+    if (entries == null || entries.length != declared) {
+      throw SaveEditException.unreadable(file.path);
+    }
+    final worldEntry = entries.where((e) => e.type == _saveGameDataType);
+    if (worldEntry.isEmpty) throw SaveEditException.unreadable(file.path);
+    final world =
+        readDbpfResource(raf, worldEntry.first, maxBytes: _maxWorldBlobBytes);
+    if (world == null) throw SaveEditException.unreadable(file.path);
+
+    final edited = _editWorld(world, householdId, edit);
+
+    final resources = <DbpfResource>[
+      for (final entry in entries)
+        if (entry.type == _saveGameDataType && entry == worldEntry.first)
+          DbpfResource(
+            type: entry.type,
+            group: entry.group,
+            instance: entry.instance,
+            bytes: edited,
+          )
+        else
+          DbpfResource.copying(entry, readAt(raf, entry.offset, entry.fileSize)),
+    ];
+    final bytes = writeDbpfV2(header, resources);
+    _verify(bytes, householdId, edit, entries.length, file.path);
+    return bytes;
+  } on SaveEditException {
+    rethrow;
+  } catch (_) {
+    throw SaveEditException.unreadable(file.path);
+  } finally {
+    try {
+      raf?.closeSync();
+    } catch (_) {}
+  }
+}
+
+/// The world blob with one household's fields replaced. Innermost
+/// first: the household message is rewritten on its own, then spliced
+/// back over the bytes it used to occupy.
+Uint8List _editWorld(Uint8List world, int householdId, HouseholdEdit edit) {
+  for (final field in readProtoFields(world)) {
+    if (field.number != 5 || field.bytes == null) continue;
+    var household = field.bytes!;
+    if (readProtoFields(household).firstInt(_householdId) != householdId) {
+      continue;
+    }
+    final name = edit.name;
+    if (name != null) {
+      household = setBytesField(household, _householdName, utf8.encode(name));
+    }
+    final funds = edit.funds;
+    if (funds != null) {
+      household = setVarintField(household, _householdFunds, funds);
+    }
+    return spliceBytes(world, field.start, field.end,
+        encodeBytesField(5, household));
+  }
+  throw SaveEditException.householdGone();
+}
+
+/// Reads the rewritten save the way [scanSims4Saves] would and refuses
+/// it unless the household is there, says what was asked, and has all
+/// its neighbours with it. This is the step that stands between a bug in
+/// any of the above and somebody's world.
+void _verify(Uint8List bytes, int householdId, HouseholdEdit edit,
+    int expectedResources, String path) {
+  Uint8List? world;
+  var count = 0;
+  try {
+    final source = DbpfSource.bytes(bytes);
+    final entries = readDbpfIndexFrom(source);
+    if (entries == null) throw const FormatException('no index');
+    count = entries.length;
+    for (final e in entries) {
+      if (e.type == _saveGameDataType) {
+        world =
+            readDbpfResourceFrom(source, e, maxBytes: _maxWorldBlobBytes);
+      }
+    }
+  } catch (_) {
+    throw SaveEditException.verificationFailed(path);
+  }
+  if (world == null || count != expectedResources) {
+    throw SaveEditException.verificationFailed(path);
+  }
+  final households = readProtoFields(world).allBytes(5).toList();
+  final mine = households
+      .map(readProtoFields)
+      .where((h) => h.firstInt(_householdId) == householdId)
+      .toList();
+  if (households.isEmpty || mine.length != 1) {
+    throw SaveEditException.verificationFailed(path);
+  }
+  final edit0 = mine.first;
+  if (edit.name != null && edit0.firstString(_householdName) != edit.name) {
+    throw SaveEditException.verificationFailed(path);
+  }
+  if (edit.funds != null && edit0.firstInt(_householdFunds) != edit.funds) {
+    throw SaveEditException.verificationFailed(path);
+  }
+}

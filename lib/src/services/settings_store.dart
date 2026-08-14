@@ -95,6 +95,19 @@ class SettingsStore {
   Future<void> setWarnConflicts(bool value) =>
       _prefs.setBool('warnConflicts', value);
 
+  /// The kinds of clash the user told the scan to stop reporting, as the
+  /// `ConflictReason` names - this class knows nothing about mods, the
+  /// same bargain [disabledSuffix] makes.
+  ///
+  /// The muted ones rather than the wanted ones, so a signal added later
+  /// starts on for everybody instead of off for everyone who ever opened
+  /// this row.
+  Set<String> get mutedConflictKinds =>
+      (_prefs.getStringList('mutedConflictKinds') ?? const <String>[]).toSet();
+
+  Future<void> setMutedConflictKinds(Set<String> kinds) =>
+      _prefs.setStringList('mutedConflictKinds', kinds.toList()..sort());
+
   bool get confirmDelete => _prefs.getBool('confirmDelete') ?? true;
   Future<void> setConfirmDelete(bool value) =>
       _prefs.setBool('confirmDelete', value);

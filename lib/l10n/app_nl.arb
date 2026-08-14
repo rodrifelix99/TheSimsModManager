@@ -229,6 +229,12 @@
 
   "prefWarnConflictsTitle": "Waarschuw voor conflicten",
   "prefWarnConflictsDesc": "Geef ingeschakelde mods een label als ze dezelfde bestandsnaam hebben of dezelfde onderdelen in het spel overschrijven als een andere mod",
+  "prefConflictKindsTitle": "Voor welke conflicten waarschuwen",
+  "prefConflictKindsDesc": "Zet de soorten uit die je niet gelabeld wilt zien. De rest blijft gewoon werken",
+  "conflictKindSameFile": "Identieke kopieën",
+  "conflictKindSameName": "Zelfde bestandsnaam",
+  "conflictKindVersions": "Verschillende versies",
+  "conflictKindResources": "Gedeelde onderdelen",
   "prefConfirmDeleteTitle": "Vraag bevestiging bij deïnstalleren",
   "prefConfirmDeleteDesc": "Vraag het eerst voor een modbestand van de schijf verwijderd wordt",
   "prefShowDisabledTitle": "Toon uitgeschakelde mods",
@@ -752,5 +758,18 @@
   "creationsAdd": "Toevoegen",
   "creationsAdding": "Bezig met toevoegen…",
   "creationsPickerLabel": "Kavels, kamers, huishoudens en sims voor {game}",
-  "creationsNothingToAdd": "Er zat niets tussen dat dit spel als kavel, kamer, huishouden of sim kan lezen. Custom content en mods gaan via de bibliotheek."
+  "creationsNothingToAdd": "Er zat niets tussen dat dit spel als kavel, kamer, huishouden of sim kan lezen. Custom content en mods gaan via de bibliotheek.",
+
+  "householdEdit": "Bewerken",
+  "householdEditTitle": "Huishouden bewerken",
+  "householdEditBody": "Verander wat de save over “{name}” zegt.",
+  "householdEditName": "Naam",
+  "householdEditFunds": "Geld",
+  "householdEditFundsMax": "Tot {max}, meer kan dit spel niet aan.",
+  "householdEditSave": "Opslaan",
+  "householdEditNotice": "Sluit eerst het spel: bij het afsluiten schrijft het zijn eigen save terug. Er wordt een kopie van het bestand bewaard voordat er iets verandert.",
+  "errorSaveEditHouseholdGone": "Dat huishouden zit niet meer in de save. Ververs de lijst en probeer het opnieuw.",
+  "errorSaveEditUnreadable": "“{file}” is niet opgebouwd zoals de app kan herschrijven, dus er is niets veranderd.",
+  "errorSaveEditVerification": "De herschreven “{file}” las niet terug zoals het hoorde, dus is hij weggegooid. Je save is onaangeroerd.",
+  "errorSaveEditUnsupported": "De saves van dit spel kun je lezen, maar niet veranderen."
 }

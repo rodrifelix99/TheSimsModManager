@@ -862,6 +862,25 @@ class LDe extends L {
       'Markiert aktive Mods, die einen Dateinamen doppeln oder dieselben Spielressourcen überschreiben wie ein anderer Mod';
 
   @override
+  String get prefConflictKindsTitle => 'Vor welchen Konflikten warnen';
+
+  @override
+  String get prefConflictKindsDesc =>
+      'Schalte die Arten ab, die du nicht markiert haben willst. Der Rest läuft weiter wie bisher';
+
+  @override
+  String get conflictKindSameFile => 'Identische Kopien';
+
+  @override
+  String get conflictKindSameName => 'Gleicher Dateiname';
+
+  @override
+  String get conflictKindVersions => 'Verschiedene Versionen';
+
+  @override
+  String get conflictKindResources => 'Geteilte Ressourcen';
+
+  @override
   String get prefConfirmDeleteTitle => 'Vor dem Deinstallieren nachfragen';
 
   @override
@@ -2783,4 +2802,51 @@ class LDe extends L {
   @override
   String get creationsNothingToAdd =>
       'Da war nichts dabei, was dieses Spiel als Grundstück, Raum, Haushalt oder Sim lesen kann. Custom Content und Mods gehen über die Bibliothek rein.';
+
+  @override
+  String get householdEdit => 'Bearbeiten';
+
+  @override
+  String get householdEditTitle => 'Haushalt bearbeiten';
+
+  @override
+  String householdEditBody(String name) {
+    return 'Ändere, was der Spielstand über „$name“ sagt.';
+  }
+
+  @override
+  String get householdEditName => 'Name';
+
+  @override
+  String get householdEditFunds => 'Geld';
+
+  @override
+  String householdEditFundsMax(String max) {
+    return 'Bis $max, mehr fasst dieses Spiel nicht.';
+  }
+
+  @override
+  String get householdEditSave => 'Speichern';
+
+  @override
+  String get householdEditNotice =>
+      'Schließ zuerst das Spiel: Es schreibt seinen Spielstand beim Beenden neu. Vorher wird eine Kopie der Datei angelegt.';
+
+  @override
+  String get errorSaveEditHouseholdGone =>
+      'Dieser Haushalt ist nicht mehr im Spielstand. Aktualisier die Liste und versuch es nochmal.';
+
+  @override
+  String errorSaveEditUnreadable(String file) {
+    return '„$file“ ist nicht so aufgebaut, wie die App es neu schreiben kann, also wurde nichts geändert.';
+  }
+
+  @override
+  String errorSaveEditVerification(String file) {
+    return 'Das neu geschriebene „$file“ ließ sich nicht richtig zurücklesen und wurde verworfen. Dein Spielstand ist unangetastet.';
+  }
+
+  @override
+  String get errorSaveEditUnsupported =>
+      'Die Spielstände dieses Spiels lassen sich lesen, aber nicht ändern.';
 }

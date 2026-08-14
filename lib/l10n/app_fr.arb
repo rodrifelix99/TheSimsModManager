@@ -220,6 +220,12 @@
 
   "prefWarnConflictsTitle": "Prévenir des conflits",
   "prefWarnConflictsDesc": "Signale les mods actifs qui reprennent un nom de fichier ou qui écrasent les mêmes ressources du jeu qu’un autre mod",
+  "prefConflictKindsTitle": "Quels conflits signaler",
+  "prefConflictKindsDesc": "Désactive les types que tu ne veux pas voir signalés. Les autres continuent comme avant",
+  "conflictKindSameFile": "Copies identiques",
+  "conflictKindSameName": "Même nom de fichier",
+  "conflictKindVersions": "Versions différentes",
+  "conflictKindResources": "Ressources partagées",
   "prefConfirmDeleteTitle": "Confirmer avant de désinstaller",
   "prefConfirmDeleteDesc": "Demander avant de supprimer un fichier de mod du disque",
   "prefShowDisabledTitle": "Afficher les mods désactivés",
@@ -741,5 +747,18 @@
   "creationsAdd": "Ajouter",
   "creationsAdding": "Ajout en cours…",
   "creationsPickerLabel": "Terrains, pièces, foyers et sims de {game}",
-  "creationsNothingToAdd": "Rien là-dedans n’était un terrain, une pièce, un foyer ou un sim que ce jeu peut utiliser. Le contenu personnalisé et les mods passent par la bibliothèque."
+  "creationsNothingToAdd": "Rien là-dedans n’était un terrain, une pièce, un foyer ou un sim que ce jeu peut utiliser. Le contenu personnalisé et les mods passent par la bibliothèque.",
+
+  "householdEdit": "Modifier",
+  "householdEditTitle": "Modifier le foyer",
+  "householdEditBody": "Change ce que la sauvegarde dit de « {name} ».",
+  "householdEditName": "Nom",
+  "householdEditFunds": "Argent",
+  "householdEditFundsMax": "Jusqu’à {max}, c’est tout ce que ce jeu peut contenir.",
+  "householdEditSave": "Enregistrer",
+  "householdEditNotice": "Ferme le jeu d’abord : il réécrit sa propre sauvegarde en quittant. Une copie du fichier est gardée avant tout changement.",
+  "errorSaveEditHouseholdGone": "Ce foyer n’est plus dans la sauvegarde. Actualise la liste et réessaie.",
+  "errorSaveEditUnreadable": "« {file} » n’a pas la structure que l’appli sait réécrire, donc rien n’a été changé.",
+  "errorSaveEditVerification": "Le « {file} » réécrit ne s’est pas relu comme il fallait, il a donc été jeté. Ta sauvegarde est intacte.",
+  "errorSaveEditUnsupported": "Les sauvegardes de ce jeu se lisent, mais ne se modifient pas."
 }

@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,6 +9,7 @@ import 'package:sims_mod_manager/src/core/game_adapter.dart';
 import 'package:sims_mod_manager/src/core/game_registry.dart';
 import 'package:sims_mod_manager/src/core/mod.dart';
 import 'package:sims_mod_manager/src/core/package_insight.dart';
+import 'package:sims_mod_manager/src/core/save_edit.dart';
 import 'package:sims_mod_manager/src/core/save_game.dart';
 import 'package:sims_mod_manager/src/services/settings_store.dart';
 import 'package:sims_mod_manager/src/ui/app.dart';
@@ -16,13 +17,18 @@ import 'package:sims_mod_manager/src/ui/app.dart';
 import 'until.dart';
 
 class _FakeAdapter extends FolderBasedGameAdapter {
-  _FakeAdapter(this.dir, {this.saves = const []});
+  _FakeAdapter(this.dir, {this.saves = const [], this.editable = const {}});
 
   final Directory dir;
-  final List<SaveGame> saves;
+  List<SaveGame> saves;
+  final Set<SaveEditField> editable;
 
   /// How often the saves were (re)read, for the lazy-load assertions.
   int saveScans = 0;
+
+  /// What the editor asked for, and whether it was told to fail.
+  ({SaveHousehold household, HouseholdEdit edit})? lastEdit;
+  bool failEdits = false;
 
   @override
   Game get game =>
@@ -52,6 +58,48 @@ class _FakeAdapter extends FolderBasedGameAdapter {
     saveScans++;
     return saves;
   }
+
+  @override
+  Set<SaveEditField> get editableSaveFields => editable;
+
+  @override
+  int get maxHouseholdFunds => 9999999;
+
+  /// Records the edit and applies it to what the next scan will hand
+  /// back, the way a real write plus re-read behaves.
+  @override
+  Future<void> editSaveHousehold(
+      SaveGame save, SaveHousehold household, HouseholdEdit edit) async {
+    lastEdit = (household: household, edit: edit);
+    if (failEdits) throw SaveEditException.householdGone();
+    saves = [
+      for (final s in saves)
+        SaveGame(
+          name: s.name,
+          path: s.path,
+          modifiedAt: s.modifiedAt,
+          sizeBytes: s.sizeBytes,
+          backupCount: s.backupCount,
+          gameVersion: s.gameVersion,
+          worldsVisited: s.worldsVisited,
+          households: [
+            for (final h in s.households)
+              if (h.id != household.id)
+                h
+              else
+                SaveHousehold(
+                  id: h.id,
+                  name: edit.name ?? h.name,
+                  funds: edit.funds ?? h.funds,
+                  lotName: h.lotName,
+                  isPlayed: h.isPlayed,
+                  members: h.members,
+                  relationships: h.relationships,
+                ),
+          ],
+        ),
+    ];
+  }
 }
 
 final _legacySave = SaveGame(
@@ -64,6 +112,7 @@ final _legacySave = SaveGame(
   worldsVisited: const ['Willow Creek'],
   households: const [
     SaveHousehold(
+      id: 0x2001,
       name: 'Goth',
       funds: 45500,
       lotName: 'Ophelia Villa',
@@ -93,7 +142,8 @@ final _legacySave = SaveGame(
 );
 
 Future<_FakeAdapter> _pumpApp(WidgetTester tester,
-    {required List<SaveGame> saves}) async {
+    {required List<SaveGame> saves,
+    Set<SaveEditField> editable = const {}}) async {
   tester.view.physicalSize = const Size(1280, 824);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
@@ -102,7 +152,7 @@ Future<_FakeAdapter> _pumpApp(WidgetTester tester,
   addTearDown(() => tempDir.deleteSync(recursive: true));
   File(p.join(tempDir.path, 'a_mod.package')).writeAsStringSync('bytes');
 
-  final adapter = _FakeAdapter(tempDir, saves: saves);
+  final adapter = _FakeAdapter(tempDir, saves: saves, editable: editable);
   final settings = await SettingsStore.load();
   await tester.runAsync(() async {
     await tester.pumpWidget(
@@ -197,5 +247,132 @@ void main() {
     });
     await tester.pump(const Duration(milliseconds: 400));
     expect(adapter.saveScans, 2);
+  });
+
+  group('editing a household', () {
+    /// Opens Saves and returns the adapter behind it.
+    Future<_FakeAdapter> openSaves(WidgetTester tester,
+        {Set<SaveEditField> editable = const {}}) async {
+      final adapter =
+          await _pumpApp(tester, saves: [_legacySave], editable: editable);
+      await tester.runAsync(() async {
+        await tester.tap(find.text('Saves'));
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      });
+      await tester.pump(const Duration(milliseconds: 400));
+      return adapter;
+    }
+
+    testWidgets('a game that cannot be written offers no button',
+        (tester) async {
+      await openSaves(tester);
+      expect(find.text('Edit'), findsNothing);
+    });
+
+    testWidgets('writes the name and the funds, then re-reads the save',
+        (tester) async {
+      final adapter = await openSaves(tester,
+          editable: {SaveEditField.name, SaveEditField.funds});
+
+      expect(find.text('Edit'), findsOneWidget);
+      await tester.tap(find.text('Edit'));
+      await tester.pump(const Duration(milliseconds: 400));
+
+      // The boxes open on what the save says today.
+      expect(find.text('Edit household'), findsOneWidget);
+      final name = find.byType(TextField).at(0);
+      final funds = find.byType(TextField).at(1);
+      expect(tester.widget<TextField>(name).controller?.text, 'Goth');
+      expect(tester.widget<TextField>(funds).controller?.text, '45500');
+      // And the warning that makes the rest of it safe.
+      expect(find.textContaining('Close the game first'), findsOneWidget);
+      expect(find.textContaining('§9,999,999'), findsOneWidget);
+
+      await tester.enterText(name, 'Goth Trust');
+      await tester.enterText(funds, '9999999');
+      await tester.pump();
+      await tester.runAsync(() async {
+        await tester.tap(find.text('Save changes'));
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      });
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(adapter.lastEdit?.household.id, 0x2001);
+      expect(adapter.lastEdit?.edit.name, 'Goth Trust');
+      expect(adapter.lastEdit?.edit.funds, 9999999);
+      // The dialog closed, the saves were read again, and the screen is
+      // drawn from what came back rather than from what was typed.
+      expect(find.text('Edit household'), findsNothing);
+      expect(adapter.saveScans, 2);
+      expect(find.text('Goth Trust'), findsWidgets);
+      expect(find.text('§9,999,999'), findsWidgets);
+    });
+
+    testWidgets('leaves out a field nobody touched', (tester) async {
+      final adapter = await openSaves(tester,
+          editable: {SaveEditField.name, SaveEditField.funds});
+      await tester.tap(find.text('Edit'));
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.enterText(find.byType(TextField).at(0), 'Goths');
+      await tester.pump();
+      await tester.runAsync(() async {
+        await tester.tap(find.text('Save changes'));
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      });
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(adapter.lastEdit?.edit.name, 'Goths');
+      expect(adapter.lastEdit?.edit.funds, isNull);
+    });
+
+    testWidgets('refuses an empty name and a figure past the ceiling',
+        (tester) async {
+      await openSaves(tester,
+          editable: {SaveEditField.name, SaveEditField.funds});
+      await tester.tap(find.text('Edit'));
+      await tester.pump(const Duration(milliseconds: 400));
+
+      await tester.enterText(find.byType(TextField).at(0), '  ');
+      await tester.pump();
+      expect(
+          tester
+              .widget<FilledButton>(
+                  find.widgetWithText(FilledButton, 'Save changes'))
+              .onPressed,
+          isNull);
+
+      await tester.enterText(find.byType(TextField).at(0), 'Goths');
+      await tester.enterText(find.byType(TextField).at(1), '99999999');
+      await tester.pump();
+      expect(
+          tester
+              .widget<FilledButton>(
+                  find.widgetWithText(FilledButton, 'Save changes'))
+              .onPressed,
+          isNull);
+    });
+
+    testWidgets('a refused write stays open and says so', (tester) async {
+      final adapter = await openSaves(tester, editable: {SaveEditField.funds});
+      adapter.failEdits = true;
+      await tester.tap(find.text('Edit'));
+      await tester.pump(const Duration(milliseconds: 400));
+      // A game that only allows funds gets only that box.
+      expect(find.byType(TextField), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField).at(0), '1');
+      await tester.pump();
+      await tester.runAsync(() async {
+        await tester.tap(find.text('Save changes'));
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      });
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(find.text('Edit household'), findsOneWidget);
+      expect(adapter.saveScans, 1); // nothing to re-read
+      // The banner under the title bar carries the reason.
+      await tester.tap(find.text('Cancel'));
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.textContaining('isn’t in the save any more'), findsOneWidget);
+    });
   });
 }

@@ -220,6 +220,12 @@
 
   "prefWarnConflictsTitle": "Vor Konflikten warnen",
   "prefWarnConflictsDesc": "Markiert aktive Mods, die einen Dateinamen doppeln oder dieselben Spielressourcen überschreiben wie ein anderer Mod",
+  "prefConflictKindsTitle": "Vor welchen Konflikten warnen",
+  "prefConflictKindsDesc": "Schalte die Arten ab, die du nicht markiert haben willst. Der Rest läuft weiter wie bisher",
+  "conflictKindSameFile": "Identische Kopien",
+  "conflictKindSameName": "Gleicher Dateiname",
+  "conflictKindVersions": "Verschiedene Versionen",
+  "conflictKindResources": "Geteilte Ressourcen",
   "prefConfirmDeleteTitle": "Vor dem Deinstallieren nachfragen",
   "prefConfirmDeleteDesc": "Nachfragen, bevor eine Mod-Datei von der Festplatte gelöscht wird",
   "prefShowDisabledTitle": "Deaktivierte Mods zeigen",
@@ -741,5 +747,18 @@
   "creationsAdd": "Hinzufügen",
   "creationsAdding": "Wird hinzugefügt…",
   "creationsPickerLabel": "Grundstücke, Räume, Haushalte und Sims für {game}",
-  "creationsNothingToAdd": "Da war nichts dabei, was dieses Spiel als Grundstück, Raum, Haushalt oder Sim lesen kann. Custom Content und Mods gehen über die Bibliothek rein."
+  "creationsNothingToAdd": "Da war nichts dabei, was dieses Spiel als Grundstück, Raum, Haushalt oder Sim lesen kann. Custom Content und Mods gehen über die Bibliothek rein.",
+
+  "householdEdit": "Bearbeiten",
+  "householdEditTitle": "Haushalt bearbeiten",
+  "householdEditBody": "Ändere, was der Spielstand über „{name}“ sagt.",
+  "householdEditName": "Name",
+  "householdEditFunds": "Geld",
+  "householdEditFundsMax": "Bis {max}, mehr fasst dieses Spiel nicht.",
+  "householdEditSave": "Speichern",
+  "householdEditNotice": "Schließ zuerst das Spiel: Es schreibt seinen Spielstand beim Beenden neu. Vorher wird eine Kopie der Datei angelegt.",
+  "errorSaveEditHouseholdGone": "Dieser Haushalt ist nicht mehr im Spielstand. Aktualisier die Liste und versuch es nochmal.",
+  "errorSaveEditUnreadable": "„{file}“ ist nicht so aufgebaut, wie die App es neu schreiben kann, also wurde nichts geändert.",
+  "errorSaveEditVerification": "Das neu geschriebene „{file}“ ließ sich nicht richtig zurücklesen und wurde verworfen. Dein Spielstand ist unangetastet.",
+  "errorSaveEditUnsupported": "Die Spielstände dieses Spiels lassen sich lesen, aber nicht ändern."
 }

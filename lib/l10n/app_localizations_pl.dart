@@ -894,6 +894,25 @@ class LPl extends L {
       'Oznacza włączone mody, które powielają nazwę pliku albo nadpisują te same zasoby gry co inny mod';
 
   @override
+  String get prefConflictKindsTitle => 'O jakich konfliktach ostrzegać';
+
+  @override
+  String get prefConflictKindsDesc =>
+      'Wyłącz rodzaje, których nie chcesz widzieć oznaczonych. Reszta działa jak wcześniej';
+
+  @override
+  String get conflictKindSameFile => 'Identyczne kopie';
+
+  @override
+  String get conflictKindSameName => 'Ta sama nazwa pliku';
+
+  @override
+  String get conflictKindVersions => 'Różne wersje';
+
+  @override
+  String get conflictKindResources => 'Wspólne zasoby';
+
+  @override
   String get prefConfirmDeleteTitle => 'Pytaj przed odinstalowaniem';
 
   @override
@@ -2849,4 +2868,51 @@ class LPl extends L {
   @override
   String get creationsNothingToAdd =>
       'Nic tam nie było działką, pokojem, rodziną ani simem, który ta gra potrafi wczytać. Custom content i mody dodaje się przez bibliotekę.';
+
+  @override
+  String get householdEdit => 'Edytuj';
+
+  @override
+  String get householdEditTitle => 'Edytuj rodzinę';
+
+  @override
+  String householdEditBody(String name) {
+    return 'Zmień to, co zapis mówi o „$name”.';
+  }
+
+  @override
+  String get householdEditName => 'Nazwa';
+
+  @override
+  String get householdEditFunds => 'Pieniądze';
+
+  @override
+  String householdEditFundsMax(String max) {
+    return 'Do $max, tyle maksymalnie pomieści ta gra.';
+  }
+
+  @override
+  String get householdEditSave => 'Zapisz';
+
+  @override
+  String get householdEditNotice =>
+      'Najpierw zamknij grę: przy wyjściu nadpisuje własny zapis. Kopia pliku jest odkładana przed każdą zmianą.';
+
+  @override
+  String get errorSaveEditHouseholdGone =>
+      'Tej rodziny już nie ma w zapisie. Odśwież listę i spróbuj jeszcze raz.';
+
+  @override
+  String errorSaveEditUnreadable(String file) {
+    return '„$file” nie jest zbudowany tak, jak aplikacja umie go nadpisać, więc nic nie zostało zmienione.';
+  }
+
+  @override
+  String errorSaveEditVerification(String file) {
+    return 'Nadpisany „$file” nie wczytał się poprawnie, więc został odrzucony. Twój zapis jest nietknięty.';
+  }
+
+  @override
+  String get errorSaveEditUnsupported =>
+      'Zapisy tej gry można czytać, ale nie zmieniać.';
 }

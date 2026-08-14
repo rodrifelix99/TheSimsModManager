@@ -179,6 +179,7 @@ SaveGame? _parseNeighborhood(Directory userData, int number) {
     if ((name == null || name.isEmpty) && sims.isEmpty) continue;
 
     households.add(SaveHousehold(
+      id: chunk.id,
       name: name != null && name.isNotEmpty ? name : sims.first.fullName,
       funds: family.budget,
       // Only a family that has moved in owns anything; an unhoused one

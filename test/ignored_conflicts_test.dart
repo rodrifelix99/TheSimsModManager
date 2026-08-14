@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sims_mod_manager/src/core/conflicts.dart';
 import 'package:sims_mod_manager/src/core/game.dart';
 import 'package:sims_mod_manager/src/core/game_adapter.dart';
 import 'package:sims_mod_manager/src/core/game_registry.dart';
@@ -113,6 +114,51 @@ void main() {
     Mod modNamed(AppController c, String relative) => c.mods.firstWhere((m) =>
         p.relative(enabledPathOf(m.path), from: modsDir.path) ==
         p.joinAll(relative.split('/')));
+
+    // The other way to quieten a conflict, and the one for a whole shelf
+    // of them: the kind itself stops being scanned for (issue #20).
+    test('a muted kind leaves the library, and the rest stay', () async {
+      writeMod('CoolHair_v1.package');
+      writeMod('sub/CoolHair_v2.package');
+      writeMod('sofa.package');
+      writeMod('sub/sofa.package');
+      final c = await makeController();
+      expect(c.conflictCount, 4);
+
+      await c.setConflictKind(ConflictReason.versionPair, false);
+
+      expect(c.warnsAbout(ConflictReason.versionPair), isFalse);
+      expect(c.warnsAbout(ConflictReason.duplicateName), isTrue);
+      expect(c.conflictCount, 2);
+      expect(c.isConflicted(modNamed(c, 'CoolHair_v1.package')), isFalse);
+      expect(c.isConflicted(modNamed(c, 'sofa.package')), isTrue);
+      // Nothing was settled - the kind is off, and the pairs it would
+      // have found are not sitting in the ignored records.
+      expect(c.ignoredConflictCount, 0);
+    });
+
+    test('the kind comes back, and a restart remembers which are off',
+        () async {
+      writeMod('CoolHair_v1.package');
+      writeMod('sub/CoolHair_v2.package');
+      final c = await makeController();
+
+      await c.setConflictKind(ConflictReason.versionPair, false);
+      expect(c.conflictCount, 0);
+      await c.setConflictKind(ConflictReason.versionPair, true);
+      expect(c.conflictCount, 2);
+
+      await c.setConflictKind(ConflictReason.versionPair, false);
+      final again = AppController(
+        registry: GameRegistry([_Adapter(modsDir)]),
+        settings: SettingsStore(await SharedPreferences.getInstance()),
+        checkUpdates: () async => null,
+      );
+      await again.init();
+
+      expect(again.warnsAbout(ConflictReason.versionPair), isFalse);
+      expect(again.conflictCount, 0);
+    });
 
     test('the pair goes quiet on both mods, and the count with it', () async {
       writeMod('hair.package');

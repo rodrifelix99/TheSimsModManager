@@ -177,6 +177,10 @@ extension AppText on L {
         creationInstallFailed(int.tryParse(arg(0)) ?? 1),
       'creationRemoveFailed' => creationRemoveFailed(arg(0)),
       'creationsNothingToAdd' => creationsNothingToAdd,
+      'saveEditHouseholdGone' => errorSaveEditHouseholdGone,
+      'saveEditUnreadable' => errorSaveEditUnreadable(arg(0)),
+      'saveEditVerificationFailed' => errorSaveEditVerification(arg(0)),
+      'saveEditUnsupported' => errorSaveEditUnsupported,
       _ => '$message',
     };
   }

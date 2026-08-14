@@ -220,6 +220,12 @@
 
   "prefWarnConflictsTitle": "Avisar de los conflictos",
   "prefWarnConflictsDesc": "Marca los mods activos que repiten un nombre de archivo o que sobrescriben los mismos recursos del juego que otro mod",
+  "prefConflictKindsTitle": "De qué conflictos avisar",
+  "prefConflictKindsDesc": "Desactiva los tipos que no quieras que se marquen. Los demás siguen igual",
+  "conflictKindSameFile": "Copias idénticas",
+  "conflictKindSameName": "Mismo nombre de archivo",
+  "conflictKindVersions": "Versiones distintas",
+  "conflictKindResources": "Recursos compartidos",
   "prefConfirmDeleteTitle": "Confirmar antes de desinstalar",
   "prefConfirmDeleteDesc": "Preguntar antes de borrar del disco el archivo de un mod",
   "prefShowDisabledTitle": "Mostrar los mods desactivados",
@@ -741,5 +747,18 @@
   "creationsAdd": "Añadir",
   "creationsAdding": "Añadiendo…",
   "creationsPickerLabel": "Solares, cuartos, familias y sims de {game}",
-  "creationsNothingToAdd": "Ahí dentro no había ningún solar, cuarto, familia ni sim que este juego pueda usar. El contenido personalizado y los mods entran por la biblioteca."
+  "creationsNothingToAdd": "Ahí dentro no había ningún solar, cuarto, familia ni sim que este juego pueda usar. El contenido personalizado y los mods entran por la biblioteca.",
+
+  "householdEdit": "Editar",
+  "householdEditTitle": "Editar familia",
+  "householdEditBody": "Cambia lo que la partida dice sobre «{name}».",
+  "householdEditName": "Nombre",
+  "householdEditFunds": "Dinero",
+  "householdEditFundsMax": "Hasta {max}, que es todo lo que este juego admite.",
+  "householdEditSave": "Guardar",
+  "householdEditNotice": "Cierra el juego primero: reescribe su propia partida al salir. Se guarda una copia del archivo antes de cambiar nada.",
+  "errorSaveEditHouseholdGone": "Esa familia ya no está en la partida. Actualiza la lista e inténtalo otra vez.",
+  "errorSaveEditUnreadable": "«{file}» no tiene el formato que esta app sabe reescribir, así que no se cambió nada.",
+  "errorSaveEditVerification": "El «{file}» reescrito no se leyó como debía, así que se descartó. Tu partida está intacta.",
+  "errorSaveEditUnsupported": "Las partidas de este juego se pueden leer, pero no cambiar."
 }

@@ -857,6 +857,25 @@ class LEs extends L {
       'Marca los mods activos que repiten un nombre de archivo o que sobrescriben los mismos recursos del juego que otro mod';
 
   @override
+  String get prefConflictKindsTitle => 'De qué conflictos avisar';
+
+  @override
+  String get prefConflictKindsDesc =>
+      'Desactiva los tipos que no quieras que se marquen. Los demás siguen igual';
+
+  @override
+  String get conflictKindSameFile => 'Copias idénticas';
+
+  @override
+  String get conflictKindSameName => 'Mismo nombre de archivo';
+
+  @override
+  String get conflictKindVersions => 'Versiones distintas';
+
+  @override
+  String get conflictKindResources => 'Recursos compartidos';
+
+  @override
   String get prefConfirmDeleteTitle => 'Confirmar antes de desinstalar';
 
   @override
@@ -2775,4 +2794,51 @@ class LEs extends L {
   @override
   String get creationsNothingToAdd =>
       'Ahí dentro no había ningún solar, cuarto, familia ni sim que este juego pueda usar. El contenido personalizado y los mods entran por la biblioteca.';
+
+  @override
+  String get householdEdit => 'Editar';
+
+  @override
+  String get householdEditTitle => 'Editar familia';
+
+  @override
+  String householdEditBody(String name) {
+    return 'Cambia lo que la partida dice sobre «$name».';
+  }
+
+  @override
+  String get householdEditName => 'Nombre';
+
+  @override
+  String get householdEditFunds => 'Dinero';
+
+  @override
+  String householdEditFundsMax(String max) {
+    return 'Hasta $max, que es todo lo que este juego admite.';
+  }
+
+  @override
+  String get householdEditSave => 'Guardar';
+
+  @override
+  String get householdEditNotice =>
+      'Cierra el juego primero: reescribe su propia partida al salir. Se guarda una copia del archivo antes de cambiar nada.';
+
+  @override
+  String get errorSaveEditHouseholdGone =>
+      'Esa familia ya no está en la partida. Actualiza la lista e inténtalo otra vez.';
+
+  @override
+  String errorSaveEditUnreadable(String file) {
+    return '«$file» no tiene el formato que esta app sabe reescribir, así que no se cambió nada.';
+  }
+
+  @override
+  String errorSaveEditVerification(String file) {
+    return 'El «$file» reescrito no se leyó como debía, así que se descartó. Tu partida está intacta.';
+  }
+
+  @override
+  String get errorSaveEditUnsupported =>
+      'Las partidas de este juego se pueden leer, pero no cambiar.';
 }

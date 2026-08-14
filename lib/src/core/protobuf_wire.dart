@@ -19,13 +19,22 @@ import 'dart:typed_data';
 /// fixed64 payloads (unsigned, wrapped into Dart's signed 64-bit int);
 /// [bytes] carries length-delimited payloads (strings, submessages,
 /// packed arrays) and is null for the numeric wire types.
+///
+/// [start] and [end] bracket the field's whole encoding - tag, length
+/// prefix and payload - as byte offsets into the message it was read
+/// from. They are what makes editing possible without re-encoding: an
+/// edit splices over that range and every other byte of the message,
+/// including fields this walker skipped, survives untouched.
 class ProtoField {
-  const ProtoField(this.number, this.wireType, this.value, this.bytes);
+  const ProtoField(
+      this.number, this.wireType, this.value, this.bytes, this.start, this.end);
 
   final int number;
   final int wireType;
   final int value;
   final Uint8List? bytes;
+  final int start;
+  final int end;
 }
 
 /// Parses [data] as one protobuf message and returns its fields in wire
@@ -80,6 +89,7 @@ List<ProtoField> readProtoFields(Uint8List data) {
   }
 
   while (pos < len) {
+    final start = pos;
     final tag = varint();
     if (tag == null) break;
     final number = tag >>> 3;
@@ -89,30 +99,112 @@ List<ProtoField> readProtoFields(Uint8List data) {
       case 0:
         final value = varint();
         if (value == null) return fields;
-        fields.add(ProtoField(number, wireType, value, null));
+        fields.add(ProtoField(number, wireType, value, null, start, pos));
       case 1:
         if (pos + 8 > len) return fields;
-        fields.add(ProtoField(number, wireType,
-            ByteData.sublistView(data).getUint64(pos, Endian.little), null));
+        fields.add(ProtoField(
+            number,
+            wireType,
+            ByteData.sublistView(data).getUint64(pos, Endian.little),
+            null,
+            start,
+            pos + 8));
         pos += 8;
       case 2:
         final size = varint();
         if (size == null || size < 0 || pos + size > len) return fields;
         fields.add(ProtoField(number, wireType, size,
-            Uint8List.sublistView(data, pos, pos + size)));
+            Uint8List.sublistView(data, pos, pos + size), start, pos + size));
         pos += size;
       case 3:
         if (!skipGroup()) return fields;
       case 5:
         if (pos + 4 > len) return fields;
-        fields.add(ProtoField(number, wireType,
-            ByteData.sublistView(data).getUint32(pos, Endian.little), null));
+        fields.add(ProtoField(
+            number,
+            wireType,
+            ByteData.sublistView(data).getUint32(pos, Endian.little),
+            null,
+            start,
+            pos + 4));
         pos += 4;
       default:
         return fields; // unknown wire type: nothing after it can be trusted
     }
   }
   return fields;
+}
+
+/// Writing, which this does by splicing rather than by re-encoding.
+///
+/// A save is the user's own world and most of what it holds is a schema
+/// nothing here knows: rebuilding a message out of the fields this
+/// walker understood would quietly drop group-encoded fields, flatten
+/// non-canonical varints and lose whatever a game patch added since.
+/// So an edit is a byte range swapped for another byte range, and every
+/// byte outside it comes through exactly as it was.
+///
+/// Nesting is handled the same way, innermost first: rewrite the
+/// submessage, then splice the whole submessage field over its old self
+/// in the parent. Length prefixes take care of themselves because each
+/// step re-encodes only the one field it replaces.
+Uint8List spliceBytes(Uint8List message, int start, int end, Uint8List insert) {
+  final out = Uint8List(message.length - (end - start) + insert.length);
+  out.setRange(0, start, message);
+  out.setRange(start, start + insert.length, insert);
+  out.setRange(start + insert.length, out.length, message, end);
+  return out;
+}
+
+/// A varint, least significant group first, as protobuf writes it.
+List<int> encodeVarint(int value) {
+  final out = <int>[];
+  var rest = value;
+  while (true) {
+    final byte = rest & 0x7F;
+    // Unsigned shift: a negative int64 is a ten-byte varint, not an
+    // infinite loop.
+    rest = rest >>> 7;
+    if (rest == 0) {
+      out.add(byte);
+      return out;
+    }
+    out.add(byte | 0x80);
+  }
+}
+
+/// One whole varint field - tag and value - ready to splice.
+Uint8List encodeVarintField(int number, int value) => Uint8List.fromList(
+    [...encodeVarint(number << 3), ...encodeVarint(value)]);
+
+/// One whole length-delimited field - tag, length, payload.
+Uint8List encodeBytesField(int number, List<int> payload) => Uint8List.fromList(
+    [...encodeVarint((number << 3) | 2), ...encodeVarint(payload.length), ...payload]);
+
+/// Returns [message] with varint field [number] set to [value]: replaced
+/// where it already is, appended when the message never carried one.
+Uint8List setVarintField(Uint8List message, int number, int value) {
+  for (final f in readProtoFields(message)) {
+    if (f.number == number && f.bytes == null) {
+      return spliceBytes(
+          message, f.start, f.end, encodeVarintField(number, value));
+    }
+  }
+  return spliceBytes(message, message.length, message.length,
+      encodeVarintField(number, value));
+}
+
+/// Returns [message] with length-delimited field [number] set to
+/// [payload], appended when absent. Used for the UTF-8 of a name.
+Uint8List setBytesField(Uint8List message, int number, List<int> payload) {
+  for (final f in readProtoFields(message)) {
+    if (f.number == number && f.bytes != null) {
+      return spliceBytes(
+          message, f.start, f.end, encodeBytesField(number, payload));
+    }
+  }
+  return spliceBytes(message, message.length, message.length,
+      encodeBytesField(number, payload));
 }
 
 /// Lookups over a parsed message. Field numbers are the schema's; a field

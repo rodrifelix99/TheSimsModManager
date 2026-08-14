@@ -220,6 +220,12 @@
 
   "prefWarnConflictsTitle": "Avisar sobre conflitos",
   "prefWarnConflictsDesc": "Marca os mods ativos que repetem um nome de arquivo ou que sobrescrevem os mesmos recursos do jogo que outro mod",
+  "prefConflictKindsTitle": "Sobre quais conflitos avisar",
+  "prefConflictKindsDesc": "Desative os tipos que você não quer que sejam marcados. O resto continua igual",
+  "conflictKindSameFile": "Cópias idênticas",
+  "conflictKindSameName": "Mesmo nome de arquivo",
+  "conflictKindVersions": "Versões diferentes",
+  "conflictKindResources": "Recursos compartilhados",
   "prefConfirmDeleteTitle": "Confirmar antes de desinstalar",
   "prefConfirmDeleteDesc": "Perguntar antes de apagar o arquivo de um mod do disco",
   "prefShowDisabledTitle": "Mostrar mods desativados",
@@ -741,5 +747,18 @@
   "creationsAdd": "Adicionar",
   "creationsAdding": "Adicionando…",
   "creationsPickerLabel": "Terrenos, cômodos, famílias e sims de {game}",
-  "creationsNothingToAdd": "Nada ali dentro era terreno, cômodo, família ou sim que este jogo consiga usar. Conteúdo personalizado e mods entram pela biblioteca."
+  "creationsNothingToAdd": "Nada ali dentro era terreno, cômodo, família ou sim que este jogo consiga usar. Conteúdo personalizado e mods entram pela biblioteca.",
+
+  "householdEdit": "Editar",
+  "householdEditTitle": "Editar família",
+  "householdEditBody": "Muda o que o save diz sobre “{name}”.",
+  "householdEditName": "Nome",
+  "householdEditFunds": "Dinheiro",
+  "householdEditFundsMax": "Até {max}, que é o máximo que esse jogo aguenta.",
+  "householdEditSave": "Salvar",
+  "householdEditNotice": "Fecha o jogo antes: ele regrava o próprio save ao sair. Uma cópia do arquivo é guardada antes de qualquer mudança.",
+  "errorSaveEditHouseholdGone": "Essa família não está mais no save. Atualiza a lista e tenta de novo.",
+  "errorSaveEditUnreadable": "“{file}” não está no formato que o app sabe regravar, então nada foi mudado.",
+  "errorSaveEditVerification": "O “{file}” regravado não voltou do jeito que devia, então foi descartado. Seu save está intacto.",
+  "errorSaveEditUnsupported": "Dá pra ler os saves desse jogo, mas não pra mudar."
 }

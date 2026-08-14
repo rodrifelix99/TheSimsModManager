@@ -859,6 +859,25 @@ class LNl extends L {
       'Geef ingeschakelde mods een label als ze dezelfde bestandsnaam hebben of dezelfde onderdelen in het spel overschrijven als een andere mod';
 
   @override
+  String get prefConflictKindsTitle => 'Voor welke conflicten waarschuwen';
+
+  @override
+  String get prefConflictKindsDesc =>
+      'Zet de soorten uit die je niet gelabeld wilt zien. De rest blijft gewoon werken';
+
+  @override
+  String get conflictKindSameFile => 'Identieke kopieën';
+
+  @override
+  String get conflictKindSameName => 'Zelfde bestandsnaam';
+
+  @override
+  String get conflictKindVersions => 'Verschillende versies';
+
+  @override
+  String get conflictKindResources => 'Gedeelde onderdelen';
+
+  @override
   String get prefConfirmDeleteTitle => 'Vraag bevestiging bij deïnstalleren';
 
   @override
@@ -2778,4 +2797,51 @@ class LNl extends L {
   @override
   String get creationsNothingToAdd =>
       'Er zat niets tussen dat dit spel als kavel, kamer, huishouden of sim kan lezen. Custom content en mods gaan via de bibliotheek.';
+
+  @override
+  String get householdEdit => 'Bewerken';
+
+  @override
+  String get householdEditTitle => 'Huishouden bewerken';
+
+  @override
+  String householdEditBody(String name) {
+    return 'Verander wat de save over “$name” zegt.';
+  }
+
+  @override
+  String get householdEditName => 'Naam';
+
+  @override
+  String get householdEditFunds => 'Geld';
+
+  @override
+  String householdEditFundsMax(String max) {
+    return 'Tot $max, meer kan dit spel niet aan.';
+  }
+
+  @override
+  String get householdEditSave => 'Opslaan';
+
+  @override
+  String get householdEditNotice =>
+      'Sluit eerst het spel: bij het afsluiten schrijft het zijn eigen save terug. Er wordt een kopie van het bestand bewaard voordat er iets verandert.';
+
+  @override
+  String get errorSaveEditHouseholdGone =>
+      'Dat huishouden zit niet meer in de save. Ververs de lijst en probeer het opnieuw.';
+
+  @override
+  String errorSaveEditUnreadable(String file) {
+    return '“$file” is niet opgebouwd zoals de app kan herschrijven, dus er is niets veranderd.';
+  }
+
+  @override
+  String errorSaveEditVerification(String file) {
+    return 'De herschreven “$file” las niet terug zoals het hoorde, dus is hij weggegooid. Je save is onaangeroerd.';
+  }
+
+  @override
+  String get errorSaveEditUnsupported =>
+      'De saves van dit spel kun je lezen, maar niet veranderen.';
 }

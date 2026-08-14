@@ -37,6 +37,16 @@ enum ConflictReason {
 ConflictReason mostSpecificConflict(Iterable<ConflictReason> reasons) =>
     reasons.reduce((a, b) => a.index <= b.index ? a : b);
 
+/// Every signal the scan has, which is what it reports until the user
+/// says otherwise. A const set so it can be [findConflictPairs]'s default;
+/// `ConflictReason.values.toSet()` cannot be one.
+const allConflictReasons = <ConflictReason>{
+  ConflictReason.exactDuplicate,
+  ConflictReason.duplicateName,
+  ConflictReason.versionPair,
+  ConflictReason.resourceOverlap,
+};
+
 /// Which enabled mods clash with which, and why: path -> (the other mod's
 /// path -> the reason those two are paired).
 ///
@@ -75,10 +85,22 @@ ConflictReason mostSpecificConflict(Iterable<ConflictReason> reasons) =>
 /// one budget meant a mod with 32 same-named siblings lost the package
 /// that really overrides its resources, which is the sharper signal of
 /// the two and the one the scan went to the trouble of reading.
+///
+/// [reasons] is which of the four the user still wants to hear about
+/// (Settings, and [allConflictReasons] until they touch it). They answer
+/// different questions and only the player knows which ones are about
+/// their library: several versions of the same piece of CC installed side
+/// by side on purpose is a whole shelf the version rule is wrong about,
+/// and settling those pairs one at a time is not an answer (issue #20). A
+/// muted signal is never computed rather than filtered out afterwards, so
+/// switching one off makes the scan cheaper as well as quieter - and
+/// whatever a pair's next-sharpest surviving reason is then becomes what
+/// it is reported as, rather than the pair going quiet with it.
 Map<String, Map<String, ConflictReason>> findConflictPairs(
   List<Mod> mods,
   Map<String, Map<String, int>> overlaps, {
   String? Function(Mod mod)? digestOf,
+  Set<ConflictReason> reasons = allConflictReasons,
 }) {
   final enabled = mods.where((m) => m.isEnabled).toList();
   final pairs = <String, Map<String, ConflictReason>>{};
@@ -107,15 +129,7 @@ Map<String, Map<String, ConflictReason>> findConflictPairs(
     }
   }
 
-  final byName = <String, List<Mod>>{};
-  final byIdentity = <String, List<Mod>>{};
-  final infoOf = {for (final mod in enabled) mod.path: parseModName(mod.name)};
-  for (final mod in enabled) {
-    byName.putIfAbsent(p.basename(mod.name).toLowerCase(), () => []).add(mod);
-    byIdentity.putIfAbsent(infoOf[mod.path]!.identity, () => []).add(mod);
-  }
-
-  if (digestOf != null) {
+  if (digestOf != null && reasons.contains(ConflictReason.exactDuplicate)) {
     final byDigest = <String, List<Mod>>{};
     for (final mod in enabled) {
       final digest = digestOf(mod);
@@ -125,23 +139,39 @@ Map<String, Map<String, ConflictReason>> findConflictPairs(
       if (group.length > 1) pairAll(group, ConflictReason.exactDuplicate);
     }
   }
-  for (final group in byName.values) {
-    if (group.length > 1) pairAll(group, ConflictReason.duplicateName);
+  if (reasons.contains(ConflictReason.duplicateName)) {
+    final byName = <String, List<Mod>>{};
+    for (final mod in enabled) {
+      byName.putIfAbsent(p.basename(mod.name).toLowerCase(), () => []).add(mod);
+    }
+    for (final group in byName.values) {
+      if (group.length > 1) pairAll(group, ConflictReason.duplicateName);
+    }
   }
-  for (final group in byIdentity.values) {
-    if (group.length < 2) continue;
-    final versions = {
-      for (final mod in group)
-        if (infoOf[mod.path]!.version != null) infoOf[mod.path]!.version,
-    };
-    if (versions.length > 1) pairAll(group, ConflictReason.versionPair);
+  if (reasons.contains(ConflictReason.versionPair)) {
+    final infoOf = {for (final mod in enabled) mod.path: parseModName(mod.name)};
+    final byIdentity = <String, List<Mod>>{};
+    for (final mod in enabled) {
+      byIdentity.putIfAbsent(infoOf[mod.path]!.identity, () => []).add(mod);
+    }
+    for (final group in byIdentity.values) {
+      if (group.length < 2) continue;
+      final versions = {
+        for (final mod in group)
+          if (infoOf[mod.path]!.version != null) infoOf[mod.path]!.version,
+      };
+      if (versions.length > 1) pairAll(group, ConflictReason.versionPair);
+    }
   }
-  for (final entry in overlaps.entries) {
-    if (!infoOf.containsKey(entry.key)) continue;
-    for (final other in entry.value.keys) {
-      if (infoOf.containsKey(other)) {
-        pair(entry.key, other, ConflictReason.resourceOverlap,
-            _maxPartnersPerMod * 2);
+  if (reasons.contains(ConflictReason.resourceOverlap)) {
+    final on = {for (final mod in enabled) mod.path};
+    for (final entry in overlaps.entries) {
+      if (!on.contains(entry.key)) continue;
+      for (final other in entry.value.keys) {
+        if (on.contains(other)) {
+          pair(entry.key, other, ConflictReason.resourceOverlap,
+              _maxPartnersPerMod * 2);
+        }
       }
     }
   }

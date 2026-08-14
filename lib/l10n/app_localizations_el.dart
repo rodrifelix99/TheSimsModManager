@@ -861,6 +861,25 @@ class LEl extends L {
       'Να μαρκάρονται τα ενεργά mod που έχουν ίδιο όνομα αρχείου ή παρακάμπτουν τους ίδιους πόρους του παιχνιδιού με άλλο mod';
 
   @override
+  String get prefConflictKindsTitle => 'Για ποιες ασυμβατότητες να ειδοποιεί';
+
+  @override
+  String get prefConflictKindsDesc =>
+      'Απενεργοποιήστε τα είδη που δεν θέλετε να μαρκάρονται. Τα υπόλοιπα συνεχίζουν κανονικά';
+
+  @override
+  String get conflictKindSameFile => 'Πανομοιότυπα αντίγραφα';
+
+  @override
+  String get conflictKindSameName => 'Ίδιο όνομα αρχείου';
+
+  @override
+  String get conflictKindVersions => 'Διαφορετικές εκδόσεις';
+
+  @override
+  String get conflictKindResources => 'Κοινοί πόροι';
+
+  @override
   String get prefConfirmDeleteTitle => 'Επιβεβαίωση πριν την απεγκατάσταση';
 
   @override
@@ -2779,4 +2798,51 @@ class LEl extends L {
   @override
   String get creationsNothingToAdd =>
       'Τίποτα εκεί μέσα δεν ήταν οικόπεδο, δωμάτιο, νοικοκυριό ή sim που να διαβάζει αυτό το παιχνίδι. Το custom content και τα mods μπαίνουν από τη βιβλιοθήκη.';
+
+  @override
+  String get householdEdit => 'Επεξεργασία';
+
+  @override
+  String get householdEditTitle => 'Επεξεργασία νοικοκυριού';
+
+  @override
+  String householdEditBody(String name) {
+    return 'Άλλαξε ό,τι λέει το αρχείο για το «$name».';
+  }
+
+  @override
+  String get householdEditName => 'Όνομα';
+
+  @override
+  String get householdEditFunds => 'Χρήματα';
+
+  @override
+  String householdEditFundsMax(String max) {
+    return 'Έως $max, όσο αντέχει αυτό το παιχνίδι.';
+  }
+
+  @override
+  String get householdEditSave => 'Αποθήκευση';
+
+  @override
+  String get householdEditNotice =>
+      'Κλείσε πρώτα το παιχνίδι: ξαναγράφει το αρχείο του όταν βγαίνει. Κρατάμε αντίγραφο πριν από κάθε αλλαγή.';
+
+  @override
+  String get errorSaveEditHouseholdGone =>
+      'Αυτό το νοικοκυριό δεν υπάρχει πια στο αρχείο. Ανανέωσε τη λίστα και ξαναδοκίμασε.';
+
+  @override
+  String errorSaveEditUnreadable(String file) {
+    return 'Το «$file» δεν έχει τη δομή που ξέρει να ξαναγράφει η εφαρμογή, οπότε δεν άλλαξε τίποτα.';
+  }
+
+  @override
+  String errorSaveEditVerification(String file) {
+    return 'Το «$file» που ξαναγράφτηκε δεν διαβάστηκε σωστά, οπότε πετάχτηκε. Το αρχείο σου είναι άθικτο.';
+  }
+
+  @override
+  String get errorSaveEditUnsupported =>
+      'Τα αρχεία αυτού του παιχνιδιού διαβάζονται, αλλά δεν αλλάζουν.';
 }

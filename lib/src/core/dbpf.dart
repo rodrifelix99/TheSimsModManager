@@ -53,12 +53,59 @@ const _maxIndexBytes = 32 << 20;
 /// instance half all hoisted out as constants still carries four words.
 const _minIndexEntryBytes = 16;
 
+/// Where an archive's bytes come from. Almost always a file, but an
+/// archive being rewritten is checked over before it goes anywhere near
+/// the disk (see `save_edit.dart`), and that copy only exists in memory.
+abstract class DbpfSource {
+  factory DbpfSource.file(RandomAccessFile raf) = _FileSource;
+  factory DbpfSource.bytes(Uint8List bytes) = _ByteSource;
+
+  int get length;
+
+  /// Up to [count] bytes from [offset]; fewer at the end of the archive,
+  /// which every caller here already treats as "truncated".
+  Uint8List read(int offset, int count);
+}
+
+class _FileSource implements DbpfSource {
+  _FileSource(this._raf);
+
+  final RandomAccessFile _raf;
+
+  @override
+  int get length => _raf.lengthSync();
+
+  @override
+  Uint8List read(int offset, int count) => readAt(_raf, offset, count);
+}
+
+class _ByteSource implements DbpfSource {
+  _ByteSource(this._bytes);
+
+  final Uint8List _bytes;
+
+  @override
+  int get length => _bytes.length;
+
+  @override
+  Uint8List read(int offset, int count) {
+    if (offset < 0 || offset >= _bytes.length) return Uint8List(0);
+    final end = offset + count;
+    return Uint8List.sublistView(
+        _bytes, offset, end > _bytes.length ? _bytes.length : end);
+  }
+}
+
 /// Parses [raf]'s DBPF header and index. Returns the entries, or `null`
 /// when the file is not a DBPF archive or its header cannot be trusted
 /// (truncated file, foreign format that happens to open with 'DBPF').
 /// A malformed index tail costs the entries after it, not the whole read.
-List<DbpfEntry>? readDbpfIndex(RandomAccessFile raf) {
-  final header = readAt(raf, 0, 96);
+List<DbpfEntry>? readDbpfIndex(RandomAccessFile raf) =>
+    readDbpfIndexFrom(DbpfSource.file(raf));
+
+/// [readDbpfIndex] over any [DbpfSource].
+List<DbpfEntry>? readDbpfIndexFrom(DbpfSource raf) {
+  final header = raf.read(0, 96);
   if (header.length < 96) return null;
   if (header[0] != 0x44 ||
       header[1] != 0x42 || // 'DBPF'
@@ -82,7 +129,7 @@ List<DbpfEntry>? readDbpfIndex(RandomAccessFile raf) {
   // claim a gigabyte-long index of four billion resources; the index is
   // read in a single allocation, and running out of memory takes the whole
   // process down - it is not an exception this function could catch.
-  final fileLength = raf.lengthSync();
+  final fileLength = raf.length;
   if (indexOffset < 96 ||
       indexOffset >= fileLength ||
       indexSize > _maxIndexBytes ||
@@ -90,7 +137,7 @@ List<DbpfEntry>? readDbpfIndex(RandomAccessFile raf) {
       entryCount > indexSize ~/ _minIndexEntryBytes) {
     return null;
   }
-  final index = readAt(raf, indexOffset, indexSize);
+  final index = raf.read(indexOffset, indexSize);
   if (index.length < indexSize) return null;
   final entries = major >= 2
       ? _parseIndexV2(index, entryCount)
@@ -198,9 +245,14 @@ List<DbpfEntry> _parseIndexV1(Uint8List index, int count) {
 /// cleanly, or claims more than [maxBytes] of output - the size is the
 /// blob's own word, and what comes back here is held in memory.
 Uint8List? readDbpfResource(RandomAccessFile raf, DbpfEntry entry,
+        {int maxBytes = dbpfDefaultMaxResourceBytes}) =>
+    readDbpfResourceFrom(DbpfSource.file(raf), entry, maxBytes: maxBytes);
+
+/// [readDbpfResource] over any [DbpfSource].
+Uint8List? readDbpfResourceFrom(DbpfSource raf, DbpfEntry entry,
     {int maxBytes = dbpfDefaultMaxResourceBytes}) {
   if (entry.fileSize <= 0) return null;
-  final raw = readAt(raf, entry.offset, entry.fileSize);
+  final raw = raf.read(entry.offset, entry.fileSize);
   if (raw.length < entry.fileSize) return null;
   final data = _decompress(raw, entry.compression, maxBytes);
   if (data == null || data.length > maxBytes) return null;

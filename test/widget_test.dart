@@ -281,6 +281,111 @@ void main() {
     expect(find.text('IGNORED'), findsNothing);
   });
 
+  // The card's Column centres what it is given, and every other row
+  // fills the width by way of the Expanded around its label. The chips
+  // row is a Column instead - its control sits under its label - so it
+  // has to be told to fill, or it shrink-wraps to its widest line and is
+  // drawn indented from the two dividers it sits between. Measured at a
+  // window wide enough that the label cannot fill the card on its own:
+  // in the test font every string is a row of squares and a description
+  // wraps to the full width at ordinary sizes, which hid this entirely.
+  testWidgets('the conflict kinds row starts where the rows above it do',
+      (tester) async {
+    tester.view.physicalSize = const Size(2200, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    SharedPreferences.setMockInitialValues({'soundEffects': false});
+    final tempDir = Directory.systemTemp.createTempSync('mod_manager_ui');
+    addTearDown(() => tempDir.deleteSync(recursive: true));
+    File(p.join(tempDir.path, 'lamp.package')).writeAsStringSync('x');
+
+    final registry = GameRegistry([_FakeAdapter(tempDir)]);
+    final settings = await SettingsStore.load();
+    await _pump(tester, registry, settings, ready: find.text('lamp'));
+
+    await tester.tap(find.text('Settings').first);
+    await until(tester, find.text('Which conflicts to warn about'));
+    await tester.pump(const Duration(milliseconds: 400));
+
+    // The row above it and the row below, so a change to the card's own
+    // padding moves all three together rather than failing here.
+    final above = tester.getTopLeft(find.text('Warn about conflicts')).dx;
+    expect(tester.getTopLeft(find.text('Confirm before uninstalling')).dx,
+        above);
+    expect(tester.getTopLeft(find.text('Which conflicts to warn about')).dx,
+        above);
+    expect(
+        tester.getTopLeft(find.textContaining('Switch off the kinds')).dx,
+        above);
+    // And the chips start under the label rather than beside its middle:
+    // the first chip's own left edge, not its text, which sits a glyph
+    // and a padding further in.
+    expect(
+      tester
+          .getTopLeft(find
+              .ancestor(
+                of: find.text('Identical copies'),
+                matching: find.byType(HoverBuilder),
+              )
+              .first)
+          .dx,
+      above,
+    );
+  });
+
+  // The answer to a whole shelf the version rule is wrong about, which
+  // the per-pair Ignore never was (issue #20).
+  testWidgets('Settings switches a kind of conflict off for good',
+      (tester) async {
+    tester.view.physicalSize = const Size(1280, 824);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    SharedPreferences.setMockInitialValues({'soundEffects': false});
+    final tempDir = Directory.systemTemp.createTempSync('mod_manager_ui');
+    addTearDown(() => tempDir.deleteSync(recursive: true));
+    // Two versions of one mod, and a same-named pair that has nothing to
+    // do with versions: switching one kind off must leave the other.
+    File(p.join(tempDir.path, 'CoolHair_v1.package')).writeAsStringSync('x');
+    File(p.join(tempDir.path, 'CoolHair_v2.package')).writeAsStringSync('y');
+    for (final sub in ['A', 'B']) {
+      Directory(p.join(tempDir.path, sub)).createSync();
+      File(p.join(tempDir.path, sub, 'lamp.package')).writeAsStringSync('x');
+    }
+
+    final registry = GameRegistry([_FakeAdapter(tempDir)]);
+    final settings = await SettingsStore.load();
+
+    await _pump(tester, registry, settings, ready: find.text('CONFLICTS'));
+    expect(find.text('conflict'), findsNWidgets(4));
+
+    // The sidebar entry rather than the page's own title, which carries
+    // the same word once the screen is up.
+    await tester.tap(find.text('Settings').first);
+    await until(tester, find.text('Different versions'));
+    // Let the screen finish arriving: mid-fade the chip is in the tree
+    // and not yet hit-testable, and a tap there is a silent no-op.
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tap(find.text('Different versions'));
+    await tester.pump(const Duration(milliseconds: 400));
+
+    await tester.tap(find.text('Library').first);
+    await until(tester, find.text('CONFLICTS'));
+    // The version pair is quiet; the two lamps are still a clash.
+    expect(find.text('conflict'), findsNWidgets(2));
+
+    // And nothing was settled on the user's behalf: the way back is the
+    // chip, not a pile of ignored records.
+    await tester.tap(find.text('Settings').first);
+    await until(tester, find.text('Different versions'));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text("Conflicts you're ignoring"), findsNothing);
+    await tester.tap(find.text('Different versions'));
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tap(find.text('Library').first);
+    await until(tester, find.text('CONFLICTS'));
+    expect(find.text('conflict'), findsNWidgets(4));
+  });
+
   testWidgets('the other three stats filter the library too', (tester) async {
     tester.view.physicalSize = const Size(1280, 824);
     tester.view.devicePixelRatio = 1.0;

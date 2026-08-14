@@ -857,6 +857,25 @@ class LIt extends L {
       'Segnala le mod attive che ripetono un nome file o che sovrascrivono le stesse risorse di gioco di un’altra mod';
 
   @override
+  String get prefConflictKindsTitle => 'Di quali conflitti avvisare';
+
+  @override
+  String get prefConflictKindsDesc =>
+      'Disattiva i tipi che non vuoi vedere segnalati. Gli altri restano come sono';
+
+  @override
+  String get conflictKindSameFile => 'Copie identiche';
+
+  @override
+  String get conflictKindSameName => 'Stesso nome file';
+
+  @override
+  String get conflictKindVersions => 'Versioni diverse';
+
+  @override
+  String get conflictKindResources => 'Risorse condivise';
+
+  @override
   String get prefConfirmDeleteTitle => 'Chiedi conferma prima di disinstallare';
 
   @override
@@ -2776,4 +2795,51 @@ class LIt extends L {
   @override
   String get creationsNothingToAdd =>
       'Lì dentro non c’era nessun lotto, stanza, famiglia o sim che questo gioco possa usare. I contenuti personalizzati e le mod passano dalla libreria.';
+
+  @override
+  String get householdEdit => 'Modifica';
+
+  @override
+  String get householdEditTitle => 'Modifica nucleo familiare';
+
+  @override
+  String householdEditBody(String name) {
+    return 'Cambia quello che il salvataggio dice di «$name».';
+  }
+
+  @override
+  String get householdEditName => 'Nome';
+
+  @override
+  String get householdEditFunds => 'Soldi';
+
+  @override
+  String householdEditFundsMax(String max) {
+    return 'Fino a $max, il massimo che questo gioco regge.';
+  }
+
+  @override
+  String get householdEditSave => 'Salva';
+
+  @override
+  String get householdEditNotice =>
+      'Chiudi prima il gioco: riscrive il suo salvataggio quando esce. Una copia del file viene tenuta prima di ogni modifica.';
+
+  @override
+  String get errorSaveEditHouseholdGone =>
+      'Quel nucleo familiare non è più nel salvataggio. Aggiorna la lista e riprova.';
+
+  @override
+  String errorSaveEditUnreadable(String file) {
+    return '«$file» non è fatto come l’app sa riscriverlo, quindi non è stato cambiato niente.';
+  }
+
+  @override
+  String errorSaveEditVerification(String file) {
+    return 'Il «$file» riscritto non si è riletto come doveva, quindi è stato buttato. Il tuo salvataggio è intatto.';
+  }
+
+  @override
+  String get errorSaveEditUnsupported =>
+      'I salvataggi di questo gioco si leggono, ma non si modificano.';
 }

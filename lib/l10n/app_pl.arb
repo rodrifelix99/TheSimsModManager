@@ -220,6 +220,12 @@
 
   "prefWarnConflictsTitle": "Ostrzegaj o konfliktach",
   "prefWarnConflictsDesc": "Oznacza włączone mody, które powielają nazwę pliku albo nadpisują te same zasoby gry co inny mod",
+  "prefConflictKindsTitle": "O jakich konfliktach ostrzegać",
+  "prefConflictKindsDesc": "Wyłącz rodzaje, których nie chcesz widzieć oznaczonych. Reszta działa jak wcześniej",
+  "conflictKindSameFile": "Identyczne kopie",
+  "conflictKindSameName": "Ta sama nazwa pliku",
+  "conflictKindVersions": "Różne wersje",
+  "conflictKindResources": "Wspólne zasoby",
   "prefConfirmDeleteTitle": "Pytaj przed odinstalowaniem",
   "prefConfirmDeleteDesc": "Pytaj, zanim plik moda zniknie z dysku",
   "prefShowDisabledTitle": "Pokazuj wyłączone mody",
@@ -741,5 +747,18 @@
   "creationsAdd": "Dodaj",
   "creationsAdding": "Dodaję…",
   "creationsPickerLabel": "Działki, pokoje, rodziny i simy do {game}",
-  "creationsNothingToAdd": "Nic tam nie było działką, pokojem, rodziną ani simem, który ta gra potrafi wczytać. Custom content i mody dodaje się przez bibliotekę."
+  "creationsNothingToAdd": "Nic tam nie było działką, pokojem, rodziną ani simem, który ta gra potrafi wczytać. Custom content i mody dodaje się przez bibliotekę.",
+
+  "householdEdit": "Edytuj",
+  "householdEditTitle": "Edytuj rodzinę",
+  "householdEditBody": "Zmień to, co zapis mówi o „{name}”.",
+  "householdEditName": "Nazwa",
+  "householdEditFunds": "Pieniądze",
+  "householdEditFundsMax": "Do {max}, tyle maksymalnie pomieści ta gra.",
+  "householdEditSave": "Zapisz",
+  "householdEditNotice": "Najpierw zamknij grę: przy wyjściu nadpisuje własny zapis. Kopia pliku jest odkładana przed każdą zmianą.",
+  "errorSaveEditHouseholdGone": "Tej rodziny już nie ma w zapisie. Odśwież listę i spróbuj jeszcze raz.",
+  "errorSaveEditUnreadable": "„{file}” nie jest zbudowany tak, jak aplikacja umie go nadpisać, więc nic nie zostało zmienione.",
+  "errorSaveEditVerification": "Nadpisany „{file}” nie wczytał się poprawnie, więc został odrzucony. Twój zapis jest nietknięty.",
+  "errorSaveEditUnsupported": "Zapisy tej gry można czytać, ale nie zmieniać."
 }

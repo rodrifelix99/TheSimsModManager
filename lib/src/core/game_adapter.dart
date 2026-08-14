@@ -13,6 +13,7 @@ import 'mod.dart';
 import 'mod_archive.dart';
 import 'package_insight.dart';
 import 'resource_cfg.dart';
+import 'save_edit.dart';
 import 'save_game.dart';
 import 'trivia.dart';
 
@@ -296,6 +297,31 @@ abstract class GameAdapter {
   /// saves can't be located, and for games without a save reader yet.
   /// Runs off the UI thread and must never throw.
   Future<List<SaveGame>> listSaveGames() async => const [];
+
+  /// What this game lets the app change about a household in one of its
+  /// saves. Empty - which is the answer for a game nobody has written an
+  /// editor for, and for The Sims 3, whose households live inside a
+  /// serialized blob nobody outside the game has parsed - means the save
+  /// is readable and not writable, and the UI offers no button at all.
+  Set<SaveEditField> get editableSaveFields => const {};
+
+  /// The most simoleons this game will hold, for the field that offers
+  /// to fill a household's coffers. Games clamp or misdraw past their
+  /// own ceiling, and each one's is different.
+  int get maxHouseholdFunds => 0;
+
+  /// Applies [edit] to the household [SaveHousehold.id] names inside
+  /// [save], writing the file back.
+  ///
+  /// Unlike everything else on this class, this one throws: it is the
+  /// only place the app writes into a file the user cannot download
+  /// again, and an edit that half happened has to be heard about. The
+  /// contract is in `save_edit.dart` - a copy is kept first, the result
+  /// is proved before it replaces anything, and a failure leaves the
+  /// save exactly as it was. Runs off the UI thread.
+  Future<void> editSaveHousehold(
+          SaveGame save, SaveHousehold household, HouseholdEdit edit) async =>
+      throw const SaveEditException(AppMessage('saveEditUnsupported'));
 
   /// Whether this game keeps player-built lots, rooms, households and
   /// sims somewhere of its own, known without going to the disk so the UI
@@ -615,6 +641,18 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
   /// from the interface for the same reason as [installDestinations].
   @override
   Future<List<SaveGame>> listSaveGames() async => const [];
+
+  /// And nothing to write into them until one knows how to read them.
+  @override
+  Set<SaveEditField> get editableSaveFields => const {};
+
+  @override
+  int get maxHouseholdFunds => 0;
+
+  @override
+  Future<void> editSaveHousehold(
+          SaveGame save, SaveHousehold household, HouseholdEdit edit) async =>
+      throw const SaveEditException(AppMessage('saveEditUnsupported'));
 
   /// No player-built content until a subclass knows where this game keeps
   /// it. Repeated from the interface for the same reason as above.

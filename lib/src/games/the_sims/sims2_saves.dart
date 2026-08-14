@@ -1,10 +1,13 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:path/path.dart' as p;
 
 import '../../core/dbpf.dart';
+import '../../core/dbpf_write.dart';
 import '../../core/game_text.dart';
+import '../../core/save_edit.dart';
 import '../../core/save_game.dart';
 
 /// Reads The Sims 2 neighborhoods - the game's unit of "a save" - out of
@@ -399,6 +402,7 @@ SaveGame? _parseHood(Directory folder, String code, File package) {
       final familyName = hood.familyNames[family.instance];
       final lot = hood.lots[family.lotInstance];
       households.add(SaveHousehold(
+        id: family.instance,
         name: familyName != null && familyName.isNotEmpty
             ? familyName
             : _fallbackName(members, names),
@@ -663,18 +667,27 @@ _FamilyRecord? _parseFami(RandomAccessFile raf, DbpfEntry entry) {
   if (blob == null || blob.length < 24) return null;
   final d = ByteData.sublistView(blob);
   try {
-    final version = d.getUint32(4, Endian.little);
-    var pos = 12;
-    final lotInstance = d.getUint32(pos, Endian.little);
-    pos += 4;
-    if (version >= 0x51) pos += 4; // Open for Business: business lot
-    if (version >= 0x55) pos += 4; // Bon Voyage: vacation lot
-    pos += 4; // the word that is not a name
-    final money = d.getInt32(pos, Endian.little);
-    return _FamilyRecord(entry.instance & 0xFFFFFFFF, lotInstance, money);
+    final money = famiMoneyOffset(blob);
+    if (money == null) return null;
+    return _FamilyRecord(entry.instance & 0xFFFFFFFF,
+        d.getUint32(12, Endian.little), d.getInt32(money, Endian.little));
   } catch (_) {
     return null;
   }
+}
+
+/// Where the funds sit inside a FAMI blob, by the version the record
+/// declares. Split out of [_parseFami] because the editor writes to the
+/// same spot and the two must not be able to disagree about where it is.
+/// Null when the record is too short to hold one.
+int? famiMoneyOffset(Uint8List blob) {
+  if (blob.length < 24) return null;
+  final version = ByteData.sublistView(blob).getUint32(4, Endian.little);
+  var pos = 16; // the 12-byte header, then the lot instance
+  if (version >= 0x51) pos += 4; // Open for Business: business lot
+  if (version >= 0x55) pos += 4; // Bon Voyage: vacation lot
+  pos += 4; // the word that is not a name
+  return pos + 4 <= blob.length ? pos : null;
 }
 
 /// FAMT: the hood's genealogy. A magic word, then per sim its instance,
@@ -1135,4 +1148,242 @@ List<String> _parseStrResource(Uint8List blob) {
   }
   final value = decodeGameText(blob.sublist(start, pos));
   return (value, pos < blob.length ? pos + 1 : pos);
+}
+
+// ---------------------------------------------------------------------------
+// Writing one household back.
+
+/// The DIR resource: the package's own record of which of its resources
+/// are compressed, and what they come back as.
+const _dirType = 0xE86B1EEF;
+
+/// The whole neighborhood package with family [familyInstance] changed,
+/// as bytes ready to go on disk (see `save_edit.dart` for the rules).
+///
+/// The package is rewritten rather than poked at. Funds alone would fit
+/// in the four bytes they already occupy, but a name does not - a
+/// family's name is a string resource of its own, and a longer name is a
+/// longer resource, which moves every resource after it. One path that
+/// always works beats a fast path that quietly handles half the edits,
+/// and a hood is a couple of megabytes: the rewrite costs milliseconds.
+///
+/// Every resource nobody asked about is copied through with its bytes
+/// exactly as they were found, compressed and all. The one or two that
+/// are edited come back **stored plainly**, and their records are struck
+/// from the DIR, which is precisely what that resource is for.
+Uint8List editSims2Hood(File package, int familyInstance, HouseholdEdit edit) {
+  RandomAccessFile? raf;
+  try {
+    raf = package.openSync();
+    final header = readAt(raf, 0, 96);
+    if (header.length < 96) throw SaveEditException.unreadable(package.path);
+    final hd = ByteData.sublistView(header);
+    final declared = hd.getUint32(36, Endian.little);
+    final indexSize = hd.getUint32(44, Endian.little);
+    final entries = readDbpfIndex(raf);
+    if (entries == null || entries.length != declared || declared == 0) {
+      throw SaveEditException.unreadable(package.path);
+    }
+    final entryBytes = indexSize ~/ declared;
+    if (entryBytes != 20 && entryBytes != 24) {
+      throw SaveEditException.unreadable(package.path);
+    }
+
+    // The two resources this family is spread across, picked exactly the
+    // way the reader picks them: by instance, last one winning.
+    DbpfEntry? fami;
+    DbpfEntry? str;
+    DbpfEntry? dir;
+    for (final e in entries) {
+      final instance = e.instance & 0xFFFFFFFF;
+      if (e.type == _famiType && instance == familyInstance) fami = e;
+      if (e.type == _strType && instance == familyInstance) str = e;
+      if (e.type == _dirType) dir = e;
+    }
+    if (fami == null) throw SaveEditException.householdGone();
+
+    // Resource -> the plainly stored bytes it should come back as.
+    final rewritten = <DbpfEntry, Uint8List>{};
+
+    final funds = edit.funds;
+    if (funds != null) {
+      final blob = readDbpfResource(raf, fami);
+      final at = blob == null ? null : famiMoneyOffset(blob);
+      if (blob == null || at == null) {
+        throw SaveEditException.unreadable(package.path);
+      }
+      final edited = Uint8List.fromList(blob);
+      ByteData.sublistView(edited).setInt32(at, funds, Endian.little);
+      rewritten[fami] = edited;
+    }
+
+    final name = edit.name;
+    if (name != null) {
+      if (str == null) throw SaveEditException.householdGone();
+      final blob = readDbpfResource(raf, str);
+      final edited = blob == null ? null : _renameFamily(blob, name);
+      if (edited == null) throw SaveEditException.unreadable(package.path);
+      rewritten[str] = edited;
+    }
+
+    // Anything now stored plainly must stop claiming to be compressed.
+    if (dir != null && rewritten.isNotEmpty) {
+      final blob = readDbpfResource(raf, dir);
+      if (blob != null) {
+        rewritten[dir] = _pruneDir(
+            blob, entryBytes == 24 ? 20 : 16, rewritten.keys.toList());
+      }
+    }
+
+    final resources = <DbpfResource>[
+      for (final entry in entries)
+        if (rewritten[entry] case final bytes?)
+          DbpfResource(
+            type: entry.type,
+            group: entry.group,
+            instance: entry.instance,
+            bytes: bytes,
+          )
+        else
+          DbpfResource.copying(
+              entry, readAt(raf, entry.offset, entry.fileSize)),
+    ];
+    final bytes = writeDbpfV1(header, entryBytes, resources);
+    _verifyHood(bytes, familyInstance, edit, entries.length, package.path);
+    return bytes;
+  } on SaveEditException {
+    rethrow;
+  } catch (_) {
+    throw SaveEditException.unreadable(package.path);
+  } finally {
+    try {
+      raf?.closeSync();
+    } catch (_) {}
+  }
+}
+
+/// A family's string resource with the name replaced in every language
+/// it carries.
+///
+/// These tables are pairs - the family's name, then the blurb the game
+/// shows when the mouse rests on their house - repeated once per shipped
+/// language, so the name is **the first entry of each language code**
+/// and everything else is left alone. Rewriting only the English one
+/// would rename the Goths for an English player and leave them Gothik in
+/// German, which is exactly the seam the game's own translators avoided.
+///
+/// Strings that are not being replaced are copied as the bytes they
+/// were, never re-encoded: the games wrote these in whatever the machine
+/// was using at the time (see `game_text.dart`) and a round trip through
+/// a decoder is how a hood full of accents turns to mojibake. The new
+/// name goes in as UTF-8, which is what The Sims 2 writes.
+///
+/// Null when the resource is not the language-coded form this
+/// understands, so a rename is refused rather than guessed at.
+Uint8List? _renameFamily(Uint8List blob, String name) {
+  if (blob.length < 0x44) return null;
+  final d = ByteData.sublistView(blob);
+  // 0xFFFD is the language-coded format, the only one a hood uses and
+  // the only one the layout below describes.
+  if (d.getUint16(0x40, Endian.little) != 0xFFFD) return null;
+  final count = d.getUint16(0x42, Endian.little);
+  final replacement = utf8.encode(name);
+
+  final out = BytesBuilder()..add(Uint8List.sublistView(blob, 0, 0x44));
+  final named = <int>{};
+  var pos = 0x44;
+  for (var i = 0; i < count; i++) {
+    if (pos >= blob.length) return null;
+    final language = blob[pos++];
+    final title = _cStringRange(blob, pos);
+    if (title == null) return null;
+    pos = title.$2;
+    final description = _cStringRange(blob, pos);
+    if (description == null) return null;
+    pos = description.$2;
+
+    out.addByte(language);
+    out.add(named.add(language)
+        ? replacement
+        : Uint8List.sublistView(blob, title.$1, title.$2 - 1));
+    out.addByte(0);
+    out.add(Uint8List.sublistView(blob, description.$1, description.$2 - 1));
+    out.addByte(0);
+  }
+  return out.takeBytes();
+}
+
+/// The bounds of the NUL-terminated string at [pos]: where it starts,
+/// and where the byte after its terminator is. Null when the terminator
+/// is missing, which means the resource is truncated.
+(int, int)? _cStringRange(Uint8List blob, int pos) {
+  final start = pos;
+  while (pos < blob.length && blob[pos] != 0) {
+    pos++;
+  }
+  return pos < blob.length ? (start, pos + 1) : null;
+}
+
+/// The DIR resource without the records naming [plain]. Its records are
+/// fixed-width - type, group, instance, (the instance's high half on a
+/// 7.1 index,) then the size the resource decompresses to - so this is a
+/// filter over a byte array and nothing more.
+Uint8List _pruneDir(
+    Uint8List blob, int recordBytes, List<DbpfEntry> plain) {
+  final drop = <String>{
+    for (final e in plain) '${e.type}/${e.group}/${e.instance}',
+  };
+  final d = ByteData.sublistView(blob);
+  final out = BytesBuilder();
+  for (var at = 0; at + recordBytes <= blob.length; at += recordBytes) {
+    final high = recordBytes == 20 ? d.getUint32(at + 12, Endian.little) : 0;
+    final key = '${d.getUint32(at, Endian.little)}/'
+        '${d.getUint32(at + 4, Endian.little)}/'
+        '${(high << 32) | d.getUint32(at + 8, Endian.little)}';
+    if (drop.contains(key)) continue;
+    out.add(Uint8List.sublistView(blob, at, at + recordBytes));
+  }
+  return out.takeBytes();
+}
+
+/// Refuses the rewritten package unless it reads back as the hood that
+/// was asked for: the family there, saying what it was told to say, with
+/// every resource still in the index.
+void _verifyHood(Uint8List bytes, int familyInstance, HouseholdEdit edit,
+    int expectedResources, String path) {
+  try {
+    final source = DbpfSource.bytes(bytes);
+    final entries = readDbpfIndexFrom(source);
+    if (entries == null || entries.length != expectedResources) {
+      throw SaveEditException.verificationFailed(path);
+    }
+    DbpfEntry? fami;
+    DbpfEntry? str;
+    for (final e in entries) {
+      final instance = e.instance & 0xFFFFFFFF;
+      if (e.type == _famiType && instance == familyInstance) fami = e;
+      if (e.type == _strType && instance == familyInstance) str = e;
+    }
+    final funds = edit.funds;
+    if (funds != null) {
+      final blob = fami == null ? null : readDbpfResourceFrom(source, fami);
+      final at = blob == null ? null : famiMoneyOffset(blob);
+      if (at == null ||
+          ByteData.sublistView(blob!).getInt32(at, Endian.little) != funds) {
+        throw SaveEditException.verificationFailed(path);
+      }
+    }
+    final name = edit.name;
+    if (name != null) {
+      final blob = str == null ? null : readDbpfResourceFrom(source, str);
+      final strings = blob == null ? const <String>[] : _parseStrResource(blob);
+      if (strings.isEmpty || strings.first.trim() != name) {
+        throw SaveEditException.verificationFailed(path);
+      }
+    }
+  } on SaveEditException {
+    rethrow;
+  } catch (_) {
+    throw SaveEditException.verificationFailed(path);
+  }
 }

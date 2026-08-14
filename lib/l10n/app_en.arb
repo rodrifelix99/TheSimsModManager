@@ -390,6 +390,12 @@
 
   "prefWarnConflictsTitle": "Warn about conflicts",
   "prefWarnConflictsDesc": "Badge enabled mods that duplicate a file name or override the same in-game resources as another mod",
+  "prefConflictKindsTitle": "Which conflicts to warn about",
+  "prefConflictKindsDesc": "Switch off the kinds you don't want flagged. The rest carry on as they are",
+  "conflictKindSameFile": "Identical copies",
+  "conflictKindSameName": "Same file name",
+  "conflictKindVersions": "Different versions",
+  "conflictKindResources": "Shared resources",
   "prefConfirmDeleteTitle": "Confirm before uninstalling",
   "prefConfirmDeleteDesc": "Ask before a mod file is deleted from disk",
   "prefShowDisabledTitle": "Show disabled mods",
@@ -1207,5 +1213,22 @@
     }
   },
   "creationsPickerLabel": "{game} lots, rooms, households and Sims",
-  "creationsNothingToAdd": "Nothing in there was a lot, a room, a household or a Sim this game can use. Custom content and mods go in through the library instead."
+  "creationsNothingToAdd": "Nothing in there was a lot, a room, a household or a Sim this game can use. Custom content and mods go in through the library instead.",
+
+  "householdEdit": "Edit",
+  "householdEditTitle": "Edit household",
+  "@householdEditBody": {"placeholders": {"name": {"type": "String"}}},
+  "householdEditBody": "Change what the save says about “{name}”.",
+  "householdEditName": "Name",
+  "householdEditFunds": "Funds",
+  "@householdEditFundsMax": {"placeholders": {"max": {"type": "String"}}},
+  "householdEditFundsMax": "Up to {max}, which is as much as this game will hold.",
+  "householdEditSave": "Save changes",
+  "householdEditNotice": "Close the game first: it writes its own save back when it quits. A copy of the file is kept before anything changes.",
+  "errorSaveEditHouseholdGone": "That household isn’t in the save any more. Refresh the list and try again.",
+  "@errorSaveEditUnreadable": {"placeholders": {"file": {"type": "String"}}},
+  "errorSaveEditUnreadable": "“{file}” isn’t laid out the way this app knows how to rewrite, so nothing was changed.",
+  "@errorSaveEditVerification": {"placeholders": {"file": {"type": "String"}}},
+  "errorSaveEditVerification": "The rewritten “{file}” didn’t read back the way it should have, so it was thrown away. Your save is untouched.",
+  "errorSaveEditUnsupported": "This game’s saves can be read, but not changed."
 }

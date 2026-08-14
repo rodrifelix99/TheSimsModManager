@@ -859,6 +859,25 @@ class LFr extends L {
       'Signale les mods actifs qui reprennent un nom de fichier ou qui écrasent les mêmes ressources du jeu qu’un autre mod';
 
   @override
+  String get prefConflictKindsTitle => 'Quels conflits signaler';
+
+  @override
+  String get prefConflictKindsDesc =>
+      'Désactive les types que tu ne veux pas voir signalés. Les autres continuent comme avant';
+
+  @override
+  String get conflictKindSameFile => 'Copies identiques';
+
+  @override
+  String get conflictKindSameName => 'Même nom de fichier';
+
+  @override
+  String get conflictKindVersions => 'Versions différentes';
+
+  @override
+  String get conflictKindResources => 'Ressources partagées';
+
+  @override
   String get prefConfirmDeleteTitle => 'Confirmer avant de désinstaller';
 
   @override
@@ -2780,4 +2799,51 @@ class LFr extends L {
   @override
   String get creationsNothingToAdd =>
       'Rien là-dedans n’était un terrain, une pièce, un foyer ou un sim que ce jeu peut utiliser. Le contenu personnalisé et les mods passent par la bibliothèque.';
+
+  @override
+  String get householdEdit => 'Modifier';
+
+  @override
+  String get householdEditTitle => 'Modifier le foyer';
+
+  @override
+  String householdEditBody(String name) {
+    return 'Change ce que la sauvegarde dit de « $name ».';
+  }
+
+  @override
+  String get householdEditName => 'Nom';
+
+  @override
+  String get householdEditFunds => 'Argent';
+
+  @override
+  String householdEditFundsMax(String max) {
+    return 'Jusqu’à $max, c’est tout ce que ce jeu peut contenir.';
+  }
+
+  @override
+  String get householdEditSave => 'Enregistrer';
+
+  @override
+  String get householdEditNotice =>
+      'Ferme le jeu d’abord : il réécrit sa propre sauvegarde en quittant. Une copie du fichier est gardée avant tout changement.';
+
+  @override
+  String get errorSaveEditHouseholdGone =>
+      'Ce foyer n’est plus dans la sauvegarde. Actualise la liste et réessaie.';
+
+  @override
+  String errorSaveEditUnreadable(String file) {
+    return '« $file » n’a pas la structure que l’appli sait réécrire, donc rien n’a été changé.';
+  }
+
+  @override
+  String errorSaveEditVerification(String file) {
+    return 'Le « $file » réécrit ne s’est pas relu comme il fallait, il a donc été jeté. Ta sauvegarde est intacte.';
+  }
+
+  @override
+  String get errorSaveEditUnsupported =>
+      'Les sauvegardes de ce jeu se lisent, mais ne se modifient pas.';
 }

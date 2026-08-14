@@ -891,6 +891,25 @@ class LRu extends L {
       'Помечает включённые моды, у которых повторяется имя файла или которые переопределяют те же игровые ресурсы, что и другой мод';
 
   @override
+  String get prefConflictKindsTitle => 'О каких конфликтах предупреждать';
+
+  @override
+  String get prefConflictKindsDesc =>
+      'Выключи те виды, которые не хочешь видеть помеченными. Остальные работают как раньше';
+
+  @override
+  String get conflictKindSameFile => 'Одинаковые копии';
+
+  @override
+  String get conflictKindSameName => 'Одинаковое имя файла';
+
+  @override
+  String get conflictKindVersions => 'Разные версии';
+
+  @override
+  String get conflictKindResources => 'Общие ресурсы';
+
+  @override
   String get prefConfirmDeleteTitle => 'Спрашивать перед удалением';
 
   @override
@@ -2845,4 +2864,51 @@ class LRu extends L {
   @override
   String get creationsNothingToAdd =>
       'Там не оказалось ни участка, ни комнаты, ни семьи, ни сима, которые эта игра умеет читать. Кастомный контент и моды добавляются через библиотеку.';
+
+  @override
+  String get householdEdit => 'Изменить';
+
+  @override
+  String get householdEditTitle => 'Изменить семью';
+
+  @override
+  String householdEditBody(String name) {
+    return 'Меняем то, что сохранение говорит о «$name».';
+  }
+
+  @override
+  String get householdEditName => 'Имя';
+
+  @override
+  String get householdEditFunds => 'Деньги';
+
+  @override
+  String householdEditFundsMax(String max) {
+    return 'До $max, больше эта игра не удержит.';
+  }
+
+  @override
+  String get householdEditSave => 'Сохранить';
+
+  @override
+  String get householdEditNotice =>
+      'Сначала закрой игру: при выходе она перезаписывает своё сохранение. Копия файла откладывается до любых изменений.';
+
+  @override
+  String get errorSaveEditHouseholdGone =>
+      'Этой семьи больше нет в сохранении. Обнови список и попробуй ещё раз.';
+
+  @override
+  String errorSaveEditUnreadable(String file) {
+    return '«$file» устроен не так, как приложение умеет перезаписывать, поэтому ничего не изменилось.';
+  }
+
+  @override
+  String errorSaveEditVerification(String file) {
+    return 'Перезаписанный «$file» прочитался неправильно, поэтому его выбросили. Твоё сохранение не тронуто.';
+  }
+
+  @override
+  String get errorSaveEditUnsupported =>
+      'Сохранения этой игры можно читать, но не менять.';
 }

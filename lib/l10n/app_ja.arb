@@ -220,6 +220,12 @@
 
   "prefWarnConflictsTitle": "競合を知らせる",
   "prefWarnConflictsDesc": "ファイル名が重なっている、または他の MOD と同じゲーム内リソースを上書きしている有効な MOD に印を付けます",
+  "prefConflictKindsTitle": "どの競合を知らせるか",
+  "prefConflictKindsDesc": "印を付けてほしくない種類はオフにしてください。ほかはこれまでどおりです",
+  "conflictKindSameFile": "同一のコピー",
+  "conflictKindSameName": "同じファイル名",
+  "conflictKindVersions": "別バージョン",
+  "conflictKindResources": "共通リソース",
   "prefConfirmDeleteTitle": "アンインストール前に確認",
   "prefConfirmDeleteDesc": "MOD ファイルをディスクから消す前に確認します",
   "prefShowDisabledTitle": "無効な MOD も表示",
@@ -741,5 +747,18 @@
   "creationsAdd": "追加",
   "creationsAdding": "追加中…",
   "creationsPickerLabel": "{game} の区画・部屋・世帯・シム",
-  "creationsNothingToAdd": "この中に、このゲームが読み込める区画・部屋・世帯・シムはありませんでした。カスタムコンテンツやMODはライブラリから追加してください。"
+  "creationsNothingToAdd": "この中に、このゲームが読み込める区画・部屋・世帯・シムはありませんでした。カスタムコンテンツやMODはライブラリから追加してください。",
+
+  "householdEdit": "編集",
+  "householdEditTitle": "世帯を編集",
+  "householdEditBody": "セーブデータの「{name}」の内容を変更するよ。",
+  "householdEditName": "名前",
+  "householdEditFunds": "所持金",
+  "householdEditFundsMax": "{max} まで。このゲームが持てる上限だよ。",
+  "householdEditSave": "保存",
+  "householdEditNotice": "先にゲームを閉じてね：終了時に自分でセーブを書き戻すよ。変更前にファイルのコピーを取っておくよ。",
+  "errorSaveEditHouseholdGone": "その世帯はもうセーブデータにないよ。リストを更新してもう一度試してね。",
+  "errorSaveEditUnreadable": "「{file}」はこのアプリが書き換えられる構造じゃないから、何も変更してないよ。",
+  "errorSaveEditVerification": "書き換えた「{file}」が正しく読み戻せなかったから破棄したよ。セーブデータはそのままだよ。",
+  "errorSaveEditUnsupported": "このゲームのセーブは読めるけど、変更はできないよ。"
 }

@@ -788,6 +788,24 @@ class LZh extends L {
   String get prefWarnConflictsDesc => '为文件名重复、或与其他 MOD 覆盖同样游戏资源的已启用 MOD 打上标记';
 
   @override
+  String get prefConflictKindsTitle => '要提醒哪些冲突';
+
+  @override
+  String get prefConflictKindsDesc => '不想被标记的类型直接关掉，其余照常';
+
+  @override
+  String get conflictKindSameFile => '完全相同的副本';
+
+  @override
+  String get conflictKindSameName => '同名文件';
+
+  @override
+  String get conflictKindVersions => '不同版本';
+
+  @override
+  String get conflictKindResources => '共用资源';
+
+  @override
   String get prefConfirmDeleteTitle => '卸载前先确认';
 
   @override
@@ -2573,4 +2591,48 @@ class LZh extends L {
   @override
   String get creationsNothingToAdd =>
       '里面没有这个游戏能用的地块、房间、家庭或市民。自定义内容和模组请从模组库那边添加。';
+
+  @override
+  String get householdEdit => '编辑';
+
+  @override
+  String get householdEditTitle => '编辑家庭';
+
+  @override
+  String householdEditBody(String name) {
+    return '修改存档里关于“$name”的内容。';
+  }
+
+  @override
+  String get householdEditName => '名称';
+
+  @override
+  String get householdEditFunds => '金钱';
+
+  @override
+  String householdEditFundsMax(String max) {
+    return '最多 $max，这是本作能存下的上限。';
+  }
+
+  @override
+  String get householdEditSave => '保存';
+
+  @override
+  String get householdEditNotice => '先关掉游戏：它退出时会重写自己的存档。改动前会先留一份文件副本。';
+
+  @override
+  String get errorSaveEditHouseholdGone => '存档里已经没有这个家庭了。刷新列表再试一次。';
+
+  @override
+  String errorSaveEditUnreadable(String file) {
+    return '“$file”的结构不是本应用会重写的样子，所以什么都没改。';
+  }
+
+  @override
+  String errorSaveEditVerification(String file) {
+    return '重写后的“$file”没能正确读回来，已经丢弃。你的存档没被动过。';
+  }
+
+  @override
+  String get errorSaveEditUnsupported => '本作的存档只能读，不能改。';
 }

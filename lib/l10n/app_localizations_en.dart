@@ -853,6 +853,25 @@ class LEn extends L {
       'Badge enabled mods that duplicate a file name or override the same in-game resources as another mod';
 
   @override
+  String get prefConflictKindsTitle => 'Which conflicts to warn about';
+
+  @override
+  String get prefConflictKindsDesc =>
+      'Switch off the kinds you don\'t want flagged. The rest carry on as they are';
+
+  @override
+  String get conflictKindSameFile => 'Identical copies';
+
+  @override
+  String get conflictKindSameName => 'Same file name';
+
+  @override
+  String get conflictKindVersions => 'Different versions';
+
+  @override
+  String get conflictKindResources => 'Shared resources';
+
+  @override
   String get prefConfirmDeleteTitle => 'Confirm before uninstalling';
 
   @override
@@ -2769,4 +2788,51 @@ class LEn extends L {
   @override
   String get creationsNothingToAdd =>
       'Nothing in there was a lot, a room, a household or a Sim this game can use. Custom content and mods go in through the library instead.';
+
+  @override
+  String get householdEdit => 'Edit';
+
+  @override
+  String get householdEditTitle => 'Edit household';
+
+  @override
+  String householdEditBody(String name) {
+    return 'Change what the save says about “$name”.';
+  }
+
+  @override
+  String get householdEditName => 'Name';
+
+  @override
+  String get householdEditFunds => 'Funds';
+
+  @override
+  String householdEditFundsMax(String max) {
+    return 'Up to $max, which is as much as this game will hold.';
+  }
+
+  @override
+  String get householdEditSave => 'Save changes';
+
+  @override
+  String get householdEditNotice =>
+      'Close the game first: it writes its own save back when it quits. A copy of the file is kept before anything changes.';
+
+  @override
+  String get errorSaveEditHouseholdGone =>
+      'That household isn’t in the save any more. Refresh the list and try again.';
+
+  @override
+  String errorSaveEditUnreadable(String file) {
+    return '“$file” isn’t laid out the way this app knows how to rewrite, so nothing was changed.';
+  }
+
+  @override
+  String errorSaveEditVerification(String file) {
+    return 'The rewritten “$file” didn’t read back the way it should have, so it was thrown away. Your save is untouched.';
+  }
+
+  @override
+  String get errorSaveEditUnsupported =>
+      'This game’s saves can be read, but not changed.';
 }

@@ -220,6 +220,12 @@
 
   "prefWarnConflictsTitle": "Avvisa dei conflitti",
   "prefWarnConflictsDesc": "Segnala le mod attive che ripetono un nome file o che sovrascrivono le stesse risorse di gioco di un’altra mod",
+  "prefConflictKindsTitle": "Di quali conflitti avvisare",
+  "prefConflictKindsDesc": "Disattiva i tipi che non vuoi vedere segnalati. Gli altri restano come sono",
+  "conflictKindSameFile": "Copie identiche",
+  "conflictKindSameName": "Stesso nome file",
+  "conflictKindVersions": "Versioni diverse",
+  "conflictKindResources": "Risorse condivise",
   "prefConfirmDeleteTitle": "Chiedi conferma prima di disinstallare",
   "prefConfirmDeleteDesc": "Chiedi prima di eliminare dal disco il file di una mod",
   "prefShowDisabledTitle": "Mostra le mod disattivate",
@@ -741,5 +747,18 @@
   "creationsAdd": "Aggiungi",
   "creationsAdding": "Aggiunta in corso…",
   "creationsPickerLabel": "Lotti, stanze, famiglie e sim di {game}",
-  "creationsNothingToAdd": "Lì dentro non c’era nessun lotto, stanza, famiglia o sim che questo gioco possa usare. I contenuti personalizzati e le mod passano dalla libreria."
+  "creationsNothingToAdd": "Lì dentro non c’era nessun lotto, stanza, famiglia o sim che questo gioco possa usare. I contenuti personalizzati e le mod passano dalla libreria.",
+
+  "householdEdit": "Modifica",
+  "householdEditTitle": "Modifica nucleo familiare",
+  "householdEditBody": "Cambia quello che il salvataggio dice di «{name}».",
+  "householdEditName": "Nome",
+  "householdEditFunds": "Soldi",
+  "householdEditFundsMax": "Fino a {max}, il massimo che questo gioco regge.",
+  "householdEditSave": "Salva",
+  "householdEditNotice": "Chiudi prima il gioco: riscrive il suo salvataggio quando esce. Una copia del file viene tenuta prima di ogni modifica.",
+  "errorSaveEditHouseholdGone": "Quel nucleo familiare non è più nel salvataggio. Aggiorna la lista e riprova.",
+  "errorSaveEditUnreadable": "«{file}» non è fatto come l’app sa riscriverlo, quindi non è stato cambiato niente.",
+  "errorSaveEditVerification": "Il «{file}» riscritto non si è riletto come doveva, quindi è stato buttato. Il tuo salvataggio è intatto.",
+  "errorSaveEditUnsupported": "I salvataggi di questo gioco si leggono, ma non si modificano."
 }

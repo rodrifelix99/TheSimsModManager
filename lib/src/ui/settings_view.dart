@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 
 import '../app_version.dart';
+import '../core/conflicts.dart' show ConflictReason;
 import '../core/game_adapter.dart' show defaultDisabledSuffix;
 import '../services/reachability.dart' show debugReachabilityScenarios;
 import '../services/sfx.dart';
@@ -60,6 +61,12 @@ class SettingsView extends StatelessWidget {
                     value: !s.warnConflicts,
                   ),
                 ),
+                // Nothing is badged at all with the switch above off, so
+                // the question of which kinds are does not arise.
+                if (s.warnConflicts) ...[
+                  _divider(t),
+                  _conflictKindsRow(t, c, l),
+                ],
                 _divider(t),
                 _prefRow(
                   t,
@@ -738,6 +745,95 @@ class SettingsView extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Which of the conflict scan's four signals get a badge.
+  ///
+  /// One row of chips rather than four more switches: they are one answer
+  /// to one question, and a wrap is what keeps four translated labels
+  /// inside a minimum-size window. A muted kind stops being scanned for
+  /// at all, so the count, the badge, the mod's own page and the
+  /// conflicts filter all lose it together.
+  /// The width is spelled out because this is the one row in the card
+  /// whose control sits under its label rather than beside it: the others
+  /// are a Row around an Expanded and fill the card for free, while a
+  /// bare Column shrink-wraps to its widest line and the card's own
+  /// Column then centres what it was handed - a row drawn indented from
+  /// the dividers above and below it.
+  Widget _conflictKindsRow(GameTheme t, AppController c, L l) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
+        child: SizedBox(
+          width: double.infinity,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _rowLabel(t, l.prefConflictKindsTitle, l.prefConflictKindsDesc),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final kind in ConflictReason.values)
+                    _conflictKindChip(t, c, l, kind),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+
+  /// One kind, on or off. The tooltip is the same paragraph the mod's own
+  /// page words this conflict with, which is where someone deciding
+  /// whether they care about a kind has met it.
+  Widget _conflictKindChip(
+      GameTheme t, AppController c, L l, ConflictReason kind) {
+    final on = c.warnsAbout(kind);
+    final label = switch (kind) {
+      ConflictReason.exactDuplicate => l.conflictKindSameFile,
+      ConflictReason.duplicateName => l.conflictKindSameName,
+      ConflictReason.versionPair => l.conflictKindVersions,
+      ConflictReason.resourceOverlap => l.conflictKindResources,
+    };
+    return Tooltip(
+      message: switch (kind) {
+        ConflictReason.exactDuplicate => l.conflictSameFileBody,
+        ConflictReason.duplicateName => l.conflictSameNameBody,
+        ConflictReason.versionPair => l.conflictVersionBody,
+        ConflictReason.resourceOverlap => l.conflictResourcesBody,
+      },
+      child: HoverBuilder(
+        cursor: SystemMouseCursors.click,
+        builder: (context, hovered) {
+          final state = skinState(active: on, hovered: hovered);
+          final ink = t.skin.ink(t, SkinSurface.chip,
+              state: state, otherwise: on ? Colors.white : t.muted);
+          return GestureDetector(
+            onTap: () => c.setConflictKind(kind, !on),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 160),
+              padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7),
+              decoration: t.skin.decorate(t, SkinSurface.chip, state: state),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(on ? Icons.check_rounded : Icons.remove_rounded,
+                      size: 13, color: ink),
+                  const SizedBox(width: 6),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w800,
+                      color: ink,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }

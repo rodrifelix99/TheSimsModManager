@@ -856,6 +856,25 @@ class LPt extends L {
       'Marca os mods ativos que repetem um nome de arquivo ou que sobrescrevem os mesmos recursos do jogo que outro mod';
 
   @override
+  String get prefConflictKindsTitle => 'Sobre quais conflitos avisar';
+
+  @override
+  String get prefConflictKindsDesc =>
+      'Desative os tipos que você não quer que sejam marcados. O resto continua igual';
+
+  @override
+  String get conflictKindSameFile => 'Cópias idênticas';
+
+  @override
+  String get conflictKindSameName => 'Mesmo nome de arquivo';
+
+  @override
+  String get conflictKindVersions => 'Versões diferentes';
+
+  @override
+  String get conflictKindResources => 'Recursos compartilhados';
+
+  @override
   String get prefConfirmDeleteTitle => 'Confirmar antes de desinstalar';
 
   @override
@@ -2774,4 +2793,51 @@ class LPt extends L {
   @override
   String get creationsNothingToAdd =>
       'Nada ali dentro era terreno, cômodo, família ou sim que este jogo consiga usar. Conteúdo personalizado e mods entram pela biblioteca.';
+
+  @override
+  String get householdEdit => 'Editar';
+
+  @override
+  String get householdEditTitle => 'Editar família';
+
+  @override
+  String householdEditBody(String name) {
+    return 'Muda o que o save diz sobre “$name”.';
+  }
+
+  @override
+  String get householdEditName => 'Nome';
+
+  @override
+  String get householdEditFunds => 'Dinheiro';
+
+  @override
+  String householdEditFundsMax(String max) {
+    return 'Até $max, que é o máximo que esse jogo aguenta.';
+  }
+
+  @override
+  String get householdEditSave => 'Salvar';
+
+  @override
+  String get householdEditNotice =>
+      'Fecha o jogo antes: ele regrava o próprio save ao sair. Uma cópia do arquivo é guardada antes de qualquer mudança.';
+
+  @override
+  String get errorSaveEditHouseholdGone =>
+      'Essa família não está mais no save. Atualiza a lista e tenta de novo.';
+
+  @override
+  String errorSaveEditUnreadable(String file) {
+    return '“$file” não está no formato que o app sabe regravar, então nada foi mudado.';
+  }
+
+  @override
+  String errorSaveEditVerification(String file) {
+    return 'O “$file” regravado não voltou do jeito que devia, então foi descartado. Seu save está intacto.';
+  }
+
+  @override
+  String get errorSaveEditUnsupported =>
+      'Dá pra ler os saves desse jogo, mas não pra mudar.';
 }
