@@ -2831,8 +2831,8 @@ class LRu extends L {
   }
 
   @override
-  String get creationNeighborhoodFull =>
-      'В этом районе уже все 99 домов, которые в него влезают. Удали тот, в который не играешь, прежде чем добавлять новый.';
+  String get creationSims1PickLot =>
+      'The Sims 1 нумерует участки по их месту на карте, поэтому дом должен занять уже существующий участок - и всё, что на нём стоит, пропадёт. Выбери участок сам: сделай резервную копию, а потом переименуй скачанный файл в номер House этого участка в папке Houses.';
 
   @override
   String creationInstallFailed(int count) {

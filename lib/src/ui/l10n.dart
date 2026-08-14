@@ -172,7 +172,7 @@ extension AppText on L {
       'errorPackToggleRefused' => errorPackToggleRefused,
       'creationBadFileName' => creationBadFileName(arg(0)),
       'creationFileInUse' => creationFileInUse(arg(0)),
-      'creationNeighborhoodFull' => creationNeighborhoodFull,
+      'creationSims1PickLot' => creationSims1PickLot,
       'creationInstallFailed' =>
         creationInstallFailed(int.tryParse(arg(0)) ?? 1),
       'creationRemoveFailed' => creationRemoveFailed(arg(0)),

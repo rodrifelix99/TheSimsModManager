@@ -2761,8 +2761,8 @@ class LEs extends L {
   }
 
   @override
-  String get creationNeighborhoodFull =>
-      'Este vecindario ya tiene las 99 casas que caben. Borra alguna que no juegues antes de añadir otra.';
+  String get creationSims1PickLot =>
+      'Los Sims 1 numera sus solares por su posición en el mapa, así que una casa tiene que ocupar un solar que ya está ahí, y eso borra lo que hubiera en él. Elige tú el solar: haz una copia de seguridad y luego renombra la descarga con el número House de ese solar en la carpeta Houses.';
 
   @override
   String creationInstallFailed(int count) {

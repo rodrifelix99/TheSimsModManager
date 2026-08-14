@@ -1192,7 +1192,7 @@
       "name": {"type": "String"}
     }
   },
-  "creationNeighborhoodFull": "This neighborhood already has all 99 houses it can hold. Delete one you don’t play before adding another.",
+  "creationSims1PickLot": "The Sims 1 numbers its lots by position on the map, so a house has to take over a lot that's already there - and that wipes whatever is on it. Pick the lot yourself: back it up, then rename the download to that lot's House number in the Houses folder.",
   "creationInstallFailed": "{count, plural, =1{That file couldn’t be added.} other{Those {count} files couldn’t be added.}}",
   "@creationInstallFailed": {
     "placeholders": {

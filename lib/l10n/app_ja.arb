@@ -741,7 +741,7 @@
   "creationFolderSims1Houses": "近所 {number}",
   "creationBadFileName": "「{name}」のファイル名にはこのシステムで使えない文字が入っていて、ゲームからは見つけられません。名前を変えてもう一度試してください。",
   "creationFileInUse": "「{name}」は使用中です。ゲームを閉じてからもう一度試してください。",
-  "creationNeighborhoodFull": "この近所にはもう入る限界の99軒が入っています。遊んでいない家を削除してから追加してください。",
+  "creationSims1PickLot": "『ザ・シムズ1』は区画をマップ上の位置で番号付けしているので、家は既存の区画を置き換える形になり、そこにあったものは消えます。区画は自分で選んでください。まずバックアップを取り、そのうえで Houses フォルダー内でダウンロードしたファイルをその区画の House 番号に変更します。",
   "creationInstallFailed": "{count, plural, =1{そのファイルは追加できませんでした。} other{その {count} 個のファイルは追加できませんでした。}}",
   "creationRemoveFailed": "「{name}」は削除できませんでした。",
   "creationsAdd": "追加",

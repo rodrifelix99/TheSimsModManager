@@ -2559,7 +2559,8 @@ class LZh extends L {
   }
 
   @override
-  String get creationNeighborhoodFull => '这个街区已经放满 99 栋房子了。先删掉一栋你不玩的，再添加新的。';
+  String get creationSims1PickLot =>
+      '《模拟人生1》的地块是按地图上的位置编号的，所以一栋房子必须顶替地图上已有的地块，而那块地上原有的东西会被清空。请自己选好地块：先备份，再把下载的文件改成该地块的 House 编号，放进 Houses 文件夹。';
 
   @override
   String creationInstallFailed(int count) {

@@ -741,7 +741,7 @@
   "creationFolderSims1Houses": "Nachbarschaft {number}",
   "creationBadFileName": "„{name}“ hat Zeichen im Namen, die dieses System nicht erlaubt — das Spiel würde die Datei nie finden. Benenn sie um und versuch es nochmal.",
   "creationFileInUse": "„{name}“ ist gerade in Benutzung. Schließ das Spiel und versuch es nochmal.",
-  "creationNeighborhoodFull": "Diese Nachbarschaft hat schon alle 99 Häuser, die reinpassen. Lösch eins, das du nicht spielst, bevor du ein neues hinzufügst.",
+  "creationSims1PickLot": "Die Sims 1 nummeriert seine Grundstücke nach ihrer Position auf der Karte. Ein Haus muss also ein vorhandenes Grundstück ersetzen, und was darauf steht, ist weg. Such das Grundstück selbst aus: sicher es vorher, dann benenn den Download auf die House-Nummer dieses Grundstücks im Houses-Ordner um.",
   "creationInstallFailed": "{count, plural, =1{Die Datei konnte nicht hinzugefügt werden.} other{Diese {count} Dateien konnten nicht hinzugefügt werden.}}",
   "creationRemoveFailed": "„{name}“ konnte nicht gelöscht werden.",
   "creationsAdd": "Hinzufügen",

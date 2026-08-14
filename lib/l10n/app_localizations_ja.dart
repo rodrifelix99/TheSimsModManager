@@ -2594,8 +2594,8 @@ class LJa extends L {
   }
 
   @override
-  String get creationNeighborhoodFull =>
-      'この近所にはもう入る限界の99軒が入っています。遊んでいない家を削除してから追加してください。';
+  String get creationSims1PickLot =>
+      '『ザ・シムズ1』は区画をマップ上の位置で番号付けしているので、家は既存の区画を置き換える形になり、そこにあったものは消えます。区画は自分で選んでください。まずバックアップを取り、そのうえで Houses フォルダー内でダウンロードしたファイルをその区画の House 番号に変更します。';
 
   @override
   String creationInstallFailed(int count) {

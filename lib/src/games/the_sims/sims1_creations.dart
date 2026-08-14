@@ -16,10 +16,17 @@ import 'sims1_saves.dart';
 /// lots and only lots, which is the honest answer rather than an empty
 /// Households shelf.
 ///
-/// The number is the identity: the game reads houses by slot, the
-/// neighborhood's `NeighborhoodDesc.iff` names them by `house + 2000`,
-/// and two files cannot share a slot. That is also what makes installing
-/// one more than a copy - see [nextFreeHouseNumber].
+/// The number is the identity, and it is not the app's to choose. **The
+/// map's lot numbers are fixed**: the neighborhood draws the slots it
+/// knows about, every one of them already has a file, and a house
+/// written to a number the map has no lot for is on disk and invisible.
+/// The ranges below say the same thing - 80-89 is Studio Town, 90 and up
+/// is Magic Town - so "the lowest number nobody is using" is not a free
+/// slot, it is a slot in another part of town or no slot at all.
+///
+/// So installing a house means *replacing* a lot that is already on the
+/// map, which is a choice only the player can make. [occupiedHouseNumbers]
+/// is what a picker would offer; nothing here picks for them.
 ///
 /// The picture is the game's own render of the lot, a Windows bitmap in
 /// the house file's `BMP_` chunk 513 (roof on). Names and descriptions
@@ -44,9 +51,10 @@ String _descriptionFileFor(int number) => number < 80
         ? 'STDesc.iff'
         : 'MTDesc.iff';
 
-/// The highest slot the game will look at. Beyond this a house is on disk
-/// and invisible, which is the same trap the mods-too-deep banner warns
-/// about, so an install refuses rather than writing one.
+/// The highest slot any of the games' areas number up to. A ceiling for
+/// reading, not a range to hand out of: which numbers the map actually
+/// draws is the neighborhood's business, and most of this range is not
+/// on it.
 const maxHouseNumber = 99;
 
 List<Creation> scanSims1Creations(String housesPath) {
@@ -111,15 +119,15 @@ Creation _readHouse(File file, int number, _HouseDescriptions names) {
   );
 }
 
-/// The lowest slot in [housesPath] that no house occupies, or null when
-/// the neighborhood is full.
+/// Every slot in [housesPath] that has a house file, in order.
 ///
-/// This is what an install has to answer before it can copy anything: the
-/// file name is not decoration, it is where the game will look for the
-/// lot, and dropping in a `House03.iff` that already exists replaces
-/// somebody's house. Slot 00 is skipped - the game keeps it for its own
-/// bulldozed-lot template.
-int? nextFreeHouseNumber(String housesPath) {
+/// These are the lots the map really has: the game ships a file for each
+/// one it draws, so a number in here is a lot somebody can walk to and a
+/// number outside it is not. An install replaces one of these or it does
+/// nothing the player will ever see - which is why this lists them
+/// instead of answering "the next free one", the question that reads as
+/// sensible and has no correct answer.
+List<int> occupiedHouseNumbers(String housesPath) {
   final taken = <int>{};
   try {
     for (final entity in Directory(housesPath).listSync()) {
@@ -128,12 +136,9 @@ int? nextFreeHouseNumber(String housesPath) {
       if (match != null) taken.add(int.parse(match.group(1)!));
     }
   } catch (_) {
-    return null;
+    return const [];
   }
-  for (var number = 1; number <= maxHouseNumber; number++) {
-    if (!taken.contains(number)) return number;
-  }
-  return null;
+  return taken.toList()..sort();
 }
 
 /// The file name a house takes in slot [number].

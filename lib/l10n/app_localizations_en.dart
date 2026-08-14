@@ -2755,8 +2755,8 @@ class LEn extends L {
   }
 
   @override
-  String get creationNeighborhoodFull =>
-      'This neighborhood already has all 99 houses it can hold. Delete one you don’t play before adding another.';
+  String get creationSims1PickLot =>
+      'The Sims 1 numbers its lots by position on the map, so a house has to take over a lot that\'s already there - and that wipes whatever is on it. Pick the lot yourself: back it up, then rename the download to that lot\'s House number in the Houses folder.';
 
   @override
   String creationInstallFailed(int count) {

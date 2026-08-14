@@ -2764,8 +2764,8 @@ class LNl extends L {
   }
 
   @override
-  String get creationNeighborhoodFull =>
-      'Deze buurt zit al vol met alle 99 huizen die erin passen. Verwijder er een die je niet speelt voordat je een nieuwe toevoegt.';
+  String get creationSims1PickLot =>
+      'De Sims 1 nummert kavels op hun plek op de kaart, dus een huis moet een kavel overnemen die er al is - en wat erop staat verdwijnt. Kies de kavel zelf: maak er een back-up van en hernoem de download daarna naar het House-nummer van die kavel in de map Houses.';
 
   @override
   String creationInstallFailed(int count) {

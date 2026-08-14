@@ -477,17 +477,33 @@ void main() {
       expect(scanSims1Creations(houses.path).single.name, 'House07');
     });
 
-    /// Installing is a rename onto a free slot, because the number is
-    /// what the game reads the house by.
-    test('the next free slot skips the ones already taken', () {
-      final houses = housesWith([1, 2, 4]);
-      expect(nextFreeHouseNumber(houses.path), 3);
+    /// The lots the map really has are the ones with a file. A number
+    /// nobody is using is not a free slot - it is a position the map has
+    /// no lot for, and a house written there is invisible in game.
+    test('the occupied slots are the map, in order', () {
+      final houses = housesWith([4, 1, 2]);
+      expect(occupiedHouseNumbers(houses.path), [1, 2, 4]);
       expect(houseFileName(3), 'House03.iff');
     });
 
-    test('slot 0 is the game\'s own and is never handed out', () {
+    test('a folder with no houses offers no lots at all', () {
       final houses = housesWith([]);
-      expect(nextFreeHouseNumber(houses.path), 1);
+      expect(occupiedHouseNumbers(houses.path), isEmpty);
+    });
+
+    /// Reported by a player: an earlier version claimed the lowest
+    /// unused number, which on a neighborhood filled to 79 would have
+    /// written into Studio Town's range and shown up nowhere.
+    test('installing a house refuses to choose a lot', () async {
+      final install = dir('sims1');
+      Directory(p.join(install.path, 'UserData', 'Houses'))
+          .createSync(recursive: true);
+      final adapter = Sims1Adapter(installOverride: install);
+      final folder = (await adapter.creationFolders()).single;
+      await expectLater(
+        adapter.installCreations([p.join(install.path, 'House.iff')], folder),
+        throwsA(isA<ModActionException>()),
+      );
     });
 
     test('recognises a house file by name and nothing else', () {

@@ -2766,8 +2766,8 @@ class LFr extends L {
   }
 
   @override
-  String get creationNeighborhoodFull =>
-      'Ce quartier a déjà ses 99 maisons. Supprimes-en une à laquelle tu ne joues pas avant d’en ajouter une autre.';
+  String get creationSims1PickLot =>
+      'Les Sims 1 numérote ses terrains selon leur position sur la carte : une maison doit donc prendre la place d\'un terrain existant, et ce qui s\'y trouve est perdu. Choisis le terrain toi-même : fais une sauvegarde, puis renomme le téléchargement avec le numéro House de ce terrain dans le dossier Houses.';
 
   @override
   String creationInstallFailed(int count) {

@@ -2760,8 +2760,8 @@ class LPt extends L {
   }
 
   @override
-  String get creationNeighborhoodFull =>
-      'Esta vizinhança já está com as 99 casas que cabem. Apague alguma que você não joga antes de colocar outra.';
+  String get creationSims1PickLot =>
+      'O The Sims 1 numera os terrenos pela posição no mapa, então uma casa tem que ocupar um terreno que já existe - e isso apaga o que estiver nele. Escolha o terreno você mesmo: faça um backup e depois renomeie o download com o número House daquele terreno, dentro da pasta Houses.';
 
   @override
   String creationInstallFailed(int count) {

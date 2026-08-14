@@ -741,7 +741,7 @@
   "creationFolderSims1Houses": "Vecindario {number}",
   "creationBadFileName": "«{name}» lleva caracteres que este sistema no admite en un nombre de archivo, así que el juego nunca lo encontraría. Cámbiale el nombre y vuelve a intentarlo.",
   "creationFileInUse": "«{name}» está en uso. Cierra el juego y vuelve a intentarlo.",
-  "creationNeighborhoodFull": "Este vecindario ya tiene las 99 casas que caben. Borra alguna que no juegues antes de añadir otra.",
+  "creationSims1PickLot": "Los Sims 1 numera sus solares por su posición en el mapa, así que una casa tiene que ocupar un solar que ya está ahí, y eso borra lo que hubiera en él. Elige tú el solar: haz una copia de seguridad y luego renombra la descarga con el número House de ese solar en la carpeta Houses.",
   "creationInstallFailed": "{count, plural, =1{Ese archivo no se pudo añadir.} other{Esos {count} archivos no se pudieron añadir.}}",
   "creationRemoveFailed": "No se pudo eliminar «{name}».",
   "creationsAdd": "Añadir",

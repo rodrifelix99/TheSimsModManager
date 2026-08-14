@@ -2835,8 +2835,8 @@ class LPl extends L {
   }
 
   @override
-  String get creationNeighborhoodFull =>
-      'Ta okolica ma już wszystkie 99 domów, które się w niej mieszczą. Skasuj jakiś, w który nie grasz, zanim dodasz kolejny.';
+  String get creationSims1PickLot =>
+      'The Sims 1 numeruje działki według miejsca na mapie, więc dom musi zająć działkę, która już tam jest - a to kasuje wszystko, co na niej stoi. Wybierz działkę sam: zrób kopię zapasową, a potem zmień nazwę pobranego pliku na numer House tej działki w folderze Houses.';
 
   @override
   String creationInstallFailed(int count) {

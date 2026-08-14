@@ -741,7 +741,7 @@
   "creationFolderSims1Houses": "Quartier {number}",
   "creationBadFileName": "« {name} » contient des caractères que ce système refuse dans un nom de fichier, donc le jeu ne le trouverait jamais. Renomme-le et réessaie.",
   "creationFileInUse": "« {name} » est en cours d’utilisation. Ferme le jeu et réessaie.",
-  "creationNeighborhoodFull": "Ce quartier a déjà ses 99 maisons. Supprimes-en une à laquelle tu ne joues pas avant d’en ajouter une autre.",
+  "creationSims1PickLot": "Les Sims 1 numérote ses terrains selon leur position sur la carte : une maison doit donc prendre la place d'un terrain existant, et ce qui s'y trouve est perdu. Choisis le terrain toi-même : fais une sauvegarde, puis renomme le téléchargement avec le numéro House de ce terrain dans le dossier Houses.",
   "creationInstallFailed": "{count, plural, =1{Ce fichier n’a pas pu être ajouté.} other{Ces {count} fichiers n’ont pas pu être ajoutés.}}",
   "creationRemoveFailed": "« {name} » n’a pas pu être supprimé.",
   "creationsAdd": "Ajouter",

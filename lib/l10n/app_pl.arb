@@ -741,7 +741,7 @@
   "creationFolderSims1Houses": "Okolica {number}",
   "creationBadFileName": "„{name}” ma w nazwie znaki, których ten system nie przyjmuje — gra nigdy by tego pliku nie znalazła. Zmień nazwę i spróbuj jeszcze raz.",
   "creationFileInUse": "„{name}” jest w użyciu. Zamknij grę i spróbuj jeszcze raz.",
-  "creationNeighborhoodFull": "Ta okolica ma już wszystkie 99 domów, które się w niej mieszczą. Skasuj jakiś, w który nie grasz, zanim dodasz kolejny.",
+  "creationSims1PickLot": "The Sims 1 numeruje działki według miejsca na mapie, więc dom musi zająć działkę, która już tam jest - a to kasuje wszystko, co na niej stoi. Wybierz działkę sam: zrób kopię zapasową, a potem zmień nazwę pobranego pliku na numer House tej działki w folderze Houses.",
   "creationInstallFailed": "{count, plural, =1{Tego pliku nie udało się dodać.} other{Tych {count} plików nie udało się dodać.}}",
   "creationRemoveFailed": "Nie udało się usunąć „{name}”.",
   "creationsAdd": "Dodaj",

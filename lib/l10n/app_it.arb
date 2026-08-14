@@ -741,7 +741,7 @@
   "creationFolderSims1Houses": "Vicinato {number}",
   "creationBadFileName": "“{name}” ha caratteri che questo sistema non accetta nel nome di un file, quindi il gioco non lo troverebbe mai. Rinominalo e riprova.",
   "creationFileInUse": "“{name}” è in uso. Chiudi il gioco e riprova.",
-  "creationNeighborhoodFull": "Questo vicinato ha già tutte le 99 case che può contenere. Cancellane una che non giochi prima di aggiungerne un’altra.",
+  "creationSims1PickLot": "The Sims 1 numera i lotti in base alla posizione sulla mappa, quindi una casa deve prendere il posto di un lotto che c'è già - e cancella quello che ci sta sopra. Scegli tu il lotto: fanne una copia e poi rinomina il download con il numero House di quel lotto nella cartella Houses.",
   "creationInstallFailed": "{count, plural, =1{Quel file non è stato aggiunto.} other{Quei {count} file non sono stati aggiunti.}}",
   "creationRemoveFailed": "Non è stato possibile eliminare “{name}”.",
   "creationsAdd": "Aggiungi",

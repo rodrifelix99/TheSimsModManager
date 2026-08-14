@@ -4299,11 +4299,11 @@ abstract class L {
   /// **'“{name}” is in use. Close the game and try again.'**
   String creationFileInUse(String name);
 
-  /// No description provided for @creationNeighborhoodFull.
+  /// No description provided for @creationSims1PickLot.
   ///
   /// In en, this message translates to:
-  /// **'This neighborhood already has all 99 houses it can hold. Delete one you don’t play before adding another.'**
-  String get creationNeighborhoodFull;
+  /// **'The Sims 1 numbers its lots by position on the map, so a house has to take over a lot that\'s already there - and that wipes whatever is on it. Pick the lot yourself: back it up, then rename the download to that lot\'s House number in the Houses folder.'**
+  String get creationSims1PickLot;
 
   /// No description provided for @creationInstallFailed.
   ///

@@ -752,7 +752,7 @@
   "creationFolderSims1Houses": "Buurt {number}",
   "creationBadFileName": "“{name}” bevat tekens die dit systeem niet toestaat in een bestandsnaam, dus het spel zou het nooit vinden. Geef het een andere naam en probeer het opnieuw.",
   "creationFileInUse": "“{name}” is in gebruik. Sluit het spel en probeer het opnieuw.",
-  "creationNeighborhoodFull": "Deze buurt zit al vol met alle 99 huizen die erin passen. Verwijder er een die je niet speelt voordat je een nieuwe toevoegt.",
+  "creationSims1PickLot": "De Sims 1 nummert kavels op hun plek op de kaart, dus een huis moet een kavel overnemen die er al is - en wat erop staat verdwijnt. Kies de kavel zelf: maak er een back-up van en hernoem de download daarna naar het House-nummer van die kavel in de map Houses.",
   "creationInstallFailed": "{count, plural, =1{Dat bestand kon niet worden toegevoegd.} other{Die {count} bestanden konden niet worden toegevoegd.}}",
   "creationRemoveFailed": "“{name}” kon niet worden verwijderd.",
   "creationsAdd": "Toevoegen",

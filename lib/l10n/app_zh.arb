@@ -741,7 +741,7 @@
   "creationFolderSims1Houses": "第 {number} 个街区",
   "creationBadFileName": "“{name}”的文件名里有本系统不能用的字符，游戏永远找不到它。改个名字再试一次。",
   "creationFileInUse": "“{name}”正在被占用。关掉游戏再试一次。",
-  "creationNeighborhoodFull": "这个街区已经放满 99 栋房子了。先删掉一栋你不玩的，再添加新的。",
+  "creationSims1PickLot": "《模拟人生1》的地块是按地图上的位置编号的，所以一栋房子必须顶替地图上已有的地块，而那块地上原有的东西会被清空。请自己选好地块：先备份，再把下载的文件改成该地块的 House 编号，放进 Houses 文件夹。",
   "creationInstallFailed": "{count, plural, =1{那个文件没能添加进来。} other{那 {count} 个文件没能添加进来。}}",
   "creationRemoveFailed": "“{name}”没能删除。",
   "creationsAdd": "添加",

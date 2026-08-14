@@ -741,7 +741,7 @@
   "creationFolderSims1Houses": "Vizinhança {number}",
   "creationBadFileName": "“{name}” tem caracteres que este sistema não aceita em nome de arquivo, então o jogo nunca acharia ele. Renomeie e tente de novo.",
   "creationFileInUse": "“{name}” está em uso. Feche o jogo e tente de novo.",
-  "creationNeighborhoodFull": "Esta vizinhança já está com as 99 casas que cabem. Apague alguma que você não joga antes de colocar outra.",
+  "creationSims1PickLot": "O The Sims 1 numera os terrenos pela posição no mapa, então uma casa tem que ocupar um terreno que já existe - e isso apaga o que estiver nele. Escolha o terreno você mesmo: faça um backup e depois renomeie o download com o número House daquele terreno, dentro da pasta Houses.",
   "creationInstallFailed": "{count, plural, =1{Não deu para adicionar esse arquivo.} other{Não deu para adicionar esses {count} arquivos.}}",
   "creationRemoveFailed": "Não deu para excluir “{name}”.",
   "creationsAdd": "Adicionar",

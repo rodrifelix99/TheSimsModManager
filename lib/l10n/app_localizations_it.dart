@@ -2762,8 +2762,8 @@ class LIt extends L {
   }
 
   @override
-  String get creationNeighborhoodFull =>
-      'Questo vicinato ha già tutte le 99 case che può contenere. Cancellane una che non giochi prima di aggiungerne un’altra.';
+  String get creationSims1PickLot =>
+      'The Sims 1 numera i lotti in base alla posizione sulla mappa, quindi una casa deve prendere il posto di un lotto che c\'è già - e cancella quello che ci sta sopra. Scegli tu il lotto: fanne una copia e poi rinomina il download con il numero House di quel lotto nella cartella Houses.';
 
   @override
   String creationInstallFailed(int count) {

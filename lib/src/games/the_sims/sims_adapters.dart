@@ -1709,38 +1709,30 @@ class Sims1Adapter extends InstallFolderSimsAdapter {
     );
   }
 
-  /// Installing a house is a rename, not a copy.
+  /// Installing a house is a replacement, and the app will not choose
+  /// which lot to replace.
   ///
-  /// The game reads houses by slot - `House07.iff` *is* house 7 - so
-  /// copying a download in under its own name would either land on a slot
-  /// somebody already lives on or, more often, arrive as a name the game
-  /// never looks at. So each file claims the lowest free number instead,
-  /// which is what every "how to install a Sims 1 house" guide has told
-  /// people to do by hand for twenty-five years.
+  /// **The map's lot numbers are fixed.** `House07.iff` *is* the lot at
+  /// map position 7; the neighborhood already ships a file for every
+  /// position it draws, and a house written to any other number sits in
+  /// the folder where nothing will ever show it. So there is no such
+  /// thing as "the next free slot" - the numbers nobody is using are
+  /// precisely the ones the map has no lot for.
+  ///
+  /// This refused an earlier version of itself that picked the lowest
+  /// unused number, which would have produced exactly the silent failure
+  /// this whole screen exists to stop, and on a neighborhood filled past
+  /// 79 would have written into Studio Town's range. Replacing a lot
+  /// destroys whatever is on it, so the choice is the player's; until
+  /// there is a picker to make it with, this says so rather than
+  /// guessing.
   @override
   Future<void> installCreations(
-      List<String> paths, CreationFolder folder) async {
-    final destination = Directory(folder.path);
-    await destination.create(recursive: true);
-    for (final path in paths) {
-      final number = nextFreeHouseNumber(folder.path);
-      if (number == null) {
-        throw ModActionException(
-          ModActionFailure.nameTaken,
-          const AppMessage('creationNeighborhoodFull'),
-        );
-      }
-      final target = p.join(folder.path, houseFileName(number));
-      await retryWhileLocked(
-        () async {
-          final part = File('$target.part');
-          await File(path).copy(part.path);
-          await part.rename(target);
-        },
-        giveUp: () => AppMessage('creationFileInUse', [p.basename(path)]),
+          List<String> paths, CreationFolder folder) async =>
+      throw const ModActionException(
+        ModActionFailure.nameTaken,
+        AppMessage('creationSims1PickLot'),
       );
-    }
-  }
 
   @override
   Future<void> removeCreation(Creation creation) =>

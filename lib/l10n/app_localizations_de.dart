@@ -2769,8 +2769,8 @@ class LDe extends L {
   }
 
   @override
-  String get creationNeighborhoodFull =>
-      'Diese Nachbarschaft hat schon alle 99 Häuser, die reinpassen. Lösch eins, das du nicht spielst, bevor du ein neues hinzufügst.';
+  String get creationSims1PickLot =>
+      'Die Sims 1 nummeriert seine Grundstücke nach ihrer Position auf der Karte. Ein Haus muss also ein vorhandenes Grundstück ersetzen, und was darauf steht, ist weg. Such das Grundstück selbst aus: sicher es vorher, dann benenn den Download auf die House-Nummer dieses Grundstücks im Houses-Ordner um.';
 
   @override
   String creationInstallFailed(int count) {
