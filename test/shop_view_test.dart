@@ -112,6 +112,13 @@ ShopMod _listing({
 class _RoutedAdapter extends _FakeAdapter {
   _RoutedAdapter(super.dir);
 
+  /// What makes this one The Sims 1 rather than a game that merely has a
+  /// folder of the game's own: one download's mod files are sorted
+  /// across these folders, so a subfolder chosen for the install would
+  /// take the routed ones with it.
+  @override
+  bool get sortsModsAcrossFolders => true;
+
   @override
   Future<List<InstallDestination>> installDestinations(
           Directory modsDir) async =>

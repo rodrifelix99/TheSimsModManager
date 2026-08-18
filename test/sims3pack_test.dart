@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:archive/archive.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:sims_mod_manager/src/core/app_message.dart';
@@ -76,6 +77,19 @@ void main() {
 
     final file = File(p.join(sourceDir.path, name));
     file.writeAsBytesSync(out.takeBytes());
+    return file;
+  }
+
+  /// Writes a zip named [name] holding [entries] (path -> bytes), which
+  /// is how a set of recolours actually arrives: one archive of
+  /// containers rather than a container of its own.
+  File makeZip(String name, Map<String, List<int>> entries) {
+    final zip = Archive();
+    entries.forEach((path, bytes) {
+      zip.addFile(ArchiveFile.typedData(path, Uint8List.fromList(bytes)));
+    });
+    final file = File(p.join(sourceDir.path, name));
+    file.writeAsBytesSync(ZipEncoder().encode(zip));
     return file;
   }
 
@@ -298,6 +312,128 @@ void main() {
         'first');
     expect(File(p.join(modsDir.path, 'Pack Two.package')).readAsStringSync(),
         'second');
+  });
+
+  test('unpacks the containers a zip carries', () async {
+    // Issue #21: a set shared as one archive of sims3packs installed
+    // nothing at all, because the extraction only ever looked for the
+    // files the game loads.
+    final zip = makeZip('recolours.zip', {
+      'Sage.sims3pack': makePack('sage.sims3pack',
+          [_Entry('0xaaa.package', 'object', 'a sage sofa')],
+          displayName: 'Comfy Sofa - Sage').readAsBytesSync(),
+      'Rust.sims3pack': makePack('rust.sims3pack',
+          [_Entry('0xbbb.package', 'object', 'a rust sofa')],
+          displayName: 'Comfy Sofa - Rust').readAsBytesSync(),
+      'readme.txt': utf8.encode('put these in your Mods folder'),
+    });
+
+    final mods = await adapter.installArchive(modsDir, zip);
+
+    expect(mods.map((m) => m.name).toList()..sort(),
+        ['Comfy Sofa - Rust.package', 'Comfy Sofa - Sage.package']);
+    expect(
+        File(p.join(modsDir.path, 'Comfy Sofa - Sage.package'))
+            .readAsStringSync(),
+        'a sage sofa');
+    // The container is not something the game reads out of Packages, and
+    // the library would never list it: it goes with the unpacking.
+    expect(File(p.join(modsDir.path, 'Sage.sims3pack')).existsSync(), isFalse);
+  });
+
+  test('a container is unpacked where the archive put it', () async {
+    final zip = makeZip('bundle.zip', {
+      'Comfy Sofa/Sage.sims3pack': makePack('sage.sims3pack', [
+        _Entry('0xaaa.package', 'object', 'a sage sofa'),
+        _Entry('0xbbb.package', 'object', 'a sage armchair'),
+      ], displayName: 'Sage').readAsBytesSync(),
+      'plain.package': utf8.encode('a loose mod'),
+    });
+
+    final mods = await adapter.installArchive(modsDir, zip);
+
+    expect(mods, hasLength(3));
+    // The archive's own folder still stands, and inside it the pack's,
+    // because two files out of one container are a set.
+    final folder = p.join(modsDir.path, 'Comfy Sofa', 'Sage');
+    expect(File(p.join(folder, 'Sage.package')).readAsStringSync(),
+        'a sage sofa');
+    expect(File(p.join(folder, 'Sage-2.package')).readAsStringSync(),
+        'a sage armchair');
+    expect(File(p.join(modsDir.path, 'plain.package')).existsSync(), isTrue);
+  });
+
+  test('a world among them costs the world, not the download', () async {
+    final zip = makeZip('bundle.zip', {
+      'Riverview.sims3pack': makePack('riverview.sims3pack', [
+        _Entry('0xworld.package', 'world', 'the world'),
+        _Entry('0xaaa.package', 'object', 'a bench'),
+      ], displayName: 'Riverview').readAsBytesSync(),
+      'Hair.sims3pack': makePack('hair.sims3pack',
+          [_Entry('0xbbb.package', 'CASpart', 'hair bytes')],
+          displayName: 'Nice Hair').readAsBytesSync(),
+    });
+
+    final mods = await adapter.installArchive(modsDir, zip);
+
+    expect(mods.map((m) => m.name), ['Nice Hair.package']);
+    // Not a single piece of the world, and nothing left half-installed.
+    expect(File(p.join(modsDir.path, 'Riverview.package')).existsSync(),
+        isFalse);
+    expect(File(p.join(modsDir.path, 'Riverview.sims3pack')).existsSync(),
+        isFalse);
+  });
+
+  test('a zip of nothing but a world says so', () async {
+    // Nothing survived, so the reason the one container was refused is
+    // what the user hears - the generic "no mod files here" would send
+    // them looking for a fault in a perfectly good download.
+    final zip = makeZip('Riverview.zip', {
+      'Riverview.sims3pack': makePack('riverview.sims3pack',
+          [_Entry('0xworld.package', 'world', 'the world')],
+          displayName: 'Riverview').readAsBytesSync(),
+    });
+
+    await expectLater(
+      adapter.installArchive(modsDir, zip),
+      throwsA(isA<ModContentException>()
+          .having((e) => e.detail.key, 'key', 'sims3PackWorld')),
+    );
+  });
+
+  test('unpacks the containers a dropped folder holds', () async {
+    // The same download, unzipped by the user first - which is what half
+    // of them do.
+    final dropped = Directory(p.join(sourceDir.path, 'Comfy Sofa'))
+      ..createSync();
+    makePack('sage.sims3pack', [_Entry('0xaaa.package', 'object', 'a sofa')],
+            displayName: 'Sage')
+        .renameSync(p.join(dropped.path, 'Sage.sims3pack'));
+
+    final mods = await adapter.installFolder(modsDir, dropped);
+
+    expect(mods.map((m) => m.name), ['Sage.package']);
+    expect(
+        File(p.join(modsDir.path, 'Comfy Sofa', 'Sage.package'))
+            .readAsStringSync(),
+        'a sofa');
+  });
+
+  test('a game without a container of its own skips one', () async {
+    // Nothing but The Sims 3 has anything to do with these, and a
+    // sims3pack sitting in the Sims 4 Mods folder is a file the game
+    // never reads and the library never lists.
+    final zip = makeZip('bundle.zip', {
+      'cc.sims3pack': makePack('cc.sims3pack',
+          [_Entry('0xaaa.package', 'object', 'a sofa')]).readAsBytesSync(),
+    });
+
+    expect(const Sims4Adapter().nestedContainerExtensions, isEmpty);
+    await expectLater(
+      const Sims4Adapter().installArchive(modsDir, zip),
+      throwsA(isA<ModContentException>()
+          .having((e) => e.detail.key, 'key', 'noModFiles')),
+    );
   });
 
   test('a zip still installs the ordinary way', () async {

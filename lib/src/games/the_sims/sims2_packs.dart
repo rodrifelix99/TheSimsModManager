@@ -145,6 +145,23 @@ String buildSims2LoadOrder(
   return out.join(',');
 }
 
+/// The load order exactly as the collection wrote it, or empty when there
+/// is none to read. The order is what the game layers packs in, so its
+/// last entry is the pack whose executable actually runs.
+String readSims2LoadOrder({String registryRoot = sims2RegistryRoot}) {
+  if (!Platform.isWindows) return '';
+  try {
+    final root = CURRENT_USER.open(registryRoot);
+    try {
+      return root.getString(_epsInstalledValue) ?? '';
+    } finally {
+      root.close();
+    }
+  } catch (_) {
+    return '';
+  }
+}
+
 /// Every pack this copy of the collection has, whether or not the game is
 /// currently loading it.
 ///

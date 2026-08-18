@@ -110,9 +110,11 @@ class _FailingAdapter extends FolderBasedGameAdapter {
 
   @override
   Future<Mod> installMod(Directory modsDir, File source,
-      {InstallPlacement placement = const SortedPlacement()}) {
+      {InstallPlacement placement = const SortedPlacement(),
+      Set<String> placed = const {}}) {
     if (installFailure case final failure?) throw failure;
-    return super.installMod(modsDir, source, placement: placement);
+    return super.installMod(modsDir, source,
+        placement: placement, placed: placed);
   }
 }
 

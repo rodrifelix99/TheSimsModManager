@@ -11,11 +11,15 @@ import 'game_skin.dart';
 import 'game_theme.dart';
 import 'l10n.dart';
 
-/// Where an install should put its files, for a game that reads mods from
-/// more than one folder.
+/// Where an install should put its files, for a game that sorts one
+/// download across more than one folder.
 ///
 /// Only The Sims 1 does, and only when its install root was found, so for
 /// everything else this returns straight away and nothing is ever shown.
+/// The Sims 2 and 3 have folders of the game's own too, but nothing they
+/// take could have gone in the mods folder anyway
+/// ([GameAdapter.rootFileExtensions]), so there is no question to ask and
+/// asking it on every `.package` install would be the wrong trade.
 /// Null means the user backed out and nothing should be installed.
 Future<InstallPlacement?> resolveInstallPlacement(
   BuildContext context,
@@ -26,6 +30,7 @@ Future<InstallPlacement?> resolveInstallPlacement(
   List<String> subjects = const [],
 }) async {
   final adapter = into ?? controller.adapter;
+  if (!adapter.sortsModsAcrossFolders) return const SortedPlacement();
   final modsDir = target ?? await controller.modsDirFor(adapter);
   if (modsDir == null) return const SortedPlacement();
   final destinations = await adapter.installDestinations(modsDir);

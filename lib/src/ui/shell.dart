@@ -270,7 +270,7 @@ class _DropOverlay extends StatelessWidget {
     final t = theme;
     final l = L.of(context);
     final accepted = [
-      ...controller.adapter.modFileExtensions,
+      ...controller.installableExtensions,
       ...controller.adapter.containerFileExtensions,
     ]..sort();
     return Container(

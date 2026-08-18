@@ -329,6 +329,8 @@
   "categoryTexture": "テクスチャ",
   "categoryWall": "壁",
   "categoryFloor": "床",
+  "categoryWorld": "ワールド",
+  "categorySettings": "設定",
 
   "contentCasParts": "CAS パーツ",
   "contentObjects": "オブジェクト",

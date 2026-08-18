@@ -1231,6 +1231,12 @@ class LEn extends L {
   String get categoryFloor => 'Floor';
 
   @override
+  String get categoryWorld => 'World';
+
+  @override
+  String get categorySettings => 'Settings';
+
+  @override
   String get contentCasParts => 'CAS parts';
 
   @override

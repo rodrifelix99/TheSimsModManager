@@ -1236,6 +1236,12 @@ class LIt extends L {
   String get categoryFloor => 'Pavimento';
 
   @override
+  String get categoryWorld => 'Mondo';
+
+  @override
+  String get categorySettings => 'Impostazioni';
+
+  @override
   String get contentCasParts => 'elementi CAS';
 
   @override

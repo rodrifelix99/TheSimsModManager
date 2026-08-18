@@ -15,6 +15,7 @@ import 'package_insight.dart';
 import 'resource_cfg.dart';
 import 'save_edit.dart';
 import 'save_game.dart';
+import 'stock_backup.dart';
 import 'trivia.dart';
 
 /// What gets appended to a mod file to hide it from the game without
@@ -136,6 +137,32 @@ abstract class GameAdapter {
   /// e.g. `{'.package', '.ts4script'}`.
   Set<String> get modFileExtensions;
 
+  /// File extensions that belong in the game's own folders and nowhere
+  /// else (lowercase, with dot): The Sims 3's `.world` and `.asi`, the
+  /// `.sgr` a graphics fix rewrites. Empty for most games.
+  ///
+  /// Deliberately apart from [modFileExtensions] rather than added to it.
+  /// A mod file is something the mods folder holds and the library lists
+  /// wherever it sits; one of these is only ever a file in a folder the
+  /// game keeps its own content in - it has no home in the mods folder,
+  /// the sweep would never find it there, and a download that happens to
+  /// carry one must not have it installed unless [rootDestinationFor]
+  /// says where it goes.
+  Set<String> get rootFileExtensions;
+
+  /// Whether one download's mod files can be split across several of
+  /// [installDestinations].
+  ///
+  /// True for The Sims 1, where a skin, a wall and an object out of the
+  /// same zip each belong somewhere different and no extension reliably
+  /// says which - so the app sorts them and offers the user the last
+  /// word before the install starts. False for a game whose extra
+  /// folders only take files the mods folder never could ([rootFileExtensions]):
+  /// there the question has an answer before anyone could be asked, and
+  /// putting a dialog in front of every `.package` install would be noise
+  /// charged to the many for the sake of the few.
+  bool get sortsModsAcrossFolders;
+
   /// File extensions that hold mods inside them and are unpacked on
   /// install rather than copied ([installArchive]). Every game takes the
   /// compressed formats mods are shared in ([archiveFileExtensions]); a
@@ -206,14 +233,45 @@ abstract class GameAdapter {
   Future<List<InstallDestination>> installDestinations(Directory modsDir) async =>
       const [];
 
+  /// Which of the game's own folders a file named [fileName] belongs in,
+  /// or null when this game has nothing to do with it.
+  ///
+  /// Only ever asked about a file whose extension is in
+  /// [rootFileExtensions], and answered from [destinations] so one
+  /// install pays for the lookup once. Null is a real answer and the
+  /// common one: an `.ini` that matches nothing the game ships is a
+  /// mod's own config file rather than a replacement for a setting, and
+  /// it is left where it was found instead of guessed at.
+  Future<Directory?> rootDestinationFor(
+          String fileName, List<InstallDestination> destinations) async =>
+      null;
+
+  /// Everything an install may take out of a download on this machine:
+  /// [modFileExtensions], plus [rootFileExtensions] when the game's own
+  /// folders were actually found. The file picker and the drop handler
+  /// read it, so what they accept and what an install does with it can't
+  /// drift apart.
+  Future<Set<String>> installableExtensions(Directory modsDir) async =>
+      modFileExtensions;
+
   /// One file described as a mod of this game, or null when it isn't one
   /// (wrong extension, or no longer on disk). Lets a caller holding a
   /// path rather than a folder - the record of what was installed into a
   /// folder that can't be listed - put it back in the library.
   Mod? modAt(String path);
 
+  /// [placed] is what this app has already put in the folders the game
+  /// keeps its own content in, as absolute paths - the caller's record
+  /// (`core/placed_mods.dart`), since nothing on disk says who wrote a
+  /// file. A file about to be written over is parked first
+  /// (`core/stock_backup.dart`) unless it is one of these: parking an
+  /// earlier install of the same mod would throw the game's own file
+  /// away and leave the user a copy of their own mod as the way back.
+  /// Empty is right for every game that installs nowhere but its mods
+  /// folder, and harmless on the first install of anything.
   Future<Mod> installMod(Directory modsDir, File source,
-      {InstallPlacement placement = const SortedPlacement()});
+      {InstallPlacement placement = const SortedPlacement(),
+      Set<String> placed = const {}});
 
   /// Unpacks [archive] (any format in [archiveFileExtensions]) into
   /// [modsDir] and returns the mod files it contained; everything else
@@ -221,7 +279,8 @@ abstract class GameAdapter {
   /// [AppMessage]-carrying exception when the archive can't be read or
   /// holds no mod files.
   Future<List<Mod>> installArchive(Directory modsDir, File archive,
-      {InstallPlacement placement = const SortedPlacement()});
+      {InstallPlacement placement = const SortedPlacement(),
+      Set<String> placed = const {}});
 
   /// Installs every mod file found anywhere under [source] (a folder the
   /// user dropped or picked) into [modsDir]. The folder itself becomes a
@@ -230,7 +289,8 @@ abstract class GameAdapter {
   /// Everything that isn't a mod file is skipped. Throws an
   /// [AppMessage]-carrying exception when the folder holds no mod files.
   Future<List<Mod>> installFolder(Directory modsDir, Directory source,
-      {InstallPlacement placement = const SortedPlacement()});
+      {InstallPlacement placement = const SortedPlacement(),
+      Set<String> placed = const {}});
 
   Future<void> removeMod(Mod mod);
 
@@ -485,6 +545,31 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
   @override
   Set<String> get containerFileExtensions => archiveFileExtensions;
 
+  /// The game's own containers, as opposed to the compressed formats
+  /// every game takes. Empty for every game but The Sims 3.
+  ///
+  /// A download is as likely to be a zip of these as a bare one - the
+  /// scene shares a set of recolours as one archive - so an install
+  /// takes them out of an archive or a folder alongside the mod files
+  /// and unpacks each where it found it ([unpackContainer]). Nested
+  /// archives are deliberately not in it: a zip inside a zip is a
+  /// rabbit hole with no bottom, and nobody ships CC that way.
+  Set<String> get nestedContainerExtensions =>
+      containerFileExtensions.difference(archiveFileExtensions);
+
+  /// Unpacks the game's own container [file] into [destination], taking
+  /// what [fileExtensions] names. Only ever asked of a file
+  /// [nestedContainerExtensions] recognises, so the games without one
+  /// have nothing to answer.
+  ///
+  /// Throws a [ModContentException] the way the archive reader does when
+  /// the container holds nothing this game can use, or holds something
+  /// it must not scatter through the mods folder (a sims3pack carrying a
+  /// world).
+  Future<List<File>> unpackContainer(
+          File file, Directory destination, Set<String> fileExtensions) async =>
+      const [];
+
   @override
   String categoryForExtension(String extension) =>
       categoryByExtension[extension.toLowerCase()] ?? 'Package';
@@ -637,6 +722,19 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
       Directory modsDir) async =>
       const [];
 
+  /// And nothing belongs outside the mods folder until one says so.
+  /// Repeated from the interface for the same reason.
+  @override
+  Set<String> get rootFileExtensions => const {};
+
+  @override
+  bool get sortsModsAcrossFolders => false;
+
+  @override
+  Future<Directory?> rootDestinationFor(
+          String fileName, List<InstallDestination> destinations) async =>
+      null;
+
   /// No saves until a subclass knows how to read this game's. Repeated
   /// from the interface for the same reason as [installDestinations].
   @override
@@ -731,66 +829,271 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
     return modsDir;
   }
 
+  /// What an install may take out of a download on this machine: this
+  /// game's mod files, plus the ones its own folders accept when those
+  /// folders were actually found.
+  ///
+  /// The second half is conditional on purpose. A `.world` is only worth
+  /// unpacking if there is a Worlds folder to put it in; without one the
+  /// game is not installed where the app can see it, and the honest
+  /// answer to an archive holding nothing else is that this download has
+  /// nothing in it for us.
+  @override
+  Future<Set<String>> installableExtensions(Directory modsDir) async {
+    if (rootFileExtensions.isEmpty) return modFileExtensions;
+    final destinations = await installDestinations(modsDir);
+    if (destinations.isEmpty) return modFileExtensions;
+    return {...modFileExtensions, ...rootFileExtensions};
+  }
+
+  /// Whether [path] names a file that belongs in one of the game's own
+  /// folders rather than in the mods folder.
+  bool isRootFile(String path) => rootFileExtensions
+      .contains(p.extension(enabledPathOf(p.basename(path))).toLowerCase());
+
   @override
   Future<Mod> installMod(Directory modsDir, File source,
-      {InstallPlacement placement = const SortedPlacement()}) async {
+      {InstallPlacement placement = const SortedPlacement(),
+      Set<String> placed = const {}}) async {
     // The file picker filters by extension but does not enforce it
     // (Windows lets a name be typed past the filter), so a file this game
     // cannot read can arrive here. Refuse it before it lands in the mods
     // folder as a file the library would never list.
-    if (toMod(source) == null) {
+    if (toMod(source) == null && !isRootFile(source.path)) {
       throw ModContentException.noModFiles(
           modFileExtensions, p.basename(source.path));
+    }
+    if (isRootFile(source.path) && placement is! ChosenPlacement) {
+      final into = await _rootDirectoryFor(modsDir, source.path);
+      // Picked by hand, one file at a time: a shrug is the wrong answer.
+      // Whatever this is, this game has no folder that takes it.
+      if (into == null) {
+        throw ModContentException.noModFiles(
+            modFileExtensions, p.basename(source.path));
+      }
+      return installIntoStock(source, into, placed);
     }
     final dir = await resolvePlacement(modsDir, placement);
     await dir.create(recursive: true);
     final target = p.join(dir.path, p.basename(source.path));
     final copied = await copyOnto(source, target);
-    return toMod(copied)!;
+    return toRootMod(copied)!;
   }
 
   @override
   Future<List<Mod>> installArchive(Directory modsDir, File archive,
-      {InstallPlacement placement = const SortedPlacement()}) async {
+      {InstallPlacement placement = const SortedPlacement(),
+      Set<String> placed = const {}}) async {
     final dir = await resolvePlacement(modsDir, placement);
     await dir.create(recursive: true);
-    final files = await extractModFiles(archive, dir, modFileExtensions);
-    return [for (final file in files) toMod(file)!];
+    final wanted = await installableExtensions(modsDir);
+    final unpacked = await _unpackNested(
+        await extractModFiles(
+            archive, dir, {...wanted, ...nestedContainerExtensions}),
+        wanted);
+    if (unpacked.files.isEmpty && unpacked.refused != null) {
+      throw unpacked.refused!;
+    }
+    return _placeInstalled(modsDir, unpacked.files, placement,
+        p.basename(archive.path), placed);
   }
 
   @override
   Future<List<Mod>> installFolder(Directory modsDir, Directory source,
-      {InstallPlacement placement = const SortedPlacement()}) async {
+      {InstallPlacement placement = const SortedPlacement(),
+      Set<String> placed = const {}}) async {
     final dir = await resolvePlacement(modsDir, placement);
-    final files = await modFilesIn(source);
+    final wanted = await installableExtensions(modsDir);
+    final files = await modFilesIn(source,
+        extensions: {...wanted, ...nestedContainerExtensions});
     if (files.isEmpty) {
       throw ModContentException.noModFiles(
           modFileExtensions, p.basename(source.path));
     }
-    final mods = <Mod>[];
+    final copied = <File>[];
     final taken = <String>{};
+    final stray = <File>[];
     for (final file in files) {
+      // Read out of the folder the user dropped, so a file that belongs
+      // in the game's own is copied there straight from the download
+      // rather than through the mods folder on the way.
+      if (isRootFile(file.path) && placement is! ChosenPlacement) {
+        stray.add(file);
+        continue;
+      }
       final target = claimInstallTarget(
           dir.path, p.relative(file.path, from: source.parent.path), taken);
       await File(target).parent.create(recursive: true);
-      final copied = await copyOnto(file, target);
-      mods.add(toMod(copied)!);
+      copied.add(await copyOnto(file, target));
+    }
+    final unpacked = await _unpackNested(copied, wanted);
+    final mods = [for (final file in unpacked.files) toRootMod(file)!];
+    // After the strays, because a folder holding a world beside a
+    // container this game refuses still has the world to install: what
+    // the refusal costs is itself, and it is only worth raising once
+    // everything else has had its turn.
+    mods.addAll(await _intoStockFolders(modsDir, stray, placed,
+        discard: false));
+    if (mods.isEmpty) {
+      throw unpacked.refused ??
+          ModContentException.noModFiles(
+              modFileExtensions, p.basename(source.path));
     }
     return mods;
   }
 
-  /// Every mod file anywhere under [source], best-effort: unreadable
-  /// entries are skipped, symlinks are not followed. Protected: exposed
-  /// so subclasses that route files into game-specific folders (Sims 1)
-  /// can collect what a dropped folder holds.
-  Future<List<File>> modFilesIn(Directory source) async {
+  /// What an install really has, once the game's own containers it
+  /// unpacked along with the mod files have been opened: everything else
+  /// as it was, plus what came out of them.
+  ///
+  /// Each is unpacked into the folder it was found in, so a zip's
+  /// structure survives the container inside it, and the container is
+  /// then deleted - the game reads none of these out of the mods folder,
+  /// and a file the library cannot list is one nobody would find again.
+  ///
+  /// A container this game can make nothing of is skipped the way an
+  /// unusable file in an archive is, and its refusal is handed back
+  /// rather than thrown: a download of eight recolours and one world
+  /// should cost the world rather than the download, and only the caller
+  /// knows whether anything else in it survived - the folder install has
+  /// the files bound for the game's own folders put aside by then, and
+  /// they install perfectly well beside a container that did not. When
+  /// several refuse, the first is the one the user hears.
+  Future<({List<File> files, ModContentException? refused})> _unpackNested(
+      List<File> files, Set<String> wanted) async {
+    final containers = nestedContainerExtensions;
+    if (containers.isEmpty) return (files: files, refused: null);
+    final installed = <File>[];
+    ModContentException? refused;
+    for (final file in files) {
+      if (!containers.contains(p.extension(file.path).toLowerCase())) {
+        installed.add(file);
+        continue;
+      }
+      try {
+        installed.addAll(await unpackContainer(file, file.parent, wanted));
+      } on ModContentException catch (e) {
+        refused ??= e;
+      }
+      try {
+        await file.delete();
+      } catch (_) {} // Unpacked or refused, it has no business staying.
+    }
+    return (files: installed, refused: refused);
+  }
+
+  /// Files an install has just written into the mods folder, with the
+  /// ones that belong in the game's own folders moved on to them.
+  ///
+  /// An archive is unpacked before anything can be known about what it
+  /// holds, so a `.world` lands in the mods folder for as long as it
+  /// takes to copy it out again. That is cheaper than unpacking every
+  /// download to a scratch folder first for the sake of the few that
+  /// carry one, and the mods folder never lists these anyway.
+  Future<List<Mod>> _placeInstalled(
+    Directory modsDir,
+    List<File> files,
+    InstallPlacement placement,
+    String from,
+    Set<String> placed,
+  ) async {
+    final stray = [
+      for (final file in files)
+        if (isRootFile(file.path)) file,
+    ];
+    if (stray.isEmpty || placement is ChosenPlacement) {
+      return [
+        for (final file in files) toRootMod(file)!,
+      ];
+    }
+    final mods = [
+      for (final file in files)
+        if (!isRootFile(file.path)) toMod(file)!,
+    ];
+    mods.addAll(await _intoStockFolders(modsDir, stray, placed,
+        discard: true));
+    if (mods.isEmpty) {
+      throw ModContentException.noModFiles(modFileExtensions, from);
+    }
+    return mods;
+  }
+
+  /// Copies each of [files] into the folder this game keeps that kind of
+  /// file in, dropping the ones it has no folder for.
+  ///
+  /// [discard] deletes the source afterwards, for the caller that had to
+  /// unpack into the mods folder to find out what it had.
+  Future<List<Mod>> _intoStockFolders(
+    Directory modsDir,
+    List<File> files,
+    Set<String> placed, {
+    required bool discard,
+  }) async {
+    if (files.isEmpty) return const [];
+    final destinations = await installDestinations(modsDir);
+    final mods = <Mod>[];
+    for (final file in files) {
+      final into = destinations.isEmpty
+          ? null
+          : await rootDestinationFor(p.basename(file.path), destinations);
+      // A file this game does nothing with is left out of the install
+      // the way a readme is, rather than guessed a home for.
+      if (into != null) mods.add(await installIntoStock(file, into, placed));
+      if (discard) {
+        try {
+          await file.delete();
+        } catch (_) {
+          // It has been copied where it belongs; a stray in the mods
+          // folder is inert, since nothing lists it.
+        }
+      }
+    }
+    return mods;
+  }
+
+  /// Where a file called [path] goes among the game's own folders, or
+  /// null when it has no place in any of them.
+  Future<Directory?> _rootDirectoryFor(Directory modsDir, String path) async {
+    final destinations = await installDestinations(modsDir);
+    if (destinations.isEmpty) return null;
+    return rootDestinationFor(p.basename(path), destinations);
+  }
+
+  /// Copies [source] into one of the folders the game keeps its own
+  /// content in, parking whatever it replaces ([backUpStockFile]).
+  ///
+  /// Protected: the routing games (Sims 1 by file type, Sims 3 and Sims 2
+  /// by what the file replaces) all arrive here, so the backup is taken
+  /// in one place and cannot be forgotten in another.
+  Future<Mod> installIntoStock(
+      File source, Directory into, Set<String> placed) async {
+    await into.create(recursive: true);
+    final target = installTargetPath(into.path, p.basename(source.path));
+    // Only the game's own file is worth keeping. What is there because
+    // an earlier install put it there is this mod's previous version,
+    // and parking that would lose the original for good.
+    if (!placed.contains(p.canonicalize(target))) {
+      await backUpStockFile(target);
+    }
+    final copied = await copyOnto(source, target);
+    return toRootMod(copied)!;
+  }
+
+  /// Every file anywhere under [source] this game can install,
+  /// best-effort: unreadable entries are skipped, symlinks are not
+  /// followed. Protected: exposed so subclasses that route files into
+  /// game-specific folders (Sims 1) can collect what a dropped folder
+  /// holds.
+  Future<List<File>> modFilesIn(Directory source,
+      {Set<String>? extensions}) async {
+    final wanted = extensions ?? modFileExtensions;
     final files = <File>[];
     await for (final entity
         in source.list(recursive: true, followLinks: false).handleError(
               (Object _) {},
             )) {
       if (entity is File &&
-          modFileExtensions.contains(p.extension(entity.path).toLowerCase())) {
+          wanted.contains(p.extension(entity.path).toLowerCase())) {
         files.add(entity);
       }
     }
@@ -807,6 +1110,13 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
       // Already off the disk (a second window, the user's own file
       // manager). That is what the caller asked for; nothing to report.
     }
+    // A mod that replaced one of the game's own files leaves a hole
+    // rather than a gap: uninstalling a routing fix must give the game
+    // back the world it shipped, not take the world away. Only ever
+    // finds anything where [installIntoStock] put it, so the mods folder
+    // is unaffected. Under the enabled name, since a disabled mod is the
+    // same file wearing a marker.
+    await restoreStockFile(enabledPathOf(mod.path));
   }
 
   Future<T> _retryWhileLocked<T>(Future<T> Function() action,
@@ -855,15 +1165,21 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
     final newPath =
         enabled ? enabledPathOf(mod.path) : '${mod.path}$disabledSuffix';
     final name = p.basename(enabled ? newPath : mod.path);
-    return _retryWhileLocked(() async {
+    // A mod that replaced one of the game's own files is switched off by
+    // swapping the two, not by leaving the game with neither: disabling a
+    // routing fix has to give back the world it fixed, or the town it
+    // belongs to stops loading at all. Both of these find nothing for an
+    // ordinary mod, which is every mod in the mods folder.
+    if (enabled) await backUpStockFile(enabledPathOf(mod.path));
+    final moved = await _retryWhileLocked(() async {
       try {
-        return toMod(await renameModFile(File(mod.path), newPath))!;
+        return toRootMod(await renameModFile(File(mod.path), newPath))!;
       } on FileSystemException {
         if (!File(mod.path).existsSync()) {
           // Already carrying the target name (double toggle, an external
           // rename): the work is done, report the new state as success.
           final already = File(newPath);
-          if (already.existsSync()) return toMod(already)!;
+          if (already.existsSync()) return toRootMod(already)!;
           throw ModActionException(
             ModActionFailure.fileMissing,
             AppMessage('fileMissing', [name]),
@@ -872,6 +1188,9 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
         rethrow;
       }
     }, giveUp: () => AppMessage('fileInUseRename', [name]));
+    // The other half of the swap, once the mod is out of the way.
+    if (!enabled) await restoreStockFile(enabledPathOf(mod.path));
+    return moved;
   }
 
   /// The on-disk rename behind [setEnabled]; a seam for tests to simulate
@@ -903,11 +1222,17 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
     if (mods.isEmpty) return results;
     final work = [
       for (final mod in mods)
-        (
-          mod.path,
-          _imageExtensions.contains(p.extension(mod.name).toLowerCase()),
-        ),
+        // Only what the game reads as a mod. A Sims 3 world is a DBPF
+        // too and would be parsed like one - eighty megabytes of it, for
+        // a thumbnail nothing draws and resource keys that would then be
+        // reported as clashing with somebody's custom content.
+        if (!isRootFile(mod.path))
+          (
+            mod.path,
+            _imageExtensions.contains(p.extension(mod.name).toLowerCase()),
+          ),
     ];
+    if (work.isEmpty) return results;
     final batchSize = _inspectBatchSize(work.length);
     final batches = [
       for (var i = 0; i < work.length; i += batchSize)
@@ -973,21 +1298,36 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
     }
   }
 
+  /// Reads the union, unlike the folder sweep: this is how the records of
+  /// what the app put in the game's own folders are turned back into
+  /// library entries, and those are the only place a [rootFileExtensions]
+  /// file is ever listed. A `.world` someone dropped in the mods folder
+  /// by hand still shows up nowhere, which is the truth about it.
   @override
   Mod? modAt(String path) {
     final file = File(path);
-    return file.existsSync() ? toMod(file) : null;
+    return file.existsSync() ? toRootMod(file) : null;
   }
 
   /// Maps a file to a [Mod], or `null` if it isn't a mod file for this game.
   /// Protected: exposed so subclasses that route files into game-specific
   /// folders (Sims 1) can build [Mod]s for what they install.
-  Mod? toMod(File file) {
+  Mod? toMod(File file) => _describe(file, modFileExtensions);
+
+  /// The same, for a file sitting in one of the game's own folders: those
+  /// hold what [rootFileExtensions] names as well as ordinary mods.
+  /// Protected, and used only where the folder is already known to be one
+  /// of them.
+  Mod? toRootMod(File file) => rootFileExtensions.isEmpty
+      ? _describe(file, modFileExtensions)
+      : _describe(file, {...modFileExtensions, ...rootFileExtensions});
+
+  Mod? _describe(File file, Set<String> extensions) {
     final marked = p.basename(file.path);
     final name = enabledPathOf(marked);
     final status = name == marked ? ModStatus.enabled : ModStatus.disabled;
     final extension = p.extension(name).toLowerCase();
-    if (!modFileExtensions.contains(extension)) {
+    if (!extensions.contains(extension)) {
       return null;
     }
     final stat = file.statSync();

@@ -933,9 +933,14 @@ void main() {
       make(['Maxis', 'The Sims', 'GameData', 'Global']);
       final adapter = Sims1Adapter(programFilesOverride: [docs.path]);
       final zip = makeZip('again.zip', {'GameData/Global/x.iff': 'one'});
+      final landed = p.join(install.path, 'GameData', 'Global', 'x.iff');
 
       await adapter.installArchive(downloads, zip);
-      await adapter.installArchive(downloads, zip);
+      // What the app hands over on the second install: this file is on
+      // record as one it put there itself, so it is a previous version
+      // of the same mod rather than something of the game's to keep.
+      await adapter
+          .installArchive(downloads, zip, placed: {p.canonicalize(landed)});
 
       expect(
           Directory(p.join(install.path, 'GameData', 'Global'))
@@ -943,6 +948,30 @@ void main() {
               .whereType<File>()
               .length,
           1);
+    });
+
+    test('a hack that overrides a Maxis file keeps the original', () async {
+      final downloads = makeInstall();
+      final install = downloads.parent;
+      make(['Maxis', 'The Sims', 'GameData', 'Global']);
+      final global = p.join(install.path, 'GameData', 'Global');
+      File(p.join(global, 'x.iff')).writeAsStringSync('what Maxis shipped');
+      final adapter = Sims1Adapter(programFilesOverride: [docs.path]);
+      final zip = makeZip('hack.zip', {'GameData/Global/x.iff': 'the hack'});
+
+      final mods = await adapter.installArchive(downloads, zip);
+
+      expect(File(p.join(global, 'x.iff')).readAsStringSync(), 'the hack');
+      expect(File(p.join(global, 'x.iff.smmbak')).readAsStringSync(),
+          'what Maxis shipped');
+
+      // And uninstalling gives the game back its own file rather than
+      // leaving a hole where a behaviour used to be.
+      await adapter.removeMod(mods.single);
+
+      expect(File(p.join(global, 'x.iff')).readAsStringSync(),
+          'what Maxis shipped');
+      expect(File(p.join(global, 'x.iff.smmbak')).existsSync(), isFalse);
     });
 
     test('a chosen folder keeps two same-named files apart', () async {

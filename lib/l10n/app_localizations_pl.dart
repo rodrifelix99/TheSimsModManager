@@ -1280,6 +1280,12 @@ class LPl extends L {
   String get categoryFloor => 'Podłoga';
 
   @override
+  String get categoryWorld => 'Świat';
+
+  @override
+  String get categorySettings => 'Ustawienia';
+
+  @override
   String get contentCasParts => 'elementy CAS';
 
   @override

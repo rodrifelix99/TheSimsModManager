@@ -1277,6 +1277,12 @@ class LRu extends L {
   String get categoryFloor => 'Пол';
 
   @override
+  String get categoryWorld => 'Мир';
+
+  @override
+  String get categorySettings => 'Настройки';
+
+  @override
   String get contentCasParts => 'элементы CAS';
 
   @override

@@ -18,6 +18,7 @@ import '../../core/mod_archive.dart';
 import '../../core/resource_cfg.dart';
 import '../../core/save_edit.dart';
 import '../../core/save_game.dart';
+import '../../core/stock_backup.dart';
 import '../../core/trivia.dart';
 import 'demo_packs.dart';
 import 'sims1_creations.dart';
@@ -29,6 +30,7 @@ import 'sims2_saves.dart';
 import 'sims3_creations.dart';
 import 'sims3_packs.dart';
 import 'sims3_saves.dart';
+import 'sims_root_folders.dart';
 import 'sims4_creations.dart';
 import 'sims4_packs.dart';
 import 'sims4_saves.dart';
@@ -901,7 +903,17 @@ class Sims4Adapter extends DocumentsSimsAdapter {
 }
 
 class Sims3Adapter extends DocumentsSimsAdapter {
-  const Sims3Adapter({super.documentsOverride, super.homeOverride});
+  const Sims3Adapter({
+    super.documentsOverride,
+    super.homeOverride,
+    this.installOverride,
+    this.packRootsOverride,
+  });
+
+  /// Test hooks: the game's own install folder and its packs', which the
+  /// registry answers for on a real machine.
+  final Directory? installOverride;
+  final List<Directory>? packRootsOverride;
 
   @override
   List<TriviaFact> get triviaFacts =>
@@ -913,6 +925,40 @@ class Sims3Adapter extends DocumentsSimsAdapter {
 
   @override
   Set<String> get modFileExtensions => const {'.package'};
+
+  /// What the game loads out of its own installation instead: worlds,
+  /// plugins beside the executable, and the settings files a graphics or
+  /// lighting fix rewrites. See `sims_root_folders.dart`.
+  @override
+  Set<String> get rootFileExtensions => sims3RootExtensions;
+
+  @override
+  Map<String, String> get categoryByExtension => const {
+        '.package': 'Package',
+        '.world': 'World',
+        '.asi': 'Script',
+        '.dll': 'Script',
+        '.sgr': 'Settings',
+        '.ini': 'Settings',
+      };
+
+  @override
+  Future<List<InstallDestination>> installDestinations(
+      Directory modsDir) async {
+    if (installOverride != null || packRootsOverride != null) {
+      return sims3RootDestinations(
+          installRoot: installOverride,
+          packRoots: packRootsOverride ?? const []);
+    }
+    final dirs = await sims3InstallDirs();
+    return sims3RootDestinations(
+        installRoot: dirs.base, packRoots: dirs.packs);
+  }
+
+  @override
+  Future<Directory?> rootDestinationFor(
+          String fileName, List<InstallDestination> destinations) =>
+      sims3RootDestinationFor(fileName, destinations);
 
   /// The game's own container, alongside the formats every game takes.
   @override
@@ -976,9 +1022,11 @@ class Sims3Adapter extends DocumentsSimsAdapter {
   /// the shared archive formats and goes the usual way.
   @override
   Future<List<Mod>> installArchive(Directory modsDir, File archive,
-      {InstallPlacement placement = const SortedPlacement()}) async {
+      {InstallPlacement placement = const SortedPlacement(),
+      Set<String> placed = const {}}) async {
     if (!isSims3PackPath(archive.path)) {
-      return super.installArchive(modsDir, archive, placement: placement);
+      return super.installArchive(modsDir, archive,
+          placement: placement, placed: placed);
     }
     // Sims 3 has one mods folder, so the placement can only ever resolve
     // back to it; going through resolvePlacement anyway keeps the rule in
@@ -988,6 +1036,14 @@ class Sims3Adapter extends DocumentsSimsAdapter {
     final files = await extractSims3Pack(archive, dir, modFileExtensions);
     return [for (final file in files) toMod(file)!];
   }
+
+  /// The same reader, for the containers an ordinary archive or a dropped
+  /// folder carried: creators share a set of recolours as one zip of
+  /// sims3packs at least as often as they share a bare one (issue #21).
+  @override
+  Future<List<File>> unpackContainer(
+          File file, Directory destination, Set<String> fileExtensions) =>
+      extractSims3Pack(file, destination, fileExtensions);
 
   @override
   bool get hasCreations => true;
@@ -1088,7 +1144,15 @@ class Sims3Adapter extends DocumentsSimsAdapter {
 }
 
 class Sims2Adapter extends DocumentsSimsAdapter {
-  const Sims2Adapter({super.documentsOverride, super.homeOverride});
+  const Sims2Adapter({
+    super.documentsOverride,
+    super.homeOverride,
+    this.installOverride,
+  });
+
+  /// Test hook: the folder of the pack the collection runs, which the
+  /// registry answers for on a real machine.
+  final Directory? installOverride;
 
   @override
   List<TriviaFact> get triviaFacts =>
@@ -1100,6 +1164,31 @@ class Sims2Adapter extends DocumentsSimsAdapter {
 
   @override
   Set<String> get modFileExtensions => const {'.package'};
+
+  /// What the game reads from its own installation: a wrapper beside the
+  /// executable, and the graphics rules it reads before it draws
+  /// anything. See `sims_root_folders.dart`.
+  @override
+  Set<String> get rootFileExtensions => sims2RootExtensions;
+
+  @override
+  Map<String, String> get categoryByExtension => const {
+        '.package': 'Package',
+        '.asi': 'Script',
+        '.dll': 'Script',
+        '.sgr': 'Settings',
+      };
+
+  @override
+  Future<List<InstallDestination>> installDestinations(
+          Directory modsDir) async =>
+      sims2RootDestinations(
+          runningPack: installOverride ?? await sims2RunningPackDir());
+
+  @override
+  Future<Directory?> rootDestinationFor(
+          String fileName, List<InstallDestination> destinations) =>
+      sims2RootDestinationFor(fileName, destinations);
 
   @override
   List<String> get vendorFolders => const ['EA Games', 'Electronic Arts'];
@@ -1829,6 +1918,13 @@ class Sims1Adapter extends InstallFolderSimsAdapter {
     return await gameData.exists() ? root : null;
   }
 
+  /// One zip can hold a skin, a wall and an object, each belonging
+  /// somewhere different and none of them saying so, so this is the game
+  /// that sorts a download across its folders - and the one that asks
+  /// before it does.
+  @override
+  bool get sortsModsAcrossFolders => true;
+
   @override
   Future<List<InstallDestination>> installDestinations(
       Directory modsDir) async {
@@ -1947,24 +2043,34 @@ class Sims1Adapter extends InstallFolderSimsAdapter {
 
   @override
   Future<Mod> installMod(Directory modsDir, File source,
-      {InstallPlacement placement = const SortedPlacement()}) async {
+      {InstallPlacement placement = const SortedPlacement(),
+      Set<String> placed = const {}}) async {
     final root = await _installRootOf(modsDir);
     if (root == null) {
-      return super.installMod(modsDir, source, placement: placement);
+      return super.installMod(modsDir, source,
+          placement: placement, placed: placed);
     }
     if (placement is ChosenPlacement) {
-      return super.installMod(modsDir, source, placement: placement);
+      return super.installMod(modsDir, source,
+          placement: placement, placed: placed);
     }
+    // None of the folders a single file is routed to by type holds
+    // Maxis's own content, so there is nothing here to park: skins,
+    // walls and floors are folders of downloads. The hacks that do land
+    // among the game's files arrive in an archive or a folder, which is
+    // where the parking happens.
     final target = _targetDirFor(modsDir, root, p.basename(source.path));
     return super.installMod(target, source);
   }
 
   @override
   Future<List<Mod>> installArchive(Directory modsDir, File archive,
-      {InstallPlacement placement = const SortedPlacement()}) async {
+      {InstallPlacement placement = const SortedPlacement(),
+      Set<String> placed = const {}}) async {
     final root = await _installRootOf(modsDir);
     if (root == null) {
-      return super.installArchive(modsDir, archive, placement: placement);
+      return super.installArchive(modsDir, archive,
+          placement: placement, placed: placed);
     }
     // Unpack to a scratch folder first, then place each file. Downloads
     // keeps the archive's structure; the routed folders are flat.
@@ -1972,7 +2078,7 @@ class Sims1Adapter extends InstallFolderSimsAdapter {
     try {
       final files = await extractModFiles(archive, scratch, modFileExtensions);
       return await _installPlacedFiles(
-          modsDir, root, files, scratch.path, placement);
+          modsDir, root, files, scratch.path, placement, placed);
     } finally {
       try {
         await scratch.delete(recursive: true);
@@ -1982,10 +2088,12 @@ class Sims1Adapter extends InstallFolderSimsAdapter {
 
   @override
   Future<List<Mod>> installFolder(Directory modsDir, Directory source,
-      {InstallPlacement placement = const SortedPlacement()}) async {
+      {InstallPlacement placement = const SortedPlacement(),
+      Set<String> placed = const {}}) async {
     final root = await _installRootOf(modsDir);
     if (root == null) {
-      return super.installFolder(modsDir, source, placement: placement);
+      return super.installFolder(modsDir, source,
+          placement: placement, placed: placed);
     }
     final files = await modFilesIn(source);
     if (files.isEmpty) {
@@ -1997,7 +2105,7 @@ class Sims1Adapter extends InstallFolderSimsAdapter {
     // folder's own name sits in front of everything inside it, which is
     // why [_named] looks for install folders anywhere in a path.
     return _installPlacedFiles(
-        modsDir, root, files, source.parent.path, placement);
+        modsDir, root, files, source.parent.path, placement, placed);
   }
 
   /// Copies [files] where this install decided they go. Under
@@ -2010,6 +2118,7 @@ class Sims1Adapter extends InstallFolderSimsAdapter {
     List<File> files,
     String from,
     InstallPlacement placement,
+    Set<String> placed,
   ) async {
     final destinations = await installDestinations(modsDir);
     // Resolved from the list already in hand rather than through
@@ -2024,6 +2133,11 @@ class Sims1Adapter extends InstallFolderSimsAdapter {
             modsDir;
     final mods = <Mod>[];
     final taken = <String>{};
+    final stock = {
+      for (final destination in destinations)
+        if (destination.holdsStockFiles)
+          p.canonicalize(destination.directory.path),
+    };
     for (final file in files) {
       final relative = p.relative(file.path, from: from);
       final named = chosen == null ? _named(destinations, relative) : null;
@@ -2056,6 +2170,14 @@ class Sims1Adapter extends InstallFolderSimsAdapter {
         target = installTargetPath(targetDir.path, p.basename(file.path));
       }
       await File(target).parent.create(recursive: true);
+      // Maxis's own files sit in several of these folders, and a hack is
+      // very often named after the one it overrides - that is how the
+      // game loads it instead. Park the original first, so uninstalling
+      // the hack gives the game back what it shipped.
+      if (stock.contains(p.canonicalize(p.dirname(target))) &&
+          !placed.contains(p.canonicalize(target))) {
+        await backUpStockFile(target);
+      }
       final copied = await copyOnto(file, target);
       mods.add(toMod(copied)!);
     }

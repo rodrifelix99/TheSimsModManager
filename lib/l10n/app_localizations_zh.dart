@@ -1126,6 +1126,12 @@ class LZh extends L {
   String get categoryFloor => '地板';
 
   @override
+  String get categoryWorld => '世界';
+
+  @override
+  String get categorySettings => '设置';
+
+  @override
   String get contentCasParts => 'CAS 部件';
 
   @override

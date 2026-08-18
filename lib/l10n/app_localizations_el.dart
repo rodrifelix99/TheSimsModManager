@@ -1240,6 +1240,12 @@ class LEl extends L {
   String get categoryFloor => 'Πάτωμα';
 
   @override
+  String get categoryWorld => 'Κόσμος';
+
+  @override
+  String get categorySettings => 'Ρυθμίσεις';
+
+  @override
   String get contentCasParts => 'στοιχεία CAS';
 
   @override
@@ -2328,7 +2334,7 @@ class LEl extends L {
 
   @override
   String get triviaSeriesSimlish =>
-      'Τα simlish γεννήθηκαν μπροστά στο μικρόφωνο. Στον Stephen Kearin και στη Gerri Lawlor έδιναν αφορμές του στιλ «πεινασμένος» ή «μόνος» κι εκείνοι αυτοσχεδίαζαν επί ώρες πώς θα έπρεπε να ακούγεται αυτό.';
+      'Τα simlish γεννήθηκαν μπροστά στο μικρόφωνο. Έδιναν στον Stephen Kearin και στη Gerri Lawlor λέξεις όπως «πεινασμένος» ή «μοναχικός», κι εκείνοι αυτοσχεδίαζαν επί ώρες πώς έπρεπε να ακούγεται αυτό.';
 
   @override
   String get triviaSeriesCheats =>
@@ -2364,7 +2370,7 @@ class LEl extends L {
 
   @override
   String get triviaSeriesConflicts =>
-      'Η σύγκρουση είναι πιο απλή απ’ ό,τι ακούγεται. Δύο mods διεκδικούν τον ίδιο πόρο, φορτώνονται και τα δύο, και κερδίζει όποιο διαβάσει τελευταίο το παιχνίδι. Δεν χάλασε τίποτα, απλώς κάτι πέρασε μπροστά.';
+      'Η σύγκρουση είναι πιο απλή απ’ ό,τι ακούγεται. Δύο mods διεκδικούν τον ίδιο πόρο, φορτώνονται και τα δύο, και κερδίζει όποιο διαβάσει τελευταίο το παιχνίδι. Τίποτα δεν χαλάει, απλώς κάτι παραμερίζεται.';
 
   @override
   String get triviaSeriesPackage =>

@@ -57,6 +57,8 @@ extension AppText on L {
         'Texture' => categoryTexture,
         'Wall' => categoryWall,
         'Floor' => categoryFloor,
+        'World' => categoryWorld,
+        'Settings' => categorySettings,
         _ => key,
       };
 

@@ -1238,6 +1238,12 @@ class LNl extends L {
   String get categoryFloor => 'Vloer';
 
   @override
+  String get categoryWorld => 'Wereld';
+
+  @override
+  String get categorySettings => 'Instellingen';
+
+  @override
   String get contentCasParts => 'CAS-onderdelen';
 
   @override

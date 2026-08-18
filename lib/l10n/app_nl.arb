@@ -339,6 +339,8 @@
   "categoryTexture": "Textuur",
   "categoryWall": "Muur",
   "categoryFloor": "Vloer",
+  "categoryWorld": "Wereld",
+  "categorySettings": "Instellingen",
 
   "contentCasParts": "CAS-onderdelen",
   "contentObjects": "objecten",

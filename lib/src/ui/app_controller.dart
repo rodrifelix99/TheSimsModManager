@@ -29,6 +29,7 @@ import '../core/mod_kind.dart';
 import '../core/mod_tags.dart';
 import '../core/package_insight.dart';
 import '../core/placed_mods.dart';
+import '../core/stock_backup.dart';
 import '../core/save_edit.dart';
 import '../core/save_game.dart';
 import '../core/trivia.dart';
@@ -404,6 +405,19 @@ class AppController extends ChangeNotifier {
   /// Whether this game reads mods from more than one folder, so an
   /// install has something to ask about. Only The Sims 1 ever does.
   bool hasInstallChoice = false;
+
+  /// What an install accepts for the game on screen: its mod files, plus
+  /// the ones that only belong in the game's own folders
+  /// ([GameAdapter.rootFileExtensions]) when this machine has those
+  /// folders. Worked out with the rest of the library so the picker, the
+  /// drop overlay and the drop handler can all read it without going back
+  /// to the disk. Falls back to the plain mod extensions until the first
+  /// refresh has answered, which is what every game but two returns
+  /// anyway.
+  Set<String> get installableExtensions =>
+      _installableExtensions ?? _adapter.modFileExtensions;
+
+  Set<String>? _installableExtensions;
 
   /// Answers cached per folder: the probe writes a file, and refresh runs
   /// after every toggle. Permissions do change (that is the whole point
@@ -2928,9 +2942,17 @@ class AppController extends ChangeNotifier {
           dir == null ? const [] : await _adapter.extraModsDirectories(dir);
       // Settings only offers to ask where mods go when there is somewhere
       // else for them to go, which for The Sims 1 depends on the install
-      // being found and on which expansions are in it.
+      // being found and on which expansions are in it. The games whose
+      // extra folders take nothing the mods folder could hold are not
+      // asked about at all, so the row would be a switch over nothing.
       hasInstallChoice = dir != null &&
+          _adapter.sortsModsAcrossFolders &&
           (await _adapter.installDestinations(dir)).length > 1;
+      // What the file picker and the drop overlay accept: the game's mod
+      // files, plus what its own folders take when they were found.
+      _installableExtensions = dir == null
+          ? _adapter.modFileExtensions
+          : await _adapter.installableExtensions(dir);
       // Before the library is built: _setMods folds these into the folder
       // counts, so a folder made and not yet filled keeps its chip.
       _madeFolders = dir == null ? const {} : await _readMadeFolders(dir);
@@ -3165,8 +3187,13 @@ class AppController extends ChangeNotifier {
   bool canUseDisabledSuffix(String value) {
     final wanted = value.trim().toLowerCase();
     if (!isValidDisabledSuffix(wanted)) return false;
+    // The marker a parked original wears is spoken for too: reading it
+    // as "disabled" would put the game's own file back in the library as
+    // a switch, sitting next to the mod that replaced it.
+    if (wanted == stockBackupSuffix) return false;
     return !registry.adapters.any((a) =>
         a.modFileExtensions.contains(wanted) ||
+        a.rootFileExtensions.contains(wanted) ||
         a.containerFileExtensions.contains(wanted));
   }
 
@@ -4037,11 +4064,17 @@ class AppController extends ChangeNotifier {
       // Disabling renames the file, so a record points at the name the
       // mod carries while it is switched on; every marker a file could be
       // wearing (ours, an older one, another manager's) is tried too.
-      var mod = adapter.modAt(path);
+      //
+      // The markers come first, and in a game's own folders that matters:
+      // switching off a mod that replaced one of the game's files puts
+      // that file back under the name the mod was using, so the plain
+      // path is answered by something that is not ours at all.
+      Mod? mod;
       for (final suffix in disabledSuffixes) {
-        if (mod != null) break;
         mod = adapter.modAt('$path$suffix');
+        if (mod != null) break;
       }
+      mod ??= adapter.modAt(path);
       if (mod == null) {
         // Not there. Only forget it if the folder it lived in is, because
         // otherwise this is a different install (the user re-pointed the
@@ -4077,6 +4110,15 @@ class AppController extends ChangeNotifier {
     }
     await _rememberPlaced(adapter.game.id, paths);
   }
+
+  /// The records as absolute paths, which is what an install compares
+  /// against. Relative on the way in so a whole install can be moved
+  /// without them going stale; absolute here because the folders they
+  /// name can be on another drive entirely.
+  Set<String> _placedPaths(GameAdapter adapter, Directory modsDir) => {
+        for (final relative in _placedMods[adapter.game.id] ?? const <String>{})
+          p.canonicalize(p.join(modsDir.path, relative)),
+      };
 
   /// Drops [mod] from the records, for when it is uninstalled.
   Future<void> _forgetPlaced(GameAdapter adapter, Directory? modsDir, Mod mod) {
@@ -4146,22 +4188,27 @@ class AppController extends ChangeNotifier {
     var folders = 0, archives = 0, files = 0;
     final installed = <Mod>[];
     FileSystemEntity? failing;
+    // What is already on record in the game's own folders, so an install
+    // writing over one of those files parks the game's copy and not the
+    // one a previous install of this same mod left there.
+    final placed = _placedPaths(adapter, modsFolder);
     try {
       for (final source in sources) {
         failing = source;
         if (source is Directory) {
           folders++;
-          installed.addAll(
-              await adapter.installFolder(dir, source, placement: placement));
+          installed.addAll(await adapter.installFolder(dir, source,
+              placement: placement, placed: placed));
         } else if (adapter.containerFileExtensions
             .contains(p.extension(source.path).toLowerCase())) {
           archives++;
-          installed.addAll(await adapter
-              .installArchive(dir, File(source.path), placement: placement));
+          installed.addAll(await adapter.installArchive(
+              dir, File(source.path),
+              placement: placement, placed: placed));
         } else {
           files++;
           installed.add(await adapter.installMod(dir, File(source.path),
-              placement: placement));
+              placement: placement, placed: placed));
         }
       }
       playSound(UiSound.install);
@@ -4220,7 +4267,7 @@ class AppController extends ChangeNotifier {
   /// where they go before deciding there is nothing to install.
   Future<List<FileSystemEntity>> acceptedDrops(List<String> paths) async {
     final accepted = {
-      ..._adapter.modFileExtensions,
+      ...installableExtensions,
       ..._adapter.containerFileExtensions,
       ..._adapter.creationFileExtensions,
     };
@@ -4990,7 +5037,12 @@ class AppController extends ChangeNotifier {
   /// would send every routed file somewhere the game never reads. No row
   /// on the listing, no card in Settings, and [shopDestinationFolder]
   /// ignores a saved answer from before that game's install was found.
+  ///
+  /// The Sims 2 and 3 have folders of the game's own as well, but nothing
+  /// that lands in one of those was ever going to the mods folder, so a
+  /// subfolder chosen for the rest still means what it says.
   Future<bool> canChooseShopFolder(GameAdapter into) async {
+    if (!into.sortsModsAcrossFolders) return true;
     final dir = await modsDirFor(into);
     if (dir == null) return false;
     return (await into.installDestinations(dir)).length <= 1;

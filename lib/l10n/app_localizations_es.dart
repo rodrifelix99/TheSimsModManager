@@ -1237,6 +1237,12 @@ class LEs extends L {
   String get categoryFloor => 'Suelo';
 
   @override
+  String get categoryWorld => 'Mundo';
+
+  @override
+  String get categorySettings => 'Ajustes';
+
+  @override
   String get contentCasParts => 'piezas de CAS';
 
   @override

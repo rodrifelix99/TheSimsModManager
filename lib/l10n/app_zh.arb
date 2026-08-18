@@ -329,6 +329,8 @@
   "categoryTexture": "贴图",
   "categoryWall": "墙面",
   "categoryFloor": "地板",
+  "categoryWorld": "世界",
+  "categorySettings": "设置",
 
   "contentCasParts": "CAS 部件",
   "contentObjects": "物件",

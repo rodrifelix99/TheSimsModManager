@@ -1240,6 +1240,12 @@ class LFr extends L {
   String get categoryFloor => 'Sol';
 
   @override
+  String get categoryWorld => 'Monde';
+
+  @override
+  String get categorySettings => 'Réglages';
+
+  @override
   String get contentCasParts => 'éléments CAS';
 
   @override

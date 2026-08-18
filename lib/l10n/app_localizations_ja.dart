@@ -1139,6 +1139,12 @@ class LJa extends L {
   String get categoryFloor => '床';
 
   @override
+  String get categoryWorld => 'ワールド';
+
+  @override
+  String get categorySettings => '設定';
+
+  @override
   String get contentCasParts => 'CAS パーツ';
 
   @override

@@ -329,6 +329,8 @@
   "categoryTexture": "Текстура",
   "categoryWall": "Стена",
   "categoryFloor": "Пол",
+  "categoryWorld": "Мир",
+  "categorySettings": "Настройки",
 
   "contentCasParts": "элементы CAS",
   "contentObjects": "объекты",

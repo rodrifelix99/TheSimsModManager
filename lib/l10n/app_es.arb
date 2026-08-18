@@ -329,6 +329,8 @@
   "categoryTexture": "Textura",
   "categoryWall": "Pared",
   "categoryFloor": "Suelo",
+  "categoryWorld": "Mundo",
+  "categorySettings": "Ajustes",
 
   "contentCasParts": "piezas de CAS",
   "contentObjects": "objetos",

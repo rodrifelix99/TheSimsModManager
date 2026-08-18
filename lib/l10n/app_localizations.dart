@@ -1941,6 +1941,18 @@ abstract class L {
   /// **'Floor'**
   String get categoryFloor;
 
+  /// No description provided for @categoryWorld.
+  ///
+  /// In en, this message translates to:
+  /// **'World'**
+  String get categoryWorld;
+
+  /// No description provided for @categorySettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get categorySettings;
+
   /// No description provided for @contentCasParts.
   ///
   /// In en, this message translates to:

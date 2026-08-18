@@ -1241,6 +1241,12 @@ class LDe extends L {
   String get categoryFloor => 'Boden';
 
   @override
+  String get categoryWorld => 'Welt';
+
+  @override
+  String get categorySettings => 'Einstellungen';
+
+  @override
   String get contentCasParts => 'CAS-Teile';
 
   @override

@@ -1236,6 +1236,12 @@ class LPt extends L {
   String get categoryFloor => 'Piso';
 
   @override
+  String get categoryWorld => 'Mundo';
+
+  @override
+  String get categorySettings => 'Configuração';
+
+  @override
   String get contentCasParts => 'peças do CAS';
 
   @override

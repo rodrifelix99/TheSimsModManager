@@ -51,7 +51,17 @@ String? modVersion(Mod mod) => parseModName(mod.name).versionLabel;
 String modSubtitle(L l, AppController c, Mod mod) {
   final root = c.modsDir?.path;
   if (root != null) {
-    final rel = p.relative(p.dirname(mod.path), from: root);
+    final folder = p.dirname(mod.path);
+    final rel = p.relative(folder, from: root);
+    // One step out is a sibling of the mods folder and reads perfectly -
+    // the Sims 3 framework's own `..\Overrides` is where a lot of
+    // libraries keep half their mods. Further out is one of the game's
+    // own folders, six levels up and across, and the route to it reads
+    // as a row of dots where a folder name should be; there, say where
+    // the file actually is instead.
+    if (p.split(rel).where((s) => s == '..').length > 1) {
+      return l.modInFolder(folder);
+    }
     if (rel != '.') return l.modInFolder(rel);
   }
   return l.modInModsFolder;

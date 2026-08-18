@@ -539,6 +539,8 @@
   "categoryTexture": "Texture",
   "categoryWall": "Wall",
   "categoryFloor": "Floor",
+  "categoryWorld": "World",
+  "categorySettings": "Settings",
 
   "contentCasParts": "CAS parts",
   "contentObjects": "objects",

@@ -893,7 +893,7 @@ class LibraryView extends StatelessWidget {
     // Archives are accepted alongside plain mod files: the adapter
     // unpacks them and installs the mod files they contain.
     final extensions = [
-      for (final e in c.adapter.modFileExtensions) e.replaceFirst('.', ''),
+      for (final e in c.installableExtensions) e.replaceFirst('.', ''),
       for (final e in c.adapter.containerFileExtensions)
         e.replaceFirst('.', ''),
     ];
