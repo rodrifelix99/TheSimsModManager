@@ -18,9 +18,13 @@ import 'package:sims_mod_manager/src/ui/game_theme.dart';
 import 'until.dart';
 
 class _FakeAdapter extends FolderBasedGameAdapter {
-  _FakeAdapter(this.dir);
+  _FakeAdapter(this.dir, {this.id = 'fake'});
 
   final Directory dir;
+
+  /// The game's id, which is what used to decide the chrome and no
+  /// longer does - hence the tests below that hand over a real one.
+  final String id;
 
   @override
   Future<Map<String, PackageInsight>> inspectMods(
@@ -33,7 +37,7 @@ class _FakeAdapter extends FolderBasedGameAdapter {
 
   @override
   Game get game =>
-      const Game(id: 'fake', name: 'Fake Game', series: 'Test', year: 2024);
+      Game(id: id, name: 'Fake Game', series: 'Test', year: 2024);
 
   @override
   Set<String> get modFileExtensions => const {'.package'};
@@ -62,11 +66,20 @@ double _contrast(Color a, Color b) {
 }
 
 void main() {
-  const gameIds = ['sims1', 'sims2', 'sims3', 'sims4', 'simsmedieval'];
+  const gameIds = [
+    'sims1',
+    'sims2',
+    'sims3',
+    'sims4',
+    'simsmedieval',
+    'simcity3000',
+    'simcity4',
+    'simcity2013',
+  ];
   Game game(String id) => Game(id: id, name: id, series: 'The Sims');
 
   test('every game has a palette that reads as the brightness asked for', () {
-    for (final id in [...gameIds, 'simcity4']) {
+    for (final id in gameIds) {
       for (final brightness in Brightness.values) {
         final t = GameTheme.forGame(game(id), brightness);
         for (final (name, color) in [
@@ -152,6 +165,9 @@ void main() {
       'sims2': Sims2Skin,
       'sims3': Sims3Skin,
       'simsmedieval': SimsMedievalSkin,
+      'simcity3000': SimCity3000Skin,
+      'simcity4': SimCity4Skin,
+      'simcity2013': SimCity2013Skin,
     };
     for (final id in gameIds) {
       final skin = GameTheme.forGame(game(id), Brightness.light).skin;
@@ -161,7 +177,7 @@ void main() {
     // A game that borrows the Sims 4 palette must not borrow its chrome
     // along with it, and a skin is per id rather than per palette so it
     // doesn't.
-    expect(GameTheme.forGame(game('simcity4'), Brightness.dark).skin,
+    expect(GameTheme.forGame(game('simcitysocieties'), Brightness.dark).skin,
         isA<FlatSkin>());
   });
 
@@ -208,44 +224,51 @@ void main() {
 
   test('a label reads on every raised plate', () {
     for (final (id, brightness) in [
-      for (final id in ['sims1', 'sims2', 'sims3', 'simsmedieval'])
+      for (final id in [
+        'sims1',
+        'sims2',
+        'sims3',
+        'simsmedieval',
+        'simcity3000',
+        'simcity4',
+        'simcity2013'
+      ])
         for (final b in Brightness.values) (id, b)
     ]) {
       final t = GameTheme.forGame(game(id), brightness);
-      for (final (name, surface, decoration) in [
-        ('button', SkinSurface.button, t.skin.decorate(t, SkinSurface.button)),
-        ('button on', SkinSurface.button,
-            t.skin.decorate(t, SkinSurface.button, state: SkinState.active)),
+      // Each case is exactly what a call site passes, so the decoration
+      // and the ink can be asked with the *same* arguments. That matters
+      // now that a skin may write differently on a pale plate and a dark
+      // one: handing `ink` less than `decorate` got would measure a label
+      // against a material it was never put on. SimCity 2013's Ignore
+      // button is the case that proves it - orange plate, white word,
+      // where the pale pill beside it takes dark grey.
+      for (final (name, surface, state, accent, fill) in [
+        ('button', SkinSurface.button, SkinState.idle, null, null),
+        ('button on', SkinSurface.button, SkinState.active, null, null),
         // The colours a call site brings: the warning orange on an
         // uninstall button, the accent on an enabled mod's slab. Both are
         // the material rather than the label, so both have to hold one.
-        ('button warning', SkinSurface.button,
-            t.skin.decorate(t, SkinSurface.button, accent: t.warning)),
-        ('primary', SkinSurface.primary,
-            t.skin.decorate(t, SkinSurface.primary)),
-        ('primary warning', SkinSurface.primary,
-            t.skin.decorate(t, SkinSurface.primary, accent: t.warning)),
-        ('chip', SkinSurface.chip, t.skin.decorate(t, SkinSurface.chip)),
-        ('chip on', SkinSurface.chip,
-            t.skin.decorate(t, SkinSurface.chip, state: SkinState.active)),
-        ('row on', SkinSurface.row,
-            t.skin.decorate(t, SkinSurface.row, state: SkinState.active)),
-        ('row filled', SkinSurface.row,
-            t.skin.decorate(t, SkinSurface.row,
-                state: SkinState.active, fill: t.accent)),
-        ('row off', SkinSurface.row,
-            t.skin.decorate(t, SkinSurface.row,
-                state: SkinState.active, fill: t.switchOff)),
+        ('button warning', SkinSurface.button, SkinState.idle, t.warning, null),
+        ('primary', SkinSurface.primary, SkinState.idle, null, null),
+        ('primary warning', SkinSurface.primary, SkinState.idle, t.warning,
+            null),
+        ('chip', SkinSurface.chip, SkinState.idle, null, null),
+        ('chip on', SkinSurface.chip, SkinState.active, null, null),
+        ('row on', SkinSurface.row, SkinState.active, null, null),
+        ('row filled', SkinSurface.row, SkinState.active, null, t.accent),
+        ('row off', SkinSurface.row, SkinState.active, null, t.switchOff),
         // A segment raised out of a track says so by asking for the
         // panel colour, which a skin reads as "on" and answers with its
         // lit plate. It was missing here, and the saves tab strip drew
         // its label in the accent on top of it - 1.02 against the plate
         // on the Sims 3 in daylight, which is the same colour twice.
-        ('row selected', SkinSurface.row,
-            t.skin.decorate(t, SkinSurface.row,
-                state: SkinState.active, fill: t.surface)),
+        ('row selected', SkinSurface.row, SkinState.active, null, t.surface),
       ]) {
-        final label = t.skin.ink(t, surface, state: SkinState.active);
+        final decoration = t.skin.decorate(t, surface,
+            state: state, accent: accent, fill: fill);
+        final label = t.skin.ink(t, surface,
+            state: state, accent: accent, fill: fill);
         // The label ends up on top of any texture, not on top of the
         // gradient, so the check has to see what the user does.
         final grain = (t.skin as PlateSkin).grainOf(t, surface);
@@ -264,6 +287,50 @@ void main() {
     }
   });
 
+  // The label sweep above asks `decorate` and `ink` with the same
+  // arguments, which is the easy half. This is the hard half: the detail
+  // page's enable slab asks the skin what it writes in *before* the fill
+  // exists, because the fill is built out of the answer. So the two can
+  // still part company, and on a skin whose lettering follows the
+  // material they did - asked bare, `ink` answered for the lit plate
+  // (dark blue, so white), while the slab it was answering about came out
+  // of a translucent `switchOff` composited onto a near-white surface and
+  // was pale. A white word on a #C4CBD3 plate measures 1.63.
+  //
+  // Replayed here rather than described, because the fix is one argument
+  // at one call site and nothing else in the app would notice it going.
+  test('a slab built from the skin\'s own answer still carries it', () {
+    for (final id in gameIds) {
+      for (final brightness in Brightness.values) {
+        final t = GameTheme.forGame(game(id), brightness);
+        final skin = t.skin;
+        if (skin is! PlateSkin) continue;
+        for (final (what, colour) in [
+          ('enabled', t.accent),
+          ('disabled', t.switchOff),
+        ]) {
+          // detail_view's own three lines.
+          final ink = skin.ink(t, SkinSurface.row,
+              state: SkinState.active, fill: colour, otherwise: Colors.white);
+          final slab = ink == Colors.white ? bearsWhite(colour) : colour;
+          final base = skin.bearsLabel(
+              t,
+              SkinSurface.row,
+              skin.raisedBase(t, SkinSurface.row,
+                  state: SkinState.active, fill: slab));
+          expect(skin.label(t, base), ink,
+              reason: '$id $brightness $what slab is written in one colour '
+                  'and painted for another');
+          // Through any grain, like the sweep above: what the label lands
+          // on is the texture, and `bearsLabel` costed it that way.
+          final grain = skin.grainOf(t, SkinSurface.row);
+          expect(_contrast(ink, grain?.over(base) ?? base), greaterThan(3.0),
+              reason: '$id $brightness $what slab label');
+        }
+      }
+    }
+  });
+
   // Both of the ways a flat call site says "nothing here" used to poison
   // the gloss: `Colors.transparent` (a flat outline button's background)
   // made every stop a wash of black over whatever was behind, and a
@@ -272,7 +339,15 @@ void main() {
   // colour, and nothing a call site passes may change that.
   test('a plate gradient is opaque whatever fill it was handed', () {
     for (final (id, brightness) in [
-      for (final id in ['sims1', 'sims2', 'sims3', 'simsmedieval'])
+      for (final id in [
+        'sims1',
+        'sims2',
+        'sims3',
+        'simsmedieval',
+        'simcity3000',
+        'simcity4',
+        'simcity2013'
+      ])
         for (final b in Brightness.values) (id, b)
     ]) {
       final t = GameTheme.forGame(game(id), brightness);
@@ -332,10 +407,46 @@ void main() {
 
   test('a game with no palette borrows one and keeps its own era label', () {
     for (final brightness in Brightness.values) {
-      final fallback = GameTheme.forGame(game('simcity4'), brightness);
+      final fallback =
+          GameTheme.forGame(game('simcitysocieties'), brightness);
       expect(fallback.bg, GameTheme.forGame(game('sims4'), brightness).bg);
-      expect(fallback.eraKey, isNull);
-      expect(fallback.eraDetail, isNull);
+    }
+    // The era belongs to the game rather than to the chrome, which is
+    // what lets the header say "Modern · 2014" over a Sims 1 theme.
+    expect(GameTheme.eraOf(game('simcitysocieties')), isNull);
+    expect(GameTheme.eraOf(game('sims4')), ('modern', '2014'));
+  });
+
+  test('every theme on offer has a look of its own', () {
+    for (final brightness in Brightness.values) {
+      final seen = <Color>{};
+      for (final id in GameTheme.themeIds) {
+        final t = GameTheme.forTheme(id, brightness);
+        expect(seen.add(t.accent), isTrue,
+            reason: '$id $brightness repeats an accent already taken');
+      }
+      // The default is the flat chrome the design handoff drew, and the
+      // four after it are the games whose own was.
+      expect(GameTheme.forTheme(GameTheme.defaultThemeId, brightness).skin,
+          isA<FlatSkin>());
+      expect(GameTheme.forTheme('sims1', brightness).skin, isA<Sims1Skin>());
+      expect(GameTheme.forTheme('simcity3000', brightness).skin,
+          isA<SimCity3000Skin>());
+      expect(GameTheme.forTheme('simcity4', brightness).skin,
+          isA<SimCity4Skin>());
+      expect(GameTheme.forTheme('simcity2013', brightness).skin,
+          isA<SimCity2013Skin>());
+    }
+  });
+
+  // A name from a later build, or a game id left in the preference from
+  // when the chrome followed the sidebar, must still draw a window.
+  test('a theme name we do not know falls back to the default', () {
+    for (final brightness in Brightness.values) {
+      final unknown = GameTheme.forTheme('sims9', brightness);
+      final fallback = GameTheme.forTheme(null, brightness);
+      expect(unknown.bg, fallback.bg);
+      expect(unknown.skin, isA<FlatSkin>());
     }
   });
 
@@ -401,6 +512,56 @@ void main() {
       final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
       expect(scaffold.backgroundColor,
           GameTheme.forGame(_FakeAdapter(tempDir).game, probe.want).bg);
+    });
+  }
+
+  // The whole point of the setting: the sidebar no longer decides. A
+  // game with a hand-painted palette of its own draws the default chrome
+  // until somebody asks for its own, and asking for one another game's
+  // is just as valid a thing to want.
+  for (final probe in <({String name, String? saved, String want})>[
+    (
+      name: 'the chrome ignores the game the library is on',
+      saved: null,
+      want: GameTheme.defaultThemeId
+    ),
+    (
+      name: 'a saved theme paints a game it has nothing to do with',
+      saved: 'simsmedieval',
+      want: 'simsmedieval'
+    ),
+  ]) {
+    testWidgets(probe.name, (tester) async {
+      tester.view.physicalSize = const Size(1280, 824);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
+      addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+
+      final tempDir = Directory.systemTemp.createTempSync('mod_manager_skin');
+      addTearDown(() => tempDir.deleteSync(recursive: true));
+      File('${tempDir.path}/cozy_sofa.package').writeAsStringSync('sofa');
+
+      final settings = await prefs({
+        if (probe.saved != null) 'appTheme': probe.saved!,
+      });
+      // A game whose own chrome exists, so "followed the game" and
+      // "followed the preference" cannot come out the same colour.
+      final registry =
+          GameRegistry([_FakeAdapter(tempDir, id: 'sims2')]);
+      await tester.runAsync(() async {
+        await tester.pumpWidget(
+            ModManagerApp(registry: registry, settings: settings));
+        await Future<void>.delayed(const Duration(milliseconds: 200));
+      });
+      await until(tester, find.text('Fake Game Library'));
+      await tester.pump(const Duration(milliseconds: 400));
+
+      final want = GameTheme.forTheme(probe.want, Brightness.light);
+      final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
+      expect(scaffold.backgroundColor, want.bg);
+      expect(scaffold.backgroundColor,
+          isNot(GameTheme.forTheme('sims2', Brightness.light).bg));
     });
   }
 }

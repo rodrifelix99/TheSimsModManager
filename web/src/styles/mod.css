@@ -100,6 +100,15 @@
 .prose a { color: var(--accent); text-decoration: underline; word-break: break-word; }
 .prose a:hover { color: var(--accent2); }
 
+/* The packs a listing says it needs. A list rather than a sentence: the
+   names are proper nouns and a reader is scanning for one of them. */
+.mod-needs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.mod-needs li {
+  padding: 7px 12px; border-radius: 10px;
+  font-size: 14px; font-weight: 800;
+  background: var(--surface-alt); border: 1px solid var(--border);
+}
+
 .mod-howto .prose {
   padding: 18px 22px; border-radius: 16px;
   background: var(--tint); border: 1px solid var(--border);

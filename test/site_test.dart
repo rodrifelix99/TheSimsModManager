@@ -7,6 +7,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sims_mod_manager/src/core/pack_requirements.dart';
+
+import '../tool/gen_pack_catalog.dart';
 
 const languages = ['zh', 'es', 'pt', 'fr', 'de', 'it', 'ru', 'pl', 'ja', 'el'];
 
@@ -89,6 +92,39 @@ void main() {
     expect(inRules, isNotNull, reason: 'the images cap in firestore.rules');
     expect(inPortal, inRules,
         reason: 'the portal promises a number the rules do not enforce');
+  });
+
+  test('the generated pack catalog still matches the app’s own tables', () {
+    // web/src/data/packs.ts is written by tool/gen_pack_catalog.dart out of
+    // the four tables the adapters already carry, so the portal's checklist
+    // and the app's requirement check name the same packs by the same codes.
+    // A pack added to a table and not regenerated here would be a box the
+    // creator cannot tick for a mod that needs it.
+    final onDisk = File('web/src/data/packs.ts').readAsStringSync();
+    // Split into lines rather than compared whole: the checkout's line
+    // endings are not what this test is about.
+    expect(const LineSplitter().convert(onDisk),
+        const LineSplitter().convert(renderPackCatalog()),
+        reason: 'run: dart tool/gen_pack_catalog.dart');
+  });
+
+  test('the pack requirement cap is the same number everywhere', () {
+    // Three copies: the rules refuse the twenty-fifth, the app drops it on
+    // the way in, and the portal's own list is built through the same
+    // helper. A creator who ticks more than the rules take gets a save that
+    // fails with a permission error and nothing on screen to explain it.
+    final rules = File('firestore.rules').readAsStringSync();
+    final web = File('web/src/data/packs.ts').readAsStringSync();
+    final inRules = RegExp(r'data\.requiresPacks\.size\(\) <= (\d+)')
+        .firstMatch(rules)
+        ?.group(1);
+    final inWeb = RegExp(r'maxPackRequirements = (\d+)')
+        .firstMatch(web)
+        ?.group(1);
+    expect(inRules, isNotNull, reason: 'the requiresPacks cap in firestore.rules');
+    expect(inWeb, isNotNull, reason: 'maxPackRequirements in packs.ts');
+    expect(inRules, '$maxPackRequirements');
+    expect(inWeb, '$maxPackRequirements');
   });
 
   test('the retired Pages site still serves the advisory feed', () {

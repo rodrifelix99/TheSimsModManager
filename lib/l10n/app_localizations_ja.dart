@@ -15,7 +15,7 @@ class LJa extends L {
   String get brandTitle => 'MOD マネージャー';
 
   @override
-  String get brandSubtitle => 'for The Sims';
+  String get brandSubtitle => 'The Sims と シムシティ用';
 
   @override
   String get navLibrary => 'ライブラリ';
@@ -152,6 +152,32 @@ class LJa extends L {
   @override
   String get shopSaveHint =>
       'インストールはファイルをMODフォルダーに直接入れます。ダウンロードは好きな場所にファイルを保存するだけです。';
+
+  @override
+  String get shopRequires => '必要なパック';
+
+  @override
+  String get shopRequirementMet => 'インストール済み';
+
+  @override
+  String get shopRequirementDisabled => 'オフ';
+
+  @override
+  String get shopRequirementMissing => '未インストール';
+
+  @override
+  String get shopRequirementUnknown => '未確認';
+
+  @override
+  String get shopRequirementsNote =>
+      'そのままインストールしても大丈夫 —— ただしパックが揃うまではほとんど動きません。';
+
+  @override
+  String get shopRequirementsOffNote => 'このうちひとつがオフになっています。「パック」タブから戻してね。';
+
+  @override
+  String get shopRequirementsUnknownNote =>
+      'このパソコンではこのゲームのパックを確認できなかったので、これは作者の申告です。';
 
   @override
   String get shopDestination => 'インストール先';
@@ -880,6 +906,15 @@ class LJa extends L {
   String get themeDark => 'ダーク';
 
   @override
+  String get appThemeTitle => 'アプリのテーマ';
+
+  @override
+  String get appThemeDesc => 'アプリ全体の見た目。どのゲームを管理していても変わりません。';
+
+  @override
+  String get appThemeDefault => 'デフォルト';
+
+  @override
   String get languageTitle => 'アプリの言語';
 
   @override
@@ -994,7 +1029,8 @@ class LJa extends L {
   String get onboardingLookTitle => '自分好みにしよう';
 
   @override
-  String get onboardingLookBody => 'アプリ全体が、いま開いているゲームの色に染まるよ。見た目と音の好みを選んでね。';
+  String get onboardingLookBody =>
+      'アプリ全体が、きみの選んだ見た目になるよ。どのゲームを管理していても同じ。見た目と音の好みを選んでね。';
 
   @override
   String get onboardingLibraryTitle => 'ライブラリの見え方';
@@ -1091,8 +1127,8 @@ class LJa extends L {
   String get wikiButton => 'wiki を開く';
 
   @override
-  String aboutTagline(String version) {
-    return 'バージョン $version · The Sims 1-4 に対応 · シムシティも近日対応';
+  String aboutTagline(String version, String series) {
+    return 'バージョン $version · $series の Mod マネージャー';
   }
 
   @override
@@ -2679,4 +2715,189 @@ class LJa extends L {
 
   @override
   String get errorSaveEditUnsupported => 'このゲームのセーブは読めるけど、変更はできないよ。';
+
+  @override
+  String whatsNewEyebrow(String version) {
+    return '$version の新しいところ';
+  }
+
+  @override
+  String get whatsNewAlsoSince => 'このアップデートではほかにも';
+
+  @override
+  String get whatsNewDismiss => 'はじめる';
+
+  @override
+  String get whatsNew300RootTitle => 'ゲーム自身のフォルダーに入るMod';
+
+  @override
+  String get whatsNew300RootBody =>
+      'ワールドやグラフィック設定、スクリプトローダーはModsフォルダーからでは動きませんでした。これからはゲームが読み込むフォルダーへ直接インストールされ、置き換えたファイルは保管されるので、アンインストールすれば元のファイルが戻ります。';
+
+  @override
+  String get whatsNew300PacksTitle => '必要なパックを出品に書けるように';
+
+  @override
+  String get whatsNew300PacksBody =>
+      '作者はModが対応するパックを設定でき、The Exchangeがインストール前にあなたの所有パックと照らし合わせます。あくまでお知らせで、止められることはありません。';
+
+  @override
+  String get whatsNew300ContainersTitle => '.sims3packがまとめて入ったzipもそのまま';
+
+  @override
+  String get whatsNew300ContainersBody =>
+      'セットごとウィンドウにドロップしてください。アーカイブの中にあるThe Sims 3のコンテナはその場で開かれ、まとめてインストールされます。';
+
+  @override
+  String get whatsNew300SimCityTitle => 'SimCity 3000、4、Societies、2013';
+
+  @override
+  String get whatsNew300SimCityBody =>
+      'サイドバーにゲームが4つ増えました。SimCity 4は2つのPluginsフォルダーを両方読み込み、フォルダー名とファイル名で決まる読み込み順をそのまま保ち、sc4pacが入れたものには手を出しません。遊ばないゲームは設定から隠せます。';
+
+  @override
+  String get whatsNew300CatalogTitle => 'SimCity 4のModが数千件';
+
+  @override
+  String get whatsNew300CatalogBody =>
+      'The Exchangeにsc4pacのチャンネルが加わり、自前の出品と並んで、運営プロジェクトのクレジット付きで表示されます。ダウンロードは必要なものがすべて揃うか、まったく入らないかのどちらかで、アプリからのダウンロードを許していない配布元ではボタンが先にそう伝えます。';
+
+  @override
+  String get whatsNew300ThemeTitle => '好みの見た目を選べます';
+
+  @override
+  String get whatsNew300ThemeBody =>
+      'これまでは開いているゲームに合わせてアプリの色が変わっていました。これからは設定で好きな見た目を選べ、どのゲームを管理していてもそのままです。';
+
+  @override
+  String get categoryLot => '区画';
+
+  @override
+  String get categoryModel => 'モデル';
+
+  @override
+  String get categoryDescription => '説明';
+
+  @override
+  String get categoryBuilding => '建物';
+
+  @override
+  String get setupHelpSimCity4 =>
+      'SimCity 4 はプラグインを2つのフォルダーから同時に読み込みます。ドキュメント > SimCity 4 > Plugins（あなたのもので、このアプリが管理するほう）と、ゲームのインストール先にある Plugins フォルダーです。フォルダー名とファイル名がそのままロード順なので、ダウンロードしたときの構造はいじらないでください。sc4pac が番号付きフォルダーを使い、上書き系が「zzz...」という名前なのもそのためです。DLL プラグインは Plugins フォルダーの直下からしか読み込まれず、サブフォルダーに入れても効きません。だからこのアプリが直下に置きます。sc4pac が入れたものは sc4pac のもので、一覧に出すのも向こうの役目です。';
+
+  @override
+  String get setupHelpSimCity2013 =>
+      'SimCity は .package 形式の Mod を、ゲームのインストール先にある SimCityUserData > Packages から読み込みます（たいてい Program Files の下なので、Windows が管理者権限を求めることがあります）。このアプリが管理するのはそのフォルダーだけです。ゲームは SimCityData フォルダーも読みますが、そちらには Maxis 自身のコンテンツが入っているので、ゲーム本体のパッケージより先に読み込ませたい Mod は手動でそちらへ入れてください。オフライン専用と書かれた Mod も多いので、失っても困らない都市で試しましょう。';
+
+  @override
+  String get setupHelpSimCity3000 =>
+      'SimCity 3000 はカスタム建物（Building Architect Tool で作る .bld ファイル）を、ゲームのインストール先にある Buildings フォルダーから読み込みます。このフォルダーは階層なしで、サブフォルダーに入れた建物は読み込まれません。ゲームに最初から入っている建物は、うっかり消さないようここでは隠してあります。SC3U.exe 自体を書き換える解像度・互換性パッチは、このアプリでは扱いません。それぞれの説明に従ってください。';
+
+  @override
+  String get setupHelpSimCitySocieties =>
+      'SimCity Societies はカスタムコンテンツを ドキュメント > SimCity Societies > Import に置きます。ゲーム付属の Package Installer もそこへ入れます。このアプリでフォルダーを作れます。コンテンツは .SCSPack ファイルで、これはゲーム自身が探している拡張子です。ただし注意を。Societies はパッケージ化された Mod を読み込むより、中身を書き換えて遊ぶ作りでした。当時の界隈がやっていたのは主にゲームの Data フォルダー内の C# と XML の編集で、そこにはこのアプリは一切触れません。';
+
+  @override
+  String get sectionManagedGames => 'ゲーム';
+
+  @override
+  String prefManageGameTitle(String game) {
+    return '$game を管理';
+  }
+
+  @override
+  String get prefManageGameDesc => 'サイドバーに表示します。非表示にしても、そのゲームの設定はすべて残ります。';
+
+  @override
+  String get errorLastManagedGame =>
+      'これはサイドバーに残っている最後のゲームです。隠すには先に別のゲームを表示してください。';
+
+  @override
+  String catalogCount(int count) {
+    return '$count 件の Mod';
+  }
+
+  @override
+  String catalogCuratedBy(String project) {
+    return 'カタログ提供: $project';
+  }
+
+  @override
+  String get catalogOpenPage => 'ページを開く';
+
+  @override
+  String catalogBlocked(String host) {
+    return '$host はアプリからのダウンロードを許可していません。Mod のページから入手してください。';
+  }
+
+  @override
+  String get catalogUnresolvedNote => 'これはカタログから読み取れませんでした。';
+
+  @override
+  String get catalogDependencies => '同時に入るもの';
+
+  @override
+  String catalogFileCount(int count) {
+    return '$count ファイル';
+  }
+
+  @override
+  String catalogDownloading(int current, int total) {
+    return '$total 件中 $current 件をダウンロード中';
+  }
+
+  @override
+  String get catalogWarningTitle => '注意';
+
+  @override
+  String get catalogConflictsTitle => '競合するもの';
+
+  @override
+  String catalogSourceFailed(String source) {
+    return '$source に接続できませんでした';
+  }
+
+  @override
+  String get catalogEmpty => '一致するものがありません。';
+
+  @override
+  String get catalogRefresh => 'カタログを再読み込み';
+
+  @override
+  String get catalogOptions => 'オプション';
+
+  @override
+  String catalogBy(String author) {
+    return '作者: $author';
+  }
+
+  @override
+  String get errorCatalogUnreachable => 'カタログに接続できませんでした。接続を確認してもう一度お試しください。';
+
+  @override
+  String get errorCatalogUnreadable => 'カタログの応答をこのバージョンでは読み取れませんでした。';
+
+  @override
+  String errorCatalogDownloadFailed(String host) {
+    return '$host がダウンロードを拒否しました。';
+  }
+
+  @override
+  String get errorCatalogInstallFailed => 'インストール中に問題が起きました。';
+
+  @override
+  String get errorCatalogInstallCancelled => 'インストールを中止しました。';
+
+  @override
+  String get catalogLoading => 'カタログを読み込み中…';
+
+  @override
+  String get catalogBack => '← カタログに戻る';
+
+  @override
+  String get catalogPromoTitle => '自分で Mod を作りましたか？';
+
+  @override
+  String get catalogPromoBody =>
+      'The Exchange に出せば、ワンクリックでインストールでき、専用ページとリンクが付き、すでに入れている人には更新が届きます。';
 }

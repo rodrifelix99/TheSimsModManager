@@ -109,6 +109,35 @@ void main() {
     expect(parseShopListings(jsonEncode([row])).single.downloads, 0);
   });
 
+  test('reads the packs a listing says it needs, and refuses the rest', () {
+    final row = _listing();
+    final fields =
+        ((row['document']! as Map)['fields']! as Map).cast<String, Object?>();
+    fields['requiresPacks'] = {
+      'arrayValue': {
+        'values': [
+          {'stringValue': 'EP01'},
+          // The portal writes these uppercase; a document is still allowed
+          // to carry anything, because a web page wrote it.
+          {'stringValue': ' gp06 '},
+          {'stringValue': 'EP01'},
+          {'stringValue': '../../etc/passwd'},
+          {'integerValue': '7'},
+        ],
+      },
+    };
+    expect(parseShopListings(jsonEncode([row])).single.requiresPacks,
+        ['EP01', 'GP06']);
+
+    // Every listing published before any of this, which is all of them.
+    fields.remove('requiresPacks');
+    expect(parseShopListings(jsonEncode([row])).single.requiresPacks, isEmpty);
+
+    // And a field that is not the list it claims to be.
+    fields['requiresPacks'] = {'stringValue': 'EP01'};
+    expect(parseShopListings(jsonEncode([row])).single.requiresPacks, isEmpty);
+  });
+
   test('drops rows missing required fields instead of failing the lot', () {
     final body = jsonEncode([
       _row('broken', {

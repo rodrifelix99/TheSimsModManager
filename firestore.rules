@@ -19,7 +19,8 @@ service cloud.firestore {
               'createdAt', 'updatedAt'])
           && data.keys().hasOnly(['name', 'gameId', 'version', 'description',
               'instructions', 'authorUid', 'authorName', 'file', 'images',
-              'published', 'createdAt', 'updatedAt', 'downloads', 'group'])
+              'published', 'createdAt', 'updatedAt', 'downloads', 'group',
+              'requiresPacks'])
           && data.name is string
           && data.name.size() >= 1 && data.name.size() <= 100
           // The set this listing is one variation of, if the creator said
@@ -29,6 +30,17 @@ service cloud.firestore {
           && (!('group' in data)
               || (data.group is string
                   && data.group.size() >= 1 && data.group.size() <= 60))
+          // The packs this mod needs before it does anything, as the codes
+          // the games use for themselves (`EP01`, `GP06`). Only the length
+          // is held here: the set of real codes grows every time EA ships a
+          // pack, and a rule listing them would refuse a listing for the
+          // newest kit until somebody remembered to redeploy. Both readers
+          // - the app and the mod page - keep the codes to a whitelist on
+          // the way in instead, which is where a value written by a web
+          // page belongs.
+          && (!('requiresPacks' in data)
+              || (data.requiresPacks is list
+                  && data.requiresPacks.size() <= 24))
           && data.gameId in ['sims1', 'sims2', 'sims3', 'sims4', 'simsmedieval']
           && data.version is string && data.version.size() <= 40
           && data.description is string && data.description.size() <= 6000

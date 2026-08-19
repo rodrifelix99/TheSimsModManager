@@ -27,8 +27,15 @@ class DemoLibrary {
 /// [root] (the game's resolved or default mods folder). [today] is the
 /// anchor the modification dates count back from; it is quantized to the
 /// day by callers so a mod's identity doesn't change between refreshes.
+///
+/// [depthLimit] is the game's own [GameAdapter.modDepthLimit]. A game whose
+/// mods folder is flat (SimCity 3000's `Buildings`, limit 0) reads nothing
+/// out of a subfolder, so filing the invented library into the usual
+/// category folders would put every mod behind the too-deep banner - a
+/// warning about a library nobody has, in the one shot meant to sell the
+/// game's chrome. Those get a flat library instead.
 DemoLibrary buildDemoLibrary(GameAdapter adapter, String root,
-    {required DateTime today}) {
+    {required DateTime today, int? depthLimit}) {
   final extensions = adapter.modFileExtensions.toList()..sort();
   if (extensions.isEmpty) {
     return const DemoLibrary(mods: [], insights: {});
@@ -42,6 +49,10 @@ DemoLibrary buildDemoLibrary(GameAdapter adapter, String root,
   final insights = <String, PackageInsight>{};
   var index = 0;
 
+  // A flat mods folder takes no subfolders at all; anything else keeps the
+  // sections, since a limit of 1 or more still reads the one level they use.
+  final flat = depthLimit == 0;
+
   void add(String? folder, _Kind kind, String fileName, {bool? enabled}) {
     final i = index++;
     final extension = switch (kind) {
@@ -53,7 +64,7 @@ DemoLibrary buildDemoLibrary(GameAdapter adapter, String root,
       _ => primary,
     };
     final disabled = enabled == null ? i % 7 == 4 : !enabled;
-    final path = folder == null
+    final path = folder == null || flat
         ? p.join(root, '$fileName$extension')
         : p.join(root, folder, '$fileName$extension');
     mods.add(Mod(

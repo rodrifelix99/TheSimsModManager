@@ -1,7 +1,10 @@
 # Adding support for a new game
 
-The app was designed so a new game (or an entire series; SimCity is the
-obvious candidate) can be added **without touching the UI or core**.
+The app was designed so a new game (or an entire series) can be added
+**without touching the UI or core**. The SimCity franchise was added
+that way and is the worked example: `lib/src/games/simcity/`, four
+adapters, one line each in `main.dart`, and no UI branch on a game id
+anywhere. The sidebar groups it by `Game.series` on its own.
 
 ## 1. Write the adapter
 
@@ -33,6 +36,13 @@ class MyGameAdapter extends FolderBasedGameAdapter {
 
 Optional overrides:
 
+- `companionFileExtensions`: files that ride along with a mod of the
+  same base name rather than being mods themselves (a SimCity 4 DLL
+  plugin's `.ini`). They install, disable and uninstall with it and are
+  never listed on their own.
+- `extraModsDirectories(modsDir)`: other folders this game reads that
+  hold nothing but the player's own files (SimCity 4's second Plugins
+  root).
 - `findModsDirectoryCandidates()`: return *every* plausible location when
   the game can be installed in several places or uses localized folder
   names. The UI shows them as one-click choices.
@@ -54,7 +64,11 @@ That's the only existing file that must change.
 - Add a palette for the game id in
   [lib/src/ui/game_theme.dart](../lib/src/ui/game_theme.dart). Without one
   the game gets a neutral theme, which is fine.
-- Icons/logos under `assets/games/` (mind copyright!).
+- Icons/logos under `assets/games/` (mind copyright!). Without one the
+  brand mark draws a neutral letter badge - never another franchise's
+  emblem.
+- `setupHelp<Game>` in all eleven ARB files is **not** optional:
+  `localization_test.dart` fails without it.
 
 ## 4. Test it
 

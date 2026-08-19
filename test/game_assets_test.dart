@@ -12,6 +12,7 @@ import 'package:sims_mod_manager/src/core/package_insight.dart';
 import 'package:sims_mod_manager/src/services/settings_store.dart';
 import 'package:sims_mod_manager/src/ui/app.dart';
 import 'package:sims_mod_manager/src/ui/game_theme.dart';
+import 'package:sims_mod_manager/src/ui/plumbob_icons.dart';
 
 import 'until.dart';
 
@@ -65,7 +66,17 @@ void main() {
   Game game(String id) => Game(id: id, name: id, series: 'The Sims');
 
   test('every registered icon/logo asset exists on disk', () {
-    for (final id in ['sims1', 'sims2', 'sims3', 'sims4', 'simsmedieval']) {
+    for (final id in [
+      'sims1',
+      'sims2',
+      'sims3',
+      'sims4',
+      'simsmedieval',
+      'simcity3000',
+      'simcity4',
+      'simcity2013',
+      'simcitysocieties',
+    ]) {
       final icon = GameTheme.iconAsset(game(id));
       expect(icon, isNotNull, reason: '$id has no icon');
       expect(File(icon!).existsSync(), isTrue, reason: 'missing $icon');
@@ -74,6 +85,24 @@ void main() {
         expect(logo, isNotNull, reason: '$id has no $brightness logo');
         expect(File(logo!).existsSync(), isTrue, reason: 'missing $logo');
       }
+    }
+  });
+
+  test('every brand mark the sidebar can draw exists on disk', () {
+    for (final id in [
+      'sims1',
+      'sims2',
+      'sims3',
+      'sims4',
+      'simsmedieval',
+      'simcity3000',
+      'simcity4',
+      'simcity2013',
+      'simcitysocieties',
+    ]) {
+      final mark = brandMarkAsset(id);
+      expect(mark, isNotNull, reason: '$id has no brand mark');
+      expect(File(mark!).existsSync(), isTrue, reason: 'missing $mark');
     }
   });
 
@@ -88,9 +117,9 @@ void main() {
   });
 
   test('unknown games have no assets and fall back gracefully', () {
-    expect(GameTheme.iconAsset(game('simcity4')), isNull);
+    expect(GameTheme.iconAsset(game('cities_skylines')), isNull);
     for (final brightness in Brightness.values) {
-      expect(GameTheme.logoAsset(game('simcity4'), brightness), isNull);
+      expect(GameTheme.logoAsset(game('cities_skylines'), brightness), isNull);
     }
   });
 

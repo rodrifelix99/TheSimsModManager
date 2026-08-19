@@ -8,6 +8,9 @@ const THEMES: Record<string, Record<string, string>> = {
   sims3: { accent: '#1A6F9E', accent2: '#5CA83C', bg: '#DCE9F2', surface: '#F2F8FD', surfaceAlt: '#E4EFF7', text: '#123048', muted: '#4E7590', border: '#A9CBE2', tint: '#CBE4F4', danger: '#D6551F' },
   sims4: { accent: '#189771', accent2: '#12B0D6', bg: '#EAF6F2', surface: '#FFFFFF', surfaceAlt: '#F2FAF7', text: '#0F2E28', muted: '#5F827A', border: '#D9ECE5', tint: '#DCF5EC', danger: '#D6551F' },
   simsmedieval: { accent: '#9C7B1E', accent2: '#5E9732', bg: '#F1EBDC', surface: '#FFFDF4', surfaceAlt: '#F5EFDF', text: '#33290F', muted: '#857A5C', border: '#E3DAC0', tint: '#F0E7CB', danger: '#D6551F' },
+  simcity3000: { accent: '#2C6491', accent2: '#D18B12', bg: '#DCE3EF', surface: '#EEF2F9', surfaceAlt: '#E1E7F2', text: '#14202C', muted: '#4C5C70', border: '#AEBACD', tint: '#CBD6E8', danger: '#D6551F' },
+  simcity4: { accent: '#1C7A75', accent2: '#C87F16', bg: '#DCE5E5', surface: '#EBF1F1', surfaceAlt: '#DFE8E8', text: '#12242A', muted: '#4A6167', border: '#A9BBBD', tint: '#C6D6D7', danger: '#D6551F' },
+  simcity2013: { accent: '#1B7CB8', accent2: '#E8821A', bg: '#DEE6ED', surface: '#FBFCFD', surfaceAlt: '#EFF3F7', text: '#24323C', muted: '#537CA2', border: '#C3CFDA', tint: '#DBE5EE', danger: '#D6551F' },
   dark: { accent: '#2FD3A1', accent2: '#32C5E8', bg: '#0C1614', surface: '#13201D', surfaceAlt: '#182724', text: '#E4F2EE', muted: '#8AA6A0', border: '#223330', tint: '#12332B', danger: '#E8794A' },
 };
 

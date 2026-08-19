@@ -698,6 +698,7 @@ class _ActionButton extends StatelessWidget {
                 fontWeight: FontWeight.w800,
                 color: t.skin.ink(t, SkinSurface.button,
                     state: skinState(hovered: hovered && !off),
+                    accent: color,
                     otherwise: color),
               ),
             ),

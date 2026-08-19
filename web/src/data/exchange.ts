@@ -9,6 +9,8 @@
 // functions/index.js keeps its own copy of these three constants: it is
 // deployed as its own package and cannot import from here.
 
+import { normalizePackCodes } from './packs';
+
 export const project = 'thesimsmodmanager';
 export const bucket = 'thesimsmodmanager.firebasestorage.app';
 /// Public by design: what may be read is decided by the rules, not by who
@@ -61,6 +63,10 @@ export interface Listing {
   file: { path: string; name: string; size: number };
   images: string[];
   updatedAt: string;
+  /// The packs this mod needs before it does anything, as the games' own
+  /// codes. Whatever the document carried, kept to codes we are willing to
+  /// draw: this page reads a document a stranger could have written.
+  requiresPacks: string[];
   /// How many people have taken this mod, counted by the recordDownload
   /// function. Reads 0 on a listing published before there was a counter,
   /// which is the truth about what we know rather than a guess.
@@ -95,6 +101,7 @@ export function toListing(doc: unknown): Listing | null {
       (path): path is string => typeof path === 'string',
     ),
     updatedAt: String(field('updatedAt') ?? ''),
+    requiresPacks: normalizePackCodes(field('requiresPacks')),
     downloads: Math.max(0, Math.trunc(Number(field('downloads') ?? 0)) || 0),
   };
 }

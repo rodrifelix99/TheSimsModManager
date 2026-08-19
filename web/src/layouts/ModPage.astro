@@ -90,6 +90,13 @@ const base = 'm/__MOD_ID__';
         </div>
       </article>
 
+      {/* Filled in by the browser, because which packs a listing names is
+          the listing's own business and this shell is one static file. */}
+      <section class="mod-body" id="mod-needs" hidden>
+        <h2 set:html={t('mod.requires')} />
+        <ul class="mod-needs" id="mod-needs-list"></ul>
+      </section>
+
       <section class="mod-body" id="mod-about" hidden>
         <h2 set:html={t('mod.about')} />
         <div class="prose" id="mod-description"></div>

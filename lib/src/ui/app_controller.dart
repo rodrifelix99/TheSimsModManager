@@ -7,6 +7,7 @@ import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 
+import '../app_version.dart';
 import '../core/app_message.dart';
 import '../core/conflicts.dart';
 import '../core/creation.dart';
@@ -17,12 +18,14 @@ import '../core/folder_access.dart';
 import '../core/game_adapter.dart';
 import '../core/game_pack.dart';
 import '../core/game_registry.dart';
+import '../core/pack_requirements.dart';
 import '../core/ignored_conflicts.dart';
 import '../core/mod.dart';
 import '../core/install_destination.dart';
 import '../core/install_path.dart';
 import '../core/mod_advisories.dart';
 import '../core/mod_archive.dart';
+import '../core/mod_catalog.dart';
 import '../core/mod_folder.dart';
 import '../core/mod_name.dart';
 import '../core/mod_kind.dart';
@@ -33,7 +36,9 @@ import '../core/stock_backup.dart';
 import '../core/save_edit.dart';
 import '../core/save_game.dart';
 import '../core/trivia.dart';
+import '../core/whats_new.dart';
 import '../services/analytics.dart';
+import '../services/catalog_download.dart';
 import '../services/demo_shop.dart';
 import '../services/disk_space.dart';
 import '../services/elevation.dart';
@@ -204,8 +209,10 @@ class AppController extends ChangeNotifier {
     Future<String?> Function(String suggestedName)? pickSavePath,
     Future<bool> Function()? checkElevated,
     Future<Reachability> Function(String? mirrorBase)? probeServices,
+    List<WhatsNewEntry>? whatsNewTable,
     int artworkBudgetBytes = defaultArtworkBudgetBytes,
   })  : _artworkBudgetBytes = artworkBudgetBytes,
+        _whatsNewTable = whatsNewTable ?? whatsNewEntries,
         _sfx = sfx ?? Sfx(),
         analytics = analytics ?? Analytics.disabled(),
         _checkElevated = checkElevated ?? isRunningElevated,
@@ -230,16 +237,130 @@ class AppController extends ChangeNotifier {
     this.analytics.onFlagsChanged = _onFlagsChanged;
   }
 
+  /// The games this user has said they want to manage, in registry
+  /// order.
+  ///
+  /// Null in the preference means every registered game - the behaviour
+  /// the sidebar had before the question existed, so an update that
+  /// adds a franchise never takes one away. A stored list is filtered
+  /// against the registry, so an id from a build that had a game this
+  /// one does not simply drops out.
+  ///
+  /// A stored list that leaves nothing standing falls back to the whole
+  /// registry rather than to an empty sidebar: a user cannot have meant
+  /// "show me no games", and if they did, an app with nothing in it is
+  /// no way to say so.
+  static List<GameAdapter> managedAdaptersOf(
+      GameRegistry registry, SettingsStore settings) {
+    final wanted = settings.managedGameIds;
+    if (wanted == null) return registry.adapters;
+    final ids = wanted.toSet();
+    final kept = [
+      for (final adapter in registry.adapters)
+        if (ids.contains(adapter.game.id)) adapter,
+    ];
+    return kept.isEmpty ? registry.adapters : kept;
+  }
+
+  /// The games on the sidebar, grouped by franchise in registry order.
+  ///
+  /// [Game.series] rather than a hand-kept list of ids, so a franchise
+  /// added tomorrow groups itself. One group is not drawn as a group at
+  /// all - a Sims-only user's sidebar is exactly what it always was.
+  List<({String series, List<GameAdapter> adapters})> get managedGroups {
+    final order = <String>[];
+    final grouped = <String, List<GameAdapter>>{};
+    for (final adapter in managedAdapters) {
+      final series = adapter.game.series;
+      if (!grouped.containsKey(series)) order.add(series);
+      grouped.putIfAbsent(series, () => []).add(adapter);
+    }
+    return [
+      for (final series in order)
+        (series: series, adapters: grouped[series]!),
+    ];
+  }
+
+  List<GameAdapter> get managedAdapters =>
+      managedAdaptersOf(registry, settings);
+
+  /// The franchises this build supports, for the About line.
+  ///
+  /// Read off the registry rather than written into a string, so the
+  /// tagline cannot go stale the way "The Sims 1-4 supported, SimCity
+  /// coming soon" did the moment SimCity arrived. Franchise names are
+  /// proper nouns and stay in their own spelling in every language, the
+  /// same bargain a pack name and a game title already make.
+  String get supportedSeries {
+    final seen = <String>[];
+    for (final adapter in registry.adapters) {
+      if (!seen.contains(adapter.game.series)) seen.add(adapter.game.series);
+    }
+    return seen.join(' · ');
+  }
+
+  /// Whether [gameId] is one of the games being managed.
+  bool isManagedGame(String gameId) =>
+      managedAdapters.any((a) => a.game.id == gameId);
+
+  /// Adds or removes a game from the sidebar. Nothing of that game's is
+  /// deleted either way; this is only about what is on screen.
+  ///
+  /// The game currently open cannot be the one taken away without
+  /// somewhere to go, so removing it moves to the first game left.
+  Future<void> setGameManaged(String gameId, bool managed) async {
+    final current = managedAdapters.map((a) => a.game.id).toSet();
+    if (managed == current.contains(gameId)) return;
+    if (managed) {
+      current.add(gameId);
+    } else {
+      if (current.length <= 1) {
+        // Never leave an empty sidebar - said out loud, since the switch
+        // otherwise just sits there looking broken.
+        lastError = const AppMessage('errorLastManagedGame');
+        playSound(UiSound.error);
+        notifyListeners();
+        return;
+      }
+      current.remove(gameId);
+    }
+    // Written in registry order rather than in click order, so the
+    // sidebar is the same however the user got there.
+    await settings.setManagedGameIds([
+      for (final adapter in registry.adapters)
+        if (current.contains(adapter.game.id)) adapter.game.id,
+    ]);
+    playSound(managed ? UiSound.toggleOn : UiSound.toggleOff);
+    analytics.capture('managed_games_changed', {
+      'game': gameId,
+      'managed': managed,
+      'count': current.length,
+    });
+    // The game on screen, or the default, may have just been hidden.
+    if (!managed && gameId == settings.defaultGameId) {
+      await settings.setDefaultGameId(null);
+    }
+    if (!managed && gameId == _adapter.game.id) {
+      await selectGame(managedAdapters.first.game.id);
+      return;
+    }
+    notifyListeners();
+  }
+
   /// The game the app opens on: the one the user chose (in the
-  /// walkthrough or in Settings), the Sims 4 if nobody ever said, and
-  /// failing both whatever the registry lists first - which is what a
-  /// test registry of one invented game gets.
+  /// walkthrough or in Settings) as long as it is still managed, and
+  /// failing that the first managed game.
+  ///
+  /// No franchise is preferred here. It used to fall back to the Sims 4
+  /// by name, which was a fine answer while every game was a Sims game
+  /// and is the wrong one for somebody who only owns SimCity.
   static GameAdapter _startingAdapter(
       GameRegistry registry, SettingsStore settings) {
+    final managed = managedAdaptersOf(registry, settings);
     final chosen = settings.defaultGameId;
-    return (chosen == null ? null : registry.byGameId(chosen)) ??
-        registry.byGameId('sims4') ??
-        registry.adapters.first;
+    final picked = chosen == null ? null : registry.byGameId(chosen);
+    if (picked != null && managed.contains(picked)) return picked;
+    return managed.firstOrNull ?? registry.adapters.first;
   }
 
   final GameRegistry registry;
@@ -651,6 +772,22 @@ class AppController extends ChangeNotifier {
     await settings.setThemeModeName(name);
     playSound(UiSound.select);
     analytics.capture('theme_changed', {'theme': name ?? 'system'});
+    notifyListeners();
+  }
+
+  /// The theme the whole app wears, whichever game the sidebar is on, as
+  /// one of `GameTheme.themeIds`; `null` is the flat default. Which
+  /// colours that comes out as is the drawing side's business - this
+  /// class holds no palettes, the same bargain [locale] makes.
+  String? get appTheme => settings.appThemeName;
+
+  /// Switches the chrome. Nothing is re-read from disk: the whole window
+  /// repaints off the one notify.
+  Future<void> setAppTheme(String? name) async {
+    if (name == settings.appThemeName) return;
+    await settings.setAppThemeName(name);
+    playSound(UiSound.select);
+    analytics.capture('app_theme_changed', {'theme': name ?? 'default'});
     notifyListeners();
   }
 
@@ -2597,12 +2734,17 @@ class AppController extends ChangeNotifier {
         'source': settings.launchCount > 1 ? 'update' : 'first_run',
       });
     }
+    // Right after it, and reading the flag it just set: an update that
+    // also happens to be somebody's first ever launch is a welcome, not
+    // a bulletin.
+    await _openWhatsNew();
     // Before the first refresh, so the library's very first frame already
     // carries whatever the last download knew.
     _loadCachedAdvisories();
     // Same reason: the update badges are drawn from these records, and
     // the first library frame should already have them.
     _shopInstalls = parseShopInstalls(settings.shopInstallsJson);
+    _catalogInstalls = parseCatalogInstalls(settings.catalogInstallsJson);
     // Same again: mods sitting in folders the library cannot sweep are
     // only known from here, and the first frame should show them.
     _placedMods = parsePlacedMods(settings.placedModsJson);
@@ -2840,7 +2982,7 @@ class AppController extends ChangeNotifier {
       return real;
     }
     final demo = buildDemoLibrary(_adapter, modsDir?.path ?? 'Mods',
-        today: _demoAnchor());
+        today: _demoAnchor(), depthLimit: modDepthLimit);
     final taken = {for (final mod in real) enabledPathOf(mod.path)};
     final invented = [
       for (final mod in demo.mods)
@@ -3029,7 +3171,10 @@ class AppController extends ChangeNotifier {
   }
 
   Future<void> _refreshCounts() async {
-    for (final other in registry.adapters) {
+    // Managed games only: a folder scan per game is the most expensive
+    // thing a refresh does, and a game the user has hidden has no row
+    // for the number to land in.
+    for (final other in managedAdapters) {
       if (other.game.id == _adapter.game.id) continue;
       await _refreshCountFor(other, notify: false);
     }
@@ -3292,6 +3437,7 @@ class AppController extends ChangeNotifier {
     // about any more.
     if (error == null) {
       await _forgetShopFile(mod);
+        await _forgetCatalogFile(mod);
       await _forgetPlaced(_adapter, modsDir, mod);
       await _forgetIgnored(mod);
       await _forgetTags(mod);
@@ -3367,6 +3513,7 @@ class AppController extends ChangeNotifier {
       removed.add(mod.path);
       try {
         await _forgetShopFile(mod);
+        await _forgetCatalogFile(mod);
         await _forgetPlaced(_adapter, modsDir, mod);
         await _forgetIgnored(mod);
         await _forgetTags(mod);
@@ -3642,6 +3789,7 @@ class AppController extends ChangeNotifier {
       bytes += mod.sizeBytes ?? 0;
       try {
         await _forgetShopFile(mod);
+        await _forgetCatalogFile(mod);
         await _forgetPlaced(_adapter, modsDir, mod);
         await _forgetIgnored(mod);
         await _forgetTags(mod);
@@ -4500,6 +4648,118 @@ class AppController extends ChangeNotifier {
     openUrl(Uri.parse(url));
   }
 
+  // ------------------------------------------------------- what's new
+
+  /// The releases this build knows how to celebrate. Injectable for the
+  /// same reason the fetchers are: the shipped table names versions this
+  /// build may not have reached yet, so a test that pinned behaviour
+  /// against it would answer differently either side of a release.
+  final List<WhatsNewEntry> _whatsNewTable;
+
+  List<WhatsNewEntry> _whatsNew = const [];
+  bool _whatsNewOpen = false;
+
+  /// Whether what is up came from the debug row rather than from an
+  /// update, so closing it is not reported as somebody reading the
+  /// news.
+  bool _whatsNewPreview = false;
+
+  /// What this update brought, newest first, while the card is up.
+  List<WhatsNewEntry> get whatsNew => _whatsNew;
+
+  /// Whether the card is on screen. False on a fresh install, on a
+  /// launch that brought nothing worth celebrating, and for good once
+  /// it has been closed - this is once per update, not once per launch.
+  bool get showWhatsNew => _whatsNewOpen;
+
+  /// Works out whether this launch has anything to celebrate, and marks
+  /// the version seen either way.
+  ///
+  /// The version is written down first and unconditionally, so a crash
+  /// further into startup cannot turn the card into something that
+  /// greets you every morning, and so the walkthrough case below really
+  /// does settle it rather than deferring it to tomorrow.
+  Future<void> _openWhatsNew() async {
+    final seen = settings.lastSeenVersion ?? analytics.previousVersion;
+    if (settings.lastSeenVersion != appVersion) {
+      await settings.setLastSeenVersion(appVersion);
+    }
+    // Off means no card at all, not a card with nothing in it: the
+    // switch exists so a release that words something badly, or draws a
+    // hero that turns out to be wrong, can be stopped without waiting
+    // for the next build. Defaults on like the other kill switches.
+    if (!analytics.isEnabled('whats-new', fallback: true)) return;
+    // The walkthrough is the bigger welcome and it is already up. Two
+    // cards over one window is worse than either of them alone, and the
+    // version is marked seen above rather than saved for the next
+    // launch - being ambushed tomorrow by news of an update you have
+    // already been welcomed into is not better.
+    if (_onboarding) return;
+    final entries = entriesSince(seen, appVersion, entries: _whatsNewTable);
+    if (entries.isEmpty) return;
+    _whatsNew = entries;
+    _whatsNewOpen = true;
+    _whatsNewPreview = false;
+    analytics.capture('whats_new_shown', {
+      'previous_version': seen,
+      'entries': entries.length,
+    });
+  }
+
+  /// Whether there is anything for [previewWhatsNew] to draw.
+  bool get canPreviewWhatsNew => kDebugMode && _whatsNewTable.isNotEmpty;
+
+  /// Opens the card on demand, from the debug-only Settings row.
+  ///
+  /// Deliberately not [_openWhatsNew], which answers a different
+  /// question: whether *this machine* has just been updated. On the
+  /// machine the card is being worked on the answer is almost always no
+  /// - the version has been seen, or the entry is written for a release
+  /// this build has not reached yet - and a button wired to that would
+  /// do nothing at all and look broken.
+  ///
+  /// So it draws the newest release the table knows about, which is the
+  /// card the next release will actually put up. It writes no version
+  /// down and sends no event: this is somebody looking at their own
+  /// work, not a user being told something.
+  void previewWhatsNew() {
+    if (!canPreviewWhatsNew) return;
+    final newest = _whatsNewTable
+        .map((e) => e.version)
+        .reduce((a, b) => (compareVersions(a, b) ?? 0) >= 0 ? a : b);
+    // Table order within the release, so the hero is the one the real
+    // card would pick rather than whichever came out of the filter.
+    _whatsNew = [
+      for (final entry in _whatsNewTable)
+        if (entry.version == newest) entry,
+    ];
+    _whatsNewOpen = true;
+    _whatsNewPreview = true;
+    playSound(UiSound.click);
+    notifyListeners();
+  }
+
+  /// Closes the card for good. There is no dismissed-ids record to keep
+  /// like the announcement banner has: the version written down at
+  /// startup is what stops it coming back.
+  void dismissWhatsNew() {
+    if (!_whatsNewOpen) return;
+    playSound(UiSound.click);
+    if (!_whatsNewPreview) {
+      analytics.capture('whats_new_dismissed', {'entries': _whatsNew.length});
+    }
+    _whatsNewOpen = false;
+    notifyListeners();
+  }
+
+  void openWhatsNewUrl(WhatsNewEntry entry) {
+    final url = entry.url;
+    if (url == null || !url.startsWith('https://')) return;
+    playSound(UiSound.click);
+    analytics.capture('whats_new_link_clicked', {'version': entry.version});
+    openUrl(Uri.parse(url));
+  }
+
   /// Every game's listings, as of the last [refreshShop]. Null before the
   /// first successful load. The Exchange is not tied to the game in the
   /// sidebar: the whole catalog is fetched once and narrowed here.
@@ -4574,6 +4834,17 @@ class AppController extends ChangeNotifier {
     if (shopGameFilter == gameId) return;
     playSound(UiSound.click);
     shopGameFilter = gameId;
+    // Narrowing to another game takes the catalog's chip off the row, so
+    // the shelf it was showing has to go back to ours rather than stay
+    // up with nothing selecting it.
+    final showing = shopCatalogSource;
+    if (showing != null &&
+        !visibleCatalogs.any((c) => c.source.id == showing)) {
+      shopCatalogSource = null;
+      catalogSourceFilter = null;
+      selectedCatalogEntry = null;
+      catalogListing = null;
+    }
     analytics.capture('shop_filtered', {'game': gameId ?? 'all'});
     notifyListeners();
   }
@@ -5314,6 +5585,522 @@ class AppController extends ChangeNotifier {
   }
 
   // =========================================================================
+  // Catalogs
+
+  /// Every catalog every registered game offers (see
+  /// [GameAdapter.catalogs]), built once for the session.
+  ///
+  /// Off the registry rather than off the game in the sidebar, because
+  /// The Exchange is game-agnostic: a person browsing "All games" should
+  /// see the SimCity 4 shelf without first selecting SimCity 4, and an
+  /// entry has to resolve to its own catalog long after the sidebar has
+  /// moved on. A catalog caches what it has fetched, so these live as
+  /// long as the session does.
+  List<ModCatalog>? _catalogs;
+
+  List<ModCatalog> get catalogs => _catalogs ??= [
+        for (final adapter in registry.adapters) ...adapter.catalogs(),
+      ];
+
+  /// [visibleCatalogs] gathered under the series of the game each one
+  /// indexes, in the registry's order (which is by release year).
+  ///
+  /// A chip row that just listed "Main, Simtropolis, SC4Evermore" says
+  /// nothing about what those stores are *for*. Grouped under SimCity it
+  /// reads as one shelf of SimCity stores, which is the only reading
+  /// that keeps working once a second series has catalogs of its own and
+  /// two of them are on screen together.
+  Map<String, List<ModCatalog>> get catalogsBySeries {
+    final visible = visibleCatalogs;
+    final out = <String, List<ModCatalog>>{};
+    for (final adapter in registry.adapters) {
+      for (final catalog in visible) {
+        if (catalog.source.gameId != adapter.game.id) continue;
+        out.putIfAbsent(adapter.game.series, () => []).add(catalog);
+      }
+    }
+    return out;
+  }
+
+  /// The catalogs whose game is in view, which is what the source chips
+  /// draw.
+  ///
+  /// The Exchange's own game filter decides, not the sidebar: "All
+  /// games" shows every catalog, and picking one game shows only that
+  /// game's. A shelf for a game the user has filtered out would be a
+  /// row of chips that contradict the filter above them.
+  List<ModCatalog> get visibleCatalogs => [
+        for (final catalog in catalogs)
+          if (shopGameFilter == null || catalog.source.gameId == shopGameFilter)
+            catalog,
+      ];
+
+  /// Whether this game has a catalog at all, known without a network
+  /// call so the sidebar can decide whether to offer the screen rather
+  /// than showing an empty one.
+  ///
+  /// Behind `catalog-browse` like every other feature that writes into a
+  /// folder the game reads. This one installs files a third party's
+  /// index pointed at, so being able to stop it without shipping a build
+  /// matters at least as much as it does for the packs screen. Defaults
+  /// on, so a machine that never reached PostHog keeps it.
+  bool get hasCatalogs =>
+      visibleCatalogs.isNotEmpty &&
+      analytics.isEnabled('catalog-browse', fallback: true);
+
+  /// Everything the catalogs answered with, merged. Null before the
+  /// first look, which the screen words differently from a catalog that
+  /// really is empty.
+  List<CatalogEntry>? catalogEntries;
+
+  bool catalogLoading = false;
+
+  /// Sources that could not be reached on the last refresh, by label.
+  /// One channel being down is not a reason to show nothing: the other
+  /// two are thousands of entries.
+  List<String> catalogFailures = [];
+
+  String catalogSearch = '';
+
+  /// Which shelf The Exchange is showing: null is our own listings, and
+  /// anything else is that catalog's id.
+  ///
+  /// One screen rather than two, because a person looking for a mod does
+  /// not care which index it is in and should not have to learn a second
+  /// tab to find out. The Exchange keeps the top billing - it is ours,
+  /// and it is the only one every game has.
+  String? shopCatalogSource;
+
+  bool get showingCatalog => shopCatalogSource != null;
+
+  /// Which source's entries are on screen, or null for all of them.
+  String? catalogSourceFilter;
+
+  CatalogEntry? selectedCatalogEntry;
+  CatalogListing? catalogListing;
+  bool catalogListingLoading = false;
+
+  /// The answers to a listing's own choices, cleared when the listing
+  /// closes: they are about the mod on screen, not about the game.
+  final Map<String, String> catalogChoices = {};
+
+  CatalogDownloadProgress? catalogProgress;
+  bool _catalogCancelled = false;
+
+  /// What the catalogs have put on this machine, by entry id. Survives
+  /// restarts, and is the only thing that makes "you have 1.0, the
+  /// catalog lists 1.1" answerable at all.
+  Map<String, CatalogInstall> _catalogInstalls = {};
+
+  CatalogInstall? catalogInstallOf(CatalogEntry entry) =>
+      _catalogInstalls[entry.id];
+
+  /// Whether this entry is installed, and whether what the catalog now
+  /// lists differs from what went in. Difference, not ordering: curators
+  /// write versions freely, so "newer" is not a question that has an
+  /// answer here.
+  bool catalogInstalled(CatalogEntry entry) =>
+      _catalogInstalls.containsKey(entry.id);
+
+  bool catalogHasUpdate(CatalogEntry entry) {
+    final record = _catalogInstalls[entry.id];
+    return record != null && record.version != entry.version;
+  }
+
+  /// How many installed entries the catalog now lists differently, for
+  /// the badge on the shop's source row.
+  int get catalogUpdateCount {
+    final entries = catalogEntries;
+    if (entries == null) return 0;
+    var count = 0;
+    for (final entry in entries) {
+      if (catalogHasUpdate(entry)) count++;
+    }
+    return count;
+  }
+
+  /// Cover art per entry, filled in as cards come into view.
+  ///
+  /// The index carries no images at all - they live in the per-entry
+  /// record - so a shelf with covers means one request per card. That is
+  /// fine for the twenty on screen and ruinous for the five thousand
+  /// behind them, which is why this is asked for by the card rather than
+  /// prefetched, capped at [_catalogCoverLimit] in flight, and remembered
+  /// (a null meaning "asked, and there is none").
+  final Map<String, Uri?> _catalogCovers = {};
+  final Set<String> _catalogCoversInFlight = {};
+
+  static const _catalogCoverLimit = 6;
+
+  /// The cover for [entry], or null while there isn't one yet. Starts
+  /// the fetch on first ask; the card rebuilds when it lands.
+  Uri? catalogCover(CatalogEntry entry) {
+    if (_catalogCovers.containsKey(entry.id)) return _catalogCovers[entry.id];
+    unawaited(_loadCatalogCover(entry));
+    return null;
+  }
+
+  Future<void> _loadCatalogCover(CatalogEntry entry) async {
+    if (_catalogCovers.containsKey(entry.id)) return;
+    if (_catalogCoversInFlight.length >= _catalogCoverLimit) return;
+    if (!_catalogCoversInFlight.add(entry.id)) return;
+    try {
+      ModCatalog? catalog;
+      for (final candidate in catalogs) {
+        if (candidate.source.id == entry.sourceId) {
+          catalog = candidate;
+          break;
+        }
+      }
+      final images = await (catalog?.fetchImages(entry) ?? Future.value(const <Uri>[]));
+      _catalogCovers[entry.id] = images.isEmpty ? null : images.first;
+      notifyListeners();
+    } catch (_) {
+      // A cover is decoration; failing to get one is not worth a banner.
+      _catalogCovers[entry.id] = null;
+    } finally {
+      _catalogCoversInFlight.remove(entry.id);
+    }
+  }
+
+  Future<void> _rememberCatalogInstall(CatalogInstall install) async {
+    _catalogInstalls = {..._catalogInstalls, install.entryId: install};
+    await settings
+        .setCatalogInstallsJson(encodeCatalogInstalls(_catalogInstalls));
+  }
+
+  /// Drops [mod]'s file from whichever catalog record claims it, so an
+  /// uninstalled mod stops reading as installed. A record with no files
+  /// left goes with it.
+  ///
+  /// Called from the same three places `_forgetShopFile` is, because a
+  /// mod deleted through the library is deleted whichever shelf it came
+  /// from.
+  Future<void> _forgetCatalogFile(Mod mod) async {
+    final root = modsDir?.path;
+    if (root == null || _catalogInstalls.isEmpty) return;
+    final gone = enabledPathOf(mod.path);
+    final updated = <String, CatalogInstall>{};
+    var changed = false;
+    for (final entry in _catalogInstalls.entries) {
+      final install = entry.value;
+      if (install.gameId != _adapter.game.id) {
+        updated[entry.key] = install;
+        continue;
+      }
+      final kept = [
+        for (final file in install.files)
+          if (p.normalize(p.join(root, file)) != gone) file,
+      ];
+      if (kept.length == install.files.length) {
+        updated[entry.key] = install;
+        continue;
+      }
+      changed = true;
+      if (kept.isNotEmpty) updated[entry.key] = install.copyWith(files: kept);
+    }
+    if (!changed) return;
+    _catalogInstalls = updated;
+    await settings
+        .setCatalogInstallsJson(encodeCatalogInstalls(_catalogInstalls));
+  }
+
+  bool get catalogInstalling => catalogProgress != null;
+
+  CatalogSource? catalogSourceOf(CatalogEntry entry) {
+    for (final catalog in catalogs) {
+      if (catalog.source.id == entry.sourceId) return catalog.source;
+    }
+    return null;
+  }
+
+  /// The entries the filters leave standing, ordered by name so two
+  /// catalogs interleave rather than arriving in blocks.
+  List<CatalogEntry> get filteredCatalogEntries {
+    final all = catalogEntries;
+    if (all == null) return const [];
+    final needle = catalogSearch.trim().toLowerCase();
+    final out = [
+      for (final entry in all)
+        if (catalogSourceFilter == null ||
+            entry.sourceId == catalogSourceFilter)
+          if (needle.isEmpty ||
+              entry.name.toLowerCase().contains(needle) ||
+              entry.summary.toLowerCase().contains(needle))
+            entry,
+    ];
+    out.sort((a, b) {
+      final byName = a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      // Two catalogs list the same mod often enough that a tiebreak is
+      // needed for a stable order: List.sort is unstable, and without one
+      // the same two rows swap places between builds.
+      return byName != 0 ? byName : a.id.compareTo(b.id);
+    });
+    return out;
+  }
+
+  void setCatalogSearch(String value) {
+    if (catalogSearch == value) return;
+    catalogSearch = value;
+    notifyListeners();
+  }
+
+  void setCatalogSourceFilter(String? sourceId) {
+    if (catalogSourceFilter == sourceId) return;
+    playSound(UiSound.click);
+    catalogSourceFilter = sourceId;
+    notifyListeners();
+  }
+
+  /// Switches The Exchange between our own listings and a catalog.
+  void setShopCatalogSource(String? sourceId) {
+    if (shopCatalogSource == sourceId) return;
+    playSound(UiSound.click);
+    shopCatalogSource = sourceId;
+    catalogSourceFilter = sourceId;
+    selectedCatalogEntry = null;
+    catalogListing = null;
+    if (sourceId != null) {
+      analytics.capture('catalog_opened', {
+        'game': _adapter.game.id,
+        'source': sourceId,
+      });
+    }
+    notifyListeners();
+    if (sourceId != null && catalogEntries == null && !catalogLoading) {
+      unawaited(refreshCatalog());
+    }
+  }
+
+  /// Loads every catalog this game has, in parallel. Best-effort per
+  /// source, so one channel timing out costs its own entries and not the
+  /// screen.
+  Future<void> refreshCatalog() async {
+    if (catalogLoading) return;
+    final sources = catalogs;
+    if (sources.isEmpty) return;
+    catalogLoading = true;
+    catalogFailures = [];
+    notifyListeners();
+    try {
+      final answers = await Future.wait([
+        for (final catalog in sources) catalog.fetchEntries(),
+      ]);
+      final merged = <CatalogEntry>[];
+      final failed = <String>[];
+      for (var i = 0; i < sources.length; i++) {
+        final entries = answers[i];
+        if (entries == null) {
+          failed.add(sources[i].source.label);
+          continue;
+        }
+        merged.addAll(entries);
+      }
+      catalogEntries = merged;
+      catalogFailures = failed;
+      analytics.capture('catalog_loaded', {
+        'game': _adapter.game.id,
+        'entries': merged.length,
+        'sources_failed': failed.length,
+      });
+    } finally {
+      catalogLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Opens one entry's detail, which is where the dependency closure is
+  /// walked and the reach verdict comes from. Several requests, hence
+  /// the spinner.
+  Future<void> openCatalogEntry(CatalogEntry entry) async {
+    playSound(UiSound.click);
+    selectedCatalogEntry = entry;
+    catalogListing = null;
+    catalogChoices.clear();
+    catalogListingLoading = true;
+    notifyListeners();
+    analytics.capture('catalog_listing_opened', {
+      'game': _adapter.game.id,
+      'source': entry.sourceId,
+    });
+    await _loadCatalogListing(entry);
+  }
+
+  Future<void> _loadCatalogListing(CatalogEntry entry) async {
+    ModCatalog? catalog;
+    for (final candidate in catalogs) {
+      if (candidate.source.id == entry.sourceId) {
+        catalog = candidate;
+        break;
+      }
+    }
+    final listing =
+        await catalog?.fetchListing(entry, selection: catalogChoices);
+    // The user may have moved on while the closure was being walked.
+    if (selectedCatalogEntry?.id != entry.id) return;
+    catalogListing = listing;
+    catalogListingLoading = false;
+    if (listing == null) lastError = catalog?.describeFailure();
+    notifyListeners();
+  }
+
+  /// Answers one of a listing's choices and re-resolves it, because a
+  /// choice changes both the files and whether we can reach them.
+  Future<void> setCatalogChoice(String id, String value) async {
+    if (catalogChoices[id] == value) return;
+    playSound(UiSound.click);
+    catalogChoices[id] = value;
+    final entry = selectedCatalogEntry;
+    if (entry == null) return;
+    catalogListingLoading = true;
+    notifyListeners();
+    await _loadCatalogListing(entry);
+  }
+
+  void closeCatalogEntry() {
+    if (catalogInstalling) return;
+    playSound(UiSound.click);
+    selectedCatalogEntry = null;
+    catalogListing = null;
+    catalogChoices.clear();
+    catalogListingLoading = false;
+    notifyListeners();
+  }
+
+  void cancelCatalogInstall() {
+    if (!catalogInstalling) return;
+    _catalogCancelled = true;
+    notifyListeners();
+  }
+
+  /// The adapter for the game a catalog entry belongs to, which need not
+  /// be the one in the sidebar.
+  GameAdapter? catalogAdapterOf(CatalogEntry entry) {
+    final source = catalogSourceOf(entry);
+    return source == null ? null : registry.byGameId(source.gameId);
+  }
+
+  /// Downloads a listing's whole dependency closure and installs it.
+  ///
+  /// All of it or none of it: a lot installed without its prop packs is
+  /// brown boxes in somebody's city, which is the failure this screen
+  /// exists to prevent. Cancellable throughout, and a cancel leaves the
+  /// mods folder untouched because nothing is installed until every file
+  /// has arrived.
+  Future<void> installCatalogListing() async {
+    final listing = catalogListing;
+    if (listing == null || !listing.canInstall || catalogInstalling) return;
+    playSound(UiSound.click);
+    _catalogCancelled = false;
+    catalogProgress =
+        CatalogDownloadProgress(index: 0, count: listing.assets.length);
+    notifyListeners();
+
+    Directory? scratch;
+    try {
+      // The entry's own game, not the sidebar's: a catalog can be on
+      // screen while the library is on another game, and the files
+      // belong in the folder of the game that reads them. Same rule The
+      // Exchange's listings follow.
+      final into = catalogAdapterOf(listing.entry) ?? _adapter;
+      final dir = await modsDirFor(into);
+      if (dir == null) {
+        lastError = AppMessage('shopNeedsFolder', [into.game.name]);
+        playSound(UiSound.error);
+        return;
+      }
+      scratch = await Directory.systemTemp.createTemp('catalog_');
+      final downloads = await downloadCatalogAssets(
+        listing.assets,
+        scratch,
+        onProgress: (progress) {
+          catalogProgress = progress;
+          notifyListeners();
+        },
+        isCancelled: () => _catalogCancelled,
+      );
+      final installed = await installFiles(
+        [for (final download in downloads) download.file],
+        method: 'catalog',
+        into: into,
+        target: dir,
+      );
+      if (lastError == null) {
+        final previous = _catalogInstalls[listing.entry.id];
+        // Taken from what the install actually placed rather than by
+        // diffing the folder either side of it, the same reason The
+        // Exchange does: a file routed into one of the game's own
+        // folders never shows up in a listing of the mods folder, and
+        // the record would come back empty.
+        await _rememberCatalogInstall(CatalogInstall(
+          entryId: listing.entry.id,
+          sourceId: listing.entry.sourceId,
+          gameId: into.game.id,
+          version: listing.entry.version,
+          name: listing.entry.name,
+          files: [
+            for (final placed in installed)
+              p.relative(enabledPathOf(placed.path), from: dir.path),
+          ],
+        ));
+        analytics.capture(
+            previous == null ? 'catalog_installed' : 'catalog_updated', {
+          'game': into.game.id,
+          'source': listing.entry.sourceId,
+          'files': downloads.length,
+          'installed': installed.length,
+          'digest_drift':
+              downloads.where((d) => d.digestMatched == false).length,
+        });
+        playSound(UiSound.install);
+      }
+    } on CatalogDownloadException catch (e) {
+      // A cancel is the user's own decision and gets no banner and no
+      // error sound; only a real failure is worth either.
+      lastError = e.cancelled ? null : e.detail;
+      if (!e.cancelled) playSound(UiSound.error);
+      analytics.capture('catalog_install_failed', {
+        'game': _adapter.game.id,
+        'reason': e.cancelled ? 'cancelled' : 'download',
+      });
+    } catch (e) {
+      lastError = const AppMessage('catalogInstallFailed');
+      playSound(UiSound.error);
+      analytics.capture('catalog_install_failed',
+          {'game': _adapter.game.id, 'reason': 'install'});
+    } finally {
+      // In a finally because this is what locks the buttons: a step that
+      // threw its way out would leave the screen refusing to install
+      // anything until the app was restarted.
+      catalogProgress = null;
+      _catalogCancelled = false;
+      try {
+        await scratch?.delete(recursive: true);
+      } catch (_) {}
+      notifyListeners();
+    }
+  }
+
+  /// Opens the entry's own page, which is the only honest action for a
+  /// listing whose files sit behind a host that refuses us.
+  void openCatalogPage(CatalogListing listing) {
+    if (listing.websiteUrls.isEmpty) return;
+    analytics.capture('catalog_page_opened', {
+      'game': _adapter.game.id,
+      'source': listing.entry.sourceId,
+      'reason': listing.reach.name,
+    });
+    openUrl(listing.websiteUrls.first);
+  }
+
+  /// Opens the catalog project's own site, from the credit line every
+  /// entry carries.
+  void openCatalogProject(CatalogSource source) {
+    analytics.capture('catalog_project_opened', {'source': source.id});
+    openUrl(source.projectUrl);
+  }
+
+  // =========================================================================
   // Saves
 
   /// The current game's saves, or null before the first look (switching
@@ -5364,6 +6151,12 @@ class AppController extends ChangeNotifier {
     if (available.isEmpty || available.contains(savesTab)) return savesTab;
     return available.first;
   }
+
+  /// Whether the sidebar offers the saves screen at all. The same split
+  /// [showPacks] and [showCreations] make: a game nobody has written a
+  /// save reader for gets no entry, rather than one that always lands on
+  /// the "no saves found" empty state.
+  bool get showSaves => _adapter.hasSaves;
 
   void openSaves() {
     if (screen != AppScreen.saves) {
@@ -5715,12 +6508,91 @@ class AppController extends ChangeNotifier {
       notifyListeners();
       return;
     }
+    // A listing's requirements were answered from this shelf.
+    _forgetPackRequirements();
     analytics.capture('pack_toggled', {
       'game': _adapter.game.id,
       'pack': pack.code,
       'kind': pack.kind.name,
       'enabled': enabled,
     });
+  }
+
+  // =========================================================================
+  // Pack requirements - what a listing on The Exchange says it needs
+
+  /// What each game answered when asked for its packs, for the games a
+  /// listing has named this session. A value of null is the important
+  /// one: it means the question could not be put, not that the game came
+  /// back empty-handed.
+  ///
+  /// Cached because the shop is game-agnostic and a detail page can be
+  /// opened, closed and reopened all afternoon; a pack read is a folder
+  /// listing on The Sims 4 and a walk of the registry on the other two,
+  /// and none of it moves while the app is open unless the app moved it
+  /// (which is what [_forgetPackRequirements] is for).
+  final Map<String, List<GamePack>?> _packsByGame = {};
+
+  /// Whether to check a listing's requirements at all.
+  ///
+  /// Its own flag rather than `pack-manager`'s: that switch exists
+  /// because toggling writes into the game's settings file, and reading
+  /// to answer a question writes nothing. Tying the two would take the
+  /// warnings down with the screen.
+  bool get showPackRequirements =>
+      analytics.isEnabled('mod-requirements', fallback: true);
+
+  /// Throws away what the games said, so the next listing asks again.
+  /// Called after a pack is switched, which is the one thing that
+  /// happens with the app open and changes the answer.
+  void _forgetPackRequirements() => _packsByGame.clear();
+
+  /// What [mod] needs, answered for this machine.
+  ///
+  /// Empty when the listing named nothing, when the flag is off, or when
+  /// the game it names is not one this build knows - a requirement we
+  /// cannot even attribute to a game is not worth a line on the page.
+  /// Otherwise one entry per declared pack, and every one of them may
+  /// come back [PackRequirementState.unknown]: this is a warning, and
+  /// [PackRequirement.isBlocking] is deliberately false for not knowing.
+  Future<List<PackRequirement>> packRequirementsFor(ShopMod mod) async {
+    if (mod.requiresPacks.isEmpty || !showPackRequirements) return const [];
+    final into = registry.byGameId(mod.gameId);
+    if (into == null) return const [];
+    return resolvePackRequirements(
+      codes: mod.requiresPacks,
+      installed: await _packsOf(into),
+      catalog: into.knownPackNames,
+    );
+  }
+
+  /// This game's packs, or null when it cannot be asked.
+  ///
+  /// Three ways to get a null, and they are all the same answer to the
+  /// user: the game has no packs the app can read here (`hasPacks` is
+  /// already false off Windows for The Sims 2 and 3), the game is not
+  /// installed on this machine, or the read itself fell over. An empty
+  /// list is kept apart from all three - it means a copy of the game
+  /// that really does have no packs, and a mod needing one is then
+  /// genuinely out of reach.
+  Future<List<GamePack>?> _packsOf(GameAdapter into) async {
+    final id = into.game.id;
+    // The game on screen has usually read its own shelf already, and it
+    // is the copy that carries any switch flipped this session.
+    if (identical(into, _adapter) && gamePacks != null) return gamePacks;
+    if (_packsByGame.containsKey(id)) return _packsByGame[id];
+    List<GamePack>? packs;
+    if (into.hasPacks && await modsDirFor(into) != null) {
+      try {
+        packs = await into.listPacks();
+      } catch (_) {
+        // The adapter contract says never throw. A surprise here is
+        // still not a reason to tell somebody they are missing a pack.
+        packs = null;
+      }
+    }
+    _packsByGame[id] = packs;
+    return packs;
   }
 
   // =========================================================================
@@ -6201,7 +7073,10 @@ class AppController extends ChangeNotifier {
   /// and so is the walkthrough, which is a plumbob's worth of window
   /// covered by a card the user is reading.
   bool get showTrivia =>
-      triviaAvailable && triviaContext != null && !_onboarding;
+      triviaAvailable &&
+      triviaContext != null &&
+      !_onboarding &&
+      !_whatsNewOpen;
 
   bool get triviaOpen => showTrivia && _triviaOpen;
 

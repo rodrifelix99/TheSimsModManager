@@ -5,9 +5,11 @@ import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:intl/intl.dart' show DateFormat, NumberFormat;
 
 import '../core/game.dart';
+import '../core/pack_requirements.dart';
 import '../services/mod_shop.dart';
 import '../services/sfx.dart';
 import 'app_controller.dart';
+import 'catalog_view.dart';
 import 'game_skin.dart';
 import 'game_theme.dart';
 import 'install_destination_dialog.dart';
@@ -54,6 +56,12 @@ class ShopView extends StatelessWidget {
     final t = theme;
     final c = controller;
     final l = L.of(context);
+    // A catalog entry's page wins over the shelves whichever shelf is
+    // showing: a deep link or a click can open one while the source row
+    // still says The Exchange.
+    if (c.selectedCatalogEntry != null) {
+      return CatalogDetailPanel(theme: t, controller: c);
+    }
     final selected = c.selectedShopListing;
     if (selected != null) return _detail(t, c, l, selected);
     return _shelves(t, c, l);
@@ -107,9 +115,13 @@ class ShopView extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      mods == null || mods.isEmpty
-                          ? l.shopTagline
-                          : l.shopListingCount(mods.length),
+                      c.showingCatalog
+                          ? (c.catalogLoading && c.catalogEntries == null
+                              ? l.catalogLoading
+                              : l.catalogCount(c.filteredCatalogEntries.length))
+                          : mods == null || mods.isEmpty
+                              ? l.shopTagline
+                              : l.shopListingCount(mods.length),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -123,8 +135,10 @@ class ShopView extends StatelessWidget {
               ),
               const SizedBox(width: 14),
               IconButton(
-                onPressed: c.shopLoading ? null : c.refreshShop,
-                tooltip: l.shopRefresh,
+                onPressed: c.showingCatalog
+                    ? (c.catalogLoading ? null : c.refreshCatalog)
+                    : (c.shopLoading ? null : c.refreshShop),
+                tooltip: c.showingCatalog ? l.catalogRefresh : l.shopRefresh,
                 color: t.muted,
                 icon: const Icon(Icons.refresh_rounded, size: 20),
               ),
@@ -137,10 +151,23 @@ class ShopView extends StatelessWidget {
             ],
           ),
         ),
+        // The source row comes first: which index you are looking at is a
+        // bigger question than which game, and the game chips below only
+        // ever describe our own listings.
+        if (c.hasCatalogs) CatalogSourceRow(theme: t, controller: c),
+        // Only while another project's shelf is up. On our own the
+        // header already has a Publish button, and saying it twice on
+        // one screen is nagging.
+        if (c.showingCatalog) ExchangePromo(theme: t, controller: c),
         // Only once there is something to sort through: an empty catalog
         // has nothing to filter, and a failed load nothing to say.
-        if (c.shopKnownMods.isNotEmpty) _filterRow(t, c, l),
-        Expanded(child: _shelvesBody(t, c, l, mods)),
+        if (!c.showingCatalog && c.shopKnownMods.isNotEmpty)
+          _filterRow(t, c, l),
+        Expanded(
+          child: c.showingCatalog
+              ? CatalogShelf(theme: t, controller: c)
+              : _shelvesBody(t, c, l, mods),
+        ),
       ],
     );
   }
@@ -153,23 +180,35 @@ class ShopView extends StatelessWidget {
     final counts = c.shopCountsByGame;
     return SizedBox(
       height: 46,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.fromLTRB(28, 0, 28, 8),
-        children: [
-          _filterChip(t, c,
-              label: l.shopAllGames,
-              count: c.shopKnownMods.length,
-              selected: c.shopGameFilter == null,
-              onTap: () => c.setShopGameFilter(null)),
-          for (final adapter in c.registry.adapters)
-            _filterChip(t, c,
-                label: adapter.game.name,
-                game: adapter.game,
-                count: counts[adapter.game.id] ?? 0,
-                selected: c.shopGameFilter == adapter.game.id,
-                onTap: () => c.setShopGameFilter(adapter.game.id)),
-        ],
+      // Wrapped so the wheel reaches it: the row is ten chips wide now
+      // SimCity is registered and a narrow window shows five of them,
+      // and a horizontal list is deaf to a desktop mouse on its own.
+      // The gap under the chips is the row's, not the strip's, so the
+      // arrows sit level with the chips rather than 4px below them.
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: SideStrip(
+          theme: t,
+          builder: (context, scroll) => ListView(
+            controller: scroll,
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 28),
+            children: [
+              _filterChip(t, c,
+                  label: l.shopAllGames,
+                  count: c.shopKnownMods.length,
+                  selected: c.shopGameFilter == null,
+                  onTap: () => c.setShopGameFilter(null)),
+              for (final adapter in c.registry.adapters)
+                _filterChip(t, c,
+                    label: adapter.game.name,
+                    game: adapter.game,
+                    count: counts[adapter.game.id] ?? 0,
+                    selected: c.shopGameFilter == adapter.game.id,
+                    onTap: () => c.setShopGameFilter(adapter.game.id)),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -385,7 +424,11 @@ class ShopView extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              BrandMark(gameId: c.adapter.game.id, size: 34),
+              BrandMark(
+                  gameId: c.adapter.game.id,
+                  size: 34,
+                  name: c.adapter.game.name,
+                  ink: t.accent),
               const SizedBox(height: 22),
               Text(
                 l.shopEmptyTitle,
@@ -517,6 +560,11 @@ class ShopView extends StatelessWidget {
               radius: 15,
               state: skinState(hovered: hovered),
               elevated: hovered),
+          // The cover is flush with the top of the card, so the card is
+          // what shapes it - see the same spot in library_view. A radius
+          // written here would be a guess at what the skin gave the card,
+          // and SimCity 3000 scales one to a quarter.
+          clipBehavior: Clip.antiAlias,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -525,11 +573,7 @@ class ShopView extends StatelessWidget {
                 child: Stack(
                   children: [
                     Positioned.fill(
-                      child: _cover(
-                          mod,
-                          const BorderRadius.vertical(
-                              top: Radius.circular(14)),
-                          fit: BoxFit.cover),
+                      child: _cover(mod, BorderRadius.zero, fit: BoxFit.cover),
                     ),
                     // Which game this is for, since the shelves mix them.
                     // Redundant while one game is filtered, so it goes.
@@ -650,6 +694,7 @@ class ShopView extends StatelessWidget {
               radius: 15,
               state: skinState(hovered: hovered),
               elevated: hovered),
+          clipBehavior: Clip.antiAlias,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -658,11 +703,7 @@ class ShopView extends StatelessWidget {
                 child: Stack(
                   children: [
                     Positioned.fill(
-                      child: _cover(
-                          lead,
-                          const BorderRadius.vertical(
-                              top: Radius.circular(14)),
-                          fit: BoxFit.cover),
+                      child: _cover(lead, BorderRadius.zero, fit: BoxFit.cover),
                     ),
                     if (c.shopGameFilter == null)
                       Positioned(
@@ -1228,6 +1269,7 @@ class ShopView extends StatelessWidget {
               ),
           ],
         ),
+        _RequirementsPanel(theme: t, controller: c, mod: mod),
         const SizedBox(height: 18),
         // Wrapped rather than in a Row: the two labels are long in several
         // languages and this column is half of a narrow window.
@@ -1295,6 +1337,161 @@ class ShopView extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+}
+
+/// What the creator says this mod needs, answered for this machine.
+///
+/// It sits above the buttons rather than below them because it is the
+/// thing you would want to have read before pressing Install, and it
+/// never disables either button: a requirement is the creator's claim
+/// about their own mod, checked against a guess about somebody else's
+/// computer, and two of the five games cannot be asked at all away from
+/// Windows. So the strongest thing on this panel is a sentence.
+///
+/// Stateful for the same reason [_DestinationRow] is - the answer comes
+/// off the disk, and the listing under it can be swapped by the
+/// variation picker.
+class _RequirementsPanel extends StatefulWidget {
+  const _RequirementsPanel({
+    required this.theme,
+    required this.controller,
+    required this.mod,
+  });
+
+  final GameTheme theme;
+  final AppController controller;
+  final ShopMod mod;
+
+  @override
+  State<_RequirementsPanel> createState() => _RequirementsPanelState();
+}
+
+class _RequirementsPanelState extends State<_RequirementsPanel> {
+  List<PackRequirement> _needs = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    _ask();
+  }
+
+  @override
+  void didUpdateWidget(_RequirementsPanel old) {
+    super.didUpdateWidget(old);
+    // A set's variations can each declare their own, so the listing
+    // changing is enough to have to ask again even within one game.
+    if (old.mod.id != widget.mod.id) _ask();
+  }
+
+  Future<void> _ask() async {
+    final mod = widget.mod;
+    final needs = await widget.controller.packRequirementsFor(mod);
+    // The picker may have moved on while the packs were being read.
+    if (!mounted || widget.mod.id != mod.id) return;
+    setState(() => _needs = needs);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_needs.isEmpty) return const SizedBox.shrink();
+    final t = widget.theme;
+    final l = L.of(context);
+    final worst = worstPackRequirement(_needs);
+    final blocking = worst == PackRequirementState.missing ||
+        worst == PackRequirementState.disabled;
+    final note = switch (worst) {
+      PackRequirementState.missing => l.shopRequirementsNote,
+      PackRequirementState.disabled => l.shopRequirementsOffNote,
+      PackRequirementState.unknown => l.shopRequirementsUnknownNote,
+      _ => null,
+    };
+    return Padding(
+      padding: const EdgeInsets.only(top: 18),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 13),
+        decoration: blocking
+            ? t.skin.decorate(t, SkinSurface.notice,
+                radius: 13,
+                accent: t.warning,
+                outline: t.warning.withValues(alpha: .3))
+            : t.skin.decorate(t, SkinSurface.panel,
+                radius: 13, fill: t.surfaceAlt),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l.shopRequires.toUpperCase(), style: eyebrowStyle(t)),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final need in _needs) _needChip(t, l, need),
+              ],
+            ),
+            if (note != null) ...[
+              const SizedBox(height: 10),
+              Text(
+                note,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  height: 1.45,
+                  color: blocking ? t.onWarningTint : t.muted,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// One pack, named and answered. The state travels as words rather
+  /// than as a colour alone - a red dot means nothing to somebody who
+  /// cannot see it is red, and "Not installed" is the whole message.
+  Widget _needChip(GameTheme t, L l, PackRequirement need) {
+    final (label, color) = switch (need.state) {
+      PackRequirementState.met => (l.shopRequirementMet, t.muted),
+      PackRequirementState.disabled => (l.shopRequirementDisabled, t.warning),
+      PackRequirementState.missing => (l.shopRequirementMissing, t.warning),
+      PackRequirementState.unknown => (l.shopRequirementUnknown, t.muted),
+    };
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: .10),
+        borderRadius: BorderRadius.circular(9),
+        border: Border.all(color: color.withValues(alpha: .35)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            need.state == PackRequirementState.met
+                ? Icons.check_rounded
+                : need.state == PackRequirementState.unknown
+                    ? Icons.help_outline_rounded
+                    : Icons.priority_high_rounded,
+            size: 13,
+            color: color,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            need.name,
+            style: TextStyle(
+                fontSize: 12.5, fontWeight: FontWeight.w800, color: t.text),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+                fontSize: 11.5, fontWeight: FontWeight.w700, color: color),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -1602,10 +1799,11 @@ class _GalleryState extends State<_Gallery> {
           child: Container(
             decoration: t.skin.decorate(t, SkinSurface.panel,
                 radius: 15, fill: t.surfaceAlt),
+            clipBehavior: Clip.antiAlias,
             // Contained rather than cropped: a screenshot is someone's
             // proof of what their mod does, and the interface they were
             // showing off sits right at its edges.
-            child: _cover(mod, BorderRadius.circular(14),
+            child: _cover(mod, BorderRadius.zero,
                 index: mod.imageCount == 0 ? null : _index,
                 fit: BoxFit.contain),
           ),

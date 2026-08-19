@@ -9,6 +9,7 @@ import 'package:intl/date_symbol_data_local.dart' show initializeDateFormatting;
 import 'package:window_manager/window_manager.dart';
 
 import 'src/core/game_registry.dart';
+import 'src/games/simcity/simcity_adapters.dart';
 import 'src/games/the_sims/sims_adapters.dart';
 import 'src/services/analytics.dart';
 import 'src/services/settings_store.dart';
@@ -112,12 +113,20 @@ Future<void> main() async {
   await windowManager.setPreventClose(true);
   windowManager.addListener(_FlushOnClose(analytics));
   // To support a new game, implement a GameAdapter and add it here.
+  // Franchise by franchise, each in release order; the sidebar groups on
+  // Game.series and keeps this order inside a group. The Sims leads
+  // because that is the order its users have always seen, and a new
+  // franchise arriving must not rearrange somebody's sidebar.
   final registry = GameRegistry(const [
     Sims1Adapter(),
     Sims2Adapter(),
     Sims3Adapter(),
     SimsMedievalAdapter(),
     Sims4Adapter(),
+    SimCity3000Adapter(),
+    SimCity4Adapter(),
+    SimCitySocietiesAdapter(),
+    SimCity2013Adapter(),
   ]);
   runApp(ModManagerApp(
     registry: registry,

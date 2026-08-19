@@ -185,6 +185,33 @@ class SettingsView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
+          // Which games this person wants on the sidebar, as opposed to
+          // which ones the app knows how to handle. Every registered
+          // game is offered, detected or not: somebody with a copy
+          // detection cannot find still has to be able to switch it on
+          // and then point the app at its folder below.
+          _sectionLabel(t, l.sectionManagedGames),
+          Container(
+            decoration: _cardDecoration(t),
+            child: Column(
+              children: [
+                for (final (index, adapter) in c.registry.adapters.indexed) ...[
+                  if (index > 0) _divider(t),
+                  _prefRow(
+                    t,
+                    title: l.prefManageGameTitle(adapter.game.name),
+                    desc: index == 0
+                        ? l.prefManageGameDesc
+                        : adapter.game.series,
+                    value: c.isManagedGame(adapter.game.id),
+                    onToggle: () => c.setGameManaged(adapter.game.id,
+                        !c.isManagedGame(adapter.game.id)),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
           _sectionLabel(t, l.sectionStartup),
           Container(
             decoration: _cardDecoration(t),
@@ -197,7 +224,7 @@ class SettingsView extends StatelessWidget {
                   selected: s.defaultGameId ?? '',
                   options: [
                     (value: '', label: l.defaultGameAuto),
-                    for (final adapter in c.registry.adapters)
+                    for (final adapter in c.managedAdapters)
                       (value: adapter.game.id, label: adapter.game.name),
                   ],
                   onSelected: (value) =>
@@ -218,7 +245,14 @@ class SettingsView extends StatelessWidget {
           _sectionLabel(t, l.sectionAppearance),
           Container(
             decoration: _cardDecoration(t),
-            child: _themeRow(t, c, l),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _appThemeRow(t, c, l),
+                _divider(t),
+                _themeRow(t, c, l),
+              ],
+            ),
           ),
           const SizedBox(height: 24),
           _sectionLabel(t, l.sectionLanguage),
@@ -498,7 +532,11 @@ class SettingsView extends StatelessWidget {
             decoration: _cardDecoration(t),
             child: Row(
               children: [
-                BrandMark(gameId: c.adapter.game.id, size: 26),
+                BrandMark(
+                    gameId: c.adapter.game.id,
+                    size: 26,
+                    name: c.adapter.game.name,
+                    ink: t.accent),
                 const SizedBox(width: 20),
                 Expanded(
                   child: Column(
@@ -513,7 +551,7 @@ class SettingsView extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        l.aboutTagline(appVersion),
+                        l.aboutTagline(appVersion, c.supportedSeries),
                         style: TextStyle(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w600,
@@ -594,6 +632,19 @@ class SettingsView extends StatelessWidget {
                     onSelected: (value) =>
                         c.setDebugReachability(value.isEmpty ? null : value),
                   ),
+                  if (c.canPreviewWhatsNew) ...[
+                    _divider(t),
+                    _linkRow(
+                      t,
+                      title: 'What’s new card',
+                      desc: 'Put up the card the newest release in the '
+                          'table will show, whatever this copy has '
+                          'already seen. Nothing is written down and no '
+                          'event is sent.',
+                      buttonLabel: 'Show it',
+                      onTap: c.previewWhatsNew,
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -662,6 +713,22 @@ class SettingsView extends StatelessWidget {
       ),
     );
   }
+
+  /// Which chrome the app wears. One choice for the whole app rather than
+  /// one per game: the games' own looks are what is on offer, but which
+  /// one is on is the user's business and not the sidebar's.
+  Widget _appThemeRow(GameTheme t, AppController c, L l) => _pickerRow(
+        t,
+        title: l.appThemeTitle,
+        desc: l.appThemeDesc,
+        selected: c.appTheme ?? GameTheme.defaultThemeId,
+        options: [
+          for (final id in GameTheme.themeIds)
+            (value: id, label: l.themeName(id)),
+        ],
+        onSelected: (value) =>
+            c.setAppTheme(value == GameTheme.defaultThemeId ? null : value),
+      );
 
   /// Light, dark, or whatever the desktop is set to.
   Widget _themeRow(GameTheme t, AppController c, L l) => _pickerRow(

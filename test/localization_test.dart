@@ -118,6 +118,9 @@ class _FakeAdapter extends FolderBasedGameAdapter {
         ),
       ];
 
+  @override
+  bool get hasSaves => true;
+
   /// A save touching every translated saves label: stat tiles, life
   /// stages, skills, personality, relationship flags, photo kinds.
   @override
@@ -633,6 +636,10 @@ void main() {
               fileName: 'cozy_sofa.package',
               filePath: 'mods/u1/l1/cozy_sofa.package',
               fileSizeBytes: 11,
+              // The fake game has no packs the app can read, so these
+              // answer "not checked" - which carries the longest of the
+              // three notes and is the one worth measuring.
+              requiresPacks: ['EP01', 'GP06'],
             ),
           ],
         ));
@@ -658,6 +665,11 @@ void main() {
       await until(tester, find.text(strings.shopDestination.toUpperCase()));
       expect(find.text(strings.shopDestination.toUpperCase()), findsOneWidget,
           reason: 'listing destination in ${language.name}');
+      // And the packs it says it needs: a chip each, over a sentence that
+      // runs long in most languages.
+      await until(tester, find.text(strings.shopRequires.toUpperCase()));
+      expect(find.text(strings.shopRequirementsUnknownNote), findsOneWidget,
+          reason: 'listing requirements in ${language.name}');
       expect(overflows, isEmpty, reason: 'listing page in ${language.name}');
     });
   }

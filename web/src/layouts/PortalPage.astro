@@ -294,6 +294,25 @@ const ticker = ['portal.ticker1', 'portal.ticker2', 'portal.ticker3', 'portal.ti
                 maxlength="6000"
                 class="notes"
                 placeholder={t.plain('portal.editor.notesPlaceholder')}></textarea>
+
+              {/* Filled in by the browser from the pack catalog, because
+                  which packs exist depends on the game picked above. Hidden
+                  whole for a game that has none to offer. */}
+              <div class="packs hidden" id="packs-block">
+                <label for="f-packs-search">
+                  <Fragment set:html={t('portal.editor.requires')} />{' '}
+                  <span class="opt" set:html={t('portal.editor.optional')} />
+                </label>
+                <input
+                  id="f-packs-search"
+                  type="search"
+                  autocomplete="off"
+                  placeholder={t.plain('portal.editor.requiresSearch')}
+                />
+                <div class="pack-list" id="pack-list"></div>
+                <p class="pack-tally" id="pack-tally"></p>
+                <div class="hint" set:html={t('portal.editor.requiresHint')} />
+              </div>
             </div>
 
             <div class="card">

@@ -126,13 +126,15 @@ header {
 }
 .hero-shot img { position: relative; animation: floaty 9s ease-in-out infinite; }
 
-/* Two kinds of screenshot share these slots. The macOS ones were captured
-   with the window's own rounded corners and drop shadow baked in, sitting in
-   transparent padding; the Windows ones are the client area and nothing else,
-   edge to edge. So the frame is drawn here for the second kind, at the size
-   and softness the first kind carries: 91% is the share of its own image a
-   macOS window takes up, which is what keeps the pair in the saves section
-   the same size on screen. */
+/* Every app screenshot on this page is a Windows capture: the window frame
+   and nothing else, edge to edge, with no rounded corners and no shadow of
+   its own. So the corners and the shadow are drawn here instead, and the
+   image is inset to 91% to leave that shadow somewhere to fall. It used to
+   be a mixed set - the macOS shots carried their own chrome inside
+   transparent padding, and 91% was the share of its image one of those took
+   up - which is where the number came from; keeping it is what stops the
+   re-shot pairs changing size on screen. Any screenshot added here wants
+   this class. */
 .framed {
   display: block; width: 91%; margin-inline: auto; border-radius: 14px;
   box-shadow: 0 3px 10px -4px rgba(0, 0, 0, .28), 0 15px 96px -8px rgba(0, 0, 0, .42);
@@ -293,6 +295,20 @@ figure.shot figcaption {
   margin-top: 14px; text-align: center; font-size: 13.5px; font-weight: 700; color: var(--muted);
 }
 
+/* The catalog's own intro, set like a section head rather than like the
+   banner above it: it is a fact about the shelves, not a second call to
+   action. */
+.exchange-catalog {
+  max-width: 640px; margin: clamp(40px, 6vw, 64px) auto 0; text-align: center;
+}
+.exchange-catalog h3 {
+  margin: 0 0 10px; font-size: clamp(20px, 2.4vw, 27px); line-height: 1.25;
+}
+.exchange-catalog p { margin: 0; color: var(--muted); }
+/* One shot alone would stretch to the full width the pair shares, which reads
+   as a different size of screenshot than the two above it. */
+.exchange-shots.one { max-width: 780px; margin-inline: auto; }
+
 /* ---------- saves ---------- */
 #saves { padding: clamp(56px, 7vw, 88px) 0; }
 .saves-shots {
@@ -300,6 +316,15 @@ figure.shot figcaption {
   grid-template-columns: repeat(auto-fit, minmax(min(430px, 100%), 1fr));
 }
 .saves-shots figcaption {
+  margin-top: 14px; text-align: center; font-size: 13.5px; font-weight: 700; color: var(--muted);
+}
+
+/* ---------- creations ---------- */
+/* One shot rather than a pair: the shelf is the whole point of this screen,
+   and halving it turns the renders back into thumbnails. */
+#creations { padding: clamp(56px, 7vw, 88px) 0; }
+.creations-shot { max-width: 880px; margin: 0 auto; }
+.creations-shot figcaption {
   margin-top: 14px; text-align: center; font-size: 13.5px; font-weight: 700; color: var(--muted);
 }
 

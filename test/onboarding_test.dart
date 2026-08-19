@@ -128,11 +128,11 @@ void _pinsTheFilm() {
   });
 
   test('the music is shipped, and starts inside the film', () {
-    // introAudioAsset is written the way AssetSource wants it - relative
-    // to `assets/` - so the file it names is one level up from the path
-    // itself. Getting that wrong is silence and nothing else: playback
-    // failures are swallowed by design.
-    final file = File('assets/$introAudioAsset');
+    // An ordinary asset path, like every other asset in the app -
+    // FilmPlayer is what strips the `assets/` off for AssetSource.
+    // Getting that wrong is silence and nothing else: playback failures
+    // are swallowed by design.
+    final file = File(introAudioAsset);
     expect(file.existsSync(), isTrue, reason: '${file.path} is missing');
     final bytes = file.readAsBytesSync();
     final id3 = String.fromCharCodes(bytes.sublist(0, 3)) == 'ID3';

@@ -149,8 +149,16 @@ class DetailView extends StatelessWidget {
             // needs the slab dark enough to carry it, and one that paints
             // its own lettering (the Medieval's brown on parchment) must
             // keep the colour it was given.
+            //
+            // The colour has to go along, even though the fill below is
+            // built out of the answer: a skin whose lettering follows the
+            // material cannot answer without it, and asked bare it would
+            // answer for a plate this row is not made of. `switchOff` is
+            // translucent and the skin composites it onto the surface,
+            // which is exactly where the two used to part company - a
+            // white word ordered for a slab that had come out pale.
             final ink = t.skin.ink(t, SkinSurface.row,
-                state: SkinState.active, otherwise: Colors.white);
+                state: SkinState.active, fill: colour, otherwise: Colors.white);
             final slab = ink == Colors.white ? bearsWhite(colour) : colour;
             return GestureDetector(
             onTap: () => c.toggleMod(mod),
@@ -268,7 +276,9 @@ class DetailView extends StatelessWidget {
               fontSize: 13.5,
               fontWeight: FontWeight.w800,
               color: t.skin.ink(t, SkinSurface.button,
-                  state: skinState(hovered: hovered), otherwise: color),
+                  state: skinState(hovered: hovered),
+                  accent: color == t.text ? null : color,
+                  otherwise: color),
             ),
           ),
         ),
@@ -586,6 +596,7 @@ class DetailView extends StatelessWidget {
                 fontWeight: FontWeight.w800,
                 color: t.skin.ink(t, SkinSurface.button,
                     state: skinState(hovered: hovered),
+                    accent: t.warning,
                     otherwise: t.onWarningTint),
               ),
             ),

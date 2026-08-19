@@ -88,6 +88,33 @@ input::placeholder, textarea::placeholder { color: var(--muted); opacity: .75; }
   background: var(--surface-alt); border: 1px solid var(--border); color: var(--text);
 }
 
+/* ---------- the pack checklist ----------
+   A hundred-odd kits will not fit on the page, so the list scrolls inside
+   its own box and the search narrows it. Two columns where there is room,
+   because the names are short and the list is long. */
+.packs { margin-top: 18px; }
+.pack-list {
+  display: grid; grid-template-columns: 1fr; gap: 2px;
+  max-height: 230px; margin-top: 8px; padding: 6px;
+  overflow-y: auto; overscroll-behavior: contain;
+  background: var(--surface-alt);
+  border: 1.6px solid var(--border); border-radius: 13px;
+}
+@media (min-width: 640px) { .pack-list { grid-template-columns: 1fr 1fr; } }
+.pack-list label {
+  display: flex; align-items: center; gap: 9px;
+  margin: 0; padding: 7px 9px; border-radius: 9px;
+  font-size: 13.5px; font-weight: 700; color: var(--text);
+  cursor: pointer;
+}
+.pack-list label:hover { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.pack-list input { width: auto; margin: 0; flex: none; accent-color: var(--accent); }
+.pack-list .code {
+  margin-left: auto; padding-left: 8px;
+  font-size: 11px; font-weight: 800; color: var(--muted);
+}
+.pack-tally { margin-top: 7px; font-size: 12.5px; font-weight: 800; color: var(--muted); }
+
 /* ---------- header ---------- */
 header {
   position: sticky; top: 0; z-index: 60;

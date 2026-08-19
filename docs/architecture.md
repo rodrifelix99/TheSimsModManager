@@ -29,7 +29,44 @@ lib/src/
 | `package_insight.dart` | `scanPackage`: best-effort DBPF (`.package`) parser for embedded artwork, resource counts, a content-type breakdown, and every index entry's resource key; zlib + RefPack decompression. Exposed as `GameAdapter.inspectMods`, a bulk scan across worker isolates. |
 | `GameRegistry` | The list of adapters; the UI only sees adapters through it. |
 
+`plumbob_icons.dart` answers `null` for a game this build ships no
+emblem for, and `BrandMark` draws a neutral letter badge instead. It
+used to fall back to the Sims 4 plumbob, which was harmless while every
+game was a Sims game and a false claim the moment SimCity arrived.
+
 ## `games/`: concrete adapters
+
+`lib/src/games/simcity/simcity_adapters.dart` holds the four SimCity
+adapters (SimCity 3000, SimCity 4, SimCity Societies, SimCity 2013),
+with `simcity_install.dart` for detection and `sc4pac.dart` for reading
+what the established SimCity 4 package manager owns. The evidence every
+one of them is built on, and the limits it stops at, are in
+[simcity-support-validation.md](simcity-support-validation.md).
+
+Three things the franchise needed that the Sims games never did, all of
+them generic rather than SimCity-shaped:
+
+- **`core/install_scan.dart`.** The Steam-library, Program-Files and
+  bounded-drive walk used to live inside the Sims adapters. Two
+  franchises asking the same question is what a core helper is for, so
+  it moved; `sims_adapters.dart` re-exports it and nothing else changed.
+- **`GameAdapter.companionFileExtensions`.** A SimCity 4 DLL plugin is
+  a `.dll` plus a same-named `.ini` the plugin reads its settings out
+  of, and its README says to copy both in. A companion installs with
+  its mod, follows it through a disable and is deleted with it, but is
+  never listed as a mod of its own - otherwise a plugin ends up half
+  switched off, or comes back reset because its settings file was left
+  behind. Empty for every Sims game: a `.package` is one file and
+  always was.
+- **Managed games** (`SettingsStore.managedGameIds`,
+  `AppController.managedAdapters`/`managedGroups`). Which games the
+  registry *supports*, which ones a machine *has* and which ones a
+  person wants *managed* are three questions, and the sidebar used to
+  answer all of them with the first. Null means every registered game,
+  which is exactly what it did before, so adding a franchise adds rows
+  rather than taking any away. The sidebar groups on `Game.series` and
+  only draws headings when there is more than one franchise on it, so a
+  Sims-only sidebar is unchanged.
 
 `lib/src/games/the_sims/sims_adapters.dart` holds the five Sims adapters
 (Sims 1–4 plus The Sims Medieval). `DocumentsSimsAdapter` covers Sims 2/3/4:

@@ -100,6 +100,14 @@ class Analytics {
   Future<void>? _inflight;
   int _exceptionCount = 0;
   Map<String, _Flag> _flags = const {};
+  String? _previousVersion;
+
+  /// The version that ran last, read at startup before this launch
+  /// overwrote it. Null on a fresh install, and null whenever analytics
+  /// is switched off - the read below happens after that early return.
+  /// `AppController` uses it once, to seed its own `lastSeenVersion` on
+  /// the update into the release that introduced the what's-new card.
+  String? get previousVersion => _previousVersion;
 
   /// Called after a fresh flag fetch lands, so the UI can react (e.g.
   /// show a remote announcement) without polling.
@@ -133,6 +141,7 @@ class Analytics {
     }
 
     final previous = settings.lastRunVersion;
+    _previousVersion = previous;
     final launches = settings.launchCount + 1;
     await settings.setLaunchCount(launches);
     if (previous == null) {

@@ -15,7 +15,7 @@ class LNl extends L {
   String get brandTitle => 'Mod Manager';
 
   @override
-  String get brandSubtitle => 'voor The Sims';
+  String get brandSubtitle => 'voor De Sims en SimCity';
 
   @override
   String get navLibrary => 'Bibliotheek';
@@ -156,6 +156,33 @@ class LNl extends L {
   @override
   String get shopSaveHint =>
       'Installeren zet de bestanden meteen in je mods-map. Downloaden bewaart alleen het bestand, waar jij het wilt hebben.';
+
+  @override
+  String get shopRequires => 'Heeft deze packs nodig';
+
+  @override
+  String get shopRequirementMet => 'Geïnstalleerd';
+
+  @override
+  String get shopRequirementDisabled => 'Uitgezet';
+
+  @override
+  String get shopRequirementMissing => 'Niet geïnstalleerd';
+
+  @override
+  String get shopRequirementUnknown => 'Niet gecontroleerd';
+
+  @override
+  String get shopRequirementsNote =>
+      'Je kunt hem sowieso installeren — hij doet alleen weinig zolang de packs er niet zijn.';
+
+  @override
+  String get shopRequirementsOffNote =>
+      'Eén hiervan staat uit. Zet hem weer aan op het tabblad Packs.';
+
+  @override
+  String get shopRequirementsUnknownNote =>
+      'We konden de packs van dit spel op deze computer niet controleren, dus dit is wat de maker zegt.';
 
   @override
   String get shopDestination => 'Installeert in';
@@ -947,6 +974,16 @@ class LNl extends L {
   String get themeDark => 'Donker';
 
   @override
+  String get appThemeTitle => 'App-thema';
+
+  @override
+  String get appThemeDesc =>
+      'Hoe de hele app eruitziet. Blijft hetzelfde, welk spel je ook beheert.';
+
+  @override
+  String get appThemeDefault => 'Standaard';
+
+  @override
   String get languageTitle => 'Taal van de app';
 
   @override
@@ -1069,7 +1106,7 @@ class LNl extends L {
 
   @override
   String get onboardingLookBody =>
-      'De hele app kleurt mee met het spel waar je in zit. Kies hoe het eruit moet zien en moet klinken.';
+      'De hele app draagt de look die jij kiest, welke game je ook beheert. Kies hoe het eruit moet zien en moet klinken.';
 
   @override
   String get onboardingLibraryTitle => 'Hoe je bibliotheek leest';
@@ -1190,8 +1227,8 @@ class LNl extends L {
   String get wikiButton => 'Open de wiki';
 
   @override
-  String aboutTagline(String version) {
-    return 'Versie $version · The Sims 1–4 ondersteund · SimCity binnenkort';
+  String aboutTagline(String version, String series) {
+    return 'Versie $version · Modbeheer voor $series';
   }
 
   @override
@@ -2850,4 +2887,197 @@ class LNl extends L {
   @override
   String get errorSaveEditUnsupported =>
       'De saves van dit spel kun je lezen, maar niet veranderen.';
+
+  @override
+  String whatsNewEyebrow(String version) {
+    return 'Nieuw in $version';
+  }
+
+  @override
+  String get whatsNewAlsoSince => 'Ook in deze update';
+
+  @override
+  String get whatsNewDismiss => 'Aan de slag';
+
+  @override
+  String get whatsNew300RootTitle => 'Mods die in de mappen van het spel horen';
+
+  @override
+  String get whatsNew300RootBody =>
+      'Werelden, grafische tweaks en scriptloaders werkten nooit vanuit de Mods-map. Nu belanden ze meteen in de mappen die het spel uitleest, en wat ze vervangen wordt bewaard, dus bij verwijderen krijg je het origineel terug.';
+
+  @override
+  String get whatsNew300PacksTitle =>
+      'Aanbiedingen kunnen zeggen welke packs ze nodig hebben';
+
+  @override
+  String get whatsNew300PacksBody =>
+      'Makers kunnen een mod koppelen aan de packs waarvoor die gemaakt is, en The Exchange vergelijkt ze met die van jou voordat je installeert. Het is altijd een waarschuwing, nooit een dichte deur.';
+
+  @override
+  String get whatsNew300ContainersTitle =>
+      'Een zip vol .sims3pack-bestanden werkt gewoon';
+
+  @override
+  String get whatsNew300ContainersBody =>
+      'Sleep de hele set op het venster. De Sims 3-containers in een archief worden geopend waar ze staan, en alles wordt in één keer geïnstalleerd.';
+
+  @override
+  String get whatsNew300SimCityTitle => 'SimCity 3000, 4, Societies en 2013';
+
+  @override
+  String get whatsNew300SimCityBody =>
+      'Vier games erbij in de zijbalk. SimCity 4 leest allebei zijn Plugins-mappen, houdt de laadvolgorde aan die map- en bestandsnamen aangeven en blijft af van alles wat sc4pac heeft geïnstalleerd. In de instellingen verberg je de games die je niet speelt.';
+
+  @override
+  String get whatsNew300CatalogTitle =>
+      'Duizenden SimCity 4-mods om door te bladeren';
+
+  @override
+  String get whatsNew300CatalogBody =>
+      'The Exchange laat nu ook de sc4pac-kanalen zien naast onze eigen listings, met credits voor het project dat ze bijhoudt. Een download komt met alles wat hij nodig heeft of helemaal niet, en waar een host geen app voor je laat downloaden, zegt de knop dat meteen.';
+
+  @override
+  String get whatsNew300ThemeTitle => 'Kies de look die je leuk vindt';
+
+  @override
+  String get whatsNew300ThemeBody =>
+      'Vroeger nam de app de kleuren over van de game die openstond. Nu kies je in de instellingen de look die je wilt, en die blijft staan welke game je ook beheert.';
+
+  @override
+  String get categoryLot => 'Kavel';
+
+  @override
+  String get categoryModel => 'Model';
+
+  @override
+  String get categoryDescription => 'Beschrijving';
+
+  @override
+  String get categoryBuilding => 'Gebouw';
+
+  @override
+  String get setupHelpSimCity4 =>
+      'SimCity 4 leest plugins uit twee mappen tegelijk: Documenten > SimCity 4 > Plugins (die van jou, en degene die deze app beheert) en een Plugins-map in de installatie van het spel. Map- en bestandsnamen zijn de laadvolgorde, dus laat de structuur waarmee een download binnenkomt met rust - daarom gebruikt sc4pac genummerde mappen en heten overrides „zzz...”. DLL-plugins laden alleen vanuit de bovenste laag van een Plugins-map, nooit uit een submap, dus de app zet ze daar voor je neer. Wat sc4pac heeft geïnstalleerd blijft van sc4pac: dat lijst sc4pac, niet deze app.';
+
+  @override
+  String get setupHelpSimCity2013 =>
+      'SimCity laadt mods als .package uit SimCityUserData > Packages in de installatie van het spel (meestal onder Program Files, dus Windows kan om beheerdersrechten vragen). Deze app beheert alleen die map. Het spel leest ook zijn eigen SimCityData-map, maar daar staat de content van Maxis: een mod die vóór de pakketten van het spel moet laden, moet daar met de hand heen. Veel mods zijn alleen voor offline: probeer ze op een stad die je kwijt mag raken.';
+
+  @override
+  String get setupHelpSimCity3000 =>
+      'SimCity 3000 laadt eigen gebouwen (.bld-bestanden uit de Building Architect Tool) uit een Buildings-map in de installatie van het spel. Die map is plat: een gebouw in een submap wordt nooit geladen. De gebouwen die met het spel meekwamen zijn hier verborgen, zodat je ze niet per ongeluk weggooit. Resolutie- en compatibiliteitsfixes die SC3U.exe zelf aanpassen installeert deze app niet; volg daarvoor hun eigen instructies.';
+
+  @override
+  String get setupHelpSimCitySocieties =>
+      'SimCity Societies bewaart eigen content in Documenten > SimCity Societies > Import, waar de Package Installer van het spel het ook neerzet. Deze app kan de map voor je maken. Content komt als .SCSPack-bestanden - dat is de extensie waar het spel zelf naar zoekt. Let op: Societies is gemaakt om bewerkt te worden, niet om kant-en-klare mods te laden - het meeste wat de scene deed was de C# en XML in de Data-map van het spel aanpassen, en daar blijft deze app vanaf.';
+
+  @override
+  String get sectionManagedGames => 'Games';
+
+  @override
+  String prefManageGameTitle(String game) {
+    return '$game beheren';
+  }
+
+  @override
+  String get prefManageGameDesc =>
+      'Toon het in de zijbalk. Een verborgen game houdt al zijn instellingen.';
+
+  @override
+  String get errorLastManagedGame =>
+      'Dat is het laatste spel in je zijbalk, dus het moet blijven staan. Zet eerst een ander spel aan als je dit wilt verbergen.';
+
+  @override
+  String catalogCount(int count) {
+    return '$count mods';
+  }
+
+  @override
+  String catalogCuratedBy(String project) {
+    return 'Catalogus van $project';
+  }
+
+  @override
+  String get catalogOpenPage => 'Pagina openen';
+
+  @override
+  String catalogBlocked(String host) {
+    return '$host laat apps niet voor je downloaden. Haal hem op via de pagina van de mod.';
+  }
+
+  @override
+  String get catalogUnresolvedNote =>
+      'Deze kon niet uit de catalogus gelezen worden.';
+
+  @override
+  String get catalogDependencies => 'Komt met';
+
+  @override
+  String catalogFileCount(int count) {
+    return '$count bestanden';
+  }
+
+  @override
+  String catalogDownloading(int current, int total) {
+    return 'Downloadt $current van $total';
+  }
+
+  @override
+  String get catalogWarningTitle => 'Let op';
+
+  @override
+  String get catalogConflictsTitle => 'Botst met';
+
+  @override
+  String catalogSourceFailed(String source) {
+    return '$source niet bereikbaar';
+  }
+
+  @override
+  String get catalogEmpty => 'Niets komt overeen.';
+
+  @override
+  String get catalogRefresh => 'Catalogus opnieuw laden';
+
+  @override
+  String get catalogOptions => 'Opties';
+
+  @override
+  String catalogBy(String author) {
+    return 'van $author';
+  }
+
+  @override
+  String get errorCatalogUnreachable =>
+      'De catalogus was niet bereikbaar. Check je verbinding en probeer het nog eens.';
+
+  @override
+  String get errorCatalogUnreadable =>
+      'De catalogus antwoordde met iets dat deze versie niet kan lezen.';
+
+  @override
+  String errorCatalogDownloadFailed(String host) {
+    return '$host weigerde de download.';
+  }
+
+  @override
+  String get errorCatalogInstallFailed =>
+      'Er ging iets mis bij het installeren.';
+
+  @override
+  String get errorCatalogInstallCancelled => 'Installatie geannuleerd.';
+
+  @override
+  String get catalogLoading => 'Catalogus laden…';
+
+  @override
+  String get catalogBack => '← Terug naar de catalogus';
+
+  @override
+  String get catalogPromoTitle => 'Zelf een mod gemaakt?';
+
+  @override
+  String get catalogPromoBody =>
+      'Zet hem op The Exchange: één klik installeert hem, hij krijgt een eigen pagina en link, en wie hem al heeft hoort het als er een update is.';
 }

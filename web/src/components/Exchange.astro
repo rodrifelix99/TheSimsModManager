@@ -21,6 +21,7 @@ const t = useTranslations(locale);
     <div class="exchange-shots">
       <figure data-reveal="0">
         <img
+          class="framed"
           src="/images/mod-shop.png"
           alt={t.plain('exchange.shelvesAlt')}
           width="1600"
@@ -30,12 +31,31 @@ const t = useTranslations(locale);
       </figure>
       <figure data-reveal="0.06">
         <img
+          class="framed"
           src="/images/mod-shop-mod-detail-and-update-page.png"
           alt={t.plain('exchange.detailAlt')}
           width="1600"
           loading="lazy"
         />
         <figcaption set:html={t('exchange.detailCap')} />
+      </figure>
+    </div>
+
+    <div class="exchange-catalog" data-reveal="0">
+      <h3 set:html={t('exchange.catalogH3')} />
+      <p set:html={t('exchange.catalogP')} />
+    </div>
+
+    <div class="exchange-shots one">
+      <figure data-reveal="0">
+        <img
+          class="framed"
+          src="/images/mod-shop-catalog.png"
+          alt={t.plain('exchange.catalogAlt')}
+          width="1600"
+          loading="lazy"
+        />
+        <figcaption set:html={t('exchange.catalogCap')} />
       </figure>
     </div>
   </div>

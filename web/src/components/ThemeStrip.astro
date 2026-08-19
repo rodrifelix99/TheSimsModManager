@@ -7,8 +7,12 @@ interface Props {
 const { locale } = Astro.props;
 const t = useTranslations(locale);
 
-// Game titles stay English everywhere, the way the app itself shows them. The
-// last chip is not a game: it is the app's dark mode, which every game has.
+// Game titles stay English everywhere, the way the app itself shows them.
+// These are the app's eight looks rather than its nine games - SimCity
+// Societies has no chrome of its own and wears whichever one you picked - and
+// they run franchise by franchise, in the order GameTheme.themeIds lists them
+// rather than by year. The last chip is not a game either: it is dark mode,
+// which every look has.
 const chips = [
   { id: 'sims1', name: 'The Sims', era: '2000', icon: 'the_sims_1_icon.png' },
   { id: 'sims2', name: 'The Sims 2', era: '2004', icon: 'the_sims_2_icon.png' },
@@ -20,6 +24,9 @@ const chips = [
     icon: 'the_sims_medieval_icon.webp',
   },
   { id: 'sims4', name: 'The Sims 4', era: '2014', icon: 'the_sims_4_icon.png' },
+  { id: 'simcity3000', name: 'SimCity 3000', era: '1999', icon: 'simcity_3000_icon.png' },
+  { id: 'simcity4', name: 'SimCity 4', era: '2003', icon: 'simcity_4_icon.webp' },
+  { id: 'simcity2013', name: 'SimCity', era: '2013', icon: 'simcity_2013_icon.png' },
   { id: 'dark', name: t.plain('themes.dark'), era: t.plain('themes.darkEra') },
 ];
 
@@ -38,6 +45,9 @@ const shots: Record<string, [string, string]> = {
   sims3: ['library-grid-ts3.png', shotAlt('The Sims 3')],
   simsmedieval: ['library-grid-tsm.png', shotAlt('The Sims Medieval')],
   sims4: ['library-grid-ts4.png', t.plain('hero.shotAlt')],
+  simcity3000: ['library-grid-sc3000.png', shotAlt('SimCity 3000')],
+  simcity4: ['library-grid-sc4.png', shotAlt('SimCity 4')],
+  simcity2013: ['library-grid-sc2013.png', shotAlt('SimCity')],
   dark: ['library-grid-ts4-dark-mode.png', t.plain('themes.darkAlt')],
 };
 

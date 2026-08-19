@@ -1,20 +1,21 @@
 {
   "@@locale": "en",
   "@@author": "rodrifelix99",
-
   "appName": "Sims Mod Manager",
   "brandTitle": "Mod Manager",
-  "brandSubtitle": "for The Sims",
-
+  "brandSubtitle": "for The Sims and SimCity",
   "navLibrary": "Library",
   "navShop": "The Exchange",
   "navSettings": "Settings",
-
   "shopAlphaBadge": "ALPHA",
   "shopTagline": "Mods from the community, installed in one click.",
   "shopListingCount": "{count, plural, =1{1 mod on the shelves} other{{count} mods on the shelves}}",
   "@shopListingCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "shopRefresh": "Refresh",
   "shopPublish": "Publish your mods",
@@ -27,29 +28,49 @@
   "shopShowAllGames": "Show every game",
   "shopEmptyGameTitle": "Nothing for {game} yet",
   "@shopEmptyGameTitle": {
-    "placeholders": { "game": { "type": "String" } }
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
   },
   "shopEmptyGameBody": "Other games have mods on the shelves, but nobody has published a {game} one yet. Made one? Be the first!",
   "@shopEmptyGameBody": {
-    "placeholders": { "game": { "type": "String" } }
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
   },
   "shopBy": "by {author}",
   "@shopBy": {
-    "placeholders": { "author": { "type": "String" } }
+    "placeholders": {
+      "author": {
+        "type": "String"
+      }
+    }
   },
   "shopInstalled": "Installed",
   "shopUpdate": "Update",
   "shopUpdateBadge": "update",
   "shopUpdatesWaiting": "{count, plural, =1{1 of your mods has a new version on The Exchange} other{{count} of your mods have new versions on The Exchange}}",
   "@shopUpdatesWaiting": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "shopUpdateHeading": "There’s a new version of this one",
   "shopUpdateBody": "{author} has published v{version} on The Exchange. Updating replaces the files you have now.",
   "@shopUpdateBody": {
     "placeholders": {
-      "version": { "type": "String" },
-      "author": { "type": "String" }
+      "version": {
+        "type": "String"
+      },
+      "author": {
+        "type": "String"
+      }
     }
   },
   "shopUpdateSeeListing": "See the listing",
@@ -58,16 +79,32 @@
   "shopCreatorNudge": "Made mods yourself? Publishing on The Exchange is free, and players install your work in one click.",
   "shopNeedsFolder": "Set up {game}’s mods folder first. The Library tab walks you through it.",
   "@shopNeedsFolder": {
-    "placeholders": { "game": { "type": "String" } }
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
   },
   "shopVariations": "{count, plural, =1{1 variation} other{{count} variations}}",
   "@shopVariations": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "shopSaveFile": "Download",
   "shopSaving": "Downloading…",
   "shopSaved": "Saved",
   "shopSaveHint": "Install drops the files straight into your mods folder. Download just saves the file, wherever you want it.",
+  "shopRequires": "Needs these packs",
+  "shopRequirementMet": "Installed",
+  "shopRequirementDisabled": "Switched off",
+  "shopRequirementMissing": "Not installed",
+  "shopRequirementUnknown": "Not checked",
+  "shopRequirementsNote": "You can install it either way — it just won’t do much until the packs are there.",
+  "shopRequirementsOffNote": "One of these is switched off. Turn it back on from the Packs tab.",
+  "shopRequirementsUnknownNote": "We couldn’t check this game’s packs on this computer, so this is the creator’s word for it.",
   "shopDestination": "Installs into",
   "shopVariationPick": "Pick a variation",
   "shopBack": "Back to the shelves",
@@ -76,62 +113,92 @@
   "sidebarGames": "GAMES",
   "sidebarNotInstalled": "not installed · {detail}",
   "@sidebarNotInstalled": {
-    "placeholders": { "detail": { "type": "String" } }
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
   },
   "sidebarModCount": "{count, plural, =1{1 mod} other{{count} mods}} · {detail}",
   "@sidebarModCount": {
     "placeholders": {
-      "count": { "type": "int" },
-      "detail": { "type": "String" }
+      "count": {
+        "type": "int"
+      },
+      "detail": {
+        "type": "String"
+      }
     }
   },
-
   "updateAvailable": "Update available",
   "updateClickToDownload": "v{version}: click to download",
   "@updateClickToDownload": {
-    "placeholders": { "version": { "type": "String" } }
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
   },
-
   "storage": "Storage",
   "storageInMods": "{size} in mods",
   "@storageInMods": {
-    "placeholders": { "size": { "type": "String" } }
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
   },
   "storageFreeOf": "{free} free of {total}",
   "@storageFreeOf": {
     "placeholders": {
-      "free": { "type": "String" },
-      "total": { "type": "String" }
+      "free": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
     }
   },
-
   "dropToInstall": "Drop to install into {game}",
   "@dropToInstall": {
-    "placeholders": { "game": { "type": "String" } }
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
   },
   "dropFolders": "folders",
-
   "scanningMods": "Looking inside mods for artwork and conflicts… {done} of {total}",
   "@scanningMods": {
     "placeholders": {
-      "done": { "type": "int" },
-      "total": { "type": "int" }
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "skip": "Skip",
-
   "libraryTitle": "{game} Library",
   "@libraryTitle": {
-    "placeholders": { "game": { "type": "String" } }
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
   },
   "modsShown": "{count, plural, =1{1 mod shown} other{{count} mods shown}} · {era}",
   "@modsShown": {
     "placeholders": {
-      "count": { "type": "int" },
-      "era": { "type": "String" }
+      "count": {
+        "type": "int"
+      },
+      "era": {
+        "type": "String"
+      }
     }
   },
-
   "learnMore": "Learn more",
   "dismiss": "Dismiss",
   "searchMods": "Search mods…",
@@ -145,11 +212,14 @@
   "sortDisabledLast": "Disabled ones last",
   "libraryRefresh": "Refresh",
   "libraryRootFolder": "Mods folder",
-
   "selectionTooltip": "Select",
   "selectionCount": "{count, plural, =1{1 selected} other{{count} selected}}",
   "@selectionCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "selectionSelectAll": "Select all",
   "selectionClear": "Clear",
@@ -158,37 +228,60 @@
   "selectionProgress": "{done} of {total}",
   "@selectionProgress": {
     "placeholders": {
-      "done": { "type": "int" },
-      "total": { "type": "int" }
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "selectionDeleteTitle": "{count, plural, =1{Uninstall 1 mod?} other{Uninstall {count} mods?}}",
   "@selectionDeleteTitle": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "selectionDeleteBody": "{count, plural, =1{The file will be deleted from disk. There’s no undo.} other{All {count} files will be deleted from disk. There’s no undo.}}",
   "@selectionDeleteBody": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "selectionMove": "Move to…",
-
   "newFolder": "New folder",
   "newFolderIn": "Inside {folder}",
   "@newFolderIn": {
-    "placeholders": { "folder": { "type": "String" } }
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
   },
   "newFolderHint": "Folder name",
   "create": "Create",
   "move": "Move",
   "moveTitle": "{count, plural, =1{Move 1 mod where?} other{Move {count} mods where?}}",
   "@moveTitle": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "moveBody": "The files move on disk. Nothing else about them changes - anything switched off stays off.",
   "installFolderTitle": "Which folder?",
   "installFolderBody": "Where the files land inside your mods folder for {game}.",
   "@installFolderBody": {
-    "placeholders": { "game": { "type": "String" } }
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
   },
   "installFolderChoose": "Choose",
   "installFolderEmpty": "No subfolders yet. Make one, or leave everything in the mods folder.",
@@ -196,12 +289,20 @@
   "install": "Install",
   "filePickerModsLabel": "{game} mods",
   "@filePickerModsLabel": {
-    "placeholders": { "game": { "type": "String" } }
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
   },
   "installWhereTitle": "Where should this go?",
   "installWhereBody": "{game} reads mods from several folders. The app can work it out from the file itself, or you can say where it belongs.",
   "@installWhereBody": {
-    "placeholders": { "game": { "type": "String" } }
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
   },
   "installWhereSorted": "Sort it out for me",
   "installWhereSortedDesc": "Follow the folders the download names, then place the rest by file type.",
@@ -216,48 +317,58 @@
   "destinationSims1Roofs": "Roof textures.",
   "prefAskWhereTitle": "Ask where to install",
   "prefAskWhereDesc": "This game reads mods from more than one folder. Choose the folder each time instead of letting the app decide",
-
   "statTotal": "Total",
   "statEnabled": "Enabled",
   "statDisabled": "Disabled",
   "statConflicts": "Conflicts",
-
   "statTotalTooltip": "Every mod in this folder, switched on or off.",
   "statTotalTooltipClear": "Every mod in this folder. Click to drop the search and every filter.",
   "statEnabledTooltip": "Mods the game loads.",
   "statEnabledTooltipActive": "Showing enabled mods only. Click to show all mods again.",
   "statDisabledTooltip": "Mods sitting in the folder switched off.",
   "statDisabledTooltipActive": "Showing disabled mods only. Click to show all mods again.",
-
   "conflictTooltipActive": "Showing conflicting mods only. Click to show all mods again.",
   "conflictTooltip": "Enabled mods sharing a file name with another enabled mod, installed in more than one version, or overriding the same in-game resources. The game only keeps the copy it loads last, sometimes intentional (patch mods), often not.",
   "conflictTooltipClickHint": "Click to show only these mods.",
-
   "filterAll": "All",
   "emptyFiltered": "No mods match your filters",
   "emptyNoMods": "No mods yet",
   "emptyFilteredHint": "Try clearing the search or picking another filter.",
   "emptyNoModsHint": "This folder is being watched:\n{path}",
   "@emptyNoModsHint": {
-    "placeholders": { "path": { "type": "String" } }
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
   },
   "openFolder": "Open folder",
   "conflictBadge": "conflict",
   "duplicateBadge": "copy",
-
   "modInFolder": "in {folder}",
   "@modInFolder": {
-    "placeholders": { "folder": { "type": "String" } }
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
   },
   "modInModsFolder": "in Mods folder",
-
   "setupFoundNoModsFolder": "{game} found, but no mods folder yet",
   "@setupFoundNoModsFolder": {
-    "placeholders": { "game": { "type": "String" } }
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
   },
   "setupNotFound": "{game} mods folder not found",
   "@setupNotFound": {
-    "placeholders": { "game": { "type": "String" } }
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
   },
   "setupFoundNoModsFolderBody": "The game's folder is on this computer; it just doesn't contain a mods folder yet. Create it below, or point at one manually.",
   "setupNotFoundBody": "The game may not be installed, may live somewhere unusual, or its mods folder may not exist yet.",
@@ -266,45 +377,75 @@
   "createItForMe": "Create it for me",
   "willBeCreatedAt": "Will be created at:\n{path}",
   "@willBeCreatedAt": {
-    "placeholders": { "path": { "type": "String" } }
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
   },
   "checkAgain": "Check again",
   "useThis": "Use this",
-
   "enabled": "Enabled",
   "disabled": "Disabled",
   "showInFileManager": "Show in file manager",
   "uninstallMod": "Uninstall mod",
   "uninstallConfirmTitle": "Uninstall {title}?",
   "@uninstallConfirmTitle": {
-    "placeholders": { "title": { "type": "String" } }
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
   },
   "uninstallConfirmBody": "The file will be deleted from disk:\n{path}",
   "@uninstallConfirmBody": {
-    "placeholders": { "path": { "type": "String" } }
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
   },
   "cancel": "Cancel",
   "uninstall": "Uninstall",
-
   "conflictSameFileHeading": "{count, plural, =1{Another enabled mod is exactly the same file:} other{{count} other enabled mods are exactly the same file:}}",
   "@conflictSameFileHeading": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "conflictSameNameHeading": "{count, plural, =1{Another enabled mod has the same file name:} other{{count} other enabled mods have the same file name:}}",
   "@conflictSameNameHeading": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "conflictVersionHeading": "{count, plural, =1{Another enabled mod looks like a different version of this mod:} other{{count} other enabled mods look like different versions of this mod:}}",
   "@conflictVersionHeading": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "conflictResourcesHeading": "{count, plural, =1{Another enabled mod overrides the same in-game resources:} other{{count} other enabled mods override the same in-game resources:}}",
   "@conflictResourcesHeading": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "sharedResources": "{count, plural, =1{1 shared resource} other{{count} shared resources}}",
   "@sharedResources": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "conflictSameFileBody": "The duplicate scan read these files and they match byte for byte, so this isn't two mods arguing - it's the same download sitting in your folder more than once. Keeping one and removing the rest changes nothing in the game and gives you the space back.",
   "conflictSameNameBody": "Identical names usually mean the same mod is installed twice, or two creators' packages clash. The game loads their overlapping resources in an unpredictable order: keep one and disable or remove the rest.",
@@ -313,9 +454,14 @@
   "conflictIgnore": "Ignore",
   "conflictIgnoreTooltip": "If this conflict is on purpose, hide it. Nothing about the mod changes, and you can bring the warning back from this page or from Settings.",
   "conflictRestore": "Bring back",
-
   "advisoryBanner": "{count, plural, =1{One of your mods has a known issue} other{{count} of your mods have known issues}}",
-  "@advisoryBanner": {"placeholders": {"count": {"type": "int"}}},
+  "@advisoryBanner": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "advisoryShow": "Take a look",
   "advisoryShowAll": "Show all mods",
   "advisoryBadge": "issue",
@@ -326,13 +472,22 @@
   "advisoryCautionHeading": "Worth keeping an eye on",
   "advisoryCautionBody": "This one works for most people, but it's been known to misbehave. Worth disabling if you're hunting down a problem.",
   "advisorySince": "Since {since}",
-  "@advisorySince": {"placeholders": {"since": {"type": "String"}}},
+  "@advisorySince": {
+    "placeholders": {
+      "since": {
+        "type": "String"
+      }
+    }
+  },
   "advisoryOpenLink": "Open the creator's page",
   "advisorySource": "Reported by other players, not by the game.",
-
   "modInDirectory": "in {dir}",
   "@modInDirectory": {
-    "placeholders": { "dir": { "type": "String" } }
+    "placeholders": {
+      "dir": {
+        "type": "String"
+      }
+    }
   },
   "factVersion": "Version",
   "factFormat": "Format",
@@ -343,22 +498,32 @@
   "factIgnoredConflicts": "Ignored",
   "ignoredConflictsCount": "{count, plural, =1{1 conflict} other{{count} conflicts}}",
   "@ignoredConflictsCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
-
   "statusHeading": "Status",
   "statusEnabledBody": "This mod is active: the game will load it on next launch.",
   "statusDisabledBody": "This mod is disabled: the file is kept on disk with a \"{marker}\" marker so the game skips it. Enable it any time; nothing is deleted.",
   "@statusDisabledBody": {
-    "placeholders": { "marker": { "type": "String" } }
+    "placeholders": {
+      "marker": {
+        "type": "String"
+      }
+    }
   },
   "fileOnDisk": "File on disk",
   "insideThePackage": "Inside the package",
   "resourcesTotal": "{count, plural, =1{1 resource total} other{{count} resources total}}",
   "@resourcesTotal": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
-
   "settingsTitle": "Settings",
   "sectionModManagement": "MOD MANAGEMENT",
   "sectionAppearance": "APPEARANCE",
@@ -366,28 +531,47 @@
   "sectionPrivacy": "PRIVACY",
   "sectionModsFolder": "MODS FOLDER · {game}",
   "@sectionModsFolder": {
-    "placeholders": { "game": { "type": "String" } }
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
   },
   "sectionGameCaches": "GAME CACHES · {game}",
   "@sectionGameCaches": {
-    "placeholders": { "game": { "type": "String" } }
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
   },
   "sectionIgnoredConflicts": "IGNORED CONFLICTS · {game}",
   "@sectionIgnoredConflicts": {
-    "placeholders": { "game": { "type": "String" } }
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
   },
   "sectionShopFolder": "THE EXCHANGE · {game}",
   "@sectionShopFolder": {
-    "placeholders": { "game": { "type": "String" } }
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
   },
   "prefShopFolderTitle": "Where mods from The Exchange go",
   "prefShopFolderDesc": "Installs land in {folder}",
   "@prefShopFolderDesc": {
-    "placeholders": { "folder": { "type": "String" } }
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
   },
   "sectionFeedback": "FEEDBACK",
   "sectionAbout": "ABOUT",
-
   "prefWarnConflictsTitle": "Warn about conflicts",
   "prefWarnConflictsDesc": "Badge enabled mods that duplicate a file name or override the same in-game resources as another mod",
   "prefConflictKindsTitle": "Which conflicts to warn about",
@@ -411,19 +595,19 @@
   "prefSoundEffectsDesc": "Play the classic Sims interface sounds on clicks, toggles and alerts",
   "prefAnalyticsTitle": "Share anonymous usage data",
   "prefAnalyticsDesc": "Send anonymous usage statistics and crash reports to help improve the app. Never includes mod names, file paths or anything personal",
-
   "themeTitle": "Theme",
   "themeDesc": "Light or dark. “System” follows your computer's setting.",
   "themeSystem": "System",
   "themeLight": "Light",
   "themeDark": "Dark",
-
+  "appThemeTitle": "App theme",
+  "appThemeDesc": "The look the whole app wears. It stays put whichever game you’re managing.",
+  "appThemeDefault": "Default",
   "languageTitle": "App language",
   "languageDesc": "Choose the language the app is shown in. “System” follows your computer's language.",
   "languageSystem": "System",
   "translatorsTitle": "Translated by",
   "translatorsDesc": "The app speaks twelve languages thanks to these simmers.",
-
   "sectionStartup": "STARTUP",
   "prefDefaultGameTitle": "Game to open on",
   "prefDefaultGameDesc": "Which library the app starts on when you launch it",
@@ -431,7 +615,6 @@
   "prefSetupGuideTitle": "Setup guide",
   "prefSetupGuideDesc": "Walk through the first-run questions again",
   "onboardingReplay": "Run it again",
-
   "onboardingSkip": "Skip setup",
   "onboardingSkipIntro": "Skip intro",
   "onboardingBack": "Back",
@@ -440,8 +623,12 @@
   "onboardingStepOf": "Step {current} of {total}",
   "@onboardingStepOf": {
     "placeholders": {
-      "current": { "type": "int" },
-      "total": { "type": "int" }
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "onboardingWelcomeTitle": "Hey! Let’s get you set up",
@@ -451,11 +638,19 @@
   "onboardingScanning": "Still looking…",
   "onboardingGamesFound": "{count, plural, =0{Nothing found yet} =1{1 game found} other{{count} games found}}",
   "@onboardingGamesFound": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "onboardingGameMods": "{count, plural, =0{Mods folder ready} =1{1 mod already installed} other{{count} mods already installed}}",
   "@onboardingGameMods": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "onboardingGameMissing": "Not on this computer",
   "onboardingNoGamesTitle": "Couldn’t find a thing",
@@ -463,19 +658,22 @@
   "onboardingFavoriteTitle": "Which one do you play most?",
   "onboardingFavoriteBody": "The app opens on this game every time. You can jump between games whenever you like from the sidebar.",
   "onboardingLookTitle": "Make it feel like yours",
-  "onboardingLookBody": "The whole app re-tints itself for the game you’re on. Pick how it should look and sound.",
+  "onboardingLookBody": "The whole app wears the look you pick, whichever game you’re managing. Choose how it should look and sound.",
   "onboardingLibraryTitle": "How your library reads",
   "onboardingLibraryBody": "Two things worth deciding now, because they change what the library shows you.",
   "onboardingDoneTitle": "All set!",
   "onboardingDoneBody": "Your library is loaded and waiting. Drop a mod file onto the window whenever you want to install one, and change any of this in Settings.",
-
   "folderNotFound": "Not found. Choose a folder",
   "folderNotLocated": "The game (or its mods folder) was not located automatically",
   "folderSummary": "{count, plural, =1{1 mod} other{{count} mods}} · {size} on disk",
   "@folderSummary": {
     "placeholders": {
-      "count": { "type": "int" },
-      "size": { "type": "String" }
+      "count": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
     }
   },
   "customFolder": "custom folder",
@@ -483,28 +681,37 @@
   "resetToAuto": "Reset to auto",
   "createDefaultFolderAt": "Create the default folder (with the files the game needs) at:\n{path}",
   "@createDefaultFolderAt": {
-    "placeholders": { "path": { "type": "String" } }
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
   },
   "createFolder": "Create folder",
   "alsoFoundOnThisComputer": "Also found on this computer:",
-
   "clearCacheTitle": "Clear cache files",
   "clearCacheDesc": "{count, plural, =1{Delete 1 cache file ({size})} other{Delete {count} cache files ({size})}} so newly added or removed content shows up; the game rebuilds them on its next launch",
   "@clearCacheDesc": {
     "placeholders": {
-      "count": { "type": "int" },
-      "size": { "type": "String" }
+      "count": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
     }
   },
   "clearCaches": "Clear caches",
-
   "ignoredConflictsTitle": "Conflicts you're ignoring",
   "ignoredConflictsDesc": "{count, plural, =1{One conflict you told the app to stop reporting. Bring it back to see it in the library again} other{{count} conflicts you told the app to stop reporting. Bring them back to see them in the library again}}",
   "@ignoredConflictsDesc": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "ignoredConflictsReset": "Bring them back",
-
   "reportBugTitle": "Report a bug",
   "reportBugDesc": "Open a bug report on GitHub; your app version, OS and current game come prefilled",
   "reportBugButton": "Report…",
@@ -514,23 +721,36 @@
   "wikiTitle": "User guide & FAQ",
   "wikiDesc": "How to install mods, fix folder detection, and more, on the project wiki",
   "wikiButton": "Open wiki",
-
-  "aboutTagline": "Version {version} · The Sims 1–4 supported · SimCity coming soon",
+  "aboutTagline": "Version {version} · Mod manager for {series}",
   "@aboutTagline": {
-    "placeholders": { "version": { "type": "String" } }
+    "placeholders": {
+      "version": {
+        "type": "String"
+      },
+      "series": {
+        "type": "String"
+      }
+    }
   },
   "updateIsAvailable": "Version {version} is available",
   "@updateIsAvailable": {
-    "placeholders": { "version": { "type": "String" } }
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
   },
   "noUpdateFound": "No update found",
   "getVersion": "Get v{version}",
   "@getVersion": {
-    "placeholders": { "version": { "type": "String" } }
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
   },
   "checkingForUpdates": "Checking…",
   "checkForUpdates": "Check for updates",
-
   "categoryPackage": "Package",
   "categoryScript": "Script",
   "categoryObject": "Object",
@@ -541,7 +761,6 @@
   "categoryFloor": "Floor",
   "categoryWorld": "World",
   "categorySettings": "Settings",
-
   "contentCasParts": "CAS parts",
   "contentObjects": "objects",
   "contentTunings": "tunings",
@@ -553,104 +772,183 @@
   "modKindBuildBuy": "Build & Buy",
   "modKindGameplay": "Gameplay",
   "modKindScript": "Script",
-
   "errorNoModFiles": "No mod files ({extensions}) found inside {name}.",
   "@errorNoModFiles": {
     "placeholders": {
-      "extensions": { "type": "String" },
-      "name": { "type": "String" }
+      "extensions": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
     }
   },
   "errorUnreadableArchive": "{name} isn’t an archive this app can read.",
   "@errorUnreadableArchive": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "errorNoUnpacker": "Nothing on this computer can unpack {format} archives. Unpack {name} yourself and install the files inside.",
   "@errorNoUnpacker": {
     "placeholders": {
-      "format": { "type": "String" },
-      "name": { "type": "String" }
+      "format": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
     }
   },
   "errorNoUnpackerLinux": "Nothing on this computer can unpack {format} archives. Install p7zip and try again, or unpack {name} yourself and install the files inside.",
   "@errorNoUnpackerLinux": {
     "placeholders": {
-      "format": { "type": "String" },
-      "name": { "type": "String" }
+      "format": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
     }
   },
   "errorNoUnpackerLinuxRar": "Nothing on this computer can unpack {format} archives. Install p7zip or unrar and try again, or unpack {name} yourself and install the files inside.",
   "@errorNoUnpackerLinuxRar": {
     "placeholders": {
-      "format": { "type": "String" },
-      "name": { "type": "String" }
+      "format": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
     }
   },
   "errorUnpackFailed": "Couldn’t unpack {name}. It may be password-protected, one part of a split archive, or a damaged download. Unpack it manually and install the files inside.",
   "@errorUnpackFailed": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "errorSims3PackUnreadable": "{name} isn’t a Sims 3 package this app can read.",
   "@errorSims3PackUnreadable": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "errorSims3PackWorld": "{name} is a world, not custom content. Install it with The Sims 3 Launcher - the game keeps worlds outside the mods folder.",
   "@errorSims3PackWorld": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "errorSims3PackLibrary": "{name} is a lot or a household, not custom content. Install it with The Sims 3 Launcher - it lands in your in-game Library.",
   "@errorSims3PackLibrary": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "errorInstallFailed": "“{name}” couldn’t be installed - {reason}. Unpack it manually and install the files inside if it keeps failing.",
   "@errorInstallFailed": {
     "placeholders": {
-      "name": { "type": "String" },
-      "reason": { "type": "String" }
+      "name": {
+        "type": "String"
+      },
+      "reason": {
+        "type": "String"
+      }
     }
   },
   "errorInstallFailedRaw": "“{name}” couldn’t be installed - {reason}",
   "@errorInstallFailedRaw": {
     "placeholders": {
-      "name": { "type": "String" },
-      "reason": { "type": "String" }
+      "name": {
+        "type": "String"
+      },
+      "reason": {
+        "type": "String"
+      }
     }
   },
   "errorFileInUseDelete": "“{name}” couldn’t be deleted - it’s in use by another program (is the game running?) or write-protected. Close anything using it and try again.",
   "@errorFileInUseDelete": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "errorFileInUseRename": "“{name}” couldn’t be renamed - it’s in use by another program (is the game running?) or write-protected. Close anything using it and try again.",
   "@errorFileInUseRename": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "errorFileNameTaken": "“{name}” is already in that folder. Rename one of the two and try again.",
   "@errorFileNameTaken": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "errorFolderNameBad": "“{name}” won’t work as a folder name. Try one without slashes or characters your system keeps for itself.",
   "@errorFolderNameBad": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "errorFolderTooDeep": "The game only looks {levels} folders deep inside the mods folder, so nothing you put below that would ever load.",
   "@errorFolderTooDeep": {
-    "placeholders": { "levels": { "type": "int" } }
+    "placeholders": {
+      "levels": {
+        "type": "int"
+      }
+    }
   },
   "errorBulkMoveFailed": "{count, plural, =1{1 mod couldn’t be moved} other{{count} mods couldn’t be moved}} - they may be in use by another program (is the game running?), write-protected, or already in that folder under the same name.",
   "@errorBulkMoveFailed": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "errorBulkToggleFailed": "{count, plural, =1{1 mod couldn’t be switched over} other{{count} mods couldn’t be switched over}} - they may be in use by another program (is the game running?) or write-protected.",
   "@errorBulkToggleFailed": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "errorBulkRemoveFailed": "{count, plural, =1{1 mod couldn’t be deleted} other{{count} mods couldn’t be deleted}} - they may be in use by another program (is the game running?) or write-protected.",
   "@errorBulkRemoveFailed": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "errorFileMissing": "“{name}” is no longer in the mods folder - it may have been moved or deleted by another program.",
   "@errorFileMissing": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "requirementMedievalModLoader": "The Sims Medieval can’t run script or core mods without the community’s loader file in the game’s Game\\Bin folder. Custom content works without it; everything else doesn’t.",
   "requirementSims4ModsOff": "The game has custom content and mods switched off in its own Game Options, so none of this is loading. Turn it back on under Options → Game Options → Other, then restart the game.",
@@ -659,8 +957,12 @@
   "tooDeepBanner": "{count, plural, =1{One mod is} other{{count} mods are}} in a subfolder the game doesn’t read. It only looks {levels} folders deep inside the mods folder - move them higher up and they’ll load.",
   "@tooDeepBanner": {
     "placeholders": {
-      "count": { "type": "int" },
-      "levels": { "type": "int" }
+      "count": {
+        "type": "int"
+      },
+      "levels": {
+        "type": "int"
+      }
     }
   },
   "tooDeepShow": "Show them",
@@ -668,16 +970,24 @@
   "duplicatesScanning": "Reading the mods that could be copies… {done} of {total}",
   "@duplicatesScanning": {
     "placeholders": {
-      "done": { "type": "int" },
-      "total": { "type": "int" }
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "duplicatesStop": "Stop",
   "duplicatesBanner": "{count, plural, =1{One mod is the same file as another one} other{{count} mods are the same file as another one}} - that’s {size} you could have back.",
   "@duplicatesBanner": {
     "placeholders": {
-      "count": { "type": "int" },
-      "size": { "type": "String" }
+      "count": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
     }
   },
   "duplicatesShow": "Show them",
@@ -686,7 +996,11 @@
   "duplicatesDismiss": "Got it",
   "tagTitle": "{count, plural, =1{Tags for this mod} other{Tags for {count} mods}}",
   "@tagTitle": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "tagBody": "Your own labels, for finding things later. Tap one to put it on or take it off.",
   "tagHint": "New tag",
@@ -696,64 +1010,105 @@
   "tagAddFirst": "Add a tag",
   "tagRemove": "Remove “{tag}”",
   "@tagRemove": {
-    "placeholders": { "tag": { "type": "String" } }
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      }
+    }
   },
   "selectionTag": "Tag…",
   "folderAlsoReading": "Your game reads {folders} as well, so mods in there are in this library too.",
   "@folderAlsoReading": {
-    "placeholders": { "folders": { "type": "String" } }
+    "placeholders": {
+      "folders": {
+        "type": "String"
+      }
+    }
   },
   "errorFolderUnreadable": "Couldn’t open “{folder}”. Pick a folder on a drive this computer can reach - a phone, a camera or a disconnected network drive can’t hold your mods.",
   "@errorFolderUnreadable": {
-    "placeholders": { "folder": { "type": "String" } }
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
   },
   "errorNoWriteAccess": "The app isn’t allowed to write to “{folder}”. Your system protects that folder - give your account write access to it, or point the app somewhere else in Settings.",
   "@errorNoWriteAccess": {
-    "placeholders": { "folder": { "type": "String" } }
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
   },
   "folderReadOnlyBanner": "This mods folder is read-only, so installing and removing mods won’t work until your account can write to it.",
   "elevatedNoDropBanner": "You’re running as administrator, so Windows won’t let you drag files onto the window. Use the Install button instead - that still works.",
   "errorShopDownload": "“{name}” couldn’t be downloaded from The Exchange. Check your connection and try again.",
   "@errorShopDownload": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "errorShopNoModFiles": "There’s nothing this game can install inside “{name}”. It might not be a mod at all - use Download to save the file wherever you want it.",
   "@errorShopNoModFiles": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "errorShopListingNotFound": "That mod isn’t on The Exchange any more. It may have been taken down.",
   "errorShopListingUnknownGame": "That mod is for a game this version of the app doesn’t know yet. Try updating.",
   "errorPackToggleFailed": "Couldn’t switch {pack}. Close the game and try again.",
   "@errorPackToggleFailed": {
-    "placeholders": { "pack": { "type": "String" } }
+    "placeholders": {
+      "pack": {
+        "type": "String"
+      }
+    }
   },
   "errorPackNoUserData": "Couldn’t find the game’s own settings folder, so there’s nowhere to note which packs to skip. Run the game once first.",
   "errorPackNeedsAdmin": "Windows wouldn’t let the app change that. Restart it as an administrator and try again.",
   "errorPackNotSupported": "Packs can’t be switched on this system.",
   "errorPackIsTheGame": "That’s the pack the game actually runs from, so it has to stay on.",
   "errorPackToggleRefused": "Couldn’t change that pack. Close the game and try again.",
-
   "eraClassic": "Classic",
   "eraNightlife": "Nightlife",
   "eraAmbitions": "Ambitions",
   "eraModern": "Modern",
   "eraMedieval": "Medieval",
-
   "navPacks": "Packs",
   "packsScanning": "Looking for your packs…",
   "packsEmptyTitle": "No packs found",
   "packsEmptyBody": "Either {game} isn't installed where the app can see it, or there are no packs alongside it yet.",
   "@packsEmptyBody": {
-    "placeholders": { "game": { "type": "String" } }
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
   },
   "packsRescan": "Check again",
   "packsSummary": "{count, plural, =1{1 pack installed} other{{count} packs installed}}",
   "@packsSummary": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "packsSummaryWithOff": "{count, plural, =1{1 pack on} other{{count} packs on}}, {off} switched off",
   "@packsSummaryWithOff": {
-    "placeholders": { "count": { "type": "int" }, "off": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "off": {
+        "type": "int"
+      }
+    }
   },
   "packsOff": "Off",
   "packsInstalled": "Installed",
@@ -763,14 +1118,22 @@
   "packsExperimentalOn": "Back up your neighbourhoods first. A neighbourhood you’ve played with a pack can break when you open it without one, and there’s no undoing that from here — switching the pack back on doesn’t always bring the save back.",
   "packsRestartNotice": "Restart {game} for this to take effect. Your packs stay installed either way.",
   "@packsRestartNotice": {
-    "placeholders": { "game": { "type": "String" } }
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
   },
   "packsAllOwnedSims4": "{expansions} expansions. {gamePacks} game packs. Sure you bought them all.",
   "@packsAllOwnedSims4": {
     "description": "Easter egg on the packs screen, shown only to a Sims 4 install holding every expansion and game pack. Give it its own joke in each language rather than translating this one, and keep the numbers away from anything that has to agree with them.",
     "placeholders": {
-      "expansions": { "type": "String" },
-      "gamePacks": { "type": "String" }
+      "expansions": {
+        "type": "String"
+      },
+      "gamePacks": {
+        "type": "String"
+      }
     }
   },
   "packKindExpansions": "Expansion packs",
@@ -778,52 +1141,83 @@
   "packKindStuffPacks": "Stuff packs",
   "packKindKits": "Kits",
   "packKindFreePacks": "Free packs",
-
   "navSaves": "Saves",
   "savesScanning": "Reading your saves…",
   "savesEmptyTitle": "No saves found",
   "savesEmptyBody": "Once you play {game} and save, your worlds show up here - families, photos and all.",
   "@savesEmptyBody": {
-    "placeholders": { "game": { "type": "String" } }
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
   },
   "savesRescan": "Rescan saves",
   "savesCount": "{count, plural, =1{1 save found} other{{count} saves found}}",
   "@savesCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "savesLastSaved": "Last saved {date}",
   "@savesLastSaved": {
-    "placeholders": { "date": { "type": "String" } }
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
   },
   "savesShowInFolder": "Show in folder",
   "savesBackups": "{count, plural, =1{1 backup} other{{count} backups}}",
   "@savesBackups": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "savesTabHouseholds": "Households",
   "savesTabAlbum": "Photo album",
   "savesTabStats": "World stats",
   "savesNeighborhood": "Neighborhood {number}",
   "@savesNeighborhood": {
-    "placeholders": { "number": { "type": "int" } }
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
   },
   "savesOtherHouseholds": "Townies & other households",
   "savesSimCount": "{count, plural, =1{1 Sim} other{{count} Sims}}",
   "@savesSimCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "savesFunds": "Funds",
   "savesRooms": "Rooms",
   "savesBedsBaths": "{beds} bed · {baths} bath",
   "@savesBedsBaths": {
     "placeholders": {
-      "beds": { "type": "int" },
-      "baths": { "type": "int" }
+      "beds": {
+        "type": "int"
+      },
+      "baths": {
+        "type": "int"
+      }
     }
   },
   "savesByCreator": "by {name}",
   "@savesByCreator": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "savesMembers": "Members",
   "savesRelationships": "Relationships",
@@ -835,11 +1229,19 @@
   "savesStatPhotos": "Photos",
   "savesAcrossHouseholds": "{count, plural, =1{in 1 household} other{across {count} households}}",
   "@savesAcrossHouseholds": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "savesPlayedCount": "{count, plural, =1{1 played} other{{count} played}}",
   "@savesPlayedCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "savesSizeOnDisk": "Size on disk",
   "savesLifeStages": "Life stages",
@@ -848,7 +1250,6 @@
   "savesLastSavedLabel": "Last saved",
   "savesGameVersion": "Game version",
   "savesDescription": "Description",
-
   "savesAgeInfant": "Infant",
   "savesAgeBaby": "Baby",
   "savesAgeToddler": "Toddler",
@@ -859,7 +1260,6 @@
   "savesAgeElder": "Elder",
   "savesGenderMale": "Male",
   "savesGenderFemale": "Female",
-
   "savesSkillCooking": "Cooking",
   "savesSkillMechanical": "Mechanical",
   "savesSkillCharisma": "Charisma",
@@ -867,13 +1267,11 @@
   "savesSkillLogic": "Logic",
   "savesSkillCreativity": "Creativity",
   "savesSkillCleaning": "Cleaning",
-
   "savesPersonalityNeat": "Neat",
   "savesPersonalityOutgoing": "Outgoing",
   "savesPersonalityActive": "Active",
   "savesPersonalityPlayful": "Playful",
   "savesPersonalityNice": "Nice",
-
   "savesZodiacAries": "Aries",
   "savesZodiacTaurus": "Taurus",
   "savesZodiacGemini": "Gemini",
@@ -886,7 +1284,6 @@
   "savesZodiacCapricorn": "Capricorn",
   "savesZodiacAquarius": "Aquarius",
   "savesZodiacPisces": "Pisces",
-
   "savesAspirationRomance": "Romance",
   "savesAspirationFamily": "Family",
   "savesAspirationFortune": "Fortune",
@@ -895,7 +1292,6 @@
   "savesAspirationGrowUp": "Grow up",
   "savesAspirationPleasure": "Pleasure",
   "savesAspirationGrilledCheese": "Grilled cheese",
-
   "savesRelCrush": "crush",
   "savesRelLove": "in love",
   "savesRelEngaged": "engaged",
@@ -904,22 +1300,23 @@
   "savesRelBestFriends": "best friends",
   "savesRelSteady": "going steady",
   "savesRelEnemies": "enemies",
-
   "savesPhotoFamilyPortrait": "Family portrait",
   "savesPhotoLot": "Lot",
   "savesPhotoSim": "Sim portrait",
   "savesPhotoSnapshot": "Snapshot",
-
   "savesProperty": "Property",
   "savesGhost": "ghost",
   "savesCareerLevel": "{career} · level {level}",
   "@savesCareerLevel": {
     "placeholders": {
-      "career": { "type": "String" },
-      "level": { "type": "int" }
+      "career": {
+        "type": "String"
+      },
+      "level": {
+        "type": "int"
+      }
     }
   },
-
   "savesSpeciesLargeDog": "dog",
   "savesSpeciesSmallDog": "small dog",
   "savesSpeciesCat": "cat",
@@ -934,7 +1331,6 @@
   "savesOccultFairy": "fairy",
   "savesOccultGenie": "genie",
   "savesOccultMermaid": "mermaid",
-
   "savesLotResidential": "Residential",
   "savesLotCommunity": "Community lot",
   "savesLotDorm": "Dorm",
@@ -944,20 +1340,30 @@
   "savesLotSecret": "Secret lot",
   "savesLotBusiness": "Business",
   "savesLotApartment": "Apartment",
-
   "savesGpa": "{gpa} GPA",
   "@savesGpa": {
-    "placeholders": { "gpa": { "type": "String" } }
+    "placeholders": {
+      "gpa": {
+        "type": "String"
+      }
+    }
   },
   "savesSemester": "semester {number}",
   "@savesSemester": {
-    "placeholders": { "number": { "type": "int" } }
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
   },
   "savesPredestinedHobby": "Born for {hobby}",
   "@savesPredestinedHobby": {
-    "placeholders": { "hobby": { "type": "String" } }
+    "placeholders": {
+      "hobby": {
+        "type": "String"
+      }
+    }
   },
-
   "savesHobbyCuisine": "Cuisine",
   "savesHobbyArts": "Arts & crafts",
   "savesHobbyFilm": "Film & literature",
@@ -968,19 +1374,25 @@
   "savesHobbyFitness": "Fitness",
   "savesHobbyScience": "Science",
   "savesHobbyMusic": "Music & dance",
-
   "savesTieMother": "mother",
   "savesTieFather": "father",
   "savesTieSpouse": "married to",
   "savesTieSibling": "{count, plural, =1{sibling} other{siblings}}",
   "@savesTieSibling": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "savesTieChild": "{count, plural, =1{child} other{children}}",
   "@savesTieChild": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
-
   "savesInterestPolitics": "Politics",
   "savesInterestMoney": "Money",
   "savesInterestEnvironment": "Environment",
@@ -1001,7 +1413,6 @@
   "savesInterestSciFi": "Sci-fi",
   "savesInterestMusic": "Music",
   "savesInterestOutdoors": "Outdoors",
-
   "setupHelpSims1": "The original The Sims keeps custom content inside its install folder, not Documents: objects go in a Downloads folder next to the game executable (e.g. C:\\Program Files (x86)\\Maxis\\The Sims\\Downloads), and this app sorts the other types automatically - skins (.skn/.cmx/.bmp) into GameData\\Skins, walls and floors into GameData\\Walls and GameData\\Floors. The 2025 Legacy Collection works the same way from its own install folder (EA Games\\The Sims Legacy, or Steam\\steamapps\\common\\The Sims Legacy Collection). If the game is installed somewhere else (a different drive, a custom Steam library), pick its Downloads folder manually.",
   "setupHelpSims2": "The Sims 2 loads custom content from Documents > EA Games > The Sims 2 > Downloads (the Ultimate Collection uses “The Sims 2 Ultimate Collection”; the 2025 Legacy Collection uses “The Sims 2 Legacy”). The folder may not exist until you create it or install content once. When the game starts, answer “Yes” to the custom content prompt so downloads are enabled.",
   "setupHelpSims3": "The Sims 3 does not create a mods folder on its own: it needs the community “framework”: a Mods > Packages folder inside Documents > Electronic Arts > The Sims 3, plus a Resource.cfg file that tells the game to read it. This app can create both for you. On disc/Wine installs the folder can live inside the app bundle instead; use “Choose folder” to point at it.",
@@ -1011,25 +1422,44 @@
   "prefSubfoldersDesc": "A folder shows everything below it too. Off, cc and cc/defaults are separate shelves.",
   "deleteFolderTitle": "Delete {folder}?",
   "@deleteFolderTitle": {
-    "placeholders": { "folder": { "type": "String" } }
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
   },
   "deleteFolderBody": "The folder and everything in it goes, subfolders and all. This cannot be undone.",
   "deleteFolderMods": "{count, plural, =1{1 mod will be deleted} other{{count} mods will be deleted}}",
   "@deleteFolderMods": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "deleteFolderEmpty": "It holds no mods.",
   "deleteFolder": "Delete folder",
   "triviaTitle": "Plumbob knows · {game}",
   "@triviaTitle": {
-    "placeholders": { "game": { "type": "String" } }
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
   },
   "triviaContextLibrary": "It looks like you’re browsing mods",
   "triviaContextSaves": "It looks like you’re in your saves",
   "triviaContextPacks": "It looks like you’re sorting out your packs",
   "triviaCounter": "Fact {index} of {total}",
   "@triviaCounter": {
-    "placeholders": { "index": { "type": "int" }, "total": { "type": "int" } }
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
   },
   "triviaOpen": "Ask the plumbob",
   "triviaClose": "Not now",
@@ -1136,7 +1566,9 @@
   "creationsCount": "{count, plural, =0{Nothing saved yet} =1{1 creation} other{{count} creations}}",
   "@creationsCount": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "creationsScanning": "Reading your lots and households…",
@@ -1149,7 +1581,9 @@
   "creationsBy": "by {creator}",
   "@creationsBy": {
     "placeholders": {
-      "creator": {"type": "String"}
+      "creator": {
+        "type": "String"
+      }
     }
   },
   "creationsWhoLivesHere": "WHO COMES WITH IT",
@@ -1158,14 +1592,18 @@
   "creationsDeleteTitle": "Delete “{name}”?",
   "@creationsDeleteTitle": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "creationsDeleteBody": "It goes from the game’s folder for good. There’s no undo.",
   "creationsFileCount": "{count, plural, =1{1 file} other{{count} files}}",
   "@creationsFileCount": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "creationKindLot": "Lot",
@@ -1179,58 +1617,217 @@
   "creationFolderSims1Houses": "Neighborhood {number}",
   "@creationFolderSims1Houses": {
     "placeholders": {
-      "number": {"type": "String"}
+      "number": {
+        "type": "String"
+      }
     }
   },
   "creationBadFileName": "“{name}” has characters this system can’t use in a file name, so the game would never find it. Rename it and try again.",
   "@creationBadFileName": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "creationFileInUse": "“{name}” is in use. Close the game and try again.",
   "@creationFileInUse": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "creationSims1PickLot": "The Sims 1 numbers its lots by position on the map, so a house has to take over a lot that's already there - and that wipes whatever is on it. Pick the lot yourself: back it up, then rename the download to that lot's House number in the Houses folder.",
   "creationInstallFailed": "{count, plural, =1{That file couldn’t be added.} other{Those {count} files couldn’t be added.}}",
   "@creationInstallFailed": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "creationRemoveFailed": "“{name}” couldn’t be deleted.",
   "@creationRemoveFailed": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "creationsAdd": "Add",
   "creationsAdding": "Adding…",
   "@creationsPickerLabel": {
     "placeholders": {
-      "game": {"type": "String"}
+      "game": {
+        "type": "String"
+      }
     }
   },
   "creationsPickerLabel": "{game} lots, rooms, households and Sims",
   "creationsNothingToAdd": "Nothing in there was a lot, a room, a household or a Sim this game can use. Custom content and mods go in through the library instead.",
-
   "householdEdit": "Edit",
   "householdEditTitle": "Edit household",
-  "@householdEditBody": {"placeholders": {"name": {"type": "String"}}},
+  "@householdEditBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "householdEditBody": "Change what the save says about “{name}”.",
   "householdEditName": "Name",
   "householdEditFunds": "Funds",
-  "@householdEditFundsMax": {"placeholders": {"max": {"type": "String"}}},
+  "@householdEditFundsMax": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
   "householdEditFundsMax": "Up to {max}, which is as much as this game will hold.",
   "householdEditSave": "Save changes",
   "householdEditNotice": "Close the game first: it writes its own save back when it quits. A copy of the file is kept before anything changes.",
   "errorSaveEditHouseholdGone": "That household isn’t in the save any more. Refresh the list and try again.",
-  "@errorSaveEditUnreadable": {"placeholders": {"file": {"type": "String"}}},
+  "@errorSaveEditUnreadable": {
+    "placeholders": {
+      "file": {
+        "type": "String"
+      }
+    }
+  },
   "errorSaveEditUnreadable": "“{file}” isn’t laid out the way this app knows how to rewrite, so nothing was changed.",
-  "@errorSaveEditVerification": {"placeholders": {"file": {"type": "String"}}},
+  "@errorSaveEditVerification": {
+    "placeholders": {
+      "file": {
+        "type": "String"
+      }
+    }
+  },
   "errorSaveEditVerification": "The rewritten “{file}” didn’t read back the way it should have, so it was thrown away. Your save is untouched.",
-  "errorSaveEditUnsupported": "This game’s saves can be read, but not changed."
+  "errorSaveEditUnsupported": "This game’s saves can be read, but not changed.",
+  "@whatsNewEyebrow": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "whatsNewEyebrow": "New in {version}",
+  "whatsNewAlsoSince": "Also in this update",
+  "whatsNewDismiss": "Let’s go",
+  "whatsNew300RootTitle": "Mods that live in the game’s own folders",
+  "whatsNew300RootBody": "Worlds, graphics tweaks and script loaders never worked from the Mods folder. Now they install straight into the folders the game reads, and whatever they replace is kept safe, so uninstalling gives you the original back.",
+  "whatsNew300PacksTitle": "Listings can say which packs they need",
+  "whatsNew300PacksBody": "Creators can tag a mod with the packs it was built for, and The Exchange checks them against yours before you install. It’s always a heads-up, never a locked door.",
+  "whatsNew300ContainersTitle": "A zip full of .sims3pack files just works",
+  "whatsNew300ContainersBody": "Drop the whole set on the window. The Sims 3 containers tucked inside an archive are opened where they’re found, and the lot installs in one go.",
+  "whatsNew300SimCityTitle": "SimCity 3000, 4, Societies and 2013",
+  "whatsNew300SimCityBody": "Four more games in the sidebar. SimCity 4 reads both of its Plugins folders, keeps the load order your folder and file names spell out, and leaves anything sc4pac installed alone. Settings can hide the games you don’t play.",
+  "whatsNew300CatalogTitle": "Thousands of SimCity 4 mods to browse",
+  "whatsNew300CatalogBody": "The Exchange now carries the sc4pac channels beside our own listings, credited to the project that keeps them. A download brings everything it depends on or nothing at all, and where a host won’t let an app fetch a file, the button says so up front.",
+  "whatsNew300ThemeTitle": "Pick the look you like",
+  "whatsNew300ThemeBody": "The app used to change colour with whichever game you had open. Now you pick the look you want in Settings, and it stays put whichever game you’re managing.",
+  "categoryLot": "Lot",
+  "categoryModel": "Model",
+  "categoryDescription": "Description",
+  "categoryBuilding": "Building",
+  "setupHelpSimCity4": "SimCity 4 reads plugins from two folders at once: Documents > SimCity 4 > Plugins (yours, and the one this app manages) and a Plugins folder inside the game install. Folder and file names are the load order, so leave the structure a download arrives with alone - that is why sc4pac uses numbered folders and why overrides are named \"zzz...\". DLL plugins only load from the top level of a Plugins folder, never from a subfolder, so this app puts them there for you. Anything sc4pac installed stays sc4pac's: it is listed by that app, not this one.",
+  "setupHelpSimCity2013": "SimCity loads mods as .package files from SimCityUserData > Packages inside the game install (usually under Program Files, so Windows may ask for administrator rights). This app manages that folder only. The game also reads its own SimCityData folder, but that one holds Maxis's content, so a mod whose readme says it must load before the game's own packages has to go there by hand. Plenty of mods are marked offline-only: try them on a city you can afford to lose.",
+  "setupHelpSimCity3000": "SimCity 3000 loads custom buildings (.bld files, made with the Building Architect Tool) from a Buildings folder inside the game install. It is a flat folder - a building in a subfolder is never loaded. The buildings that came with the game are hidden here so you cannot delete them by accident. Resolution and compatibility fixes that patch SC3U.exe itself are not something this app installs; follow their own instructions for those.",
+  "setupHelpSimCitySocieties": "SimCity Societies keeps custom content in Documents > SimCity Societies > Import, which is where the game's own Package Installer puts it. This app can create the folder for you. Content comes as .SCSPack files - that is the extension the game itself looks for. Heads up: Societies was made to be edited rather than to load packaged mods - most of what the scene did was edit the C# and XML inside the game's own Data folder, which this app deliberately never touches.",
+  "sectionManagedGames": "Games",
+  "prefManageGameTitle": "Manage {game}",
+  "prefManageGameDesc": "Show it in the sidebar. Hiding a game keeps every setting it has.",
+  "@prefManageGameTitle": {
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
+  },
+  "errorLastManagedGame": "That’s the only game left in your sidebar, so it has to stay. Turn on another one first if you want to hide it.",
+  "catalogCount": "{count} mods",
+  "@catalogCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "catalogCuratedBy": "Catalog by {project}",
+  "@catalogCuratedBy": {
+    "placeholders": {
+      "project": {
+        "type": "String"
+      }
+    }
+  },
+  "catalogOpenPage": "Open page",
+  "catalogBlocked": "{host} doesn't let apps download for you. Grab it from the mod's own page instead.",
+  "@catalogBlocked": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "catalogUnresolvedNote": "This one couldn't be read from the catalog.",
+  "catalogDependencies": "Comes with",
+  "catalogFileCount": "{count} files",
+  "@catalogFileCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "catalogDownloading": "Downloading {current} of {total}",
+  "@catalogDownloading": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "catalogWarningTitle": "Heads up",
+  "catalogConflictsTitle": "Clashes with",
+  "catalogSourceFailed": "Couldn't reach {source}",
+  "@catalogSourceFailed": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "catalogEmpty": "Nothing matches that.",
+  "catalogRefresh": "Reload the catalog",
+  "catalogOptions": "Options",
+  "catalogBy": "by {author}",
+  "@catalogBy": {
+    "placeholders": {
+      "author": {
+        "type": "String"
+      }
+    }
+  },
+  "errorCatalogUnreachable": "Couldn't reach the catalog. Check your connection and try again.",
+  "errorCatalogUnreadable": "The catalog answered with something this version can't read.",
+  "errorCatalogDownloadFailed": "{host} refused the download.",
+  "@errorCatalogDownloadFailed": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "errorCatalogInstallFailed": "Something went wrong installing that.",
+  "errorCatalogInstallCancelled": "Install cancelled.",
+  "catalogLoading": "Loading the catalog…",
+  "catalogBack": "← Back to the catalog",
+  "catalogPromoTitle": "Made a mod yourself?",
+  "catalogPromoBody": "Put it on The Exchange and it installs in one click, gets its own page and link, and everyone who already has it hears about updates."
 }

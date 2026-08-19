@@ -59,6 +59,10 @@ extension AppText on L {
         'Floor' => categoryFloor,
         'World' => categoryWorld,
         'Settings' => categorySettings,
+        'Lot' => categoryLot,
+        'Model' => categoryModel,
+        'Description' => categoryDescription,
+        'Building' => categoryBuilding,
         _ => key,
       };
 
@@ -117,6 +121,22 @@ extension AppText on L {
         _ => null,
       };
 
+  /// What a theme is called in the picker. All but one are named after
+  /// the game whose chrome they were drawn from, and a game's name is a
+  /// proper noun that stays English in every language - the same bargain
+  /// the sidebar and The Exchange make. Only the flat default has
+  /// wording of its own.
+  String themeName(String id) => switch (id) {
+        'sims1' => 'The Sims',
+        'sims2' => 'The Sims 2',
+        'sims3' => 'The Sims 3',
+        'simsmedieval' => 'The Sims Medieval',
+        'simcity3000' => 'SimCity 3000',
+        'simcity4' => 'SimCity 4',
+        'simcity2013' => 'SimCity (2013)',
+        _ => appThemeDefault,
+      };
+
   String eraName(String key) => switch (key) {
         'classic' => eraClassic,
         'nightlife' => eraNightlife,
@@ -164,6 +184,13 @@ extension AppText on L {
       'shopDownloadFailed' => errorShopDownload(arg(0)),
       'shopNoModFiles' => errorShopNoModFiles(arg(0)),
       'shopNeedsFolder' => shopNeedsFolder(arg(0)),
+      // The catalog's own five. Short keys like every other message core
+      // hands up; the ARB getters carry the `error` prefix.
+      'catalogUnreachable' => errorCatalogUnreachable,
+      'catalogUnreadable' => errorCatalogUnreadable,
+      'catalogDownloadFailed' => errorCatalogDownloadFailed(arg(0)),
+      'catalogInstallFailed' => errorCatalogInstallFailed,
+      'catalogInstallCancelled' => errorCatalogInstallCancelled,
       'shopListingNotFound' => errorShopListingNotFound,
       'shopListingUnknownGame' => errorShopListingUnknownGame,
       'errorPackToggleFailed' => errorPackToggleFailed(arg(0)),
@@ -183,6 +210,7 @@ extension AppText on L {
       'saveEditUnreadable' => errorSaveEditUnreadable(arg(0)),
       'saveEditVerificationFailed' => errorSaveEditVerification(arg(0)),
       'saveEditUnsupported' => errorSaveEditUnsupported,
+      'errorLastManagedGame' => errorLastManagedGame,
       _ => '$message',
     };
   }
@@ -238,6 +266,10 @@ extension AppText on L {
         'sims3' => setupHelpSims3,
         'sims4' => setupHelpSims4,
         'simsmedieval' => setupHelpSimsMedieval,
+        'simcity3000' => setupHelpSimCity3000,
+        'simcity4' => setupHelpSimCity4,
+        'simcitysocieties' => setupHelpSimCitySocieties,
+        'simcity2013' => setupHelpSimCity2013,
         _ => '',
       };
 
@@ -418,6 +450,33 @@ extension AppText on L {
   /// (see [TriviaFact]), so the buddy itself knows nothing about which
   /// game it is talking about. A key with no message yet reads as empty,
   /// and the deck skips it rather than drawing a blank bubble.
+  /// A what's-new entry's headline, by the key the table carries.
+  ///
+  /// Core has no localizations, so `whats_new.dart` holds ARB keys and
+  /// they are resolved here at the moment the card is drawn - the same
+  /// bargain [triviaFact] and [setupHelp] make. An unknown key falls
+  /// through to itself rather than blanking, which is what keeps a
+  /// table entry added ahead of its strings visible instead of silent.
+  String whatsNewTitle(String key) => switch (key) {
+        'whatsNew300SimCityTitle' => whatsNew300SimCityTitle,
+        'whatsNew300CatalogTitle' => whatsNew300CatalogTitle,
+        'whatsNew300ThemeTitle' => whatsNew300ThemeTitle,
+        'whatsNew300RootTitle' => whatsNew300RootTitle,
+        'whatsNew300PacksTitle' => whatsNew300PacksTitle,
+        'whatsNew300ContainersTitle' => whatsNew300ContainersTitle,
+        _ => key,
+      };
+
+  String whatsNewBody(String key) => switch (key) {
+        'whatsNew300SimCityBody' => whatsNew300SimCityBody,
+        'whatsNew300CatalogBody' => whatsNew300CatalogBody,
+        'whatsNew300ThemeBody' => whatsNew300ThemeBody,
+        'whatsNew300RootBody' => whatsNew300RootBody,
+        'whatsNew300PacksBody' => whatsNew300PacksBody,
+        'whatsNew300ContainersBody' => whatsNew300ContainersBody,
+        _ => key,
+      };
+
   String triviaFact(String key) => switch (key) {
         'triviaSeriesLlama' => triviaSeriesLlama,
         'triviaSeriesSimlish' => triviaSeriesSimlish,

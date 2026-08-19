@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import '../app_version.dart';
 import '../core/deep_link.dart';
+import '../core/pack_requirements.dart';
 import 'debug_log.dart';
 
 /// The Exchange: the mod storefront creators publish to at
@@ -56,6 +57,7 @@ class ShopMod {
     this.instructions,
     this.authorUid = '',
     this.group,
+    this.requiresPacks = const [],
     this.imagePaths = const [],
     this.updatedAt,
     this.downloads = 0,
@@ -94,6 +96,16 @@ class ShopMod {
   /// record, so a creator can publish them one at a time and gather them
   /// afterwards without anything they already shared going stale.
   final String? group;
+
+  /// The packs this mod needs before it works, as the codes the games
+  /// use for themselves (`EP01`, `GP06`), uppercase and already filtered
+  /// to ones we are willing to hold. Empty on the great majority of
+  /// listings, which is the base game and nothing else.
+  ///
+  /// The creator's claim, not a fact about anybody's machine: what this
+  /// copy of the game actually has is worked out against it in
+  /// `pack_requirements.dart`, and the answer is a warning either way.
+  final List<String> requiresPacks;
 
   /// The download: its file name (what lands in the mods folder, or an
   /// archive the adapter unpacks), storage path and size.
@@ -352,6 +364,18 @@ int? _int(Object? field) {
   return value is String ? int.tryParse(value) : (value is int ? value : null);
 }
 
+/// The plain values of a Firestore array field, empty for anything that
+/// isn't one. Entries are handed on as they came: what a pack code is
+/// allowed to look like is [normalizePackCodes]' business, not this
+/// function's.
+List<Object?> _list(Object? field) {
+  if (field is! Map) return const [];
+  final array = field['arrayValue'];
+  final values = array is Map ? array['values'] : null;
+  if (values is! List) return const [];
+  return [for (final value in values) value is Map ? value['stringValue'] : null];
+}
+
 /// Turns one Firestore runQuery result row into a listing, or null when
 /// the row isn't one (the trailing readTime row, a document missing
 /// required fields - the portal can't write one, but the wire can carry
@@ -407,6 +431,7 @@ ShopMod? _parseDocument(Object? row) {
       final String name when name.isNotEmpty => name,
       _ => null,
     },
+    requiresPacks: normalizePackCodes(_list(fields['requiresPacks'])),
     fileName: fileName,
     filePath: filePath,
     fileSizeBytes: _int(f['size']) ?? 0,

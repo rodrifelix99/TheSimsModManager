@@ -6,11 +6,13 @@ import 'package:intl/intl.dart' show Intl;
 
 import '../core/deep_link.dart';
 import '../core/game_registry.dart';
+import '../core/whats_new.dart';
 import '../services/analytics.dart';
 import '../services/mod_shop.dart';
 import '../services/reachability.dart';
 import '../services/settings_store.dart';
 import 'app_controller.dart';
+import 'game_theme.dart';
 import 'l10n.dart';
 import 'shell.dart';
 
@@ -48,6 +50,7 @@ class ModManagerApp extends StatefulWidget {
     this.onBrightnessChanged,
     this.checkElevated,
     this.probeServices,
+    this.whatsNewTable,
   });
 
   final GameRegistry registry;
@@ -99,6 +102,10 @@ class ModManagerApp extends StatefulWidget {
   /// which is otherwise only reachable from inside a country.
   final Future<Reachability> Function(String? mirrorBase)? probeServices;
 
+  /// The what's-new table, for tests that need one independent of the
+  /// release this build is.
+  final List<WhatsNewEntry>? whatsNewTable;
+
   @override
   State<ModManagerApp> createState() => _ModManagerAppState();
 }
@@ -114,7 +121,8 @@ class _ModManagerAppState extends State<ModManagerApp> {
       reportDownload: widget.reportDownload,
       pickSavePath: widget.pickSavePath,
       checkElevated: widget.checkElevated,
-      probeServices: widget.probeServices);
+      probeServices: widget.probeServices,
+      whatsNewTable: widget.whatsNewTable);
 
   /// The language and theme currently rendered. Mirrored out of the
   /// controller rather than read from it during build: this widget sits
@@ -123,6 +131,11 @@ class _ModManagerAppState extends State<ModManagerApp> {
   /// load) is both wasteful and illegal.
   Locale? _locale;
   ThemeMode _themeMode = ThemeMode.system;
+
+  /// The theme name the Material seed below was built from. Kept beside
+  /// the two above because it is the same kind of fact: a rebuild of
+  /// MaterialApp itself rather than of anything under it.
+  String? _appTheme;
 
   /// Last brightness handed to [ModManagerApp.onBrightnessChanged].
   Brightness? _reportedBrightness;
@@ -141,6 +154,7 @@ class _ModManagerAppState extends State<ModManagerApp> {
     super.initState();
     _locale = _controller.locale;
     _themeMode = _modeOf(widget.settings.themeModeName);
+    _appTheme = _controller.appTheme;
     _controller.addListener(_syncAppearance);
     // Subscribed past the first frame, like _reportBrightness: a link that
     // launched the app is already waiting in the stream, and acting on it
@@ -177,10 +191,15 @@ class _ModManagerAppState extends State<ModManagerApp> {
 
   void _syncAppearance() {
     final mode = _modeOf(widget.settings.themeModeName);
-    if (_controller.locale == _locale && mode == _themeMode) return;
+    if (_controller.locale == _locale &&
+        mode == _themeMode &&
+        _controller.appTheme == _appTheme) {
+      return;
+    }
     setState(() {
       _locale = _controller.locale;
       _themeMode = mode;
+      _appTheme = _controller.appTheme;
     });
   }
 
@@ -214,10 +233,10 @@ class _ModManagerAppState extends State<ModManagerApp> {
       supportedLocales: appSupportedLocales,
       // The chrome paints itself from GameTheme; these two exist mostly so
       // Material's own bits (popup menus, dialog scrims, text selection)
-      // and, above all, `Theme.of(context).brightness` - which is what
-      // picks the game palette down in the shell - come out right.
-      theme: _baseTheme(Brightness.light),
-      darkTheme: _baseTheme(Brightness.dark),
+      // and, above all, `Theme.of(context).brightness` - which is half of
+      // what picks the palette down in the shell - come out right.
+      theme: _baseTheme(Brightness.light, _appTheme),
+      darkTheme: _baseTheme(Brightness.dark, _appTheme),
       themeMode: _themeMode,
       // Dates and byte counts go through intl's own formatters, which read
       // an ambient locale rather than a BuildContext; this is the one spot
@@ -234,12 +253,16 @@ class _ModManagerAppState extends State<ModManagerApp> {
     );
   }
 
-  static ThemeData _baseTheme(Brightness brightness) => ThemeData(
+  static ThemeData _baseTheme(Brightness brightness, String? appTheme) =>
+      ThemeData(
         useMaterial3: true,
         brightness: brightness,
         fontFamily: 'Nunito',
-        // The Sims 4 accent, which is also the app's own mint.
-        colorSchemeSeed: const Color(0xFF189771),
+        // Seeded from the chosen theme's own accent, so the Material bits
+        // that keep their own colours - a dialog's buttons, a text field's
+        // cursor - land in the same family as the chrome around them. The
+        // default's is the Sims 4 accent, which is also the app's own mint.
+        colorSchemeSeed: GameTheme.forTheme(appTheme, brightness).accent,
         splashFactory: NoSplash.splashFactory,
       );
 }

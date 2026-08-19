@@ -37,6 +37,7 @@ import { auth, db, storage } from './firebase';
 import { closeFormatPreviews, wireFormatting } from './format';
 import { fmtSize, loadStrings, s } from '../strings';
 import { gameNames } from '../../data/games';
+import { normalizePackCodes, packCatalog } from '../../data/packs';
 import { revealOnScroll } from '../reveal';
 
 // Also written into firestore.rules, which is what actually refuses the
@@ -63,6 +64,11 @@ interface Listing {
   version: string;
   description: string;
   instructions?: string;
+  /// The packs this mod does nothing without, as the games' own codes. The
+  /// app answers them against what the player actually has installed and
+  /// warns; it never refuses an install over one, so this is a courtesy to
+  /// whoever downloads rather than a lock.
+  requiresPacks?: string[];
   authorUid: string;
   authorName: string;
   file: StoredFile;
@@ -581,6 +587,69 @@ function wireDropzones() {
   }
 }
 
+// ---------- the pack checklist ----------
+
+/// Which packs the listing being edited says it needs. Held apart from the
+/// form because the boxes themselves come and go: the list is rebuilt every
+/// time the search narrows it, and a checkbox that is not on screen would
+/// otherwise read as unticked.
+let selectedPacks = new Set<string>();
+
+/// Draws the checklist for whichever game is picked, narrowed by the search
+/// box. Hidden whole for a game with no catalog - The Sims Medieval had one
+/// add-on ever, and it shares the base game's patch level, so there is
+/// nothing here to tick.
+function renderPacks() {
+  const packs = packCatalog[select('f-game').value] ?? [];
+  $('packs-block').classList.toggle('hidden', packs.length === 0);
+  if (packs.length === 0) return;
+  const needle = input('f-packs-search').value.trim().toLowerCase();
+  const list = $('pack-list');
+  list.textContent = '';
+  for (const pack of packs) {
+    // A ticked pack stays on screen whatever the search says, so nothing
+    // can be lost behind a filter somebody forgot they typed.
+    const ticked = selectedPacks.has(pack.code);
+    if (needle && !ticked && !pack.name.toLowerCase().includes(needle)
+        && !pack.code.toLowerCase().includes(needle)) {
+      continue;
+    }
+    const row = document.createElement('label');
+    const box = document.createElement('input');
+    box.type = 'checkbox';
+    box.checked = ticked;
+    box.addEventListener('change', () => {
+      if (box.checked) selectedPacks.add(pack.code);
+      else selectedPacks.delete(pack.code);
+      packTally();
+    });
+    const name = document.createElement('span');
+    name.textContent = pack.name;
+    const code = document.createElement('span');
+    code.className = 'code';
+    code.textContent = pack.code;
+    row.append(box, name, code);
+    list.append(row);
+  }
+  packTally();
+}
+
+function packTally() {
+  $('pack-tally').textContent = selectedPacks.size === 0
+    ? s('portal.editor.requiresNone')
+    : s('portal.editor.requiresCount', String(selectedPacks.size));
+}
+
+/// What to save, in the catalog's own order rather than the order they were
+/// ticked, and never a code this game has no such pack for - the selection
+/// is cleared when the game changes, and this is the second half of that.
+function packsToSave(): string[] {
+  const packs = packCatalog[select('f-game').value] ?? [];
+  return normalizePackCodes(
+    packs.filter((pack) => selectedPacks.has(pack.code)).map((pack) => pack.code),
+  );
+}
+
 async function openEditor(id: string | null) {
   editingId = id;
   existing = null;
@@ -591,6 +660,7 @@ async function openEditor(id: string | null) {
   setError('editor-error', '');
   setError('images-error', '');
   ($('form-editor') as HTMLFormElement).reset();
+  selectedPacks = new Set();
   $('file-picked').classList.add('hidden');
   $('editor-title').textContent = s(id ? 'portal.editor.editTitle' : 'portal.editor.newTitle');
   $('btn-save-label').textContent = s(id ? 'portal.editor.saveChanges' : 'portal.editor.save');
@@ -608,11 +678,13 @@ async function openEditor(id: string | null) {
       input('f-author').value = existing.authorName;
       area('f-desc').value = existing.description;
       area('f-notes').value = existing.instructions ?? '';
+      selectedPacks = new Set(normalizePackCodes(existing.requiresPacks));
       input('f-published').checked = existing.published;
       showPicked(existing.file.name, existing.file.size);
       keptImages = [...(existing.images ?? [])];
     }
   }
+  renderPacks();
   renderImages();
   renderPreview();
   show('view-editor');
@@ -645,6 +717,14 @@ function wireEditor() {
   for (const id of ['f-name', 'f-version', 'f-author', 'f-game']) {
     $(id).addEventListener('input', renderPreview);
   }
+  // A pack code means nothing outside the game that shipped it, so changing
+  // the game empties the selection rather than carrying EP01 across.
+  $('f-game').addEventListener('change', () => {
+    selectedPacks = new Set();
+    input('f-packs-search').value = '';
+    renderPacks();
+  });
+  $('f-packs-search').addEventListener('input', renderPacks);
   wireFormatting('f-desc');
   wireFormatting('f-notes');
   // Before the click that submits, and again if anything did get as far as
@@ -724,6 +804,7 @@ function wireEditor() {
       };
       const notes = area('f-notes').value.trim();
       const set = input('f-group').value.trim();
+      const needs = packsToSave();
       const listing = doc(db, 'mods', id);
       if (existing) {
         // An edit saves with update(), not set(): `downloads` belongs to the
@@ -737,10 +818,15 @@ function wireEditor() {
           // Same as the notes: a field cleared to nothing has to be said
           // out loud, or the listing stays in a set it was taken out of.
           group: set || deleteField(),
+          // And again: a requirement the creator has since unticked has to
+          // be removed rather than left behind warning people about a pack
+          // the mod no longer needs.
+          requiresPacks: needs.length ? needs : deleteField(),
         });
       } else {
         if (notes) data.instructions = notes;
         if (set) data.group = set;
+        if (needs.length) data.requiresPacks = needs;
         data.downloads = 0;
         await setDoc(listing, data);
       }

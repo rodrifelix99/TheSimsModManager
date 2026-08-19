@@ -89,11 +89,24 @@ abstract class GameSkin {
   /// The Sims Medieval's: parchment by day, carved wood by night.
   static const simsMedieval = SimsMedievalSkin();
 
+  /// SimCity 3000's: milled steel, squared off inside a charcoal keyline.
+  static const simCity3000 = SimCity3000Skin();
+
+  /// SimCity 4's: the same console cast in teal, rounded off and wet.
+  static const simCity4 = SimCity4Skin();
+
+  /// SimCity (2013)'s: pale silver pills on near-white panels, and the
+  /// only skin here that writes in anything but white.
+  static const simCity2013 = SimCity2013Skin();
+
   static GameSkin forGameId(String id) => switch (id) {
         'sims1' => sims1,
         'sims2' => sims2,
         'sims3' => sims3,
         'simsmedieval' => simsMedieval,
+        'simcity3000' => simCity3000,
+        'simcity4' => simCity4,
+        'simcity2013' => simCity2013,
         _ => flat,
       };
 
@@ -144,12 +157,20 @@ abstract class GameSkin {
   /// changes nothing for a game wearing [FlatSkin], and the call site
   /// still reads as the sentence it was: this colour, unless the
   /// material says otherwise.
+  ///
+  /// [accent] and [fill] are the same ones handed to [decorate], and are
+  /// needed for the same reason the decoration needs them: on a skin
+  /// whose material decides the lettering, what a plate is made of has to
+  /// be worked out before it can be written on. A call site that gives
+  /// [decorate] neither may leave both off here too.
   Color ink(
     GameTheme t,
     SkinSurface surface, {
     SkinState state = SkinState.idle,
     bool secondary = false,
     Color? otherwise,
+    Color? accent,
+    Color? fill,
   });
 
   /// What the window's content area is painted with.
@@ -355,6 +376,8 @@ class FlatSkin extends GameSkin {
     SkinState state = SkinState.idle,
     bool secondary = false,
     Color? otherwise,
+    Color? accent,
+    Color? fill,
   }) {
     if (otherwise != null) return otherwise;
     // White on the two surfaces this skin fills with the accent, which is
@@ -427,14 +450,40 @@ abstract class PlateSkin extends GameSkin {
   /// game's own lit controls are.
   Color lit(GameTheme t);
 
-  /// What a label on a plate is written in.
+  /// The steel an *idle, uncoloured* panel is framed in, or null to
+  /// frame it in [rim] like every other plate.
   ///
-  /// White wherever the plates are dark, which is three of the four
-  /// skins. The Sims Medieval answers with its own brown ink by daylight,
+  /// The rim is the bright line inside a button's keyline, and on a skin
+  /// whose rim is near-white a panel drawn in it has no frame at all by
+  /// daylight - a pale card on a pale backdrop. Both SimCity consoles
+  /// draw framed windows, so both answer this; everything else about the
+  /// panel (the keyline, the seat, the lift on hover) is unchanged, and a
+  /// call site that named an outline or lit the card still gets what it
+  /// asked for.
+  Color? panelFrame(GameTheme t) => null;
+
+  /// What a label on [plate] is written in.
+  ///
+  /// White wherever the plates are dark, which is most of these skins.
+  /// The Sims Medieval answers with its own brown ink by daylight,
   /// because its buttons are parchment - the plate is the skin's material
   /// and so is the writing on it, and that is a thing no call site and no
   /// palette can work out.
-  Color label(GameTheme t) => Colors.white;
+  ///
+  /// It takes the plate because for one skin the answer is not a constant
+  /// per theme at all. SimCity 2013 builds a resting control and a lit
+  /// one out of *different materials* - a pale silver pill with dark grey
+  /// lettering until it is the one you are on, when it fills with the
+  /// game's blue and takes white - and no single ink serves both. Every
+  /// other skin ignores the argument, which is why it is handed over
+  /// rather than asked for.
+  ///
+  /// Whatever a skin answers has to be stable under [bearsLabel], which
+  /// moves the plate *away* from the ink it was given: an answer that
+  /// flipped as the plate moved would never settle. Reading the plate's
+  /// own luminance is safe for exactly that reason - moving away from a
+  /// colour cannot cross the threshold that picked it.
+  Color label(GameTheme t, Color plate) => Colors.white;
 
   /// How wide the dark keyline is, and the bright rim inside it. The
   /// Sims 2 draws both heavier than the Sims 1 does.
@@ -475,6 +524,44 @@ abstract class PlateSkin extends GameSkin {
     return fill.a < 1 ? Color.alphaBlend(fill, t.surface) : fill;
   }
 
+  /// Is [surface] a raised plate - something built out of the skin's own
+  /// material with a word across it - rather than a surface a call site
+  /// coloured itself? A row only once it has materialised.
+  bool raised(SkinSurface surface, SkinState state) => switch (surface) {
+        SkinSurface.button || SkinSurface.chip || SkinSurface.primary => true,
+        SkinSurface.row => state != SkinState.idle,
+        _ => false,
+      };
+
+  /// What a raised [surface] is made of, before [bearsLabel] moves it.
+  ///
+  /// Split out of [decorate] so [ink] can ask the same question and get
+  /// the same answer. The two could not disagree while [ink] was a
+  /// constant; now that a skin may write differently on a pale plate and
+  /// a dark one, a second copy of this reasoning would be a bug waiting
+  /// to happen.
+  Color raisedBase(
+    GameTheme t,
+    SkinSurface surface, {
+    SkinState state = SkinState.idle,
+    Color? accent,
+    Color? fill,
+  }) {
+    final on = state == SkinState.active;
+    if (surface == SkinSurface.primary) return accent ?? lit(t);
+    // A chip's accent is the colour it lights up *in*, so an idle one
+    // is the plain plate however loud a colour the call site named. That
+    // asymmetry is the chip's own and predates this method; spelling it
+    // out here rather than letting the general case below cover it is
+    // what keeps splitting this out a refactor.
+    if (surface == SkinSurface.chip) return on ? (accent ?? lit(t)) : plate(t);
+    if (surface == SkinSurface.row) {
+      final asked = solid(t, fill, on ? lit(t) : plate(t));
+      return asked == t.surface ? lit(t) : asked;
+    }
+    return accent ?? (on ? lit(t) : plate(t));
+  }
+
   /// [c] moved until [label] on it clears 3:1, away from the label.
   ///
   /// This is why a game's own lit controls sit a shade off the colour
@@ -489,7 +576,7 @@ abstract class PlateSkin extends GameSkin {
   /// laid over that face is composited in first, since the label ends up
   /// on top of the texture rather than on top of the gradient.
   Color bearsLabel(GameTheme t, SkinSurface surface, Color c) {
-    final ink = label(t);
+    final ink = label(t, c);
     final pale = ink.computeLuminance() > .5;
     final wash = grainOf(t, surface);
     var out = c;
@@ -590,7 +677,9 @@ abstract class PlateSkin extends GameSkin {
           ),
           border: Border.all(
             color: outline ??
-                (state == SkinState.idle ? rim(t).withValues(alpha: .75) : a),
+                (state == SkinState.idle
+                    ? (panelFrame(t) ?? rim(t).withValues(alpha: .75))
+                    : a),
             width: rimWidth,
           ),
           borderRadius: br,
@@ -616,8 +705,8 @@ abstract class PlateSkin extends GameSkin {
         );
 
       case SkinSurface.button:
-        final base = bearsLabel(t, surface,
-            accent ?? (state == SkinState.active ? lit(t) : plate(t)));
+        final base = bearsLabel(
+            t, surface, raisedBase(t, surface, state: state, accent: accent));
         return BoxDecoration(
           gradient: face(base, pressed: pressed, lit: hot),
           image: grainOf(t, surface)?.image,
@@ -643,9 +732,8 @@ abstract class PlateSkin extends GameSkin {
       // the surface is read as "on" too.
       case SkinSurface.row:
         if (state == SkinState.idle) return BoxDecoration(borderRadius: br);
-        final asked = solid(
-            t, fill, state == SkinState.active ? lit(t) : plate(t));
-        final base = bearsLabel(t, surface, asked == t.surface ? lit(t) : asked);
+        final base = bearsLabel(t, surface,
+            raisedBase(t, surface, state: state, accent: accent, fill: fill));
         return BoxDecoration(
           gradient: face(base, pressed: pressed, lit: hot),
           image: grainOf(t, surface)?.image,
@@ -658,7 +746,8 @@ abstract class PlateSkin extends GameSkin {
       // orange in any theme - and everything else lights up in [lit].
       case SkinSurface.chip:
         final on = accent ?? lit(t);
-        final base = bearsLabel(t, surface, state == SkinState.active ? on : plate(t));
+        final base = bearsLabel(
+            t, surface, raisedBase(t, surface, state: state, accent: accent));
         return BoxDecoration(
           gradient: face(base, pressed: pressed, lit: hot),
           image: grainOf(t, surface)?.image,
@@ -706,7 +795,8 @@ abstract class PlateSkin extends GameSkin {
       // The loud one, and loud from its colour rather than from a bloom:
       // the glow this used to cast was the other half of the Aero look.
       case SkinSurface.primary:
-        final base = bearsLabel(t, surface, accent ?? lit(t));
+        final base = bearsLabel(
+            t, surface, raisedBase(t, surface, state: state, accent: accent));
         return BoxDecoration(
           gradient: face(base, pressed: pressed, lit: hot),
           image: grainOf(t, surface)?.image,
@@ -752,18 +842,20 @@ abstract class PlateSkin extends GameSkin {
     SkinState state = SkinState.idle,
     bool secondary = false,
     Color? otherwise,
+    Color? accent,
+    Color? fill,
   }) {
-    // Anything raised is a coloured plate in both themes, so its label is
-    // white in both - this is the answer a call site could not have worked
-    // out from the palette, and the reason [ink] takes an [otherwise]
-    // rather than being one.
-    final onPlate = switch (surface) {
-      SkinSurface.button || SkinSurface.chip || SkinSurface.primary => true,
-      SkinSurface.row => state != SkinState.idle,
-      _ => false,
-    };
-    if (onPlate) {
-      return label(t).withValues(alpha: secondary ? .72 : 1);
+    // Anything raised is a plate of the skin's own material, so what goes
+    // on it is the skin's answer rather than the call site's - which is
+    // the reason [ink] takes an [otherwise] rather than being one. The
+    // plate has to be built before it can be written on, because for one
+    // skin the lettering follows the material: an Ignore button made of
+    // the warning orange takes a different word than the pale one beside
+    // it.
+    if (raised(surface, state)) {
+      final base = bearsLabel(t, surface,
+          raisedBase(t, surface, state: state, accent: accent, fill: fill));
+      return label(t, base).withValues(alpha: secondary ? .72 : 1);
     }
     return otherwise ?? (secondary ? t.muted : t.text);
   }
@@ -1041,7 +1133,8 @@ class SimsMedievalSkin extends PlateSkin {
   Color lit(GameTheme t) => isDark(t) ? _darkLit : _lightLit;
 
   @override
-  Color label(GameTheme t) => isDark(t) ? _darkLabel : _lightLabel;
+  Color label(GameTheme t, Color plate) =>
+      isDark(t) ? _darkLabel : _lightLabel;
 
   /// What the wood photograph averages to. Hardcoded because a skin is
   /// const and nothing here decodes an image; theme_test.dart measures
@@ -1092,5 +1185,459 @@ class SimsMedievalSkin extends PlateSkin {
         SkinSurface.notice => 14,
         SkinSurface.primary => 14,
         SkinSurface.well => 12,
+      };
+}
+
+/// SimCity 3000's, and the first skin here drawn from outside The Sims:
+/// a control console rather than a home. Steel plates squared off inside
+/// a hard charcoal keyline, a bright machined line along the top edge and
+/// a crease across the middle, seated flush on the panel rather than
+/// floating over it.
+///
+/// The three Sims skins are all rounded, and rounding is the first thing
+/// that has to go: SC3K's toolbars, dialogs and data windows are
+/// rectangles with a chiselled edge, which is why [roundness] takes a
+/// named radius down to a quarter of itself and every [radiusOf] here is
+/// a few pixels rather than a dozen. The rest is the same vocabulary the
+/// other plates are built from - it just happens to be milled steel.
+///
+/// The safety yellow, the vivid red and the saturated green the game
+/// reads its data out in live in the palette rather than here: those are
+/// what a number is drawn in, and nothing in this app is a demand meter.
+/// A control that is *on* lights in the game's own selection blue.
+class SimCity3000Skin extends PlateSkin {
+  const SimCity3000Skin();
+
+  // Daylight: the dialogs, which are pale steel with a mid-blue bar.
+  static const _lightPlate = Color(0xFF5E7B9C);
+  static const _lightRim = Color(0xFFD3E0EE);
+  static const _lightOutline = Color(0xFF1B2833);
+  static const _lightWell = Color(0xFFCBD5E4);
+
+  // Night: the toolbar and the status strip, which are near-black steel.
+  static const _darkPlate = Color(0xFF3C4E61);
+  static const _darkRim = Color(0xFF8FA6BC);
+  static const _darkOutline = Color(0xFF04080C);
+  static const _darkWell = Color(0xFF0B1219);
+
+  @override
+  Color plate(GameTheme t) => isDark(t) ? _darkPlate : _lightPlate;
+  @override
+  Color rim(GameTheme t) => isDark(t) ? _darkRim : _lightRim;
+  @override
+  Color outline(GameTheme t) => isDark(t) ? _darkOutline : _lightOutline;
+  @override
+  Color well(GameTheme t) => isDark(t) ? _darkWell : _lightWell;
+
+  /// The blue the game lights a chosen tool in - saturated, where the
+  /// plates around it are deliberately not.
+  @override
+  Color lit(GameTheme t) => const Color(0xFF1C7FB0);
+
+  /// A heavy keyline with a thin bright line inside it: the bevel here is
+  /// cut rather than moulded, so the dark side of it carries the weight.
+  @override
+  double get keyline => 1.4;
+  @override
+  double get rimWidth => 1.2;
+
+  /// Almost flush. A console's buttons sit in the panel; the seat is
+  /// there to be seen at the bottom edge and nowhere else.
+  @override
+  double get drop => 1.2;
+
+  /// Square, and that is the point - see the class comment.
+  @override
+  double get roundness => .25;
+
+  @override
+  double get faceHeadroom => .14;
+  @override
+  double get faceShadowroom => .2;
+
+  /// Milled steel: a hard highlight along the top edge, a long even body,
+  /// a crease at the midline and a darker skirt under it. The crease is
+  /// what makes a row of these read as one bar of metal rather than as a
+  /// row of pills, and it is the one thing the matte finish upstairs
+  /// cannot say.
+  ///
+  /// Only the top highlight brightens under the pointer, because that is
+  /// where a specular lives and because [faceHeadroom] has to hold for
+  /// every state - the stop a label actually crosses may not move.
+  @override
+  LinearGradient face(Color base, {bool pressed = false, bool lit = false}) {
+    final body = pressed ? _sink(base, .12) : base;
+    return LinearGradient(
+      begin: pressed ? Alignment.bottomCenter : Alignment.topCenter,
+      end: pressed ? Alignment.topCenter : Alignment.bottomCenter,
+      colors: [
+        _lift(body, lit ? .42 : .3),
+        _lift(body, .14),
+        body,
+        _sink(body, .09),
+        _sink(body, .2),
+      ],
+      stops: const [0, .14, .5, .54, 1],
+    );
+  }
+
+  /// The steel a window is framed in, which is [rim] everywhere else and
+  /// cannot be here: this skin's rim is the near-white line inside a
+  /// button's keyline, and a panel drawn in it has no frame at all by
+  /// daylight - a pale card on a pale backdrop. The game's windows are
+  /// framed, so they are framed. After dark the rim is already dim
+  /// enough to frame one, so that case answers null and takes the plate
+  /// skin's own.
+  static const _lightFrame = Color(0xFF93A6BC);
+
+  @override
+  Color? panelFrame(GameTheme t) => isDark(t) ? null : _lightFrame;
+
+  /// Flat steel rather than the Sims' outdoor falloff: light along the
+  /// top, dark at the bottom. The other skins' radial gradient is a sky,
+  /// and this game's backdrop is the console the sky is looked at from.
+  @override
+  Decoration backdrop(GameTheme t) => BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            _lift(t.bg, isDark(t) ? .07 : .3),
+            t.bg,
+            _sink(t.bg, isDark(t) ? .25 : .07),
+          ],
+          stops: const [0, .55, 1],
+        ),
+      );
+
+  @override
+  double radiusOf(SkinSurface surface) => switch (surface) {
+        SkinSurface.panel => 4,
+        SkinSurface.button => 3,
+        SkinSurface.row => 3,
+        SkinSurface.chip => 3,
+        SkinSurface.notice => 4,
+        SkinSurface.primary => 3,
+        SkinSurface.well => 2,
+      };
+}
+
+/// SimCity 4's, and the sibling that had to be told apart from the one
+/// above rather than merely added beside it.
+///
+/// Four years separate the two consoles and every difference between
+/// them runs the same way: 3000 is milled steel, squared off and matte,
+/// read out in safety yellow; 4 is the same console cast in the teal its
+/// HUD is made of, rounded off, and wet. So this skin keeps [PlateSkin]'s
+/// whole vocabulary and moves the three things that carry a game -
+/// [roundness] from a quarter back up to nearly whole, the material from
+/// steel blue to teal, and [face] from a crease to a specular.
+///
+/// The amber lives in the palette rather than here, like 3000's yellow:
+/// it is what a *number* is drawn in, and nothing in this app is a
+/// budget line.
+class SimCity4Skin extends PlateSkin {
+  const SimCity4Skin();
+
+  // Daylight: the budget and query windows, pale steel pulled toward the
+  // teal, framed in a blue-gray the pale rim could never draw.
+  static const _lightPlate = Color(0xFF4C7F84);
+  static const _lightRim = Color(0xFFCFE4E4);
+  static const _lightOutline = Color(0xFF16262A);
+  static const _lightWell = Color(0xFFC7D6D8);
+  static const _lightFrame = Color(0xFF89A3A6);
+
+  // Night: the HUD along the bottom of the map, which is where this
+  // game's chrome actually lives.
+  static const _darkPlate = Color(0xFF2E4A4E);
+  static const _darkRim = Color(0xFF86A8AC);
+  static const _darkOutline = Color(0xFF03080A);
+  static const _darkWell = Color(0xFF0A1416);
+
+  /// The navy the backdrop runs into at the bottom. A hue rather than a
+  /// shade, because "steel blue down to navy" is a turn the pure
+  /// lightness ramp 3000's console uses cannot make.
+  static const _navy = Color(0xFF0C1A2E);
+
+  /// How far the specular lifts the half a label crosses. Named because
+  /// [faceHeadroom] has to be the same number - see [Sims3Skin].
+  static const _sheen = .22;
+
+  @override
+  Color plate(GameTheme t) => isDark(t) ? _darkPlate : _lightPlate;
+  @override
+  Color rim(GameTheme t) => isDark(t) ? _darkRim : _lightRim;
+  @override
+  Color outline(GameTheme t) => isDark(t) ? _darkOutline : _lightOutline;
+  @override
+  Color well(GameTheme t) => isDark(t) ? _darkWell : _lightWell;
+
+  @override
+  Color? panelFrame(GameTheme t) => isDark(t) ? null : _lightFrame;
+
+  /// The muted teal an active tool is marked in - the game's own, and
+  /// deliberately not the saturated blue 3000 picks one out with.
+  @override
+  Color lit(GameTheme t) => const Color(0xFF1B8C88);
+
+  /// A moulded edge rather than 3000's cut one, so the bright side of it
+  /// carries more of the weight and the dark keyline less.
+  @override
+  double get keyline => 1.2;
+  @override
+  double get rimWidth => 1.3;
+
+  /// Proud of the panel rather than flush in it. 3000's controls sit in
+  /// the console; these sit on it, and catch light on the way round.
+  @override
+  double get drop => 2.2;
+
+  /// Rounded, which is the loudest single thing between the two consoles
+  /// and the reason [roundness] exists at all: 3000 takes a named radius
+  /// to a quarter, and this takes it very nearly whole.
+  @override
+  double get roundness => .85;
+
+  @override
+  double get faceHeadroom => _sheen;
+  @override
+  double get faceShadowroom => .17;
+
+  /// Wet metal: a broad specular across the top third falling off
+  /// smoothly into the body, a shaded skirt, and a lip of bounce light
+  /// along the very bottom edge - which is what a rounded metal face
+  /// does and what a flat milled one cannot. No crease: that is 3000's,
+  /// and it is what makes a row of its controls read as one bar.
+  ///
+  /// The bounce is the last stop only, so it never reaches the darkest
+  /// point a dark label has to survive - [faceShadowroom] tracks the
+  /// skirt above it rather than the lip.
+  @override
+  LinearGradient face(Color base, {bool pressed = false, bool lit = false}) {
+    final body = pressed ? _sink(base, .11) : base;
+    return LinearGradient(
+      begin: pressed ? Alignment.bottomCenter : Alignment.topCenter,
+      end: pressed ? Alignment.topCenter : Alignment.bottomCenter,
+      colors: [
+        _lift(body, lit ? .46 : .38),
+        _lift(body, lit ? _sheen : .12),
+        body,
+        _sink(body, .17),
+        _sink(body, .09),
+      ],
+      stops: const [0, .3, .62, .9, 1],
+    );
+  }
+
+  /// Lighter steel blue at the top edge, deepening into navy at the
+  /// bottom. 3000's backdrop is the same shape and a pure lightness ramp;
+  /// this one turns as it darkens, which is the difference between a
+  /// sheet of steel and the sky the map sits under.
+  @override
+  Decoration backdrop(GameTheme t) => BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            _lift(t.bg, isDark(t) ? .09 : .34),
+            t.bg,
+            Color.lerp(_sink(t.bg, isDark(t) ? .22 : .06), _navy,
+                isDark(t) ? .3 : .16)!,
+          ],
+          stops: const [0, .5, 1],
+        ),
+      );
+
+  @override
+  double radiusOf(SkinSurface surface) => switch (surface) {
+        SkinSurface.panel => 12,
+        SkinSurface.button => 9,
+        SkinSurface.row => 9,
+        // The HUD's own buttons are circles. A pill is as close as this
+        // vocabulary gets, but a full one is the Sims 3's, so this stops
+        // short of it - rounded hard, still legibly a rectangle.
+        SkinSurface.chip => 20,
+        SkinSurface.notice => 11,
+        SkinSurface.primary => 10,
+        SkinSurface.well => 8,
+      };
+}
+
+/// SimCity (2013)'s, and the one skin here whose controls are *pale*.
+///
+/// The other five hand-painted skins are dark materials with white
+/// lettering, and reaching for that here would have been wrong twice
+/// over. This interface is white and silver: panels are near-white with
+/// a thin grey border and a blue heading, the ordinary button is a pale
+/// pill with dark grey lettering (the style guide names it: R74,G83,B90),
+/// and the game's blue turns up only on the *selected* thing - a tab you
+/// are on, a toggle that is pressed - where it fills the pill and takes
+/// white.
+///
+/// The deep navy and the neon glow that the game is popularly pictured
+/// in are its loading screens and its data-layer overlays, not its
+/// chrome. A skin imitates the chrome.
+///
+/// So the three moves that carry it, beside two SimCity consoles that
+/// are both dark metal:
+///
+///  - **Pale plates**, which needed [PlateSkin.label] to take the plate
+///    it sits on. One ink per theme could not express a skin whose
+///    resting control and lit control are different materials, and
+///    picking blue-for-everything to get around that is exactly the
+///    mistake this comment exists to stop being repeated.
+///  - **A grey keyline instead of a dark one.** 3000 and 4 are carved -
+///    a near-black line with a bright rim inside it. This is a drawn
+///    interface: one hairline of grey, one of white inside it, nothing
+///    chiselled anywhere.
+///  - **Almost no relief.** A soft, small drop shadow and a gradient you
+///    have to look for. The 2013 interface is flat where the 2003 one is
+///    wet, which is ten years of interface fashion in one number.
+///
+/// The orange lives in the palette, like 3000's yellow and 4's amber. So
+/// does the green: the style guide gives a positive and a warning colour
+/// for *text*, and nothing in this app is a city alert.
+class SimCity2013Skin extends PlateSkin {
+  const SimCity2013Skin();
+
+  // Daylight, which is the game: near-white panels, pale silver pills,
+  // one thin grey line around everything.
+  static const _lightPlate = Color(0xFFE9EEF4);
+  static const _lightRim = Color(0xFFFFFFFF);
+  static const _lightOutline = Color(0xFFA9B7C4);
+  static const _lightWell = Color(0xFFFFFFFF);
+  static const _lightFrame = Color(0xFFC6D0DA);
+
+  /// The grey the style guide writes a button's label in, R74,G83,B90.
+  static const _lightInk = Color(0xFF4A535A);
+
+  // After dark. This game shipped no dark interface at all, so unlike
+  // every other palette here the dark one is the invention and the light
+  // one is the faithful half - the same console with the lights off,
+  // which is the Sims bargain exactly backwards.
+  static const _darkPlate = Color(0xFF333E48);
+  static const _darkRim = Color(0xFF56636F);
+  static const _darkOutline = Color(0xFF0A1015);
+  static const _darkWell = Color(0xFF141B21);
+
+  /// The blue a selected tab fills with, and the one place white
+  /// lettering turns up in daylight.
+  static const _lit = Color(0xFF2A93D4);
+
+  /// How far [face] lifts the top of a lit plate. Named because
+  /// [faceHeadroom] has to be the same number - see [Sims3Skin].
+  static const _gloss = .18;
+
+  @override
+  Color plate(GameTheme t) => isDark(t) ? _darkPlate : _lightPlate;
+  @override
+  Color rim(GameTheme t) => isDark(t) ? _darkRim : _lightRim;
+  @override
+  Color outline(GameTheme t) => isDark(t) ? _darkOutline : _lightOutline;
+  @override
+  Color well(GameTheme t) => isDark(t) ? _darkWell : _lightWell;
+
+  @override
+  Color? panelFrame(GameTheme t) => isDark(t) ? null : _lightFrame;
+
+  @override
+  Color lit(GameTheme t) => _lit;
+
+  /// Dark grey on a pale plate, white on a dark one - which is the whole
+  /// reason this hook takes the plate. In daylight that means the resting
+  /// pill reads grey-on-silver and the selected one white-on-blue, both
+  /// straight off the style guide; after dark every plate is dark enough
+  /// that it comes out white, the way the other skins always are.
+  ///
+  /// The threshold is luminance rather than the theme, and it has to be,
+  /// because a call site may hand over any colour at all: the warning
+  /// orange behind an Ignore button is dark and takes white in both
+  /// themes.
+  @override
+  Color label(GameTheme t, Color plate) =>
+      plate.computeLuminance() > .4 ? _lightInk : Colors.white;
+
+  /// One hairline of grey outside, one of white inside. Nothing here is
+  /// carved, so the dark side of the edge - which is what both older
+  /// consoles lean on - is the side this one does without.
+  @override
+  double get keyline => 1;
+  @override
+  double get rimWidth => 1;
+
+  /// A soft, small shadow. These panels sit *over* the city rather than
+  /// being cut into a console, but they are drawn flat, so what says so
+  /// is a little separation and not a bevel.
+  @override
+  double get drop => 1.4;
+
+  /// The style guide is unusually specific - "All Panel Rounded Corners
+  /// 12 pixel radius" - and the app's own named panel radius is 15, so
+  /// this is the number that turns one into the other rather than a
+  /// judgement about how round the game looks.
+  @override
+  double get roundness => .8;
+
+  /// Both ends matter here, unlike on the skins that only ever write in
+  /// white: a white label on a lit plate crosses the gloss at the top,
+  /// and the grey one on a pale plate crosses the shade at the bottom.
+  @override
+  double get faceHeadroom => _gloss;
+  @override
+  double get faceShadowroom => .09;
+
+  /// Barely a gradient, which is the point. A short lift along the top,
+  /// a long flat body, a little shade at the bottom - a drawn button
+  /// rather than a moulded or a milled one. The lit plate gets a
+  /// stronger top, because the game's selected tab does.
+  @override
+  LinearGradient face(Color base, {bool pressed = false, bool lit = false}) {
+    final body = pressed ? _sink(base, .09) : base;
+    return LinearGradient(
+      begin: pressed ? Alignment.bottomCenter : Alignment.topCenter,
+      end: pressed ? Alignment.topCenter : Alignment.bottomCenter,
+      colors: [
+        _lift(body, lit ? _gloss : .09),
+        _lift(body, .02),
+        body,
+        _sink(body, .09),
+      ],
+      stops: const [0, .42, .58, 1],
+    );
+  }
+
+  /// A quiet wash, lighter at the top. The Sims skins put a sky here and
+  /// both older consoles put a sheet of metal; this game puts a blurred
+  /// photograph of a city behind its front end, which is not something a
+  /// gradient can be, so the honest answer is to stay out of the way of
+  /// the panels standing on it.
+  @override
+  Decoration backdrop(GameTheme t) => BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            _lift(t.bg, isDark(t) ? .06 : .22),
+            t.bg,
+            _sink(t.bg, isDark(t) ? .18 : .05),
+          ],
+          stops: const [0, .5, 1],
+        ),
+      );
+
+  @override
+  double radiusOf(SkinSurface surface) => switch (surface) {
+        // The style guide's own number - see [roundness].
+        SkinSurface.panel => 12,
+        SkinSurface.button => 6,
+        SkinSurface.row => 6,
+        // The vertical toggle strips are the roundest thing in the
+        // interface, and still not pills.
+        SkinSurface.chip => 11,
+        SkinSurface.notice => 10,
+        SkinSurface.primary => 6,
+        // Fields are square-ish and white, with the grey line around
+        // them doing all the work.
+        SkinSurface.well => 4,
       };
 }

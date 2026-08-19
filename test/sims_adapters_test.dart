@@ -1123,6 +1123,21 @@ void main() {
     });
   });
 
+  group('every Sims adapter', () {
+    test('has a save reader of its own', () {
+      const adapters = [
+        Sims1Adapter(),
+        Sims2Adapter(),
+        Sims3Adapter(),
+        Sims4Adapter(),
+        SimsMedievalAdapter(),
+      ];
+      for (final adapter in adapters) {
+        expect(adapter.hasSaves, isTrue, reason: adapter.game.id);
+      }
+    });
+  });
+
   group('Steam libraries', () {
     test('reads the extra libraries out of libraryfolders.vdf', () async {
       final steam = make(['Steam']);

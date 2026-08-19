@@ -57,6 +57,26 @@ class SettingsStore {
   Future<void> setOnboardingDone(bool value) =>
       _prefs.setBool('onboardingDone', value);
 
+  /// The version the user was last shown the what's-new card for, which
+  /// is written on every launch whatever the card decides.
+  ///
+  /// Deliberately not `analytics.lastRunVersion`, which looks like the
+  /// same fact and is not: that one is written inside `Analytics.init`
+  /// after it returns early on the opt-out, so a user with the Settings
+  /// toggle off has never had one. A celebration gated on the telemetry
+  /// switch would be the wrong shape entirely.
+  ///
+  /// Absent means this install has never run a version that wrote it:
+  /// a fresh install, where nothing is shown, or the update into the
+  /// release that introduced the card, where `AppController` seeds it
+  /// from `Analytics.previousVersion` so that release can still say
+  /// what it brought. Whoever has the telemetry toggle off has neither
+  /// record and sees the card from the release after.
+  String? get lastSeenVersion => _prefs.getString('lastSeenVersion');
+
+  Future<void> setLastSeenVersion(String value) =>
+      _prefs.setString('lastSeenVersion', value);
+
   /// The game the app opens on, picked in the walkthrough or in Settings.
   /// Null is the app's own choice - see `AppController`'s constructor.
   String? get defaultGameId => _prefs.getString('defaultGame');
@@ -66,6 +86,38 @@ class SettingsStore {
       await _prefs.remove('defaultGame');
     } else {
       await _prefs.setString('defaultGame', gameId);
+    }
+  }
+
+  /// The games the user actually wants to see and manage, or `null`
+  /// when they have never been asked.
+  ///
+  /// Three different questions the app used to conflate: what the
+  /// registry *supports*, what this machine *has*, and what this person
+  /// *wants managed*. A user who owns one SimCity title has no reason
+  /// to scroll past five Sims rows forever, and a user who owns a game
+  /// detection cannot find still has to be able to pick it.
+  ///
+  /// **Null means every registered game**, which is exactly what the
+  /// sidebar did before this existed - so an update adds a franchise
+  /// rather than taking anybody's games away, and nothing has to guess
+  /// on their behalf. The walkthrough asks new users; Settings is where
+  /// everyone else answers, and either answer is written here.
+  ///
+  /// Hiding a game never deletes anything: its mods-folder override,
+  /// its folder arrangement and its ignored conflicts are all keyed by
+  /// game id and stay exactly where they were, so bringing it back
+  /// brings its settings with it.
+  List<String>? get managedGameIds => _prefs.getStringList('managedGames');
+
+  /// An empty list is stored as "none managed", which the app reads as
+  /// a user who has answered rather than one who has not - the sidebar
+  /// then says so instead of quietly showing everything again.
+  Future<void> setManagedGameIds(List<String>? ids) async {
+    if (ids == null) {
+      await _prefs.remove('managedGames');
+    } else {
+      await _prefs.setStringList('managedGames', ids);
     }
   }
 
@@ -88,6 +140,18 @@ class SettingsStore {
       await _prefs.remove('themeMode');
     } else {
       await _prefs.setString('themeMode', name);
+    }
+  }
+
+  /// The theme the whole app wears, as one of `GameTheme.themeIds`. This
+  /// class knows nothing about the UI, so an unknown name is stored and
+  /// handed back as it is - `GameTheme.forTheme` is what falls back.
+  String? get appThemeName => _prefs.getString('appTheme');
+  Future<void> setAppThemeName(String? name) async {
+    if (name == null) {
+      await _prefs.remove('appTheme');
+    } else {
+      await _prefs.setString('appTheme', name);
     }
   }
 
@@ -362,6 +426,15 @@ class SettingsStore {
   String? get shopInstallsJson => _prefs.getString('shop.installs');
   Future<void> setShopInstallsJson(String value) =>
       _prefs.setString('shop.installs', value);
+
+  /// The same for mods taken from a catalog somebody else curates. Its
+  /// own key rather than a field on the shop's records: the two name
+  /// different things (a listing id of ours, a package id of theirs) and
+  /// a catalog install is a whole dependency closure rather than one
+  /// file, so mixing them would make both harder to reason about.
+  String? get catalogInstallsJson => _prefs.getString('catalog.installs');
+  Future<void> setCatalogInstallsJson(String value) =>
+      _prefs.setString('catalog.installs', value);
 
   /// Mods the app installed into folders the game also keeps its own
   /// files in, as JSON: game id -> paths relative to that game's mods

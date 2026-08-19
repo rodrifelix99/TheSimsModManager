@@ -1,14 +1,11 @@
 {
   "@@locale": "ru",
   "@@author": "verasimka",
-
   "appName": "Sims Mod Manager",
   "brandTitle": "Мод-менеджер",
-  "brandSubtitle": "для The Sims",
-
+  "brandSubtitle": "для The Sims и SimCity",
   "navLibrary": "Библиотека",
   "navShop": "The Exchange",
-
   "shopAlphaBadge": "АЛЬФА",
   "shopTagline": "Моды от сообщества: ставятся в один клик.",
   "shopListingCount": "{count, plural, one{{count} мод на полках} few{{count} мода на полках} many{{count} модов на полках} other{{count} мода на полках}}",
@@ -48,23 +45,17 @@
   "sidebarGames": "ИГРЫ",
   "sidebarNotInstalled": "не установлена · {detail}",
   "sidebarModCount": "{count, plural, one{{count} мод} few{{count} мода} many{{count} модов} other{{count} мода}} · {detail}",
-
   "updateAvailable": "Есть обновление",
   "updateClickToDownload": "v{version}: нажми, чтобы скачать",
-
   "storage": "Хранилище",
   "storageInMods": "{size} в модах",
   "storageFreeOf": "{free} свободно из {total}",
-
   "dropToInstall": "Отпусти, чтобы установить в {game}",
   "dropFolders": "папки",
-
   "scanningMods": "Заглядываем внутрь модов: ищем картинки и конфликты… {done} из {total}",
   "skip": "Пропустить",
-
   "libraryTitle": "Библиотека {game}",
   "modsShown": "{count, plural, one{показан {count} мод} few{показано {count} мода} many{показано {count} модов} other{показано {count} мода}} · {era}",
-
   "learnMore": "Подробнее",
   "dismiss": "Скрыть",
   "searchMods": "Поиск модов…",
@@ -78,7 +69,6 @@
   "sortDisabledLast": "Выключенные в конце",
   "libraryRefresh": "Обновить",
   "libraryRootFolder": "Папка Mods",
-
   "selectionTooltip": "Выбрать",
   "selectionCount": "{count, plural, one{выбран {count}} few{выбрано {count}} many{выбрано {count}} other{выбрано {count}}}",
   "selectionSelectAll": "Выбрать все",
@@ -114,23 +104,19 @@
   "destinationSims1Roofs": "Текстуры крыш.",
   "prefAskWhereTitle": "Спрашивать, куда устанавливать",
   "prefAskWhereDesc": "Эта игра читает моды больше чем из одной папки. Выбирай папку каждый раз, вместо того чтобы это решало приложение",
-
   "statTotal": "Всего",
   "statEnabled": "Включено",
   "statDisabled": "Выключено",
   "statConflicts": "Конфликты",
-
   "statTotalTooltip": "Все моды в этой папке, включённые и выключенные.",
   "statTotalTooltipClear": "Все моды в этой папке. Нажми, чтобы сбросить поиск и все фильтры.",
   "statEnabledTooltip": "Моды, которые игра загружает.",
   "statEnabledTooltipActive": "Показаны только включённые моды. Нажми, чтобы снова увидеть все.",
   "statDisabledTooltip": "Моды, которые лежат в папке, но выключены.",
   "statDisabledTooltipActive": "Показаны только выключенные моды. Нажми, чтобы снова увидеть все.",
-
   "conflictTooltipActive": "Показаны только конфликтующие моды. Нажми, чтобы снова увидеть все.",
   "conflictTooltip": "Включённые моды, у которых совпадает имя файла с другим включённым модом, которые установлены сразу в нескольких версиях или которые переопределяют одни и те же игровые ресурсы. Игра оставит только ту копию, что загрузилась последней, иногда это задумано (моды-патчи), но чаще нет.",
   "conflictTooltipClickHint": "Нажми, чтобы показать только эти моды.",
-
   "filterAll": "Все",
   "emptyFiltered": "Под фильтры не подходит ни один мод",
   "emptyNoMods": "Модов пока нет",
@@ -139,10 +125,8 @@
   "openFolder": "Открыть папку",
   "conflictBadge": "конфликт",
   "duplicateBadge": "копия",
-
   "modInFolder": "в {folder}",
   "modInModsFolder": "в папке Mods",
-
   "setupFoundNoModsFolder": "{game} нашлась, но папки для модов пока нет",
   "setupNotFound": "Папка модов {game} не найдена",
   "setupFoundNoModsFolderBody": "Папка игры на этом компьютере есть, просто внутри пока нет папки для модов. Создай её ниже или укажи вручную.",
@@ -153,7 +137,6 @@
   "willBeCreatedAt": "Будет создана здесь:\n{path}",
   "checkAgain": "Проверить снова",
   "useThis": "Взять эту",
-
   "enabled": "Включён",
   "disabled": "Выключен",
   "showInFileManager": "Показать в проводнике",
@@ -162,7 +145,6 @@
   "uninstallConfirmBody": "Файл будет удалён с диска:\n{path}",
   "cancel": "Отмена",
   "uninstall": "Удалить",
-
   "conflictSameFileHeading": "{count, plural, one{Ещё у одного включённого мода точно такой же файл:} few{Ещё у {count} включённых модов точно такой же файл:} many{Ещё у {count} включённых модов точно такой же файл:} other{Ещё у {count} включённых модов точно такой же файл:}}",
   "conflictSameNameHeading": "{count, plural, one{Ещё у одного включённого мода такое же имя файла:} few{Ещё у {count} включённых модов такое же имя файла:} many{Ещё у {count} включённых модов такое же имя файла:} other{Ещё у {count} включённых модов такое же имя файла:}}",
   "conflictVersionHeading": "{count, plural, one{Ещё один включённый мод похож на другую версию этого же мода:} few{Ещё {count} включённых мода похожи на другие версии этого же мода:} many{Ещё {count} включённых модов похожи на другие версии этого же мода:} other{Ещё {count} включённых мода похожи на другие версии этого же мода:}}",
@@ -175,7 +157,6 @@
   "conflictIgnore": "Игнорировать",
   "conflictIgnoreTooltip": "Если этот конфликт задуман, спрячь его. С модом ничего не случится: исчезнет только предупреждение, а вернуть его можно на этой странице или в настройках.",
   "conflictRestore": "Вернуть",
-
   "advisoryBanner": "{count, plural, one{У одного из твоих модов есть известная проблема} few{У {count} твоих модов есть известные проблемы} many{У {count} твоих модов есть известные проблемы} other{У {count} твоих модов есть известные проблемы}}",
   "advisoryShow": "Посмотреть",
   "advisoryShowAll": "Показать все моды",
@@ -189,7 +170,6 @@
   "advisorySince": "С {since}",
   "advisoryOpenLink": "Открыть страницу автора",
   "advisorySource": "Об этом сообщили другие игроки, а не игра.",
-
   "modInDirectory": "в {dir}",
   "factVersion": "Версия",
   "factFormat": "Формат",
@@ -199,14 +179,12 @@
   "factDownloads": "Скачиваний",
   "factIgnoredConflicts": "Скрыто",
   "ignoredConflictsCount": "{count, plural, one{{count} конфликт} few{{count} конфликта} many{{count} конфликтов} other{{count} конфликта}}",
-
   "statusHeading": "Состояние",
   "statusEnabledBody": "Мод активен: игра загрузит его при следующем запуске.",
   "statusDisabledBody": "Мод выключен: файл остаётся на диске с меткой «{marker}», чтобы игра его пропускала. Включить можно в любой момент, ничего не удаляется.",
   "fileOnDisk": "Файл на диске",
   "insideThePackage": "Внутри пакета",
   "resourcesTotal": "{count, plural, one{всего {count} ресурс} few{всего {count} ресурса} many{всего {count} ресурсов} other{всего {count} ресурса}}",
-
   "settingsTitle": "Настройки",
   "sectionModManagement": "УПРАВЛЕНИЕ МОДАМИ",
   "sectionAppearance": "ОФОРМЛЕНИЕ",
@@ -217,7 +195,6 @@
   "sectionIgnoredConflicts": "СКРЫТЫЕ КОНФЛИКТЫ · {game}",
   "sectionFeedback": "ОБРАТНАЯ СВЯЗЬ",
   "sectionAbout": "О ПРИЛОЖЕНИИ",
-
   "prefWarnConflictsTitle": "Предупреждать о конфликтах",
   "prefWarnConflictsDesc": "Помечает включённые моды, у которых повторяется имя файла или которые переопределяют те же игровые ресурсы, что и другой мод",
   "prefConflictKindsTitle": "О каких конфликтах предупреждать",
@@ -241,19 +218,19 @@
   "prefSoundEffectsDesc": "Играет классические звуки интерфейса The Sims при кликах, переключателях и уведомлениях",
   "prefAnalyticsTitle": "Делиться анонимной статистикой",
   "prefAnalyticsDesc": "Отправляет анонимную статистику использования и отчёты о сбоях, чтобы приложение становилось лучше. Никогда не включает названия модов, пути к файлам и что-либо личное",
-
   "themeTitle": "Тема",
   "themeDesc": "Светлая или тёмная. «Системная» следует настройке компьютера.",
   "themeSystem": "Системная",
   "themeLight": "Светлая",
   "themeDark": "Тёмная",
-
+  "appThemeTitle": "Тема приложения",
+  "appThemeDesc": "Как выглядит всё приложение. Остаётся тем же, какую бы игру ты ни настраивал.",
+  "appThemeDefault": "По умолчанию",
   "languageTitle": "Язык приложения",
   "languageDesc": "Выбери, на каком языке показывать приложение. «Системный» следует языку компьютера.",
   "languageSystem": "Системный",
   "translatorsTitle": "Перевели",
   "translatorsDesc": "Приложение говорит на двенадцати языках благодаря этим симмерам.",
-
   "sectionStartup": "ЗАПУСК",
   "prefDefaultGameTitle": "Игра при запуске",
   "prefDefaultGameDesc": "С какой библиотеки открывается приложение",
@@ -261,7 +238,6 @@
   "prefSetupGuideTitle": "Первая настройка",
   "prefSetupGuideDesc": "Пройти вопросы первого запуска ещё раз",
   "onboardingReplay": "Пройти снова",
-
   "onboardingSkip": "Пропустить",
   "onboardingSkipIntro": "Пропустить заставку",
   "onboardingBack": "Назад",
@@ -281,12 +257,11 @@
   "onboardingFavoriteTitle": "Во что играешь чаще всего?",
   "onboardingFavoriteBody": "Приложение будет открываться на этой игре. Переключаться между играми можно в любой момент через боковую панель.",
   "onboardingLookTitle": "Сделай по-своему",
-  "onboardingLookBody": "Всё приложение перекрашивается под игру, в которой ты сейчас. Выбери, как оно должно выглядеть и звучать.",
+  "onboardingLookBody": "Всё приложение носит тот вид, который ты выберешь, какой бы игрой ты ни занимался. Выбери, как оно должно выглядеть и звучать.",
   "onboardingLibraryTitle": "Как читается библиотека",
   "onboardingLibraryBody": "Две вещи, которые стоит решить сейчас: от них зависит, что библиотека тебе покажет.",
   "onboardingDoneTitle": "Готово!",
   "onboardingDoneBody": "Библиотека загружена и ждёт. Перетащи файл мода в окно, чтобы установить его, а всё это поменяешь в настройках.",
-
   "folderNotFound": "Не найдена. Выбери папку",
   "folderNotLocated": "Игру (или её папку модов) не удалось найти автоматически",
   "folderSummary": "{count, plural, one{{count} мод} few{{count} мода} many{{count} модов} other{{count} мода}} · {size} на диске",
@@ -296,14 +271,12 @@
   "createDefaultFolderAt": "Создать стандартную папку (со всеми нужными игре файлами) здесь:\n{path}",
   "createFolder": "Создать папку",
   "alsoFoundOnThisComputer": "Ещё найдено на этом компьютере:",
-
   "clearCacheTitle": "Очистить файлы кэша",
   "clearCacheDesc": "{count, plural, one{Удалит {count} файл кэша ({size})} few{Удалит {count} файла кэша ({size})} many{Удалит {count} файлов кэша ({size})} other{Удалит {count} файла кэша ({size})}}, чтобы новый или удалённый контент появился; игра пересоберёт их при следующем запуске",
   "clearCaches": "Очистить кэш",
   "ignoredConflictsTitle": "Конфликты, о которых не напоминать",
   "ignoredConflictsDesc": "{count, plural, one{{count} конфликт, о котором приложение больше не напоминает. Верни его, и он снова появится в библиотеке} few{{count} конфликта, о которых приложение больше не напоминает. Верни их, и они снова появятся в библиотеке} many{{count} конфликтов, о которых приложение больше не напоминает. Верни их, и они снова появятся в библиотеке} other{{count} конфликта, о которых приложение больше не напоминает. Верни их, и они снова появятся в библиотеке}}",
   "ignoredConflictsReset": "Вернуть все",
-
   "reportBugTitle": "Сообщить об ошибке",
   "reportBugDesc": "Откроет форму на GitHub: версия приложения, система и текущая игра уже заполнены",
   "reportBugButton": "Сообщить…",
@@ -313,14 +286,12 @@
   "wikiTitle": "Руководство и FAQ",
   "wikiDesc": "Как ставить моды, чинить поиск папок и многое другое - в вики проекта",
   "wikiButton": "Открыть вики",
-
-  "aboutTagline": "Версия {version} · Поддержка The Sims 1-4 · SimCity скоро",
+  "aboutTagline": "Версия {version} · Менеджер модов для {series}",
   "updateIsAvailable": "Доступна версия {version}",
   "noUpdateFound": "Обновлений нет",
   "getVersion": "Скачать v{version}",
   "checkingForUpdates": "Проверяем…",
   "checkForUpdates": "Проверить обновления",
-
   "categoryPackage": "Пакет",
   "categoryScript": "Скрипт",
   "categoryObject": "Объект",
@@ -331,7 +302,6 @@
   "categoryFloor": "Пол",
   "categoryWorld": "Мир",
   "categorySettings": "Настройки",
-
   "contentCasParts": "элементы CAS",
   "contentObjects": "объекты",
   "contentTunings": "тюнинги",
@@ -343,7 +313,6 @@
   "modKindBuildBuy": "Строительство",
   "modKindGameplay": "Геймплей",
   "modKindScript": "Скрипт",
-
   "errorNoModFiles": "Внутри {name} нет файлов модов ({extensions}).",
   "errorUnreadableArchive": "{name} - это не архив, который приложение может прочитать.",
   "errorNoUnpacker": "На этом компьютере нечем распаковать архивы {format}. Распакуй {name} вручную и установи файлы из него.",
@@ -390,7 +359,11 @@
   "folderAlsoReading": "Твоя игра читает ещё и {folders}, так что моды оттуда тоже есть в этой библиотеке.",
   "errorFolderUnreadable": "Не удалось открыть «{folder}». Выбери папку на диске, до которого этот компьютер достаёт: телефон, камера или отключённый сетевой диск не смогут хранить твои моды.",
   "@errorFolderUnreadable": {
-    "placeholders": { "folder": { "type": "String" } }
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
   },
   "errorNoWriteAccess": "У приложения нет прав на запись в «{folder}». Система защищает эту папку. Выдай своей учётной записи доступ на запись или выбери другую папку в настройках.",
   "folderReadOnlyBanner": "Эта папка модов только для чтения, так что установка и удаление модов не сработают, пока у твоей учётной записи не будет прав на запись.",
@@ -405,13 +378,11 @@
   "errorPackNotSupported": "На этой системе наборы включать и выключать нельзя.",
   "errorPackIsTheGame": "Это тот набор, из которого запускается игра, так что он должен остаться включённым.",
   "errorPackToggleRefused": "Не получилось изменить этот набор. Закрой игру и попробуй ещё раз.",
-
   "eraClassic": "Классика",
   "eraNightlife": "Ночная жизнь",
   "eraAmbitions": "Карьера",
   "eraModern": "Современность",
   "eraMedieval": "Средневековье",
-
   "navPacks": "Наборы",
   "packsScanning": "Ищем твои наборы…",
   "packsEmptyTitle": "Наборы не найдены",
@@ -432,7 +403,6 @@
   "packKindStuffPacks": "Каталоги",
   "packKindKits": "Комплекты",
   "packKindFreePacks": "Бесплатные наборы",
-
   "navSaves": "Сохранения",
   "savesScanning": "Читаем твои сохранения…",
   "savesEmptyTitle": "Сохранений не найдено",
@@ -523,7 +493,6 @@
   "savesPhotoLot": "Участок",
   "savesPhotoSim": "Портрет сима",
   "savesPhotoSnapshot": "Снимок",
-
   "savesProperty": "Имущество",
   "savesGhost": "призрак",
   "savesCareerLevel": "{career} · уровень {level}",
@@ -568,7 +537,6 @@
   "savesTieSpouse": "в браке с",
   "savesTieSibling": "{count, plural, one{брат или сестра} few{братья и сёстры} many{братья и сёстры} other{братья и сёстры}}",
   "savesTieChild": "{count, plural, one{ребёнок} few{детей} many{детей} other{детей}}",
-
   "savesInterestPolitics": "Политика",
   "savesInterestMoney": "Деньги",
   "savesInterestEnvironment": "Природа",
@@ -589,7 +557,6 @@
   "savesInterestSciFi": "Фантастика",
   "savesInterestMusic": "Музыка",
   "savesInterestOutdoors": "Отдых на природе",
-
   "setupHelpSims1": "Самая первая The Sims хранит пользовательский контент внутри своей папки установки, а не в «Документах»: объекты кладутся в папку Downloads рядом с исполняемым файлом игры (например C:\\Program Files (x86)\\Maxis\\The Sims\\Downloads), а остальные типы приложение раскладывает само: скины (.skn/.cmx/.bmp) в GameData\\Skins, стены и полы в GameData\\Walls и GameData\\Floors. Legacy Collection 2025 года работает так же из своей папки установки (EA Games\\The Sims Legacy или Steam\\steamapps\\common\\The Sims Legacy Collection). Если игра установлена в другом месте (другой диск, своя библиотека Steam), выбери её папку Downloads вручную.",
   "setupHelpSims2": "The Sims 2 загружает пользовательский контент из «Документы» > EA Games > The Sims 2 > Downloads (у Ultimate Collection это «The Sims 2 Ultimate Collection», у Legacy Collection 2025 года - «The Sims 2 Legacy»). Папки может не быть, пока ты её не создашь или не поставишь контент в первый раз. При запуске игры ответь «Да» на вопрос о пользовательском контенте, чтобы загрузки включились.",
   "setupHelpSims3": "The Sims 3 не создаёт папку для модов сама: ей нужен «фреймворк» от сообщества: папка Mods > Packages внутри «Документы» > Electronic Arts > The Sims 3 плюс файл Resource.cfg, который говорит игре её читать. Приложение может создать и то, и другое. На дисковых и Wine-установках папка может лежать внутри самого пакета игры; тогда укажи её через «Выбрать папку».",
@@ -599,6 +566,14 @@
   "installFolderBody": "Куда попадут файлы внутри твоей папки модов для {game}.",
   "installFolderChoose": "Выбрать",
   "installFolderEmpty": "Подпапок пока нет. Создай одну или оставь всё в папке модов.",
+  "shopRequires": "Нужны эти наборы",
+  "shopRequirementMet": "Установлен",
+  "shopRequirementDisabled": "Выключен",
+  "shopRequirementMissing": "Не установлен",
+  "shopRequirementUnknown": "Не проверено",
+  "shopRequirementsNote": "Установить всё равно можно — просто толку будет мало, пока нет наборов.",
+  "shopRequirementsOffNote": "Один из них выключен. Включи его обратно на вкладке «Наборы».",
+  "shopRequirementsUnknownNote": "Мы не смогли проверить наборы этой игры на этом компьютере, так что это слова автора.",
   "shopDestination": "Ставится в",
   "sectionShopFolder": "THE EXCHANGE · {game}",
   "prefShopFolderTitle": "Куда попадают моды из The Exchange",
@@ -750,7 +725,6 @@
   "creationsAdding": "Добавляю…",
   "creationsPickerLabel": "Участки, комнаты, семьи и симы для {game}",
   "creationsNothingToAdd": "Там не оказалось ни участка, ни комнаты, ни семьи, ни сима, которые эта игра умеет читать. Кастомный контент и моды добавляются через библиотеку.",
-
   "householdEdit": "Изменить",
   "householdEditTitle": "Изменить семью",
   "householdEditBody": "Меняем то, что сохранение говорит о «{name}».",
@@ -762,5 +736,56 @@
   "errorSaveEditHouseholdGone": "Этой семьи больше нет в сохранении. Обнови список и попробуй ещё раз.",
   "errorSaveEditUnreadable": "«{file}» устроен не так, как приложение умеет перезаписывать, поэтому ничего не изменилось.",
   "errorSaveEditVerification": "Перезаписанный «{file}» прочитался неправильно, поэтому его выбросили. Твоё сохранение не тронуто.",
-  "errorSaveEditUnsupported": "Сохранения этой игры можно читать, но не менять."
+  "errorSaveEditUnsupported": "Сохранения этой игры можно читать, но не менять.",
+  "whatsNewEyebrow": "Что нового в {version}",
+  "whatsNewAlsoSince": "Ещё в этом обновлении",
+  "whatsNewDismiss": "Поехали",
+  "whatsNew300RootTitle": "Моды, которым место в папках самой игры",
+  "whatsNew300RootBody": "Миры, графические правки и загрузчики скриптов никогда не работали из папки Mods. Теперь они ставятся прямо в те папки, которые читает игра, а то, что они заменяют, сохраняется, так что при удалении ты получаешь оригинал обратно.",
+  "whatsNew300PacksTitle": "В объявлениях можно указать нужные дополнения",
+  "whatsNew300PacksBody": "Авторы могут отметить, под какие дополнения сделан мод, и The Exchange сверит их с твоими до установки. Это всегда предупреждение, а не закрытая дверь.",
+  "whatsNew300ContainersTitle": "Zip с кучей файлов .sims3pack просто работает",
+  "whatsNew300ContainersBody": "Брось весь набор на окно. Контейнеры The Sims 3 внутри архива открываются там, где лежат, и всё ставится за один раз.",
+  "whatsNew300SimCityTitle": "SimCity 3000, 4, Societies и 2013",
+  "whatsNew300SimCityBody": "На боковой панели ещё четыре игры. SimCity 4 читает обе папки Plugins, сохраняет порядок загрузки, заданный именами папок и файлов, и не трогает то, что установил sc4pac. В настройках можно скрыть игры, в которые ты не играешь.",
+  "whatsNew300CatalogTitle": "Тысячи модов для SimCity 4",
+  "whatsNew300CatalogBody": "В The Exchange теперь есть каналы sc4pac рядом с нашими собственными объявлениями, с указанием проекта, который их ведёт. Загрузка приходит со всем, что ей нужно, или не приходит вовсе, а если хостинг не даёт приложению скачать файл, кнопка скажет об этом сразу.",
+  "whatsNew300ThemeTitle": "Выбери вид, который тебе нравится",
+  "whatsNew300ThemeBody": "Раньше приложение меняло цвета вместе с открытой игрой. Теперь ты выбираешь в настройках тот вид, который хочешь, и он остаётся, какой бы игрой ты ни занимался.",
+  "categoryLot": "Участок",
+  "categoryModel": "Модель",
+  "categoryDescription": "Описание",
+  "categoryBuilding": "Здание",
+  "setupHelpSimCity4": "SimCity 4 читает плагины сразу из двух папок: Документы > SimCity 4 > Plugins (твоей, той, которой управляет это приложение) и папки Plugins внутри установки игры. Имена папок и файлов - это порядок загрузки, так что не трогай структуру, с которой пришла сборка: именно поэтому sc4pac использует пронумерованные папки, а переопределения называются «zzz...». DLL-плагины загружаются только из корня папки Plugins, никогда из подпапки, поэтому приложение кладёт их туда за тебя. То, что установил sc4pac, остаётся за sc4pac: его показывает он, а не это приложение.",
+  "setupHelpSimCity2013": "SimCity загружает моды в .package из SimCityUserData > Packages внутри установки игры (обычно в Program Files, так что Windows может попросить права администратора). Это приложение управляет только этой папкой. Игра читает и свою папку SimCityData, но там лежит контент Maxis: мод, который должен загрузиться раньше пакетов игры, придётся положить туда вручную. Многие моды рассчитаны только на офлайн - проверяй их на городе, который не жалко.",
+  "setupHelpSimCity3000": "SimCity 3000 загружает свои здания (файлы .bld из Building Architect Tool) из папки Buildings внутри установки игры. Папка плоская - здание в подпапке не загрузится никогда. Здания, которые шли с игрой, здесь скрыты, чтобы ты их случайно не удалил. Патчи разрешения и совместимости, которые правят сам SC3U.exe, это приложение не ставит; действуй по их собственной инструкции.",
+  "setupHelpSimCitySocieties": "SimCity Societies держит пользовательский контент в Документы > SimCity Societies > Import - туда же его кладёт и Package Installer самой игры. Приложение может создать эту папку за тебя. Контент приходит файлами .SCSPack - именно это расширение ищет сама игра. Учти: Societies делали под редактирование, а не под готовые моды - почти всё, чем занималась сцена, это правка C# и XML в папке Data самой игры, а её приложение не трогает никогда.",
+  "sectionManagedGames": "Игры",
+  "prefManageGameTitle": "Управлять {game}",
+  "prefManageGameDesc": "Показывать в боковой панели. Скрытая игра сохраняет все свои настройки.",
+  "errorLastManagedGame": "Это последняя игра в твоей боковой панели, так что она должна остаться. Сначала включи другую, если хочешь её скрыть.",
+  "catalogCount": "{count} модов",
+  "catalogCuratedBy": "Каталог от {project}",
+  "catalogOpenPage": "Открыть страницу",
+  "catalogBlocked": "{host} не даёт приложениям скачивать за тебя. Забери мод на его странице.",
+  "catalogUnresolvedNote": "Этот не удалось прочитать из каталога.",
+  "catalogDependencies": "В комплекте",
+  "catalogFileCount": "{count} файлов",
+  "catalogDownloading": "Скачиваю {current} из {total}",
+  "catalogWarningTitle": "Важно",
+  "catalogConflictsTitle": "Конфликтует с",
+  "catalogSourceFailed": "Не удалось связаться с {source}",
+  "catalogEmpty": "Ничего не подходит.",
+  "catalogRefresh": "Перезагрузить каталог",
+  "catalogOptions": "Варианты",
+  "catalogBy": "от {author}",
+  "errorCatalogUnreachable": "Не удалось связаться с каталогом. Проверь соединение и попробуй ещё раз.",
+  "errorCatalogUnreadable": "Каталог ответил чем-то, что эта версия не понимает.",
+  "errorCatalogDownloadFailed": "{host} отклонил загрузку.",
+  "errorCatalogInstallFailed": "При установке что-то пошло не так.",
+  "errorCatalogInstallCancelled": "Установка отменена.",
+  "catalogLoading": "Загружаю каталог…",
+  "catalogBack": "← Назад к каталогу",
+  "catalogPromoTitle": "Сам сделал мод?",
+  "catalogPromoBody": "Выложи его в The Exchange: он ставится одним щелчком, получает свою страницу и ссылку, а те, у кого он уже есть, узнают об обновлениях."
 }

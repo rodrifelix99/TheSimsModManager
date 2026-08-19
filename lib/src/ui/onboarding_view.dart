@@ -141,7 +141,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
           child: IgnorePointer(
             child: FadeTransition(
               opacity: _settle,
-              child: _DriftBackdrop(theme: t, animation: _drift),
+              child: DriftBackdrop(theme: t, animation: _drift),
             ),
           ),
         ),
@@ -320,14 +320,14 @@ class _Footer extends StatelessWidget {
             ),
             const SizedBox(width: 12),
             if (at > 0) ...[
-              _CardButton(
+              CardButton(
                 theme: t,
                 label: l.onboardingBack,
                 onTap: c.backOnboardingStep,
               ),
               const SizedBox(width: 10),
             ],
-            _CardButton(
+            CardButton(
               theme: t,
               label: last ? l.onboardingFinish : l.onboardingNext,
               primary: true,
@@ -338,76 +338,6 @@ class _Footer extends StatelessWidget {
         ),
         const SizedBox(height: 4),
       ],
-    );
-  }
-}
-
-/// How tall a footer button is, both kinds.
-const _buttonHeight = 44.0;
-
-/// A button on the card's footer, loud or quiet.
-///
-/// Both are built here rather than the quiet one borrowing
-/// [accentButtonStyle]: a Material button sizes itself from its own
-/// padding and would sit a few pixels shorter than the one beside it,
-/// which reads as two buttons that don't belong together rather than as
-/// a pair. Same geometry, same label size, different material.
-class _CardButton extends StatelessWidget {
-  const _CardButton({
-    required this.theme,
-    required this.label,
-    required this.onTap,
-    this.primary = false,
-    this.enabled = true,
-  });
-
-  final GameTheme theme;
-  final String label;
-  final VoidCallback onTap;
-  final bool primary;
-  final bool enabled;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = theme;
-    final surface = primary ? SkinSurface.primary : SkinSurface.button;
-    return HoverBuilder(
-      cursor: enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
-      builder: (context, hovered) => Opacity(
-        opacity: enabled ? 1 : .5,
-        child: GestureDetector(
-          onTap: enabled ? onTap : null,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
-            // Spelled out rather than left to the padding: the quiet one
-            // carries a border and the loud one doesn't, which is two
-            // pixels of difference and enough to read as a mismatched
-            // pair. A skin with a heavier keyline would widen the gap.
-            height: _buttonHeight,
-            alignment: Alignment.center,
-            padding: const EdgeInsets.symmetric(horizontal: 22),
-            decoration: t.skin.decorate(t, surface,
-                radius: 12,
-                state: skinState(hovered: hovered && enabled),
-                // The quiet one is the app's accent outline: a tinted
-                // fill inside a line of the accent, like every other
-                // secondary button in the app.
-                fill: primary ? null : t.tint,
-                outline: primary ? null : t.accent),
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 13.5,
-                fontWeight: primary ? FontWeight.w900 : FontWeight.w800,
-                color: t.skin.ink(t, surface,
-                    otherwise: primary ? Colors.white : t.accent),
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
@@ -438,7 +368,11 @@ class _StepBody extends StatelessWidget {
 
   List<Widget> _welcome(BuildContext context, GameTheme t, AppController c, L l) {
     return [
-      Center(child: _Bob(child: BrandMark(gameId: c.adapter.game.id, size: 64))),
+      Center(child: _Bob(child: BrandMark(
+          gameId: c.adapter.game.id,
+          size: 64,
+          name: c.adapter.game.name,
+          ink: t.accent))),
       const SizedBox(height: 20),
       _title(t, l.onboardingWelcomeTitle, center: true),
       const SizedBox(height: 10),
@@ -580,6 +514,27 @@ class _StepBody extends StatelessWidget {
       _title(t, l.onboardingLookTitle),
       const SizedBox(height: 8),
       _body(t, l.onboardingLookBody),
+      const SizedBox(height: 18),
+      Text(l.appThemeTitle, style: eyebrowStyle(t)),
+      const SizedBox(height: 10),
+      // Wrapped rather than a row of five: these are game names, they run
+      // long once translated - "The Sims Medieval" is the short one in
+      // some languages - and the card is at its narrowest here.
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (final id in GameTheme.themeIds)
+            _SkinChip(
+              theme: t,
+              id: id,
+              label: l.themeName(id),
+              selected: (c.appTheme ?? GameTheme.defaultThemeId) == id,
+              onTap: () =>
+                  c.setAppTheme(id == GameTheme.defaultThemeId ? null : id),
+            ),
+        ],
+      ),
       const SizedBox(height: 18),
       Text(l.themeTitle, style: eyebrowStyle(t)),
       const SizedBox(height: 10),
@@ -882,7 +837,11 @@ class _GameGlyph extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final asset = GameTheme.iconAsset(game);
-    final fallback = BrandMark(gameId: game.id, size: size);
+    final fallback = BrandMark(
+        gameId: game.id,
+        size: size,
+        name: game.name,
+        ink: GameTheme.forGame(game, Theme.of(context).brightness).accent);
     if (asset == null) return fallback;
     return SizedBox(
       width: size,
@@ -895,6 +854,73 @@ class _GameGlyph extends StatelessWidget {
 
 /// Light / dark / system, drawn as the thing it does rather than named
 /// and left at that: a scrap of window in that mode over its label.
+/// One theme on offer, painted in its own accent so the row reads as a
+/// set of swatches rather than a list of game names. Picking one repaints
+/// the whole card, this chip included - which is the preview.
+class _SkinChip extends StatelessWidget {
+  const _SkinChip({
+    required this.theme,
+    required this.id,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  /// The theme the card is currently wearing - what this chip is drawn
+  /// with. The one it *names* is [id], and only the swatch speaks for it.
+  final GameTheme theme;
+  final String id;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = theme;
+    final swatch =
+        GameTheme.forTheme(id, Theme.of(context).brightness).accentGradient;
+    return HoverBuilder(
+      cursor: SystemMouseCursors.click,
+      builder: (context, hovered) => GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.fromLTRB(9, 7, 12, 7),
+          decoration: t.skin.decorate(t, SkinSurface.chip,
+              radius: 11, state: skinState(active: selected, hovered: hovered)),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 16,
+                height: 16,
+                decoration: BoxDecoration(
+                  gradient: swatch,
+                  borderRadius: BorderRadius.circular(5),
+                  border: Border.all(color: t.border),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w800,
+                  color: t.skin.ink(t, SkinSurface.chip,
+                      state: skinState(active: selected, hovered: hovered),
+                      otherwise: selected ? t.accent : t.text),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _ThemeTile extends StatelessWidget {
   const _ThemeTile({
     required this.theme,
@@ -1202,69 +1228,3 @@ class _BobState extends State<_Bob> with SingleTickerProviderStateMixin {
 
 /// Plumbob silhouettes drifting up the backdrop. Purely decorative: a
 /// fixed dozen, no input, no state beyond the clock.
-class _DriftBackdrop extends StatelessWidget {
-  const _DriftBackdrop({required this.theme, required this.animation});
-
-  final GameTheme theme;
-  final Animation<double> animation;
-
-  @override
-  Widget build(BuildContext context) {
-    return RepaintBoundary(
-      child: AnimatedBuilder(
-        animation: animation,
-        builder: (context, _) => CustomPaint(
-          painter: _DriftPainter(theme, animation.value),
-          size: Size.infinite,
-        ),
-      ),
-    );
-  }
-}
-
-class _DriftPainter extends CustomPainter {
-  const _DriftPainter(this.theme, this.t);
-
-  final GameTheme theme;
-
-  /// The clock, 0 to 1 and round again.
-  final double t;
-
-  /// Where each diamond sits across the window, how big it is, how far
-  /// along its own climb it starts and how fast it climbs. Written down
-  /// rather than randomised, so the backdrop looks the same every time
-  /// the walkthrough is opened.
-  static const _seeds = <(double, double, double, double)>[
-    (.06, 26, .10, .55), (.17, 44, .62, .38), (.28, 18, .35, .72),
-    (.39, 34, .88, .46), (.47, 22, .21, .63), (.58, 52, .49, .33),
-    (.66, 16, .74, .80), (.75, 38, .05, .43), (.84, 24, .57, .58),
-    (.92, 30, .31, .50), (.12, 20, .82, .68), (.53, 28, .95, .41),
-  ];
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    for (final (x, extent, phase, speed) in _seeds) {
-      final progress = (phase + t * speed) % 1.0;
-      // Up the window, with a lazy sway either side of its own column.
-      final cx = x * size.width +
-          math.sin((progress + phase) * math.pi * 2) * size.width * .02;
-      final cy = size.height * (1.15 - progress * 1.3);
-      // Faded in at the bottom and out at the top, so nothing pops.
-      final fade = math.sin(progress * math.pi).clamp(0.0, 1.0);
-      final paint = Paint()
-        ..color = theme.accent.withValues(alpha: .07 * fade)
-        ..style = PaintingStyle.fill;
-      final path = Path()
-        ..moveTo(cx, cy - extent * .62)
-        ..lineTo(cx + extent * .38, cy)
-        ..lineTo(cx, cy + extent * .62)
-        ..lineTo(cx - extent * .38, cy)
-        ..close();
-      canvas.drawPath(path, paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(_DriftPainter old) =>
-      old.t != t || old.theme.accent != theme.accent;
-}

@@ -132,7 +132,7 @@ abstract class L {
   /// No description provided for @brandSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'for The Sims'**
+  /// **'for The Sims and SimCity'**
   String get brandSubtitle;
 
   /// No description provided for @navLibrary.
@@ -338,6 +338,54 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Install drops the files straight into your mods folder. Download just saves the file, wherever you want it.'**
   String get shopSaveHint;
+
+  /// No description provided for @shopRequires.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs these packs'**
+  String get shopRequires;
+
+  /// No description provided for @shopRequirementMet.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed'**
+  String get shopRequirementMet;
+
+  /// No description provided for @shopRequirementDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Switched off'**
+  String get shopRequirementDisabled;
+
+  /// No description provided for @shopRequirementMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Not installed'**
+  String get shopRequirementMissing;
+
+  /// No description provided for @shopRequirementUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Not checked'**
+  String get shopRequirementUnknown;
+
+  /// No description provided for @shopRequirementsNote.
+  ///
+  /// In en, this message translates to:
+  /// **'You can install it either way — it just won’t do much until the packs are there.'**
+  String get shopRequirementsNote;
+
+  /// No description provided for @shopRequirementsOffNote.
+  ///
+  /// In en, this message translates to:
+  /// **'One of these is switched off. Turn it back on from the Packs tab.'**
+  String get shopRequirementsOffNote;
+
+  /// No description provided for @shopRequirementsUnknownNote.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn’t check this game’s packs on this computer, so this is the creator’s word for it.'**
+  String get shopRequirementsUnknownNote;
 
   /// No description provided for @shopDestination.
   ///
@@ -1497,6 +1545,24 @@ abstract class L {
   /// **'Dark'**
   String get themeDark;
 
+  /// No description provided for @appThemeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'App theme'**
+  String get appThemeTitle;
+
+  /// No description provided for @appThemeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The look the whole app wears. It stays put whichever game you’re managing.'**
+  String get appThemeDesc;
+
+  /// No description provided for @appThemeDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get appThemeDefault;
+
   /// No description provided for @languageTitle.
   ///
   /// In en, this message translates to:
@@ -1686,7 +1752,7 @@ abstract class L {
   /// No description provided for @onboardingLookBody.
   ///
   /// In en, this message translates to:
-  /// **'The whole app re-tints itself for the game you’re on. Pick how it should look and sound.'**
+  /// **'The whole app wears the look you pick, whichever game you’re managing. Choose how it should look and sound.'**
   String get onboardingLookBody;
 
   /// No description provided for @onboardingLibraryTitle.
@@ -1860,8 +1926,8 @@ abstract class L {
   /// No description provided for @aboutTagline.
   ///
   /// In en, this message translates to:
-  /// **'Version {version} · The Sims 1–4 supported · SimCity coming soon'**
-  String aboutTagline(String version);
+  /// **'Version {version} · Mod manager for {series}'**
+  String aboutTagline(String version, String series);
 
   /// No description provided for @updateIsAvailable.
   ///
@@ -4424,6 +4490,312 @@ abstract class L {
   /// In en, this message translates to:
   /// **'This game’s saves can be read, but not changed.'**
   String get errorSaveEditUnsupported;
+
+  /// No description provided for @whatsNewEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'New in {version}'**
+  String whatsNewEyebrow(String version);
+
+  /// No description provided for @whatsNewAlsoSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Also in this update'**
+  String get whatsNewAlsoSince;
+
+  /// No description provided for @whatsNewDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Let’s go'**
+  String get whatsNewDismiss;
+
+  /// No description provided for @whatsNew300RootTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mods that live in the game’s own folders'**
+  String get whatsNew300RootTitle;
+
+  /// No description provided for @whatsNew300RootBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Worlds, graphics tweaks and script loaders never worked from the Mods folder. Now they install straight into the folders the game reads, and whatever they replace is kept safe, so uninstalling gives you the original back.'**
+  String get whatsNew300RootBody;
+
+  /// No description provided for @whatsNew300PacksTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Listings can say which packs they need'**
+  String get whatsNew300PacksTitle;
+
+  /// No description provided for @whatsNew300PacksBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Creators can tag a mod with the packs it was built for, and The Exchange checks them against yours before you install. It’s always a heads-up, never a locked door.'**
+  String get whatsNew300PacksBody;
+
+  /// No description provided for @whatsNew300ContainersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A zip full of .sims3pack files just works'**
+  String get whatsNew300ContainersTitle;
+
+  /// No description provided for @whatsNew300ContainersBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop the whole set on the window. The Sims 3 containers tucked inside an archive are opened where they’re found, and the lot installs in one go.'**
+  String get whatsNew300ContainersBody;
+
+  /// No description provided for @whatsNew300SimCityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'SimCity 3000, 4, Societies and 2013'**
+  String get whatsNew300SimCityTitle;
+
+  /// No description provided for @whatsNew300SimCityBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Four more games in the sidebar. SimCity 4 reads both of its Plugins folders, keeps the load order your folder and file names spell out, and leaves anything sc4pac installed alone. Settings can hide the games you don’t play.'**
+  String get whatsNew300SimCityBody;
+
+  /// No description provided for @whatsNew300CatalogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Thousands of SimCity 4 mods to browse'**
+  String get whatsNew300CatalogTitle;
+
+  /// No description provided for @whatsNew300CatalogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The Exchange now carries the sc4pac channels beside our own listings, credited to the project that keeps them. A download brings everything it depends on or nothing at all, and where a host won’t let an app fetch a file, the button says so up front.'**
+  String get whatsNew300CatalogBody;
+
+  /// No description provided for @whatsNew300ThemeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the look you like'**
+  String get whatsNew300ThemeTitle;
+
+  /// No description provided for @whatsNew300ThemeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The app used to change colour with whichever game you had open. Now you pick the look you want in Settings, and it stays put whichever game you’re managing.'**
+  String get whatsNew300ThemeBody;
+
+  /// No description provided for @categoryLot.
+  ///
+  /// In en, this message translates to:
+  /// **'Lot'**
+  String get categoryLot;
+
+  /// No description provided for @categoryModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Model'**
+  String get categoryModel;
+
+  /// No description provided for @categoryDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get categoryDescription;
+
+  /// No description provided for @categoryBuilding.
+  ///
+  /// In en, this message translates to:
+  /// **'Building'**
+  String get categoryBuilding;
+
+  /// No description provided for @setupHelpSimCity4.
+  ///
+  /// In en, this message translates to:
+  /// **'SimCity 4 reads plugins from two folders at once: Documents > SimCity 4 > Plugins (yours, and the one this app manages) and a Plugins folder inside the game install. Folder and file names are the load order, so leave the structure a download arrives with alone - that is why sc4pac uses numbered folders and why overrides are named \"zzz...\". DLL plugins only load from the top level of a Plugins folder, never from a subfolder, so this app puts them there for you. Anything sc4pac installed stays sc4pac\'s: it is listed by that app, not this one.'**
+  String get setupHelpSimCity4;
+
+  /// No description provided for @setupHelpSimCity2013.
+  ///
+  /// In en, this message translates to:
+  /// **'SimCity loads mods as .package files from SimCityUserData > Packages inside the game install (usually under Program Files, so Windows may ask for administrator rights). This app manages that folder only. The game also reads its own SimCityData folder, but that one holds Maxis\'s content, so a mod whose readme says it must load before the game\'s own packages has to go there by hand. Plenty of mods are marked offline-only: try them on a city you can afford to lose.'**
+  String get setupHelpSimCity2013;
+
+  /// No description provided for @setupHelpSimCity3000.
+  ///
+  /// In en, this message translates to:
+  /// **'SimCity 3000 loads custom buildings (.bld files, made with the Building Architect Tool) from a Buildings folder inside the game install. It is a flat folder - a building in a subfolder is never loaded. The buildings that came with the game are hidden here so you cannot delete them by accident. Resolution and compatibility fixes that patch SC3U.exe itself are not something this app installs; follow their own instructions for those.'**
+  String get setupHelpSimCity3000;
+
+  /// No description provided for @setupHelpSimCitySocieties.
+  ///
+  /// In en, this message translates to:
+  /// **'SimCity Societies keeps custom content in Documents > SimCity Societies > Import, which is where the game\'s own Package Installer puts it. This app can create the folder for you. Content comes as .SCSPack files - that is the extension the game itself looks for. Heads up: Societies was made to be edited rather than to load packaged mods - most of what the scene did was edit the C# and XML inside the game\'s own Data folder, which this app deliberately never touches.'**
+  String get setupHelpSimCitySocieties;
+
+  /// No description provided for @sectionManagedGames.
+  ///
+  /// In en, this message translates to:
+  /// **'Games'**
+  String get sectionManagedGames;
+
+  /// No description provided for @prefManageGameTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage {game}'**
+  String prefManageGameTitle(String game);
+
+  /// No description provided for @prefManageGameDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Show it in the sidebar. Hiding a game keeps every setting it has.'**
+  String get prefManageGameDesc;
+
+  /// No description provided for @errorLastManagedGame.
+  ///
+  /// In en, this message translates to:
+  /// **'That’s the only game left in your sidebar, so it has to stay. Turn on another one first if you want to hide it.'**
+  String get errorLastManagedGame;
+
+  /// No description provided for @catalogCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} mods'**
+  String catalogCount(int count);
+
+  /// No description provided for @catalogCuratedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Catalog by {project}'**
+  String catalogCuratedBy(String project);
+
+  /// No description provided for @catalogOpenPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Open page'**
+  String get catalogOpenPage;
+
+  /// No description provided for @catalogBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'{host} doesn\'t let apps download for you. Grab it from the mod\'s own page instead.'**
+  String catalogBlocked(String host);
+
+  /// No description provided for @catalogUnresolvedNote.
+  ///
+  /// In en, this message translates to:
+  /// **'This one couldn\'t be read from the catalog.'**
+  String get catalogUnresolvedNote;
+
+  /// No description provided for @catalogDependencies.
+  ///
+  /// In en, this message translates to:
+  /// **'Comes with'**
+  String get catalogDependencies;
+
+  /// No description provided for @catalogFileCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} files'**
+  String catalogFileCount(int count);
+
+  /// No description provided for @catalogDownloading.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading {current} of {total}'**
+  String catalogDownloading(int current, int total);
+
+  /// No description provided for @catalogWarningTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Heads up'**
+  String get catalogWarningTitle;
+
+  /// No description provided for @catalogConflictsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clashes with'**
+  String get catalogConflictsTitle;
+
+  /// No description provided for @catalogSourceFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t reach {source}'**
+  String catalogSourceFailed(String source);
+
+  /// No description provided for @catalogEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches that.'**
+  String get catalogEmpty;
+
+  /// No description provided for @catalogRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Reload the catalog'**
+  String get catalogRefresh;
+
+  /// No description provided for @catalogOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Options'**
+  String get catalogOptions;
+
+  /// No description provided for @catalogBy.
+  ///
+  /// In en, this message translates to:
+  /// **'by {author}'**
+  String catalogBy(String author);
+
+  /// No description provided for @errorCatalogUnreachable.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t reach the catalog. Check your connection and try again.'**
+  String get errorCatalogUnreachable;
+
+  /// No description provided for @errorCatalogUnreadable.
+  ///
+  /// In en, this message translates to:
+  /// **'The catalog answered with something this version can\'t read.'**
+  String get errorCatalogUnreadable;
+
+  /// No description provided for @errorCatalogDownloadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'{host} refused the download.'**
+  String errorCatalogDownloadFailed(String host);
+
+  /// No description provided for @errorCatalogInstallFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong installing that.'**
+  String get errorCatalogInstallFailed;
+
+  /// No description provided for @errorCatalogInstallCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Install cancelled.'**
+  String get errorCatalogInstallCancelled;
+
+  /// No description provided for @catalogLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading the catalog…'**
+  String get catalogLoading;
+
+  /// No description provided for @catalogBack.
+  ///
+  /// In en, this message translates to:
+  /// **'← Back to the catalog'**
+  String get catalogBack;
+
+  /// No description provided for @catalogPromoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Made a mod yourself?'**
+  String get catalogPromoTitle;
+
+  /// No description provided for @catalogPromoBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Put it on The Exchange and it installs in one click, gets its own page and link, and everyone who already has it hears about updates.'**
+  String get catalogPromoBody;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

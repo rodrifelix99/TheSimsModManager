@@ -15,7 +15,7 @@ class LZh extends L {
   String get brandTitle => 'MOD 管理器';
 
   @override
-  String get brandSubtitle => '为模拟人生打造';
+  String get brandSubtitle => '模拟人生与模拟城市';
 
   @override
   String get navLibrary => '库';
@@ -150,6 +150,30 @@ class LZh extends L {
 
   @override
   String get shopSaveHint => '安装会把文件直接放进你的模组文件夹；下载只是把文件存到你想放的地方。';
+
+  @override
+  String get shopRequires => '需要这些资料片';
+
+  @override
+  String get shopRequirementMet => '已安装';
+
+  @override
+  String get shopRequirementDisabled => '已关闭';
+
+  @override
+  String get shopRequirementMissing => '未安装';
+
+  @override
+  String get shopRequirementUnknown => '未检查';
+
+  @override
+  String get shopRequirementsNote => '照样可以安装 —— 只是在补齐资料片之前基本没什么用。';
+
+  @override
+  String get shopRequirementsOffNote => '其中有一个被关掉了。到「资料片」标签页重新打开它。';
+
+  @override
+  String get shopRequirementsUnknownNote => '这台电脑上查不到这个游戏的资料片，所以这里只是作者自己的说法。';
 
   @override
   String get shopDestination => '安装到';
@@ -870,6 +894,15 @@ class LZh extends L {
   String get themeDark => '深色';
 
   @override
+  String get appThemeTitle => '应用主题';
+
+  @override
+  String get appThemeDesc => '整个应用的外观。你在管哪款游戏都不会变。';
+
+  @override
+  String get appThemeDefault => '默认';
+
+  @override
   String get languageTitle => '应用语言';
 
   @override
@@ -982,7 +1015,7 @@ class LZh extends L {
   String get onboardingLookTitle => '调成你喜欢的样子';
 
   @override
-  String get onboardingLookBody => '整个界面都会跟着当前游戏换配色。挑一挑它该是什么样子、什么声音。';
+  String get onboardingLookBody => '整个界面都用你挑的那套外观，管理哪款游戏都一样。挑一挑它该是什么样子、什么声音。';
 
   @override
   String get onboardingLibraryTitle => '模组库怎么显示';
@@ -1078,8 +1111,8 @@ class LZh extends L {
   String get wikiButton => '打开 wiki';
 
   @override
-  String aboutTagline(String version) {
-    return '版本 $version · 支持模拟人生 1-4 · 模拟城市即将支持';
+  String aboutTagline(String version, String series) {
+    return '版本 $version · $series 模组管理器';
   }
 
   @override
@@ -2642,4 +2675,188 @@ class LZh extends L {
 
   @override
   String get errorSaveEditUnsupported => '本作的存档只能读，不能改。';
+
+  @override
+  String whatsNewEyebrow(String version) {
+    return '$version 新功能';
+  }
+
+  @override
+  String get whatsNewAlsoSince => '本次更新还带来';
+
+  @override
+  String get whatsNewDismiss => '开始吧';
+
+  @override
+  String get whatsNew300RootTitle => '该放进游戏自身文件夹的模组';
+
+  @override
+  String get whatsNew300RootBody =>
+      '世界、画质调整和脚本加载器放在 Mods 文件夹里从来都不生效。现在它们会直接装进游戏真正读取的文件夹，被替换掉的文件也会保留下来，卸载时原文件就回来了。';
+
+  @override
+  String get whatsNew300PacksTitle => '商品可以标明需要哪些资料片';
+
+  @override
+  String get whatsNew300PacksBody =>
+      '作者可以为模组标注它所依赖的资料片，The Exchange 会在安装前和你已有的对照。这始终只是提醒，不会拦着你。';
+
+  @override
+  String get whatsNew300ContainersTitle => '装满 .sims3pack 的压缩包也能直接用';
+
+  @override
+  String get whatsNew300ContainersBody =>
+      '把整套拖到窗口上就行。压缩包里的模拟人生3容器会在原地打开，一次性全部安装。';
+
+  @override
+  String get whatsNew300SimCityTitle => 'SimCity 3000、4、Societies 和 2013';
+
+  @override
+  String get whatsNew300SimCityBody =>
+      '侧边栏里多了四款游戏。SimCity 4 会同时读取两个 Plugins 文件夹，保留文件夹和文件名决定的加载顺序，也不会碰 sc4pac 装的任何东西。不玩的游戏可以在设置里隐藏。';
+
+  @override
+  String get whatsNew300CatalogTitle => '数千个 SimCity 4 模组任你浏览';
+
+  @override
+  String get whatsNew300CatalogBody =>
+      'The Exchange 现在把 sc4pac 的频道和我们自己的作品放在一起，并注明维护它们的项目。下载要么把依赖的东西一次带齐，要么一个都不装；遇到不允许应用代为下载的站点，按钮会提前说明。';
+
+  @override
+  String get whatsNew300ThemeTitle => '挑一个你喜欢的外观';
+
+  @override
+  String get whatsNew300ThemeBody =>
+      '以前应用的配色会跟着打开的游戏变。现在你可以在设置里挑一个喜欢的外观，管理哪款游戏都保持不变。';
+
+  @override
+  String get categoryLot => '地块';
+
+  @override
+  String get categoryModel => '模型';
+
+  @override
+  String get categoryDescription => '描述';
+
+  @override
+  String get categoryBuilding => '建筑';
+
+  @override
+  String get setupHelpSimCity4 =>
+      'SimCity 4 会同时读取两个插件文件夹：文档 > SimCity 4 > Plugins（你自己的，也是本应用管理的那个），以及游戏安装目录里的 Plugins 文件夹。文件夹和文件名就是加载顺序，所以别去动下载包自带的目录结构 —— sc4pac 用编号文件夹、覆盖类插件叫「zzz...」就是这个原因。DLL 插件只能从 Plugins 文件夹的顶层加载，放进子文件夹就没用了，所以本应用会帮你放到顶层。sc4pac 装的东西仍归 sc4pac 管，由它列出，不由本应用列出。';
+
+  @override
+  String get setupHelpSimCity2013 =>
+      'SimCity 从游戏安装目录下的 SimCityUserData > Packages 读取 .package 格式的模组（通常在 Program Files 里，所以 Windows 可能会要求管理员权限）。本应用只管理这个文件夹。游戏也会读自己的 SimCityData 文件夹，但那里放的是 Maxis 自己的内容，所以如果某个模组的说明要求它在游戏本体包之前加载，就得手动放进去。不少模组只支持离线模式：拿一座丢了也不心疼的城市试。';
+
+  @override
+  String get setupHelpSimCity3000 =>
+      'SimCity 3000 从游戏安装目录下的 Buildings 文件夹读取自定义建筑（用 Building Architect Tool 做的 .bld 文件）。这个文件夹是扁平的 —— 放进子文件夹的建筑永远不会被加载。游戏自带的建筑在这里是隐藏的，免得你误删。那些直接修改 SC3U.exe 的分辨率和兼容性补丁不由本应用安装，请按它们自己的说明操作。';
+
+  @override
+  String get setupHelpSimCitySocieties =>
+      'SimCity Societies 把自定义内容放在 文档 > SimCity Societies > Import，游戏自带的 Package Installer 也是往那儿放的。本应用可以帮你建这个文件夹。内容是 .SCSPack 文件 —— 这正是游戏自己要找的扩展名。提醒一下：Societies 的设计是让你改它，而不是加载打包好的模组 —— 当年圈子里做的大多是改游戏 Data 文件夹里的 C# 和 XML，而本应用从不碰那里。';
+
+  @override
+  String get sectionManagedGames => '游戏';
+
+  @override
+  String prefManageGameTitle(String game) {
+    return '管理 $game';
+  }
+
+  @override
+  String get prefManageGameDesc => '在侧边栏中显示。隐藏某个游戏不会丢失它的任何设置。';
+
+  @override
+  String get errorLastManagedGame => '这是你侧边栏里最后一个游戏了，得留着。想隐藏它的话，先打开另一个游戏。';
+
+  @override
+  String catalogCount(int count) {
+    return '$count 个模组';
+  }
+
+  @override
+  String catalogCuratedBy(String project) {
+    return '目录来自 $project';
+  }
+
+  @override
+  String get catalogOpenPage => '打开页面';
+
+  @override
+  String catalogBlocked(String host) {
+    return '$host 不允许应用代为下载。请到模组自己的页面获取。';
+  }
+
+  @override
+  String get catalogUnresolvedNote => '这一项无法从目录中读取。';
+
+  @override
+  String get catalogDependencies => '一并安装';
+
+  @override
+  String catalogFileCount(int count) {
+    return '$count 个文件';
+  }
+
+  @override
+  String catalogDownloading(int current, int total) {
+    return '正在下载第 $current / $total 个';
+  }
+
+  @override
+  String get catalogWarningTitle => '注意';
+
+  @override
+  String get catalogConflictsTitle => '与之冲突';
+
+  @override
+  String catalogSourceFailed(String source) {
+    return '无法连接 $source';
+  }
+
+  @override
+  String get catalogEmpty => '没有匹配的内容。';
+
+  @override
+  String get catalogRefresh => '重新加载目录';
+
+  @override
+  String get catalogOptions => '选项';
+
+  @override
+  String catalogBy(String author) {
+    return '作者 $author';
+  }
+
+  @override
+  String get errorCatalogUnreachable => '无法连接目录。检查一下网络再试试。';
+
+  @override
+  String get errorCatalogUnreadable => '目录返回了这个版本读不懂的内容。';
+
+  @override
+  String errorCatalogDownloadFailed(String host) {
+    return '$host 拒绝了这次下载。';
+  }
+
+  @override
+  String get errorCatalogInstallFailed => '安装时出了点问题。';
+
+  @override
+  String get errorCatalogInstallCancelled => '已取消安装。';
+
+  @override
+  String get catalogLoading => '正在加载目录…';
+
+  @override
+  String get catalogBack => '← 返回目录';
+
+  @override
+  String get catalogPromoTitle => '自己做过模组吗？';
+
+  @override
+  String get catalogPromoBody =>
+      '发布到 The Exchange，就能一键安装、拥有自己的页面和链接，已经装过的人也会收到更新提醒。';
 }

@@ -127,8 +127,7 @@ class LibraryView extends StatelessWidget {
                       title,
                     const SizedBox(height: 4),
                     Text(
-                      l.modsShown(
-                          visible.length, eraLabel(l, t, c.adapter.game)),
+                      l.modsShown(visible.length, eraLabel(l, c.adapter.game)),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -1492,7 +1491,9 @@ class _SelectionBar extends StatelessWidget {
               child: Icon(icon,
                   size: 16,
                   color: t.skin.ink(t, SkinSurface.button,
-                      state: skinState(hovered: hovered), otherwise: color)),
+                      state: skinState(hovered: hovered),
+                      accent: color,
+                      otherwise: color)),
             ),
           ),
         ),
@@ -2239,6 +2240,13 @@ class _GridCard extends StatelessWidget {
               radius: 15,
               state: skinState(active: selected, hovered: hovered),
               elevated: hovered),
+          // The artwork is flush with the top of the card, so the card
+          // clips it rather than the artwork rounding its own corners to
+          // a number written here: what that number has to be is the
+          // radius the *skin* gave the card, and a skin is free to scale
+          // one (SimCity 3000 takes it to a quarter). The shadow is drawn
+          // by the decoration and so is unaffected.
+          clipBehavior: Clip.antiAlias,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -2252,8 +2260,6 @@ class _GridCard extends StatelessWidget {
                       bytes: c.thumbnailOf(mod),
                       // Cards are at most ~320 logical px wide.
                       decodeWidth: 640,
-                      borderRadius:
-                          const BorderRadius.vertical(top: Radius.circular(14)),
                     ),
                     Positioned(
                       left: 10,

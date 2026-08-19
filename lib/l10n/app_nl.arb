@@ -1,15 +1,12 @@
 {
   "@@locale": "nl",
   "@@author": "sims2idea",
-
   "appName": "Sims Mod Manager",
   "brandTitle": "Mod Manager",
-  "brandSubtitle": "voor The Sims",
-
+  "brandSubtitle": "voor De Sims en SimCity",
   "navLibrary": "Bibliotheek",
   "navShop": "The Exchange",
   "navSettings": "Instellingen",
-
   "shopAlphaBadge": "ALFA",
   "shopTagline": "Mods van de community, geïnstalleerd in één klik.",
   "shopListingCount": "{count, plural, =1{1 mod op de planken} other{{count} mods op de planken}}",
@@ -41,6 +38,14 @@
   "shopSaving": "Downloaden…",
   "shopSaved": "Opgeslagen",
   "shopSaveHint": "Installeren zet de bestanden meteen in je mods-map. Downloaden bewaart alleen het bestand, waar jij het wilt hebben.",
+  "shopRequires": "Heeft deze packs nodig",
+  "shopRequirementMet": "Geïnstalleerd",
+  "shopRequirementDisabled": "Uitgezet",
+  "shopRequirementMissing": "Niet geïnstalleerd",
+  "shopRequirementUnknown": "Niet gecontroleerd",
+  "shopRequirementsNote": "Je kunt hem sowieso installeren — hij doet alleen weinig zolang de packs er niet zijn.",
+  "shopRequirementsOffNote": "Eén hiervan staat uit. Zet hem weer aan op het tabblad Packs.",
+  "shopRequirementsUnknownNote": "We konden de packs van dit spel op deze computer niet controleren, dus dit is wat de maker zegt.",
   "shopDestination": "Installeert in",
   "shopVariationPick": "Selecteer een variant",
   "shopBack": "Terug naar de planken",
@@ -49,23 +54,17 @@
   "sidebarGames": "SPELLEN",
   "sidebarNotInstalled": "niet geïnstalleerd · {detail}",
   "sidebarModCount": "{count, plural, =1{1 mod} other{{count} mods}} · {detail}",
-
   "updateAvailable": "Update beschikbaar",
   "updateClickToDownload": "v{version}: klik om te downloaden",
-
   "storage": "Opslag",
   "storageInMods": "{size} in mods",
   "storageFreeOf": "{free} vrij van {total}",
-
   "dropToInstall": "Sleep hierheen om te installeren in {game}",
   "dropFolders": "mappen",
-
   "scanningMods": "Mods worden gecontroleerd op afbeeldingen en conflicten… {done} van {total}",
   "skip": "Overslaan",
-
   "libraryTitle": "{game} Bibliotheek",
   "modsShown": "{count, plural, =1{1 mod weergegeven} other{{count} mods weergegeven}} · {era}",
-
   "learnMore": "Meer info",
   "dismiss": "Sluiten",
   "searchMods": "Mods zoeken…",
@@ -79,7 +78,6 @@
   "sortDisabledLast": "Uitgeschakelde als laatste",
   "libraryRefresh": "Ververs",
   "libraryRootFolder": "Mods-map",
-
   "selectionTooltip": "Selecteer",
   "selectionCount": "{count, plural, =1{1 geselecteerd} other{{count} geselecteerd}}",
   "selectionSelectAll": "Alles selecteren",
@@ -90,7 +88,6 @@
   "selectionDeleteTitle": "{count, plural, =1{1 mod deïnstalleren?} other{{count} mods deïnstalleren?}}",
   "selectionDeleteBody": "{count, plural, =1{Het bestand wordt van de schijf verwijderd. Dit kan niet ongedaan gemaakt worden.} other{Alle {count} bestanden worden van de schijf verwijderd. Dit kan niet ongedaan gemaakt worden.}}",
   "selectionMove": "Verplaats naar…",
-
   "newFolder": "Nieuwe map",
   "newFolderIn": "In {folder}",
   "newFolderHint": "Naam van de map",
@@ -120,23 +117,19 @@
   "destinationSims1Roofs": "Daktexturen.",
   "prefAskWhereTitle": "Vraag waar te installeren",
   "prefAskWhereDesc": "Dit spel leest mods uit meer dan één map. Kies de map elke keer in plaats van de app te laten beslissen",
-
   "statTotal": "Totaal",
   "statEnabled": "Ingeschakeld",
   "statDisabled": "Uitgeschakeld",
   "statConflicts": "Conflicten",
-
   "statTotalTooltip": "Elke mod in deze map, in- of uitgeschakeld.",
   "statTotalTooltipClear": "Elke mod in deze map. Klik om de zoekopdracht en elke filter te wissen.",
   "statEnabledTooltip": "Mods die door het spel geladen worden.",
   "statEnabledTooltipActive": "Toont enkel ingeschakelde mods. Klik om alle mods opnieuw te tonen.",
   "statDisabledTooltip": "Mods die uitgeschakeld in de map zitten.",
   "statDisabledTooltipActive": "Toont enkel uitgeschakelde mods. Klik om alle mods opnieuw te tonen.",
-
   "conflictTooltipActive": "Toont enkel mods met conflicten. Klik om alle mods opnieuw te tonen.",
   "conflictTooltip": "Ingeschakelde mods die dezelfde bestandsnaam hebben als een andere ingeschakelde mod, die in meerdere versies geïnstalleerd zijn of die dezelfde onderdelen in het spel overschrijven. Het spel houdt enkel de kopie die het als laatste laadt, soms met opzet (patchmods), vaak niet.",
   "conflictTooltipClickHint": "Klik om enkel deze mods te tonen.",
-
   "filterAll": "Alle",
   "emptyFiltered": "Geen mods matchen met jouw filters",
   "emptyNoMods": "Nog geen mods",
@@ -145,10 +138,8 @@
   "openFolder": "Open map",
   "conflictBadge": "conflict",
   "duplicateBadge": "kopie",
-
   "modInFolder": "in {folder}",
   "modInModsFolder": "in de map Mods",
-
   "setupFoundNoModsFolder": "{game} gevonden, maar er is nog geen mods-map",
   "setupNotFound": "Mods-map van {game} niet gevonden",
   "setupFoundNoModsFolderBody": "De map van het spel staat op deze computer; die bevat alleen nog geen mods-map. Maak deze hier aan, of verwijs zelf naar een map.",
@@ -159,7 +150,6 @@
   "willBeCreatedAt": "Wordt aangemaakt op:\n{path}",
   "checkAgain": "Controleer opnieuw",
   "useThis": "Gebruik dit",
-
   "enabled": "Ingeschakeld",
   "disabled": "Uitgeschakeld",
   "showInFileManager": "Toon in bestandsbeheerder",
@@ -168,7 +158,6 @@
   "uninstallConfirmBody": "Het bestand wordt van de schijf verwijderd:\n{path}",
   "cancel": "Annuleer",
   "uninstall": "Deïnstalleer",
-
   "conflictSameFileHeading": "{count, plural, =1{Een andere ingeschakelde mod is exact hetzelfde bestand:} other{{count} andere ingeschakelde mods zijn exact hetzelfde bestand:}}",
   "conflictSameNameHeading": "{count, plural, =1{Een andere ingeschakelde mod heeft dezelfde bestandsnaam:} other{{count} andere ingeschakelde mods hebben dezelfde bestandsnaam:}}",
   "conflictVersionHeading": "{count, plural, =1{Een andere ingeschakelde mod lijkt een andere versie van deze mod te zijn:} other{{count} andere ingeschakelde mods lijken andere versies van deze mod te zijn:}}",
@@ -181,7 +170,6 @@
   "conflictIgnore": "Negeer",
   "conflictIgnoreTooltip": "Is dit conflict met opzet? Verberg het dan. Er verandert niets aan de mod, en je kan de waarschuwing terughalen vanaf deze pagina of vanuit Instellingen.",
   "conflictRestore": "Terughalen",
-
   "advisoryBanner": "{count, plural, =1{Een van je mods heeft een gekend probleem} other{{count} van je mods hebben gekende problemen}}",
   "advisoryShow": "Neem een kijkje",
   "advisoryShowAll": "Toon alle mods",
@@ -195,7 +183,6 @@
   "advisorySince": "Sinds {since}",
   "advisoryOpenLink": "Open de pagina van de creator",
   "advisorySource": "Gerapporteerd door andere spelers, niet door het spel.",
-
   "modInDirectory": "in {dir}",
   "factVersion": "Versie",
   "factFormat": "Formaat",
@@ -205,14 +192,12 @@
   "factDownloads": "Downloads",
   "factIgnoredConflicts": "Genegeerd",
   "ignoredConflictsCount": "{count, plural, =1{1 conflict} other{{count} conflicten}}",
-
   "statusHeading": "Status",
   "statusEnabledBody": "Deze mod is actief: het spel zal deze laden bij de volgende opstart.",
   "statusDisabledBody": "Deze mod is uitgeschakeld: het bestand blijft op de schijf staan met een \"{marker}\" erachter, zodat het spel het overslaat. Je kan het op elk moment weer inschakelen; er wordt niets verwijderd.",
   "fileOnDisk": "Bestand op de schijf",
   "insideThePackage": "Binnenin de package",
   "resourcesTotal": "{count, plural, =1{1 onderdeel in totaal} other{{count} onderdelen in totaal}}",
-
   "settingsTitle": "Instellingen",
   "sectionModManagement": "MODBEHEER",
   "sectionAppearance": "UITERLIJK",
@@ -226,7 +211,6 @@
   "prefShopFolderDesc": "Installaties komen in {folder}",
   "sectionFeedback": "FEEDBACK",
   "sectionAbout": "OVER",
-
   "prefWarnConflictsTitle": "Waarschuw voor conflicten",
   "prefWarnConflictsDesc": "Geef ingeschakelde mods een label als ze dezelfde bestandsnaam hebben of dezelfde onderdelen in het spel overschrijven als een andere mod",
   "prefConflictKindsTitle": "Voor welke conflicten waarschuwen",
@@ -250,19 +234,19 @@
   "prefSoundEffectsDesc": "Speel de klassieke Sims-geluiden bij klikken, schakelaars en meldingen",
   "prefAnalyticsTitle": "Deel anonieme gebruiksgegevens",
   "prefAnalyticsDesc": "Stuur anonieme gebruiksstatistieken en crashrapporten om de app beter te maken. Nooit modnamen, bestandspaden of iets persoonlijks",
-
   "themeTitle": "Thema",
   "themeDesc": "Licht of donker. “Systeem” volgt de instelling van je computer.",
   "themeSystem": "Systeem",
   "themeLight": "Licht",
   "themeDark": "Donker",
-
+  "appThemeTitle": "App-thema",
+  "appThemeDesc": "Hoe de hele app eruitziet. Blijft hetzelfde, welk spel je ook beheert.",
+  "appThemeDefault": "Standaard",
   "languageTitle": "Taal van de app",
   "languageDesc": "Kies de taal waarin de app getoond wordt. “Systeem” volgt de taal van je computer.",
   "languageSystem": "Systeem",
   "translatorsTitle": "Vertaald door",
   "translatorsDesc": "De app spreekt twaalf talen dankzij deze simmers.",
-
   "sectionStartup": "OPSTARTEN",
   "prefDefaultGameTitle": "Spel om mee te openen",
   "prefDefaultGameDesc": "Met welke bibliotheek de app opent wanneer je hem opstart",
@@ -270,7 +254,6 @@
   "prefSetupGuideTitle": "Instelhulp",
   "prefSetupGuideDesc": "Loop de vragen van de eerste keer nog eens door",
   "onboardingReplay": "Nog eens doen",
-
   "onboardingSkip": "Sla het instellen over",
   "onboardingSkipIntro": "Sla de intro over",
   "onboardingBack": "Terug",
@@ -290,12 +273,11 @@
   "onboardingFavoriteTitle": "Welke speel je het meest?",
   "onboardingFavoriteBody": "De app opent elke keer met dit spel. Je kan altijd van spel wisselen via de zijbalk.",
   "onboardingLookTitle": "Maak het helemaal van jou",
-  "onboardingLookBody": "De hele app kleurt mee met het spel waar je in zit. Kies hoe het eruit moet zien en moet klinken.",
+  "onboardingLookBody": "De hele app draagt de look die jij kiest, welke game je ook beheert. Kies hoe het eruit moet zien en moet klinken.",
   "onboardingLibraryTitle": "Hoe je bibliotheek leest",
   "onboardingLibraryBody": "Twee dingen die je nu al kan beslissen, want ze veranderen wat de bibliotheek je laat zien.",
   "onboardingDoneTitle": "Helemaal klaar!",
   "onboardingDoneBody": "Je bibliotheek is geladen en staat klaar. Sleep een modbestand op het venster wanneer je er een wilt installeren, en verander dit allemaal in Instellingen.",
-
   "folderNotFound": "Niet gevonden. Kies een map",
   "folderNotLocated": "Het spel (of de mods-map) is niet automatisch gevonden",
   "folderSummary": "{count, plural, =1{1 mod} other{{count} mods}} · {size} op de schijf",
@@ -305,15 +287,12 @@
   "createDefaultFolderAt": "Maak de standaardmap (met de bestanden die het spel nodig heeft) aan op:\n{path}",
   "createFolder": "Maak de map aan",
   "alsoFoundOnThisComputer": "Ook gevonden op deze computer:",
-
   "clearCacheTitle": "Wis cachebestanden",
   "clearCacheDesc": "{count, plural, =1{Verwijder 1 cachebestand ({size})} other{Verwijder {count} cachebestanden ({size})}} zodat nieuwe of verwijderde inhoud opduikt; het spel maakt ze bij de volgende opstart opnieuw aan",
   "clearCaches": "Wis caches",
-
   "ignoredConflictsTitle": "Conflicten die je negeert",
   "ignoredConflictsDesc": "{count, plural, =1{Eén conflict dat de app van jou niet meer moet melden. Haal het terug om het weer in de bibliotheek te zien} other{{count} conflicten die de app van jou niet meer moet melden. Haal ze terug om ze weer in de bibliotheek te zien}}",
   "ignoredConflictsReset": "Haal ze terug",
-
   "reportBugTitle": "Meld een bug",
   "reportBugDesc": "Open een bugrapport op GitHub; je appversie, besturingssysteem en huidige spel staan al ingevuld",
   "reportBugButton": "Melden…",
@@ -323,14 +302,12 @@
   "wikiTitle": "Handleiding & FAQ",
   "wikiDesc": "Hoe je mods installeert, mapdetectie repareert en meer, op de wiki van het project",
   "wikiButton": "Open de wiki",
-
-  "aboutTagline": "Versie {version} · The Sims 1–4 ondersteund · SimCity binnenkort",
+  "aboutTagline": "Versie {version} · Modbeheer voor {series}",
   "updateIsAvailable": "Versie {version} is beschikbaar",
   "noUpdateFound": "Geen update gevonden",
   "getVersion": "Haal v{version}",
   "checkingForUpdates": "Controleren…",
   "checkForUpdates": "Controleer op updates",
-
   "categoryPackage": "Package",
   "categoryScript": "Script",
   "categoryObject": "Object",
@@ -341,7 +318,6 @@
   "categoryFloor": "Vloer",
   "categoryWorld": "Wereld",
   "categorySettings": "Instellingen",
-
   "contentCasParts": "CAS-onderdelen",
   "contentObjects": "objecten",
   "contentTunings": "tunings",
@@ -353,7 +329,6 @@
   "modKindBuildBuy": "Bouwen & kopen",
   "modKindGameplay": "Gameplay",
   "modKindScript": "Script",
-
   "errorNoModFiles": "Geen modbestanden ({extensions}) gevonden in {name}.",
   "errorUnreadableArchive": "{name} is geen archief dat deze app kan lezen.",
   "errorNoUnpacker": "Niets op deze computer kan {format}-archieven uitpakken. Pak {name} zelf uit en installeer de bestanden die erin zitten.",
@@ -412,13 +387,11 @@
   "errorPackNotSupported": "Packs kunnen op dit systeem niet omgeschakeld worden.",
   "errorPackIsTheGame": "Dat is de pack waar het spel echt vanuit draait, dus die moet aan blijven.",
   "errorPackToggleRefused": "Die pack kon niet gewijzigd worden. Sluit het spel en probeer opnieuw.",
-
   "eraClassic": "Klassiek",
   "eraNightlife": "Nightlife",
   "eraAmbitions": "Ambitions",
   "eraModern": "Modern",
   "eraMedieval": "Middeleeuws",
-
   "navPacks": "Packs",
   "packsScanning": "Op zoek naar je packs…",
   "packsEmptyTitle": "Geen packs gevonden",
@@ -439,7 +412,6 @@
   "packKindStuffPacks": "Accessoirepakketten",
   "packKindKits": "Kits",
   "packKindFreePacks": "Gratis packs",
-
   "navSaves": "Saves",
   "savesScanning": "Je saves worden gelezen…",
   "savesEmptyTitle": "Geen saves gevonden",
@@ -476,7 +448,6 @@
   "savesLastSavedLabel": "Laatst opgeslagen",
   "savesGameVersion": "Spelversie",
   "savesDescription": "Beschrijving",
-
   "savesAgeInfant": "Baby",
   "savesAgeBaby": "Pasgeborene",
   "savesAgeToddler": "Peuter",
@@ -487,7 +458,6 @@
   "savesAgeElder": "Senior",
   "savesGenderMale": "Man",
   "savesGenderFemale": "Vrouw",
-
   "savesSkillCooking": "Koken",
   "savesSkillMechanical": "Mechanisch",
   "savesSkillCharisma": "Charisma",
@@ -495,13 +465,11 @@
   "savesSkillLogic": "Logica",
   "savesSkillCreativity": "Creativiteit",
   "savesSkillCleaning": "Schoonmaken",
-
   "savesPersonalityNeat": "Netjes",
   "savesPersonalityOutgoing": "Sociaal",
   "savesPersonalityActive": "Actief",
   "savesPersonalityPlayful": "Speels",
   "savesPersonalityNice": "Aardig",
-
   "savesZodiacAries": "Ram",
   "savesZodiacTaurus": "Stier",
   "savesZodiacGemini": "Tweelingen",
@@ -514,7 +482,6 @@
   "savesZodiacCapricorn": "Steenbok",
   "savesZodiacAquarius": "Waterman",
   "savesZodiacPisces": "Vissen",
-
   "savesAspirationRomance": "Romantiek",
   "savesAspirationFamily": "Familie",
   "savesAspirationFortune": "Fortuin",
@@ -523,7 +490,6 @@
   "savesAspirationGrowUp": "Opgroeien",
   "savesAspirationPleasure": "Plezier",
   "savesAspirationGrilledCheese": "Tosti",
-
   "savesRelCrush": "oogje op elkaar",
   "savesRelLove": "verliefd",
   "savesRelEngaged": "verloofd",
@@ -532,16 +498,13 @@
   "savesRelBestFriends": "beste vrienden",
   "savesRelSteady": "vaste relatie",
   "savesRelEnemies": "vijanden",
-
   "savesPhotoFamilyPortrait": "Familieportret",
   "savesPhotoLot": "Kavel",
   "savesPhotoSim": "Simportret",
   "savesPhotoSnapshot": "Momentopname",
-
   "savesProperty": "Eigendom",
   "savesGhost": "geest",
   "savesCareerLevel": "{career} · niveau {level}",
-
   "savesSpeciesLargeDog": "hond",
   "savesSpeciesSmallDog": "kleine hond",
   "savesSpeciesCat": "kat",
@@ -556,7 +519,6 @@
   "savesOccultFairy": "fee",
   "savesOccultGenie": "geest uit de fles",
   "savesOccultMermaid": "zeemeermin",
-
   "savesLotResidential": "Woonkavel",
   "savesLotCommunity": "Openbaar terrein",
   "savesLotDorm": "Studentenhuis",
@@ -566,11 +528,9 @@
   "savesLotSecret": "Geheim terrein",
   "savesLotBusiness": "Bedrijf",
   "savesLotApartment": "Appartement",
-
   "savesGpa": "{gpa} GPA",
   "savesSemester": "semester {number}",
   "savesPredestinedHobby": "Geboren voor {hobby}",
-
   "savesHobbyCuisine": "Koken",
   "savesHobbyArts": "Kunst & knutselen",
   "savesHobbyFilm": "Film & literatuur",
@@ -581,13 +541,11 @@
   "savesHobbyFitness": "Fitness",
   "savesHobbyScience": "Wetenschap",
   "savesHobbyMusic": "Muziek & dans",
-
   "savesTieMother": "moeder",
   "savesTieFather": "vader",
   "savesTieSpouse": "getrouwd met",
   "savesTieSibling": "{count, plural, =1{broer of zus} other{broers en zussen}}",
   "savesTieChild": "{count, plural, =1{kind} other{kinderen}}",
-
   "savesInterestPolitics": "Politiek",
   "savesInterestMoney": "Geld",
   "savesInterestEnvironment": "Milieu",
@@ -608,7 +566,6 @@
   "savesInterestSciFi": "Sciencefiction",
   "savesInterestMusic": "Muziek",
   "savesInterestOutdoors": "Buitenleven",
-
   "setupHelpSims1": "De originele The Sims houdt custom content in zijn installatiemap, niet in Documents: objecten gaan in een map Downloads naast het spelbestand (bv. C:\\Program Files (x86)\\Maxis\\The Sims\\Downloads), en deze app sorteert de andere types automatisch - skins (.skn/.cmx/.bmp) naar GameData\\Skins, muren en vloeren naar GameData\\Walls en GameData\\Floors. De Legacy Collection uit 2025 werkt op dezelfde manier vanuit zijn eigen installatiemap (EA Games\\The Sims Legacy, of Steam\\steamapps\\common\\The Sims Legacy Collection). Staat het spel ergens anders (een andere schijf, een eigen Steam-bibliotheek), kies dan zelf de map Downloads.",
   "setupHelpSims2": "The Sims 2 laadt custom content uit Documents > EA Games > The Sims 2 > Downloads (de Ultimate Collection gebruikt “The Sims 2 Ultimate Collection”; de Legacy Collection uit 2025 gebruikt “The Sims 2 Legacy”). Die map bestaat pas als je hem aanmaakt of één keer content installeert. Antwoord bij het opstarten van het spel “Yes” op de vraag over custom content, zodat downloads ingeschakeld zijn.",
   "setupHelpSims3": "The Sims 3 maakt zelf geen mods-map aan: het heeft het “framework” van de community nodig, een map Mods > Packages in Documents > Electronic Arts > The Sims 3, plus een bestand Resource.cfg dat het spel zegt daaruit te lezen. Deze app kan allebei voor je aanmaken. Bij installaties van schijf of via Wine kan de map in de app-bundel zelf zitten; gebruik dan “Kies een map” om ernaar te verwijzen.",
@@ -761,7 +718,6 @@
   "creationsAdding": "Bezig met toevoegen…",
   "creationsPickerLabel": "Kavels, kamers, huishoudens en sims voor {game}",
   "creationsNothingToAdd": "Er zat niets tussen dat dit spel als kavel, kamer, huishouden of sim kan lezen. Custom content en mods gaan via de bibliotheek.",
-
   "householdEdit": "Bewerken",
   "householdEditTitle": "Huishouden bewerken",
   "householdEditBody": "Verander wat de save over “{name}” zegt.",
@@ -773,5 +729,56 @@
   "errorSaveEditHouseholdGone": "Dat huishouden zit niet meer in de save. Ververs de lijst en probeer het opnieuw.",
   "errorSaveEditUnreadable": "“{file}” is niet opgebouwd zoals de app kan herschrijven, dus er is niets veranderd.",
   "errorSaveEditVerification": "De herschreven “{file}” las niet terug zoals het hoorde, dus is hij weggegooid. Je save is onaangeroerd.",
-  "errorSaveEditUnsupported": "De saves van dit spel kun je lezen, maar niet veranderen."
+  "errorSaveEditUnsupported": "De saves van dit spel kun je lezen, maar niet veranderen.",
+  "whatsNewEyebrow": "Nieuw in {version}",
+  "whatsNewAlsoSince": "Ook in deze update",
+  "whatsNewDismiss": "Aan de slag",
+  "whatsNew300RootTitle": "Mods die in de mappen van het spel horen",
+  "whatsNew300RootBody": "Werelden, grafische tweaks en scriptloaders werkten nooit vanuit de Mods-map. Nu belanden ze meteen in de mappen die het spel uitleest, en wat ze vervangen wordt bewaard, dus bij verwijderen krijg je het origineel terug.",
+  "whatsNew300PacksTitle": "Aanbiedingen kunnen zeggen welke packs ze nodig hebben",
+  "whatsNew300PacksBody": "Makers kunnen een mod koppelen aan de packs waarvoor die gemaakt is, en The Exchange vergelijkt ze met die van jou voordat je installeert. Het is altijd een waarschuwing, nooit een dichte deur.",
+  "whatsNew300ContainersTitle": "Een zip vol .sims3pack-bestanden werkt gewoon",
+  "whatsNew300ContainersBody": "Sleep de hele set op het venster. De Sims 3-containers in een archief worden geopend waar ze staan, en alles wordt in één keer geïnstalleerd.",
+  "whatsNew300SimCityTitle": "SimCity 3000, 4, Societies en 2013",
+  "whatsNew300SimCityBody": "Vier games erbij in de zijbalk. SimCity 4 leest allebei zijn Plugins-mappen, houdt de laadvolgorde aan die map- en bestandsnamen aangeven en blijft af van alles wat sc4pac heeft geïnstalleerd. In de instellingen verberg je de games die je niet speelt.",
+  "whatsNew300CatalogTitle": "Duizenden SimCity 4-mods om door te bladeren",
+  "whatsNew300CatalogBody": "The Exchange laat nu ook de sc4pac-kanalen zien naast onze eigen listings, met credits voor het project dat ze bijhoudt. Een download komt met alles wat hij nodig heeft of helemaal niet, en waar een host geen app voor je laat downloaden, zegt de knop dat meteen.",
+  "whatsNew300ThemeTitle": "Kies de look die je leuk vindt",
+  "whatsNew300ThemeBody": "Vroeger nam de app de kleuren over van de game die openstond. Nu kies je in de instellingen de look die je wilt, en die blijft staan welke game je ook beheert.",
+  "categoryLot": "Kavel",
+  "categoryModel": "Model",
+  "categoryDescription": "Beschrijving",
+  "categoryBuilding": "Gebouw",
+  "setupHelpSimCity4": "SimCity 4 leest plugins uit twee mappen tegelijk: Documenten > SimCity 4 > Plugins (die van jou, en degene die deze app beheert) en een Plugins-map in de installatie van het spel. Map- en bestandsnamen zijn de laadvolgorde, dus laat de structuur waarmee een download binnenkomt met rust - daarom gebruikt sc4pac genummerde mappen en heten overrides „zzz...”. DLL-plugins laden alleen vanuit de bovenste laag van een Plugins-map, nooit uit een submap, dus de app zet ze daar voor je neer. Wat sc4pac heeft geïnstalleerd blijft van sc4pac: dat lijst sc4pac, niet deze app.",
+  "setupHelpSimCity2013": "SimCity laadt mods als .package uit SimCityUserData > Packages in de installatie van het spel (meestal onder Program Files, dus Windows kan om beheerdersrechten vragen). Deze app beheert alleen die map. Het spel leest ook zijn eigen SimCityData-map, maar daar staat de content van Maxis: een mod die vóór de pakketten van het spel moet laden, moet daar met de hand heen. Veel mods zijn alleen voor offline: probeer ze op een stad die je kwijt mag raken.",
+  "setupHelpSimCity3000": "SimCity 3000 laadt eigen gebouwen (.bld-bestanden uit de Building Architect Tool) uit een Buildings-map in de installatie van het spel. Die map is plat: een gebouw in een submap wordt nooit geladen. De gebouwen die met het spel meekwamen zijn hier verborgen, zodat je ze niet per ongeluk weggooit. Resolutie- en compatibiliteitsfixes die SC3U.exe zelf aanpassen installeert deze app niet; volg daarvoor hun eigen instructies.",
+  "setupHelpSimCitySocieties": "SimCity Societies bewaart eigen content in Documenten > SimCity Societies > Import, waar de Package Installer van het spel het ook neerzet. Deze app kan de map voor je maken. Content komt als .SCSPack-bestanden - dat is de extensie waar het spel zelf naar zoekt. Let op: Societies is gemaakt om bewerkt te worden, niet om kant-en-klare mods te laden - het meeste wat de scene deed was de C# en XML in de Data-map van het spel aanpassen, en daar blijft deze app vanaf.",
+  "sectionManagedGames": "Games",
+  "prefManageGameTitle": "{game} beheren",
+  "prefManageGameDesc": "Toon het in de zijbalk. Een verborgen game houdt al zijn instellingen.",
+  "errorLastManagedGame": "Dat is het laatste spel in je zijbalk, dus het moet blijven staan. Zet eerst een ander spel aan als je dit wilt verbergen.",
+  "catalogCount": "{count} mods",
+  "catalogCuratedBy": "Catalogus van {project}",
+  "catalogOpenPage": "Pagina openen",
+  "catalogBlocked": "{host} laat apps niet voor je downloaden. Haal hem op via de pagina van de mod.",
+  "catalogUnresolvedNote": "Deze kon niet uit de catalogus gelezen worden.",
+  "catalogDependencies": "Komt met",
+  "catalogFileCount": "{count} bestanden",
+  "catalogDownloading": "Downloadt {current} van {total}",
+  "catalogWarningTitle": "Let op",
+  "catalogConflictsTitle": "Botst met",
+  "catalogSourceFailed": "{source} niet bereikbaar",
+  "catalogEmpty": "Niets komt overeen.",
+  "catalogRefresh": "Catalogus opnieuw laden",
+  "catalogOptions": "Opties",
+  "catalogBy": "van {author}",
+  "errorCatalogUnreachable": "De catalogus was niet bereikbaar. Check je verbinding en probeer het nog eens.",
+  "errorCatalogUnreadable": "De catalogus antwoordde met iets dat deze versie niet kan lezen.",
+  "errorCatalogDownloadFailed": "{host} weigerde de download.",
+  "errorCatalogInstallFailed": "Er ging iets mis bij het installeren.",
+  "errorCatalogInstallCancelled": "Installatie geannuleerd.",
+  "catalogLoading": "Catalogus laden…",
+  "catalogBack": "← Terug naar de catalogus",
+  "catalogPromoTitle": "Zelf een mod gemaakt?",
+  "catalogPromoBody": "Zet hem op The Exchange: één klik installeert hem, hij krijgt een eigen pagina en link, en wie hem al heeft hoort het als er een update is."
 }

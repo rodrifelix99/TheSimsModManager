@@ -15,7 +15,7 @@ class LPt extends L {
   String get brandTitle => 'Mod Manager';
 
   @override
-  String get brandSubtitle => 'para The Sims';
+  String get brandSubtitle => 'para The Sims e SimCity';
 
   @override
   String get navLibrary => 'Biblioteca';
@@ -156,6 +156,33 @@ class LPt extends L {
   @override
   String get shopSaveHint =>
       'Instalar joga os arquivos direto na sua pasta de mods. Baixar só salva o arquivo, onde você quiser.';
+
+  @override
+  String get shopRequires => 'Precisa destes pacotes';
+
+  @override
+  String get shopRequirementMet => 'Instalado';
+
+  @override
+  String get shopRequirementDisabled => 'Desligado';
+
+  @override
+  String get shopRequirementMissing => 'Não instalado';
+
+  @override
+  String get shopRequirementUnknown => 'Não verificado';
+
+  @override
+  String get shopRequirementsNote =>
+      'Podes instalar na mesma — só não vai fazer grande coisa enquanto não tiveres os pacotes.';
+
+  @override
+  String get shopRequirementsOffNote =>
+      'Um destes está desligado. Volta a ligá-lo no separador Pacotes.';
+
+  @override
+  String get shopRequirementsUnknownNote =>
+      'Não conseguimos verificar os pacotes deste jogo neste computador, por isso ficamos pela palavra de quem criou o mod.';
 
   @override
   String get shopDestination => 'Instala em';
@@ -945,6 +972,16 @@ class LPt extends L {
   String get themeDark => 'Escuro';
 
   @override
+  String get appThemeTitle => 'Tema do app';
+
+  @override
+  String get appThemeDesc =>
+      'A cara do app inteiro. Ela não muda, seja qual for o jogo que você está gerenciando.';
+
+  @override
+  String get appThemeDefault => 'Padrão';
+
+  @override
   String get languageTitle => 'Idioma do app';
 
   @override
@@ -1066,7 +1103,7 @@ class LPt extends L {
 
   @override
   String get onboardingLookBody =>
-      'O app inteiro muda de cor conforme o jogo em que você está. Escolha como ele deve aparecer e soar.';
+      'O app inteiro usa o visual que você escolher, para qualquer jogo que você gerenciar. Escolha como ele deve aparecer e soar.';
 
   @override
   String get onboardingLibraryTitle => 'Como sua biblioteca aparece';
@@ -1188,8 +1225,8 @@ class LPt extends L {
   String get wikiButton => 'Abrir a wiki';
 
   @override
-  String aboutTagline(String version) {
-    return 'Versão $version · Compatível com The Sims 1-4 · SimCity em breve';
+  String aboutTagline(String version, String series) {
+    return 'Versão $version · Gerenciador de mods para $series';
   }
 
   @override
@@ -2846,4 +2883,197 @@ class LPt extends L {
   @override
   String get errorSaveEditUnsupported =>
       'Dá pra ler os saves desse jogo, mas não pra mudar.';
+
+  @override
+  String whatsNewEyebrow(String version) {
+    return 'Novidades na $version';
+  }
+
+  @override
+  String get whatsNewAlsoSince => 'Também nesta atualização';
+
+  @override
+  String get whatsNewDismiss => 'Vamos lá';
+
+  @override
+  String get whatsNew300RootTitle =>
+      'Mods que ficam nas pastas do próprio jogo';
+
+  @override
+  String get whatsNew300RootBody =>
+      'Mundos, ajustes gráficos e carregadores de script nunca funcionaram na pasta Mods. Agora eles vão direto para as pastas que o jogo lê, e o que for substituído fica guardado, então desinstalar devolve o arquivo original.';
+
+  @override
+  String get whatsNew300PacksTitle =>
+      'Os anúncios podem dizer de quais pacotes precisam';
+
+  @override
+  String get whatsNew300PacksBody =>
+      'Quem publica pode marcar um mod com os pacotes para os quais ele foi feito, e The Exchange compara com os seus antes de instalar. É sempre um aviso, nunca uma porta trancada.';
+
+  @override
+  String get whatsNew300ContainersTitle =>
+      'Um zip cheio de arquivos .sims3pack simplesmente funciona';
+
+  @override
+  String get whatsNew300ContainersBody =>
+      'Solte o conjunto inteiro na janela. Os contêineres de The Sims 3 dentro de um arquivo compactado são abertos onde estão, e tudo é instalado de uma vez.';
+
+  @override
+  String get whatsNew300SimCityTitle => 'SimCity 3000, 4, Societies e 2013';
+
+  @override
+  String get whatsNew300SimCityBody =>
+      'Mais quatro jogos na barra lateral. O SimCity 4 lê as duas pastas Plugins, mantém a ordem de carregamento que os nomes de pastas e arquivos definem e não mexe no que o sc4pac instalou. Nas configurações dá para esconder os jogos que você não joga.';
+
+  @override
+  String get whatsNew300CatalogTitle =>
+      'Milhares de mods de SimCity 4 para explorar';
+
+  @override
+  String get whatsNew300CatalogBody =>
+      'The Exchange agora traz os canais do sc4pac ao lado dos nossos anúncios, com crédito para o projeto que cuida deles. Um download vem com tudo de que depende ou não vem nada, e quando um site não deixa um app baixar por você, o botão avisa antes.';
+
+  @override
+  String get whatsNew300ThemeTitle => 'Escolha o visual que você gosta';
+
+  @override
+  String get whatsNew300ThemeBody =>
+      'Antes o app mudava de cor conforme o jogo aberto. Agora você escolhe o visual que quiser nas configurações, e ele fica assim para qualquer jogo que você gerenciar.';
+
+  @override
+  String get categoryLot => 'Terreno';
+
+  @override
+  String get categoryModel => 'Modelo';
+
+  @override
+  String get categoryDescription => 'Descrição';
+
+  @override
+  String get categoryBuilding => 'Prédio';
+
+  @override
+  String get setupHelpSimCity4 =>
+      'O SimCity 4 lê plugins de duas pastas ao mesmo tempo: Documentos > SimCity 4 > Plugins (a sua, e a que este app gerencia) e uma pasta Plugins dentro da instalação do jogo. Os nomes de pastas e arquivos são a ordem de carregamento, então não mexa na estrutura que veio no download - é por isso que o sc4pac usa pastas numeradas e que os overrides se chamam \"zzz...\". Plugins em DLL só carregam da raiz de uma pasta Plugins, nunca de uma subpasta, então o app coloca eles lá pra você. O que o sc4pac instalou continua sendo do sc4pac: quem lista aquilo é ele, não este app.';
+
+  @override
+  String get setupHelpSimCity2013 =>
+      'O SimCity carrega mods em .package de SimCityUserData > Packages dentro da instalação do jogo (normalmente em Arquivos de Programas, então o Windows pode pedir permissão de administrador). Este app cuida só dessa pasta. O jogo também lê a pasta SimCityData, mas ali fica o conteúdo da Maxis, então um mod que precise carregar antes dos pacotes do jogo tem que ir pra lá na mão. Muitos mods são só pra offline: teste numa cidade que você não se importe de perder.';
+
+  @override
+  String get setupHelpSimCity3000 =>
+      'O SimCity 3000 carrega prédios personalizados (arquivos .bld, feitos no Building Architect Tool) de uma pasta Buildings dentro da instalação do jogo. Ela é plana - um prédio numa subpasta nunca é carregado. Os prédios que vieram com o jogo ficam ocultos aqui pra você não apagar sem querer. Correções de resolução e compatibilidade que alteram o próprio SC3U.exe não são instaladas por este app; siga as instruções delas.';
+
+  @override
+  String get setupHelpSimCitySocieties =>
+      'O SimCity Societies guarda conteúdo personalizado em Documentos > SimCity Societies > Import, que é onde o Package Installer do próprio jogo coloca. Este app pode criar a pasta pra você. O conteúdo vem em arquivos .SCSPack - é essa a extensão que o jogo procura. Aviso: o Societies foi feito pra ser editado, não pra carregar mods empacotados - a maior parte do que a galera fazia era editar o C# e o XML dentro da pasta Data do jogo, e este app nunca encosta nela.';
+
+  @override
+  String get sectionManagedGames => 'Jogos';
+
+  @override
+  String prefManageGameTitle(String game) {
+    return 'Gerenciar $game';
+  }
+
+  @override
+  String get prefManageGameDesc =>
+      'Mostrar na barra lateral. Ocultar um jogo mantém todas as configurações dele.';
+
+  @override
+  String get errorLastManagedGame =>
+      'Esse é o único jogo que sobrou na sua barra lateral, então ele tem que ficar. Ative outro primeiro se quiser escondê-lo.';
+
+  @override
+  String catalogCount(int count) {
+    return '$count mods';
+  }
+
+  @override
+  String catalogCuratedBy(String project) {
+    return 'Catálogo do $project';
+  }
+
+  @override
+  String get catalogOpenPage => 'Abrir página';
+
+  @override
+  String catalogBlocked(String host) {
+    return 'O $host não deixa apps baixarem por você. Pegue o mod na página dele.';
+  }
+
+  @override
+  String get catalogUnresolvedNote => 'Não deu para ler este aqui no catálogo.';
+
+  @override
+  String get catalogDependencies => 'Vem junto';
+
+  @override
+  String catalogFileCount(int count) {
+    return '$count arquivos';
+  }
+
+  @override
+  String catalogDownloading(int current, int total) {
+    return 'Baixando $current de $total';
+  }
+
+  @override
+  String get catalogWarningTitle => 'Fica ligado';
+
+  @override
+  String get catalogConflictsTitle => 'Conflita com';
+
+  @override
+  String catalogSourceFailed(String source) {
+    return 'Não deu para alcançar o $source';
+  }
+
+  @override
+  String get catalogEmpty => 'Nada bate com isso.';
+
+  @override
+  String get catalogRefresh => 'Recarregar o catálogo';
+
+  @override
+  String get catalogOptions => 'Opções';
+
+  @override
+  String catalogBy(String author) {
+    return 'de $author';
+  }
+
+  @override
+  String get errorCatalogUnreachable =>
+      'Não deu para alcançar o catálogo. Vê a tua conexão e tenta de novo.';
+
+  @override
+  String get errorCatalogUnreadable =>
+      'O catálogo respondeu com algo que esta versão não lê.';
+
+  @override
+  String errorCatalogDownloadFailed(String host) {
+    return 'O $host recusou o download.';
+  }
+
+  @override
+  String get errorCatalogInstallFailed =>
+      'Deu algum problema ao instalar isso.';
+
+  @override
+  String get errorCatalogInstallCancelled => 'Instalação cancelada.';
+
+  @override
+  String get catalogLoading => 'Carregando o catálogo…';
+
+  @override
+  String get catalogBack => '← Voltar ao catálogo';
+
+  @override
+  String get catalogPromoTitle => 'Fez um mod?';
+
+  @override
+  String get catalogPromoBody =>
+      'Coloque na The Exchange e ele instala em um clique, ganha página e link próprios, e quem já baixou fica sabendo das atualizações.';
 }

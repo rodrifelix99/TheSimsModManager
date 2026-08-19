@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui' show Size;
 
-import 'package:flutter/material.dart' show AlertDialog;
+import 'package:flutter/gestures.dart' show PointerDeviceKind;
+import 'package:flutter/material.dart'
+    show AlertDialog, AnimatedOpacity, IconData, Icons, ListView;
 import 'package:flutter/widgets.dart' as widgets;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
@@ -18,6 +20,7 @@ import 'package:sims_mod_manager/src/services/settings_store.dart';
 import 'package:sims_mod_manager/src/ui/app.dart';
 import 'package:sims_mod_manager/src/ui/app_controller.dart';
 import 'package:sims_mod_manager/src/ui/shop_view.dart';
+import 'package:sims_mod_manager/src/ui/widgets.dart' show SideStrip;
 
 import 'until.dart';
 
@@ -1133,5 +1136,76 @@ void main() {
     // And the last one takes the tap that puts it in the big frame.
     await tester.tap(find.byKey(const widgets.ValueKey('shop-shot-9')));
     await tester.pump();
+  });
+
+  testWidgets('the game filter answers a mouse wheel and its arrows',
+      (tester) async {
+    // Narrow on purpose: this is where the row runs off the edge, which
+    // is the whole reason it can be scrolled at all.
+    tester.view.physicalSize = const Size(900, 700);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    SharedPreferences.setMockInitialValues({'soundEffects': false});
+    final tempDir = Directory.systemTemp.createTempSync('shop_filter_strip');
+    addTearDown(() => tempDir.deleteSync(recursive: true));
+
+    // Nine games, as the registry carries today.
+    final registry = GameRegistry([
+      _FakeAdapter(tempDir),
+      for (var i = 2; i <= 9; i++)
+        _FakeAdapter(tempDir, id: 'g$i', title: 'Game Number $i'),
+    ]);
+    final settings = await SettingsStore.load();
+
+    await tester.runAsync(() async {
+      await tester.pumpWidget(ModManagerApp(
+        registry: registry,
+        settings: settings,
+        fetchShop: () async => [_listing()],
+      ));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
+    await _openShop(tester);
+
+    final strip = find.byType(SideStrip);
+    final row = find.descendant(of: strip, matching: find.byType(ListView));
+    double offset() => tester.widget<ListView>(row).controller!.offset;
+    expect(offset(), 0);
+
+    // The plain vertical wheel, which is all a desktop mouse has.
+    final mouse = TestPointer(1, PointerDeviceKind.mouse);
+    final over = tester.getCenter(strip);
+    await tester.sendEventToBinding(mouse.hover(over));
+    await tester.sendEventToBinding(mouse.scroll(const Offset(0, 120)));
+    await tester.pump();
+    expect(offset(), 120);
+
+    // Which also brings the arrow back to where it started.
+    double fade(IconData icon) => tester
+        .widget<AnimatedOpacity>(find.ancestor(
+            of: find.byIcon(icon), matching: find.byType(AnimatedOpacity)))
+        .opacity;
+    expect(fade(Icons.chevron_left_rounded), 1);
+
+    await tester.tap(find.byIcon(Icons.chevron_right_rounded));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(offset(), greaterThan(120));
+
+    // And pressing on until there is nothing left takes it away. The
+    // loop stops on the arrow itself rather than after a set number of
+    // presses: it goes when the strip does, and pressing where it was
+    // is a tap on nothing.
+    for (var i = 0; i < 20 && fade(Icons.chevron_right_rounded) == 1; i++) {
+      await tester.tap(find.byIcon(Icons.chevron_right_rounded));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+    }
+    expect(fade(Icons.chevron_right_rounded), 0);
+    // The last chip is on screen: the game's name is also a shelf
+    // heading below, so the finder stays inside the strip.
+    expect(
+        find.descendant(of: strip, matching: find.text('Game Number 9')),
+        findsOneWidget);
   });
 }

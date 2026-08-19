@@ -16,6 +16,7 @@ import 'install_destination_dialog.dart';
 import 'l10n.dart';
 import 'library_view.dart';
 import 'onboarding_view.dart';
+import 'whats_new_view.dart';
 import 'packs_view.dart';
 import 'saves_view.dart';
 import 'settings_view.dart';
@@ -53,10 +54,10 @@ class _AppShellState extends State<AppShell> {
   Future<void> _handleDrop(
       AppController c, GameTheme t, DropDoneDetails details) async {
     setState(() => _dragging = false);
-    // Nothing installs while the walkthrough is up: the window is a card
-    // asking questions, and a file dropped on it was aimed at something
-    // the user cannot see yet.
-    if (c.modsDir == null || c.showOnboarding) return;
+    // Nothing installs while the walkthrough or the what's-new card is
+    // up: the window is a card, and a file dropped on it was aimed at
+    // something the user cannot see yet.
+    if (c.modsDir == null || c.showOnboarding || c.showWhatsNew) return;
     final paths = [for (final f in details.files) f.path];
     // Filtered before asking: a drop of nothing but readmes has nothing
     // to ask about, and installDroppedPaths is still the one that says so.
@@ -77,8 +78,10 @@ class _AppShellState extends State<AppShell> {
       listenable: c,
       builder: (context, _) {
         // MaterialApp already resolved "system" against the OS, so this is
-        // the single place the whole app learns whether it is dark.
-        final t = GameTheme.forGame(c.adapter.game, Theme.of(context).brightness);
+        // the single place the whole app learns whether it is dark - and,
+        // since the chrome is the user's own choice rather than the
+        // sidebar's, the single place it learns which theme it wears.
+        final t = GameTheme.forTheme(c.appTheme, Theme.of(context).brightness);
         // macOS keeps its native traffic lights overlaid; Windows/Linux lose
         // their caption buttons with the hidden title bar, so we draw our own.
         final ownButtons = Platform.isWindows || Platform.isLinux;
@@ -91,7 +94,7 @@ class _AppShellState extends State<AppShell> {
           // install on drop; only meaningful once a mods folder resolved.
           body: DropTarget(
             onDragEntered: (_) {
-              if (c.modsDir != null && !c.showOnboarding) {
+              if (c.modsDir != null && !c.showOnboarding && !c.showWhatsNew) {
                 setState(() => _dragging = true);
               }
             },
@@ -168,6 +171,16 @@ class _AppShellState extends State<AppShell> {
                 if (c.showOnboarding)
                   Positioned.fill(
                     child: OnboardingOverlay(theme: t, controller: c),
+                  ),
+                // The same slot, and never at the same time: an install
+                // that is also somebody's first launch gets the
+                // walkthrough and nothing else. Under the drag strip
+                // and the caption buttons for the same reason - a card
+                // you cannot move or close the window behind is a worse
+                // celebration than none.
+                if (c.showWhatsNew)
+                  Positioned.fill(
+                    child: WhatsNewOverlay(theme: t, controller: c),
                   ),
                 // Invisible title-bar strip: drag to move, double-click to
                 // maximize/restore, stopping short of the caption buttons.
@@ -409,6 +422,29 @@ class _Sidebar extends StatefulWidget {
 }
 
 class _SidebarState extends State<_Sidebar> {
+  // Whether the games list actually has more below the fold right now -
+  // the fade below only means something while this is true, and reading
+  // it straight from ScrollMetrics (rather than from the games count)
+  // is what keeps it right after a resize, not just after a scroll.
+  bool _gamesListScrollable = false;
+
+  bool _handleGamesScrollMetrics(ScrollMetricsNotification notification) {
+    _updateGamesListScrollable(notification.metrics);
+    return false;
+  }
+
+  bool _handleGamesScroll(ScrollNotification notification) {
+    _updateGamesListScrollable(notification.metrics);
+    return false;
+  }
+
+  void _updateGamesListScrollable(ScrollMetrics metrics) {
+    final scrollable = metrics.maxScrollExtent - metrics.pixels > 1;
+    if (scrollable != _gamesListScrollable) {
+      setState(() => _gamesListScrollable = scrollable);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = widget.theme;
@@ -422,38 +458,57 @@ class _SidebarState extends State<_Sidebar> {
       padding: EdgeInsets.fromLTRB(
           16, Platform.isMacOS ? kWindowCaptionHeight + 6 : 20, 16, 20),
       decoration: t.skin.sidebar(t, glass: widget.glass),
-      // The column's height grows with the number of games and with what
-      // the bottom cluster is carrying (the update banner, the disk bar),
-      // and kMinWindowSize can't chase all of it - a short window scrolls
-      // the sidebar instead of overflowing it. IntrinsicHeight + the
-      // minHeight below is what keeps the Spacer working when there *is*
-      // room: without them the scroll view's unbounded height would make
-      // the flexible child meaningless.
-      child: LayoutBuilder(
-        builder: (context, constraints) => SingleChildScrollView(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: IntrinsicHeight(child: _column(t, c, l)),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _column(GameTheme t, AppController c, L l) {
-    return Column(
+      // Only the games list scrolls: it's the one section whose length is
+      // unbounded (a mixed Sims+SimCity library, say), while the nav menu
+      // and the bottom cluster (update banner, Exchange card, disk bar)
+      // are always fully visible and never scroll out of view. The
+      // Expanded below is the flex sink that used to be a trailing
+      // Spacer - since it now sits above the nav/cards instead of below
+      // them, a tall window's leftover room shows up as blank space under
+      // the games list rather than as a gap above the bottom cards, and a
+      // short window shrinks that same box into a scrollable one instead
+      // of scrolling the whole sidebar.
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _logo(t, c.adapter.game.id, l),
+          _logo(t, c.adapter.game.id, c.adapter.game.name, l),
           const SizedBox(height: 18),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(6, 0, 6, 8),
-            child: Text(l.sidebarGames, style: eyebrowStyle(t)),
+          Expanded(
+            // Fades the last sliver of whatever's cut off at the bottom
+            // edge, the usual hint that a box scrolls - but only while
+            // there's actually more list below the fold: gated on
+            // _gamesListScrollable rather than shown unconditionally, so
+            // it doesn't dim a last row that has nothing hidden under it,
+            // and drops once a scroll reaches the real bottom. The
+            // ShaderMask itself never comes and goes (only the gradient
+            // it computes does): swapping it out of the tree on that same
+            // toggle would recreate the scroll view under it and throw
+            // away the user's scroll position.
+            child: NotificationListener<ScrollMetricsNotification>(
+              onNotification: _handleGamesScrollMetrics,
+              child: NotificationListener<ScrollNotification>(
+                onNotification: _handleGamesScroll,
+                child: ShaderMask(
+                  shaderCallback: (bounds) => (_gamesListScrollable
+                          ? const LinearGradient(
+                              begin: Alignment.bottomCenter,
+                              end: Alignment.topCenter,
+                              colors: [
+                                Colors.transparent,
+                                Colors.black,
+                                Colors.black
+                              ],
+                              stops: [0, 0.2, 1],
+                            )
+                          : const LinearGradient(
+                              colors: [Colors.black, Colors.black]))
+                      .createShader(bounds),
+                  blendMode: BlendMode.dstIn,
+                  child: SingleChildScrollView(child: _gamesList(t, c, l)),
+                ),
+              ),
+            ),
           ),
-          for (final adapter in c.registry.adapters) ...[
-            _gameRow(t, c, l, adapter),
-            const SizedBox(height: 4),
-          ],
           const SizedBox(height: 14),
           Container(height: 1, color: t.border),
           const SizedBox(height: 14),
@@ -472,28 +527,33 @@ class _SidebarState extends State<_Sidebar> {
             ),
             onTap: c.backToLibrary,
           ),
-          const SizedBox(height: 4),
-          _navButton(
-            t,
-            label: l.navSaves,
-            active: c.screen == AppScreen.saves,
-            // The design's saves glyph: the library square with one
-            // corner rounded off, a page with a dog-ear.
-            iconBuilder: (color) => Container(
-              width: 18,
-              height: 18,
-              decoration: BoxDecoration(
-                border: Border.all(color: color, width: 2.5),
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(5),
-                  topRight: Radius.circular(5),
-                  bottomRight: Radius.circular(5),
-                  bottomLeft: Radius.circular(9),
+          // Only for the games with a save reader of their own. A game
+          // nobody has written one for gets no screen at all, rather than
+          // one that always reads "no saves found".
+          if (c.showSaves) ...[
+            const SizedBox(height: 4),
+            _navButton(
+              t,
+              label: l.navSaves,
+              active: c.screen == AppScreen.saves,
+              // The design's saves glyph: the library square with one
+              // corner rounded off, a page with a dog-ear.
+              iconBuilder: (color) => Container(
+                width: 18,
+                height: 18,
+                decoration: BoxDecoration(
+                  border: Border.all(color: color, width: 2.5),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(5),
+                    topRight: Radius.circular(5),
+                    bottomRight: Radius.circular(5),
+                    bottomLeft: Radius.circular(9),
+                  ),
                 ),
               ),
+              onTap: c.openSaves,
             ),
-            onTap: c.openSaves,
-          ),
+          ],
           // Only for the games that have packs to show. A game whose
           // expansions merge into the install on setup has nothing to
           // list, and an empty screen would be a worse answer than no
@@ -584,7 +644,7 @@ class _SidebarState extends State<_Sidebar> {
             ),
             onTap: c.openSettings,
           ),
-          const Spacer(),
+          const SizedBox(height: 14),
           if (c.availableUpdate != null) ...[
             _updateCard(t, c, l),
             const SizedBox(height: 10),
@@ -598,6 +658,45 @@ class _SidebarState extends State<_Sidebar> {
             const SizedBox(height: 10),
           ],
           _storageCard(t, c, l),
+        ],
+      ),
+    );
+  }
+
+  /// The scrollable region: the games list, grouped by series when the
+  /// library manages more than one franchise (Sims and SimCity both).
+  Widget _gamesList(GameTheme t, AppController c, L l) {
+    return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // One franchise draws the heading it always had; two or more
+          // draw one each, off Game.series rather than off any list of
+          // ids kept here. So a Sims-only sidebar is unchanged, a
+          // SimCity-only one says SIMCITY, and a mixed one says both.
+          if (c.managedGroups.length < 2) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(6, 0, 6, 8),
+              child: Text(l.sidebarGames, style: eyebrowStyle(t)),
+            ),
+            for (final adapter in c.managedAdapters) ...[
+              _gameRow(t, c, l, adapter),
+              const SizedBox(height: 4),
+            ],
+          ] else
+            for (final group in c.managedGroups) ...[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(6, 0, 6, 8),
+                child: Text(group.series.toUpperCase(),
+                    style: eyebrowStyle(t),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
+              ),
+              for (final adapter in group.adapters) ...[
+                _gameRow(t, c, l, adapter),
+                const SizedBox(height: 4),
+              ],
+              const SizedBox(height: 10),
+            ],
         ]);
   }
 
@@ -668,12 +767,10 @@ class _SidebarState extends State<_Sidebar> {
   }
 
   /// The Exchange, sitting under the games rather than among them: its
-  /// shelves carry every game at once. The row of game icons underneath
-  /// is both the statement of that and a shortcut - tap one to open the
-  /// shop already narrowed to it, tap it again to see everything.
+  /// shelves carry every game at once, so it belongs under the per-game
+  /// rows rather than in with them.
   Widget _exchangeCard(GameTheme t, AppController c, L l) {
     final active = c.screen == AppScreen.shop;
-    final counts = c.shopCountsByGame;
     return HoverBuilder(
       cursor: SystemMouseCursors.click,
       builder: (context, hovered) => GestureDetector(
@@ -684,122 +781,68 @@ class _SidebarState extends State<_Sidebar> {
           decoration: t.skin.decorate(t, SkinSurface.panel,
               state: active ? SkinState.active : SkinState.idle,
               fill: active || hovered ? t.tint : t.surfaceAlt),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
             children: [
-              Row(
-                children: [
-                  // The plumbob diamond: a rotated square, same outline
-                  // weight as the nav icons above.
-                  SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: Center(
-                      child: Transform.rotate(
-                        angle: math.pi / 4,
-                        child: Container(
-                          width: 13,
-                          height: 13,
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                                color: active ? t.accent : t.text, width: 2.5),
-                            borderRadius: BorderRadius.circular(3),
-                          ),
-                        ),
+              // The plumbob diamond: a rotated square, same outline
+              // weight as the nav icons above.
+              SizedBox(
+                width: 18,
+                height: 18,
+                child: Center(
+                  child: Transform.rotate(
+                    angle: math.pi / 4,
+                    child: Container(
+                      width: 13,
+                      height: 13,
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                            color: active ? t.accent : t.text, width: 2.5),
+                        borderRadius: BorderRadius.circular(3),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 11),
-                  Flexible(
+                ),
+              ),
+              const SizedBox(width: 11),
+              Flexible(
+                child: Text(
+                  l.navShop,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w800,
+                    color: active ? t.accent : t.text,
+                  ),
+                ),
+              ),
+              // Mods waiting for a new version, counted here so the
+              // answer is on screen from any tab rather than only for
+              // whoever thinks to go and look.
+              if (c.shopUpdateCount > 0) ...[
+                const SizedBox(width: 8),
+                Tooltip(
+                  message: l.shopUpdatesWaiting(c.shopUpdateCount),
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                    decoration: BoxDecoration(
+                      gradient: t.accentGradient,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
                     child: Text(
-                      l.navShop,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w800,
-                        color: active ? t.accent : t.text,
+                      '${c.shopUpdateCount}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                        height: 1.3,
                       ),
                     ),
                   ),
-                  // Mods waiting for a new version, counted here so the
-                  // answer is on screen from any tab rather than only for
-                  // whoever thinks to go and look.
-                  if (c.shopUpdateCount > 0) ...[
-                    const SizedBox(width: 8),
-                    Tooltip(
-                      message: l.shopUpdatesWaiting(c.shopUpdateCount),
-                      child: Container(
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                        decoration: BoxDecoration(
-                          gradient: t.accentGradient,
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Text(
-                          '${c.shopUpdateCount}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w900,
-                            height: 1.3,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-              const SizedBox(height: 9),
-              Wrap(
-                spacing: 7,
-                runSpacing: 7,
-                children: [
-                  for (final adapter in c.registry.adapters)
-                    _exchangeGameShortcut(t, c, adapter.game,
-                        // Before the first load nothing is known, and a
-                        // row of gray icons would be a claim we can't
-                        // make yet.
-                        c.shopMods == null
-                            ? null
-                            : counts[adapter.game.id] ?? 0),
-                ],
-              ),
+                ),
+              ],
             ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// One game's icon under The Exchange: lit when it has listings, dimmed
-  /// when its shelf is empty, ringed while it's the filter in effect.
-  /// [count] is null until the shelves have ever loaded.
-  Widget _exchangeGameShortcut(
-      GameTheme t, AppController c, Game game, int? count) {
-    final selected = c.screen == AppScreen.shop && c.shopGameFilter == game.id;
-    final empty = count == 0 && !selected;
-    return Tooltip(
-      message: count == null || count == 0
-          ? game.name
-          : '${game.name}  ·  $count',
-      waitDuration: const Duration(milliseconds: 400),
-      child: HoverBuilder(
-        cursor: SystemMouseCursors.click,
-        builder: (context, hovered) => GestureDetector(
-          onTap: () => c.openShop(gameId: game.id),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            padding: const EdgeInsets.all(3),
-            decoration: t.skin.decorate(t, SkinSurface.row,
-                radius: 9,
-                state: skinState(active: selected, hovered: hovered),
-                fill: selected || hovered ? t.surface : null,
-                outline: selected ? t.accent : null),
-            child: Opacity(
-              opacity: empty ? .5 : 1,
-              child: _gameGlyph(t, game, size: 20, dim: empty),
-            ),
           ),
         ),
       ),
@@ -834,12 +877,23 @@ class _SidebarState extends State<_Sidebar> {
                   ),
                 ],
         ),
-        child: Text(
-          trailing.isEmpty ? game.name.substring(0, 1) : trailing,
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w900,
-            fontSize: size * .48,
+        // Scaled to fit rather than drawn at a fixed size: the digits in
+        // a game's name are one character for every Sims game and four
+        // for SimCity 3000, which rendered clipped to "300" until
+        // somebody looked at it.
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: size * .12),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              trailing.isEmpty ? game.name.substring(0, 1) : trailing,
+              maxLines: 1,
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
+                fontSize: size * .48,
+              ),
+            ),
           ),
         ),
       );
@@ -868,12 +922,13 @@ class _SidebarState extends State<_Sidebar> {
     );
   }
 
-  Widget _logo(GameTheme t, String gameId, L l) {
+  Widget _logo(GameTheme t, String gameId, String gameName, L l) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Row(
         children: [
-          BrandMark(gameId: gameId, size: 30),
+          BrandMark(
+              gameId: gameId, size: 30, name: gameName, ink: t.accent),
           const SizedBox(width: 12),
           Flexible(
             child: Column(

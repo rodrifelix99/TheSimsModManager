@@ -7,11 +7,20 @@ interface Props {
 const { locale } = Astro.props;
 const t = useTranslations(locale);
 
-// Ordered by release year, the way the app's own sidebar lists them. The names
-// stay English in every language, matching what the app shows.
+// Ordered by release year, spin-offs interleaved, the way every game list in
+// this project runs. The names stay English in every language, matching what
+// the app shows.
 const games = [
+  { name: 'SimCity 3000', year: '1999', icon: 'simcity_3000_icon.png', key: 'games.simcity3000' },
   { name: 'The Sims', year: '2000', icon: 'the_sims_1_icon.png', key: 'games.sims1' },
+  { name: 'SimCity 4', year: '2003', icon: 'simcity_4_icon.webp', key: 'games.simcity4' },
   { name: 'The Sims 2', year: '2004', icon: 'the_sims_2_icon.png', key: 'games.sims2' },
+  {
+    name: 'SimCity Societies',
+    year: '2007',
+    icon: 'simcity_societies_icon.png',
+    key: 'games.simcitysocieties',
+  },
   { name: 'The Sims 3', year: '2009', icon: 'the_sims_3_icon.png', key: 'games.sims3' },
   {
     name: 'The Sims Medieval',
@@ -19,6 +28,7 @@ const games = [
     icon: 'the_sims_medieval_icon.webp',
     key: 'games.medieval',
   },
+  { name: 'SimCity', year: '2013', icon: 'simcity_2013_icon.png', key: 'games.simcity2013' },
   { name: 'The Sims 4', year: '2014', icon: 'the_sims_4_icon.png', key: 'games.sims4' },
 ];
 ---

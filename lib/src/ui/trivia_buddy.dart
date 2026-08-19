@@ -330,7 +330,11 @@ class _PlumbobButtonState extends State<_PlumbobButton>
                 clipBehavior: Clip.none,
                 alignment: Alignment.center,
                 children: [
-                  Center(child: BrandMark(gameId: c.adapter.game.id, size: 46)),
+                  Center(child: BrandMark(
+                      gameId: c.adapter.game.id,
+                      size: 46,
+                      name: c.adapter.game.name,
+                      ink: t.accent)),
                   if (c.triviaBadge)
                     Positioned(
                       right: 2,

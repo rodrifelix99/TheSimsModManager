@@ -18,6 +18,8 @@ import 'package:sims_mod_manager/src/ui/game_theme.dart';
 import 'package:sims_mod_manager/src/ui/install_destination_dialog.dart';
 import 'package:sims_mod_manager/src/ui/l10n.dart';
 
+import 'until.dart';
+
 const _sims1 =
     Game(id: 'sims1', name: 'The Sims', series: 'The Sims', year: 2000);
 
@@ -202,8 +204,17 @@ void main() {
     // Real directory reads, so the tap runs outside the fake-async zone.
     await tester.runAsync(() async {
       await tester.tap(find.text('open'));
-      await Future<void>.delayed(const Duration(milliseconds: 100));
     });
+    // Then wait for the answer rather than for a round number of
+    // milliseconds: those reads took under 100ms on an idle machine and
+    // rather more with the rest of the suite running beside them, and
+    // the dialog that had not arrived yet was read as one that was never
+    // going to. Either outcome ends the wait, so the tests where nothing
+    // is asked don't sit here.
+    await untilTrue(
+        tester,
+        () =>
+            ran || find.byType(InstallDestinationDialog).evaluate().isNotEmpty);
     await tester.pumpAndSettle();
     return (placement, ran);
   }

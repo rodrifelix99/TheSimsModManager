@@ -1,14 +1,11 @@
 {
   "@@locale": "pt",
   "@@author": "rodrifelix99",
-
   "appName": "Sims Mod Manager",
   "brandTitle": "Mod Manager",
-  "brandSubtitle": "para The Sims",
-
+  "brandSubtitle": "para The Sims e SimCity",
   "navLibrary": "Biblioteca",
   "navShop": "The Exchange",
-
   "shopAlphaBadge": "ALFA",
   "shopTagline": "Mods da comunidade, instalados com um clique.",
   "shopListingCount": "{count, plural, =1{1 mod nas prateleiras} other{{count} mods nas prateleiras}}",
@@ -48,23 +45,17 @@
   "sidebarGames": "JOGOS",
   "sidebarNotInstalled": "não instalado · {detail}",
   "sidebarModCount": "{count, plural, =0{0 mods} =1{1 mod} other{{count} mods}} · {detail}",
-
   "updateAvailable": "Atualização disponível",
   "updateClickToDownload": "v{version}: clique para baixar",
-
   "storage": "Armazenamento",
   "storageInMods": "{size} em mods",
   "storageFreeOf": "{free} livres de {total}",
-
   "dropToInstall": "Solte aqui para instalar em {game}",
   "dropFolders": "pastas",
-
   "scanningMods": "Olhando dentro dos mods atrás de imagens e conflitos… {done} de {total}",
   "skip": "Pular",
-
   "libraryTitle": "Biblioteca de {game}",
   "modsShown": "{count, plural, =0{0 mods à mostra} =1{1 mod à mostra} other{{count} mods à mostra}} · {era}",
-
   "learnMore": "Saiba mais",
   "dismiss": "Dispensar",
   "searchMods": "Buscar mods…",
@@ -78,7 +69,6 @@
   "sortDisabledLast": "Desativados por último",
   "libraryRefresh": "Atualizar",
   "libraryRootFolder": "Pasta Mods",
-
   "selectionTooltip": "Selecionar",
   "selectionCount": "{count, plural, =1{1 selecionado} other{{count} selecionados}}",
   "selectionSelectAll": "Selecionar tudo",
@@ -114,23 +104,19 @@
   "destinationSims1Roofs": "Texturas de telhado.",
   "prefAskWhereTitle": "Perguntar onde instalar",
   "prefAskWhereDesc": "Esse jogo lê mods de mais de uma pasta. Escolha a pasta toda vez em vez de deixar o app decidir",
-
   "statTotal": "Total",
   "statEnabled": "Ativos",
   "statDisabled": "Inativos",
   "statConflicts": "Conflitos",
-
   "statTotalTooltip": "Todos os mods desta pasta, ligados ou não.",
   "statTotalTooltipClear": "Todos os mods desta pasta. Clique para largar a busca e os filtros.",
   "statEnabledTooltip": "Os mods que o jogo carrega.",
   "statEnabledTooltipActive": "Mostrando só os mods ativos. Clique para ver todos de novo.",
   "statDisabledTooltip": "Mods que estão na pasta mas desligados.",
   "statDisabledTooltipActive": "Mostrando só os mods inativos. Clique para ver todos de novo.",
-
   "conflictTooltipActive": "Mostrando só os mods em conflito. Clique para ver todos de novo.",
   "conflictTooltip": "Mods ativos que dividem o nome de arquivo com outro mod ativo, que estão instalados em mais de uma versão ou que sobrescrevem os mesmos recursos do jogo. O jogo só fica com a cópia que carrega por último, às vezes de propósito (mods de patch), muitas vezes não.",
   "conflictTooltipClickHint": "Clique para ver só esses mods.",
-
   "filterAll": "Todos",
   "emptyFiltered": "Nenhum mod corresponde aos filtros",
   "emptyNoMods": "Ainda não há mods",
@@ -139,10 +125,8 @@
   "openFolder": "Abrir pasta",
   "conflictBadge": "conflito",
   "duplicateBadge": "cópia",
-
   "modInFolder": "em {folder}",
   "modInModsFolder": "na pasta Mods",
-
   "setupFoundNoModsFolder": "{game} foi encontrado, mas ainda sem pasta de mods",
   "setupNotFound": "Pasta de mods de {game} não encontrada",
   "setupFoundNoModsFolderBody": "A pasta do jogo está neste computador, só que ainda não tem uma pasta de mods dentro. Crie ela aqui embaixo ou aponte uma manualmente.",
@@ -153,7 +137,6 @@
   "willBeCreatedAt": "Vai ser criada em:\n{path}",
   "checkAgain": "Verificar de novo",
   "useThis": "Usar esta",
-
   "enabled": "Ativo",
   "disabled": "Inativo",
   "showInFileManager": "Mostrar no gerenciador de arquivos",
@@ -162,7 +145,6 @@
   "uninstallConfirmBody": "O arquivo vai ser apagado do disco:\n{path}",
   "cancel": "Cancelar",
   "uninstall": "Desinstalar",
-
   "conflictSameFileHeading": "{count, plural, one{Outro mod ativo é exatamente o mesmo arquivo:} other{Outros {count} mods ativos são exatamente o mesmo arquivo:}}",
   "conflictSameNameHeading": "{count, plural, one{Outro mod ativo tem o mesmo nome de arquivo:} other{Outros {count} mods ativos têm o mesmo nome de arquivo:}}",
   "conflictVersionHeading": "{count, plural, one{Outro mod ativo parece ser uma versão diferente deste mod:} other{Outros {count} mods ativos parecem versões diferentes deste mod:}}",
@@ -175,7 +157,6 @@
   "conflictIgnore": "Ignorar",
   "conflictIgnoreTooltip": "Se esse conflito é de propósito, esconde ele. O mod não muda em nada, e dá pra trazer o aviso de volta nesta página ou nas configurações.",
   "conflictRestore": "Trazer de volta",
-
   "advisoryBanner": "{count, plural, one{Um dos seus mods tem um problema conhecido} other{{count} dos seus mods têm problemas conhecidos}}",
   "advisoryShow": "Dar uma olhada",
   "advisoryShowAll": "Mostrar todos os mods",
@@ -189,7 +170,6 @@
   "advisorySince": "Desde {since}",
   "advisoryOpenLink": "Abrir a página do criador",
   "advisorySource": "Relatado por outros jogadores, não pelo jogo.",
-
   "modInDirectory": "em {dir}",
   "factVersion": "Versão",
   "factFormat": "Formato",
@@ -199,14 +179,12 @@
   "factDownloads": "Downloads",
   "factIgnoredConflicts": "Ignorados",
   "ignoredConflictsCount": "{count, plural, one{1 conflito} other{{count} conflitos}}",
-
   "statusHeading": "Status",
   "statusEnabledBody": "Este mod está ativo: o jogo vai carregar ele na próxima vez que abrir.",
   "statusDisabledBody": "Este mod está desativado: o arquivo continua no disco com a marca “{marker}” para o jogo ignorar. Pode reativar quando quiser; nada é apagado.",
   "fileOnDisk": "Arquivo no disco",
   "insideThePackage": "Dentro do pacote",
   "resourcesTotal": "{count, plural, one{1 recurso no total} other{{count} recursos no total}}",
-
   "settingsTitle": "Configurações",
   "sectionModManagement": "GERENCIAMENTO DE MODS",
   "sectionAppearance": "APARÊNCIA",
@@ -217,7 +195,6 @@
   "sectionIgnoredConflicts": "CONFLITOS IGNORADOS · {game}",
   "sectionFeedback": "FEEDBACK",
   "sectionAbout": "SOBRE",
-
   "prefWarnConflictsTitle": "Avisar sobre conflitos",
   "prefWarnConflictsDesc": "Marca os mods ativos que repetem um nome de arquivo ou que sobrescrevem os mesmos recursos do jogo que outro mod",
   "prefConflictKindsTitle": "Sobre quais conflitos avisar",
@@ -241,19 +218,19 @@
   "prefSoundEffectsDesc": "Toca os sons clássicos da interface do The Sims nos cliques, nas chaves e nos avisos",
   "prefAnalyticsTitle": "Compartilhar dados de uso anônimos",
   "prefAnalyticsDesc": "Envia estatísticas de uso e relatórios de erro anônimos para ajudar a melhorar o app. Nunca inclui nomes de mods, caminhos de arquivo ou qualquer coisa pessoal",
-
   "themeTitle": "Tema",
   "themeDesc": "Claro ou escuro. “Sistema” segue a configuração do seu computador.",
   "themeSystem": "Sistema",
   "themeLight": "Claro",
   "themeDark": "Escuro",
-
+  "appThemeTitle": "Tema do app",
+  "appThemeDesc": "A cara do app inteiro. Ela não muda, seja qual for o jogo que você está gerenciando.",
+  "appThemeDefault": "Padrão",
   "languageTitle": "Idioma do app",
   "languageDesc": "Escolha em que idioma o app aparece. “Sistema” segue o idioma do seu computador.",
   "languageSystem": "Sistema",
   "translatorsTitle": "Traduzido por",
   "translatorsDesc": "O app fala doze idiomas graças a estes simmers.",
-
   "sectionStartup": "INÍCIO",
   "prefDefaultGameTitle": "Jogo ao abrir",
   "prefDefaultGameDesc": "Com qual biblioteca o app começa",
@@ -261,7 +238,6 @@
   "prefSetupGuideTitle": "Guia de configuração",
   "prefSetupGuideDesc": "Passe de novo pelas perguntas da primeira abertura",
   "onboardingReplay": "Ver de novo",
-
   "onboardingSkip": "Pular",
   "onboardingSkipIntro": "Pular abertura",
   "onboardingBack": "Voltar",
@@ -281,12 +257,11 @@
   "onboardingFavoriteTitle": "Qual você joga mais?",
   "onboardingFavoriteBody": "O app vai abrir sempre neste jogo. Você troca de jogo quando quiser pela barra lateral.",
   "onboardingLookTitle": "Deixe com a sua cara",
-  "onboardingLookBody": "O app inteiro muda de cor conforme o jogo em que você está. Escolha como ele deve aparecer e soar.",
+  "onboardingLookBody": "O app inteiro usa o visual que você escolher, para qualquer jogo que você gerenciar. Escolha como ele deve aparecer e soar.",
   "onboardingLibraryTitle": "Como sua biblioteca aparece",
   "onboardingLibraryBody": "Duas coisas que vale decidir agora, porque mudam o que a biblioteca mostra pra você.",
   "onboardingDoneTitle": "Tudo pronto!",
   "onboardingDoneBody": "Sua biblioteca está carregada e esperando. Arraste um arquivo de mod pra janela quando quiser instalar, e mude o que quiser nas Configurações.",
-
   "folderNotFound": "Não encontrada. Escolha uma pasta",
   "folderNotLocated": "O jogo (ou a pasta de mods dele) não foi localizado automaticamente",
   "folderSummary": "{count, plural, =0{0 mods} =1{1 mod} other{{count} mods}} · {size} no disco",
@@ -296,14 +271,12 @@
   "createDefaultFolderAt": "Criar a pasta padrão (com os arquivos que o jogo precisa) em:\n{path}",
   "createFolder": "Criar pasta",
   "alsoFoundOnThisComputer": "Também encontradas neste computador:",
-
   "clearCacheTitle": "Limpar arquivos de cache",
   "clearCacheDesc": "{count, plural, one{Apaga 1 arquivo de cache ({size})} other{Apaga {count} arquivos de cache ({size})}} para o conteúdo recém-adicionado ou removido aparecer; o jogo recria eles na próxima vez que abrir",
   "clearCaches": "Limpar cache",
   "ignoredConflictsTitle": "Conflitos que você está ignorando",
   "ignoredConflictsDesc": "{count, plural, one{Um conflito que você mandou o app parar de avisar. Traga ele de volta pra ver de novo na biblioteca} other{{count} conflitos que você mandou o app parar de avisar. Traga eles de volta pra ver de novo na biblioteca}}",
   "ignoredConflictsReset": "Trazer de volta",
-
   "reportBugTitle": "Relatar um bug",
   "reportBugDesc": "Abre um relatório de bug no GitHub com a versão do app, o sistema operacional e o jogo atual já preenchidos",
   "reportBugButton": "Relatar…",
@@ -313,14 +286,12 @@
   "wikiTitle": "Guia e perguntas frequentes",
   "wikiDesc": "Como instalar mods, resolver a detecção de pastas e muito mais, na wiki do projeto",
   "wikiButton": "Abrir a wiki",
-
-  "aboutTagline": "Versão {version} · Compatível com The Sims 1-4 · SimCity em breve",
+  "aboutTagline": "Versão {version} · Gerenciador de mods para {series}",
   "updateIsAvailable": "A versão {version} já está disponível",
   "noUpdateFound": "Nenhuma atualização encontrada",
   "getVersion": "Baixar v{version}",
   "checkingForUpdates": "Verificando…",
   "checkForUpdates": "Verificar atualizações",
-
   "categoryPackage": "Pacote",
   "categoryScript": "Script",
   "categoryObject": "Objeto",
@@ -331,7 +302,6 @@
   "categoryFloor": "Piso",
   "categoryWorld": "Mundo",
   "categorySettings": "Configuração",
-
   "contentCasParts": "peças do CAS",
   "contentObjects": "objetos",
   "contentTunings": "tunings",
@@ -343,7 +313,6 @@
   "modKindBuildBuy": "Construção",
   "modKindGameplay": "Jogabilidade",
   "modKindScript": "Script",
-
   "errorNoModFiles": "Nenhum arquivo de mod ({extensions}) dentro de {name}.",
   "errorUnreadableArchive": "{name} não é um arquivo compactado que este app consiga ler.",
   "errorNoUnpacker": "Nada neste computador consegue descompactar arquivos {format}. Descompacte {name} por conta própria e instale os arquivos de dentro.",
@@ -390,7 +359,11 @@
   "folderAlsoReading": "Seu jogo também lê {folders}, então os mods que estão lá também aparecem nesta biblioteca.",
   "errorFolderUnreadable": "Não deu pra abrir “{folder}”. Escolhe uma pasta num disco que este computador alcance: um celular, uma câmera ou uma unidade de rede desconectada não podem guardar teus mods.",
   "@errorFolderUnreadable": {
-    "placeholders": { "folder": { "type": "String" } }
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
   },
   "errorNoWriteAccess": "O app não tem permissão para escrever em “{folder}”. O sistema protege essa pasta: dá permissão de escrita pra sua conta, ou escolhe outra pasta nas Configurações.",
   "folderReadOnlyBanner": "Esta pasta de mods é somente leitura, então instalar e remover mods não vai funcionar até sua conta poder escrever nela.",
@@ -405,13 +378,11 @@
   "errorPackNotSupported": "Neste sistema não dá pra ligar e desligar pacotes.",
   "errorPackIsTheGame": "Esse é o pacote de onde o jogo roda, então precisa continuar ligado.",
   "errorPackToggleRefused": "Não deu pra mudar esse pacote. Fecha o jogo e tenta de novo.",
-
   "eraClassic": "Clássico",
   "eraNightlife": "Vida Noturna",
   "eraAmbitions": "Ambições",
   "eraModern": "Moderno",
   "eraMedieval": "Medieval",
-
   "navPacks": "Pacotes",
   "packsScanning": "Procurando seus pacotes…",
   "packsEmptyTitle": "Nenhum pacote encontrado",
@@ -432,7 +403,6 @@
   "packKindStuffPacks": "Pacotes de objetos",
   "packKindKits": "Kits",
   "packKindFreePacks": "Pacotes grátis",
-
   "navSaves": "Saves",
   "savesScanning": "Lendo seus saves…",
   "savesEmptyTitle": "Nenhum save encontrado",
@@ -523,7 +493,6 @@
   "savesPhotoLot": "Lote",
   "savesPhotoSim": "Retrato de Sim",
   "savesPhotoSnapshot": "Foto",
-
   "savesProperty": "Patrimônio",
   "savesGhost": "fantasma",
   "savesCareerLevel": "{career} · nível {level}",
@@ -568,7 +537,6 @@
   "savesTieSpouse": "casado com",
   "savesTieSibling": "{count, plural, =1{irmão} other{irmãos}}",
   "savesTieChild": "{count, plural, =1{filho} other{filhos}}",
-
   "savesInterestPolitics": "Política",
   "savesInterestMoney": "Dinheiro",
   "savesInterestEnvironment": "Meio ambiente",
@@ -589,7 +557,6 @@
   "savesInterestSciFi": "Ficção científica",
   "savesInterestMusic": "Música",
   "savesInterestOutdoors": "Ar livre",
-
   "setupHelpSims1": "O The Sims original guarda o conteúdo personalizado dentro da pasta de instalação, não em Documentos: os objetos vão para uma pasta Downloads ao lado do executável do jogo (por exemplo C:\\Program Files (x86)\\Maxis\\The Sims\\Downloads), e este app organiza os outros tipos sozinho: skins (.skn/.cmx/.bmp) vão para GameData\\Skins, paredes e pisos para GameData\\Walls e GameData\\Floors. A Legacy Collection de 2025 funciona do mesmo jeito a partir da própria pasta de instalação (EA Games\\The Sims Legacy, ou Steam\\steamapps\\common\\The Sims Legacy Collection). Se o jogo estiver instalado em outro lugar (outro disco, uma biblioteca do Steam personalizada), escolha a pasta Downloads dele manualmente.",
   "setupHelpSims2": "O The Sims 2 carrega o conteúdo personalizado de Documentos > EA Games > The Sims 2 > Downloads (a Ultimate Collection usa “The Sims 2 Ultimate Collection”; a Legacy Collection de 2025 usa “The Sims 2 Legacy”). A pasta pode não existir até você criar ela ou instalar algum conteúdo pela primeira vez. Quando o jogo abrir, responda “Sim” ao aviso sobre conteúdo personalizado para liberar os downloads.",
   "setupHelpSims3": "O The Sims 3 não cria a pasta de mods sozinho: ele precisa do “framework” da comunidade, ou seja, uma pasta Mods > Packages dentro de Documentos > Electronic Arts > The Sims 3, mais um arquivo Resource.cfg dizendo ao jogo para ler ela. Este app cria as duas coisas pra você. Em instalações de disco ou via Wine a pasta pode ficar dentro do próprio pacote do jogo; use “Escolher pasta” para apontar pra ela.",
@@ -599,6 +566,14 @@
   "installFolderBody": "Onde os arquivos vão parar dentro da sua pasta de mods de {game}.",
   "installFolderChoose": "Escolher",
   "installFolderEmpty": "Ainda não tem nenhuma subpasta. Cria uma, ou deixa tudo na pasta de mods.",
+  "shopRequires": "Precisa destes pacotes",
+  "shopRequirementMet": "Instalado",
+  "shopRequirementDisabled": "Desligado",
+  "shopRequirementMissing": "Não instalado",
+  "shopRequirementUnknown": "Não verificado",
+  "shopRequirementsNote": "Podes instalar na mesma — só não vai fazer grande coisa enquanto não tiveres os pacotes.",
+  "shopRequirementsOffNote": "Um destes está desligado. Volta a ligá-lo no separador Pacotes.",
+  "shopRequirementsUnknownNote": "Não conseguimos verificar os pacotes deste jogo neste computador, por isso ficamos pela palavra de quem criou o mod.",
   "shopDestination": "Instala em",
   "sectionShopFolder": "THE EXCHANGE · {game}",
   "prefShopFolderTitle": "Onde ficam os mods do The Exchange",
@@ -750,7 +725,6 @@
   "creationsAdding": "Adicionando…",
   "creationsPickerLabel": "Terrenos, cômodos, famílias e sims de {game}",
   "creationsNothingToAdd": "Nada ali dentro era terreno, cômodo, família ou sim que este jogo consiga usar. Conteúdo personalizado e mods entram pela biblioteca.",
-
   "householdEdit": "Editar",
   "householdEditTitle": "Editar família",
   "householdEditBody": "Muda o que o save diz sobre “{name}”.",
@@ -762,5 +736,56 @@
   "errorSaveEditHouseholdGone": "Essa família não está mais no save. Atualiza a lista e tenta de novo.",
   "errorSaveEditUnreadable": "“{file}” não está no formato que o app sabe regravar, então nada foi mudado.",
   "errorSaveEditVerification": "O “{file}” regravado não voltou do jeito que devia, então foi descartado. Seu save está intacto.",
-  "errorSaveEditUnsupported": "Dá pra ler os saves desse jogo, mas não pra mudar."
+  "errorSaveEditUnsupported": "Dá pra ler os saves desse jogo, mas não pra mudar.",
+  "whatsNewEyebrow": "Novidades na {version}",
+  "whatsNewAlsoSince": "Também nesta atualização",
+  "whatsNewDismiss": "Vamos lá",
+  "whatsNew300RootTitle": "Mods que ficam nas pastas do próprio jogo",
+  "whatsNew300RootBody": "Mundos, ajustes gráficos e carregadores de script nunca funcionaram na pasta Mods. Agora eles vão direto para as pastas que o jogo lê, e o que for substituído fica guardado, então desinstalar devolve o arquivo original.",
+  "whatsNew300PacksTitle": "Os anúncios podem dizer de quais pacotes precisam",
+  "whatsNew300PacksBody": "Quem publica pode marcar um mod com os pacotes para os quais ele foi feito, e The Exchange compara com os seus antes de instalar. É sempre um aviso, nunca uma porta trancada.",
+  "whatsNew300ContainersTitle": "Um zip cheio de arquivos .sims3pack simplesmente funciona",
+  "whatsNew300ContainersBody": "Solte o conjunto inteiro na janela. Os contêineres de The Sims 3 dentro de um arquivo compactado são abertos onde estão, e tudo é instalado de uma vez.",
+  "whatsNew300SimCityTitle": "SimCity 3000, 4, Societies e 2013",
+  "whatsNew300SimCityBody": "Mais quatro jogos na barra lateral. O SimCity 4 lê as duas pastas Plugins, mantém a ordem de carregamento que os nomes de pastas e arquivos definem e não mexe no que o sc4pac instalou. Nas configurações dá para esconder os jogos que você não joga.",
+  "whatsNew300CatalogTitle": "Milhares de mods de SimCity 4 para explorar",
+  "whatsNew300CatalogBody": "The Exchange agora traz os canais do sc4pac ao lado dos nossos anúncios, com crédito para o projeto que cuida deles. Um download vem com tudo de que depende ou não vem nada, e quando um site não deixa um app baixar por você, o botão avisa antes.",
+  "whatsNew300ThemeTitle": "Escolha o visual que você gosta",
+  "whatsNew300ThemeBody": "Antes o app mudava de cor conforme o jogo aberto. Agora você escolhe o visual que quiser nas configurações, e ele fica assim para qualquer jogo que você gerenciar.",
+  "categoryLot": "Terreno",
+  "categoryModel": "Modelo",
+  "categoryDescription": "Descrição",
+  "categoryBuilding": "Prédio",
+  "setupHelpSimCity4": "O SimCity 4 lê plugins de duas pastas ao mesmo tempo: Documentos > SimCity 4 > Plugins (a sua, e a que este app gerencia) e uma pasta Plugins dentro da instalação do jogo. Os nomes de pastas e arquivos são a ordem de carregamento, então não mexa na estrutura que veio no download - é por isso que o sc4pac usa pastas numeradas e que os overrides se chamam \"zzz...\". Plugins em DLL só carregam da raiz de uma pasta Plugins, nunca de uma subpasta, então o app coloca eles lá pra você. O que o sc4pac instalou continua sendo do sc4pac: quem lista aquilo é ele, não este app.",
+  "setupHelpSimCity2013": "O SimCity carrega mods em .package de SimCityUserData > Packages dentro da instalação do jogo (normalmente em Arquivos de Programas, então o Windows pode pedir permissão de administrador). Este app cuida só dessa pasta. O jogo também lê a pasta SimCityData, mas ali fica o conteúdo da Maxis, então um mod que precise carregar antes dos pacotes do jogo tem que ir pra lá na mão. Muitos mods são só pra offline: teste numa cidade que você não se importe de perder.",
+  "setupHelpSimCity3000": "O SimCity 3000 carrega prédios personalizados (arquivos .bld, feitos no Building Architect Tool) de uma pasta Buildings dentro da instalação do jogo. Ela é plana - um prédio numa subpasta nunca é carregado. Os prédios que vieram com o jogo ficam ocultos aqui pra você não apagar sem querer. Correções de resolução e compatibilidade que alteram o próprio SC3U.exe não são instaladas por este app; siga as instruções delas.",
+  "setupHelpSimCitySocieties": "O SimCity Societies guarda conteúdo personalizado em Documentos > SimCity Societies > Import, que é onde o Package Installer do próprio jogo coloca. Este app pode criar a pasta pra você. O conteúdo vem em arquivos .SCSPack - é essa a extensão que o jogo procura. Aviso: o Societies foi feito pra ser editado, não pra carregar mods empacotados - a maior parte do que a galera fazia era editar o C# e o XML dentro da pasta Data do jogo, e este app nunca encosta nela.",
+  "sectionManagedGames": "Jogos",
+  "prefManageGameTitle": "Gerenciar {game}",
+  "prefManageGameDesc": "Mostrar na barra lateral. Ocultar um jogo mantém todas as configurações dele.",
+  "errorLastManagedGame": "Esse é o único jogo que sobrou na sua barra lateral, então ele tem que ficar. Ative outro primeiro se quiser escondê-lo.",
+  "catalogCount": "{count} mods",
+  "catalogCuratedBy": "Catálogo do {project}",
+  "catalogOpenPage": "Abrir página",
+  "catalogBlocked": "O {host} não deixa apps baixarem por você. Pegue o mod na página dele.",
+  "catalogUnresolvedNote": "Não deu para ler este aqui no catálogo.",
+  "catalogDependencies": "Vem junto",
+  "catalogFileCount": "{count} arquivos",
+  "catalogDownloading": "Baixando {current} de {total}",
+  "catalogWarningTitle": "Fica ligado",
+  "catalogConflictsTitle": "Conflita com",
+  "catalogSourceFailed": "Não deu para alcançar o {source}",
+  "catalogEmpty": "Nada bate com isso.",
+  "catalogRefresh": "Recarregar o catálogo",
+  "catalogOptions": "Opções",
+  "catalogBy": "de {author}",
+  "errorCatalogUnreachable": "Não deu para alcançar o catálogo. Vê a tua conexão e tenta de novo.",
+  "errorCatalogUnreadable": "O catálogo respondeu com algo que esta versão não lê.",
+  "errorCatalogDownloadFailed": "O {host} recusou o download.",
+  "errorCatalogInstallFailed": "Deu algum problema ao instalar isso.",
+  "errorCatalogInstallCancelled": "Instalação cancelada.",
+  "catalogLoading": "Carregando o catálogo…",
+  "catalogBack": "← Voltar ao catálogo",
+  "catalogPromoTitle": "Fez um mod?",
+  "catalogPromoBody": "Coloque na The Exchange e ele instala em um clique, ganha página e link próprios, e quem já baixou fica sabendo das atualizações."
 }

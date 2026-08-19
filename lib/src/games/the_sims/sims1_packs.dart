@@ -38,6 +38,13 @@ const sims1PackNames = <int, String>{
   7: 'Makin’ Magic',
 };
 
+/// The same seven under the codes the rest of the app speaks, so a mod
+/// on The Exchange can name one the way it names a Sims 4 pack.
+final sims1PackCatalog = <String, String>{
+  for (final entry in sims1PackNames.entries)
+    'EP${entry.key.toString().padLeft(2, '0')}': entry.value,
+};
+
 /// The expansion a `Ranger*.iff` stands for, or null when the file is one
 /// of the edition markers or not a flag file at all.
 int? sims1PackNumberFromFile(String fileName) {

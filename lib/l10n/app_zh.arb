@@ -1,14 +1,11 @@
 {
   "@@locale": "zh",
   "@@author": "xiaoyu_sims",
-
   "appName": "Sims Mod Manager",
   "brandTitle": "MOD 管理器",
-  "brandSubtitle": "为模拟人生打造",
-
+  "brandSubtitle": "模拟人生与模拟城市",
   "navLibrary": "库",
   "navShop": "The Exchange",
-
   "shopAlphaBadge": "内测版",
   "shopTagline": "来自社区的 MOD，一键安装。",
   "shopListingCount": "{count, plural, other{货架上有 {count} 个 MOD}}",
@@ -48,23 +45,17 @@
   "sidebarGames": "游戏",
   "sidebarNotInstalled": "未安装 · {detail}",
   "sidebarModCount": "{count} 个 MOD · {detail}",
-
   "updateAvailable": "有新版本",
   "updateClickToDownload": "v{version}：点击下载",
-
   "storage": "存储空间",
   "storageInMods": "MOD 占用 {size}",
   "storageFreeOf": "剩余 {free}，共 {total}",
-
   "dropToInstall": "松开即可安装到《{game}》",
   "dropFolders": "文件夹",
-
   "scanningMods": "正在翻看 MOD 里的图片和冲突… {done}/{total}",
   "skip": "跳过",
-
   "libraryTitle": "《{game}》MOD 库",
   "modsShown": "显示 {count} 个 MOD · {era}",
-
   "learnMore": "了解更多",
   "dismiss": "关闭",
   "searchMods": "搜索 MOD…",
@@ -78,7 +69,6 @@
   "sortDisabledLast": "已停用的排在最后",
   "libraryRefresh": "刷新",
   "libraryRootFolder": "Mods 文件夹",
-
   "selectionTooltip": "选择",
   "selectionCount": "{count, plural, other{已选 {count} 个}}",
   "selectionSelectAll": "全选",
@@ -114,23 +104,19 @@
   "destinationSims1Roofs": "屋顶贴图。",
   "prefAskWhereTitle": "安装前先问我放哪",
   "prefAskWhereDesc": "这个游戏会从多个文件夹读取 MOD。每次都自己选文件夹，而不是让应用决定",
-
   "statTotal": "总计",
   "statEnabled": "已启用",
   "statDisabled": "已停用",
   "statConflicts": "冲突",
-
   "statTotalTooltip": "这个文件夹里的所有 MOD，启用的和停用的都算。",
   "statTotalTooltipClear": "这个文件夹里的所有 MOD。点击可清掉搜索和所有筛选。",
   "statEnabledTooltip": "游戏会加载的 MOD。",
   "statEnabledTooltipActive": "当前只显示已启用的 MOD。点击可重新显示全部。",
   "statDisabledTooltip": "放在文件夹里但关掉了的 MOD。",
   "statDisabledTooltipActive": "当前只显示已停用的 MOD。点击可重新显示全部。",
-
   "conflictTooltipActive": "当前只显示有冲突的 MOD。点击可重新显示全部。",
   "conflictTooltip": "这些已启用的 MOD 与另一个已启用的 MOD 文件名相同、装了不止一个版本，或者覆盖了同样的游戏资源。游戏只会保留最后加载的那一份，有时是故意的（补丁类 MOD），但更多时候不是。",
   "conflictTooltipClickHint": "点击可只看这些 MOD。",
-
   "filterAll": "全部",
   "emptyFiltered": "没有 MOD 符合当前筛选",
   "emptyNoMods": "还没有 MOD",
@@ -139,10 +125,8 @@
   "openFolder": "打开文件夹",
   "conflictBadge": "冲突",
   "duplicateBadge": "重复",
-
   "modInFolder": "位于 {folder}",
   "modInModsFolder": "位于 Mods 文件夹",
-
   "setupFoundNoModsFolder": "找到了《{game}》，但还没有 MOD 文件夹",
   "setupNotFound": "找不到《{game}》的 MOD 文件夹",
   "setupFoundNoModsFolderBody": "游戏文件夹就在这台电脑上，只是里面还没有 MOD 文件夹。可以在下面创建一个，或者手动指定。",
@@ -153,7 +137,6 @@
   "willBeCreatedAt": "将创建在：\n{path}",
   "checkAgain": "重新检测",
   "useThis": "用这个",
-
   "enabled": "已启用",
   "disabled": "已停用",
   "showInFileManager": "在文件管理器中显示",
@@ -162,7 +145,6 @@
   "uninstallConfirmBody": "这个文件将从磁盘上删除：\n{path}",
   "cancel": "取消",
   "uninstall": "卸载",
-
   "conflictSameFileHeading": "{count, plural, other{另外 {count} 个已启用的 MOD 和它是完全相同的文件：}}",
   "conflictSameNameHeading": "{count, plural, other{另外 {count} 个已启用的 MOD 文件名相同：}}",
   "conflictVersionHeading": "{count, plural, other{另外 {count} 个已启用的 MOD 看起来是这个 MOD 的其他版本：}}",
@@ -175,7 +157,6 @@
   "conflictIgnore": "忽略",
   "conflictIgnoreTooltip": "如果这个冲突是你故意留的，就把它藏起来。模组本身完全不动，消失的只是提示，随时能在这个页面或者设置里恢复。",
   "conflictRestore": "恢复",
-
   "advisoryBanner": "{count, plural, other{你有 {count} 个 MOD 存在已知问题}}",
   "advisoryShow": "去看看",
   "advisoryShowAll": "显示全部 MOD",
@@ -189,7 +170,6 @@
   "advisorySince": "自 {since} 起",
   "advisoryOpenLink": "打开作者页面",
   "advisorySource": "来自其他玩家的反馈，不是游戏的检测结果。",
-
   "modInDirectory": "位于 {dir}",
   "factVersion": "版本",
   "factFormat": "格式",
@@ -199,14 +179,12 @@
   "factDownloads": "下载量",
   "factIgnoredConflicts": "已忽略",
   "ignoredConflictsCount": "{count} 个冲突",
-
   "statusHeading": "状态",
   "statusEnabledBody": "这个 MOD 已启用：游戏下次启动时会加载它。",
   "statusDisabledBody": "这个 MOD 已停用：文件还在磁盘上，只是带了「{marker}」标记，游戏会跳过它。随时可以重新启用，什么都不会被删除。",
   "fileOnDisk": "磁盘上的文件",
   "insideThePackage": "包里有什么",
   "resourcesTotal": "共 {count} 个资源",
-
   "settingsTitle": "设置",
   "sectionModManagement": "MOD 管理",
   "sectionAppearance": "外观",
@@ -217,7 +195,6 @@
   "sectionIgnoredConflicts": "已忽略的冲突 · {game}",
   "sectionFeedback": "反馈",
   "sectionAbout": "关于",
-
   "prefWarnConflictsTitle": "提醒我注意冲突",
   "prefWarnConflictsDesc": "为文件名重复、或与其他 MOD 覆盖同样游戏资源的已启用 MOD 打上标记",
   "prefConflictKindsTitle": "要提醒哪些冲突",
@@ -241,19 +218,19 @@
   "prefSoundEffectsDesc": "在点击、切换和提示时播放模拟人生的经典界面音效",
   "prefAnalyticsTitle": "共享匿名使用数据",
   "prefAnalyticsDesc": "发送匿名的使用统计和崩溃报告，帮助改进这个应用。绝不包含 MOD 名称、文件路径或任何个人信息",
-
   "themeTitle": "主题",
   "themeDesc": "浅色或深色。「跟随系统」会跟着你电脑的设置走。",
   "themeSystem": "跟随系统",
   "themeLight": "浅色",
   "themeDark": "深色",
-
+  "appThemeTitle": "应用主题",
+  "appThemeDesc": "整个应用的外观。你在管哪款游戏都不会变。",
+  "appThemeDefault": "默认",
   "languageTitle": "应用语言",
   "languageDesc": "选择应用界面使用的语言。「跟随系统」会使用你电脑的语言。",
   "languageSystem": "跟随系统",
   "translatorsTitle": "翻译者",
   "translatorsDesc": "这个应用能有十二种语言，全靠这些模拟人生玩家。",
-
   "sectionStartup": "启动",
   "prefDefaultGameTitle": "启动时打开的游戏",
   "prefDefaultGameDesc": "打开应用时先显示哪个游戏的模组库",
@@ -261,7 +238,6 @@
   "prefSetupGuideTitle": "设置向导",
   "prefSetupGuideDesc": "再走一遍首次启动时的问题",
   "onboardingReplay": "再看一次",
-
   "onboardingSkip": "跳过",
   "onboardingSkipIntro": "跳过片头",
   "onboardingBack": "上一步",
@@ -281,12 +257,11 @@
   "onboardingFavoriteTitle": "你玩得最多的是哪一部？",
   "onboardingFavoriteBody": "应用每次都会从这个游戏打开。你随时可以在侧边栏切换到别的游戏。",
   "onboardingLookTitle": "调成你喜欢的样子",
-  "onboardingLookBody": "整个界面都会跟着当前游戏换配色。挑一挑它该是什么样子、什么声音。",
+  "onboardingLookBody": "整个界面都用你挑的那套外观，管理哪款游戏都一样。挑一挑它该是什么样子、什么声音。",
   "onboardingLibraryTitle": "模组库怎么显示",
   "onboardingLibraryBody": "有两件事值得现在决定，它们会改变模组库给你看到的内容。",
   "onboardingDoneTitle": "全都好了！",
   "onboardingDoneBody": "模组库已经加载好了。想装模组时，把文件拖到窗口里就行；这里选的每一项随时能在设置里改。",
-
   "folderNotFound": "没找到。请选择一个文件夹",
   "folderNotLocated": "没能自动找到游戏（或它的 MOD 文件夹）",
   "folderSummary": "{count} 个 MOD · 占用 {size}",
@@ -296,14 +271,12 @@
   "createDefaultFolderAt": "在这里创建默认文件夹（含游戏需要的文件）：\n{path}",
   "createFolder": "创建文件夹",
   "alsoFoundOnThisComputer": "这台电脑上还找到：",
-
   "clearCacheTitle": "清理缓存文件",
   "clearCacheDesc": "删除 {count} 个缓存文件（{size}），让新增或删掉的内容能显示出来；游戏下次启动时会重新生成它们",
   "clearCaches": "清理缓存",
   "ignoredConflictsTitle": "你忽略掉的冲突",
   "ignoredConflictsDesc": "你让应用别再提示的 {count} 个冲突。恢复之后它们会重新出现在库里",
   "ignoredConflictsReset": "全部恢复",
-
   "reportBugTitle": "反馈问题",
   "reportBugDesc": "在 GitHub 上开一个问题反馈，应用版本、系统和当前游戏都已经填好了",
   "reportBugButton": "反馈…",
@@ -313,14 +286,12 @@
   "wikiTitle": "使用指南与常见问题",
   "wikiDesc": "怎么安装 MOD、怎么修好文件夹检测，还有更多内容，都在项目 wiki 上",
   "wikiButton": "打开 wiki",
-
-  "aboutTagline": "版本 {version} · 支持模拟人生 1-4 · 模拟城市即将支持",
+  "aboutTagline": "版本 {version} · {series} 模组管理器",
   "updateIsAvailable": "{version} 版本已经可以下载了",
   "noUpdateFound": "没有可用更新",
   "getVersion": "获取 v{version}",
   "checkingForUpdates": "检查中…",
   "checkForUpdates": "检查更新",
-
   "categoryPackage": "资源包",
   "categoryScript": "脚本",
   "categoryObject": "物件",
@@ -331,7 +302,6 @@
   "categoryFloor": "地板",
   "categoryWorld": "世界",
   "categorySettings": "设置",
-
   "contentCasParts": "CAS 部件",
   "contentObjects": "物件",
   "contentTunings": "调参文件",
@@ -343,7 +313,6 @@
   "modKindBuildBuy": "建造购买",
   "modKindGameplay": "玩法",
   "modKindScript": "脚本",
-
   "errorNoModFiles": "{name} 里没有找到模组文件（{extensions}）。",
   "errorUnreadableArchive": "{name} 不是这个应用能读取的压缩包。",
   "errorNoUnpacker": "这台电脑上没有能解压 {format} 压缩包的工具。自己把 {name} 解压出来，再安装里面的文件吧。",
@@ -390,7 +359,11 @@
   "folderAlsoReading": "你的游戏也会读取 {folders}，所以那里的模组也在这个库里。",
   "errorFolderUnreadable": "打不开「{folder}」。请选一个这台电脑能访问的驱动器上的文件夹，手机、相机或者已断开的网络驱动器放不了你的模组。",
   "@errorFolderUnreadable": {
-    "placeholders": { "folder": { "type": "String" } }
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
   },
   "errorNoWriteAccess": "应用没有权限写入「{folder}」。这个文件夹被系统保护着，给你的账户加上写入权限，或者在设置里换一个文件夹。",
   "folderReadOnlyBanner": "这个模组文件夹是只读的，在账户拿到写入权限之前，安装和删除模组都做不了。",
@@ -405,13 +378,11 @@
   "errorPackNotSupported": "这个系统上无法开关内容包。",
   "errorPackIsTheGame": "游戏就是从这个包启动的，所以它必须保持开启。",
   "errorPackToggleRefused": "没能改动这个包。关掉游戏再试一次。",
-
   "eraClassic": "经典",
   "eraNightlife": "夜生活",
   "eraAmbitions": "事业",
   "eraModern": "现代",
   "eraMedieval": "中世纪",
-
   "navPacks": "内容包",
   "packsScanning": "正在查找你的内容包…",
   "packsEmptyTitle": "没有找到内容包",
@@ -432,7 +403,6 @@
   "packKindStuffPacks": "物品组合包",
   "packKindKits": "套件",
   "packKindFreePacks": "免费内容包",
-
   "navSaves": "存档",
   "savesScanning": "正在读取你的存档…",
   "savesEmptyTitle": "没有找到存档",
@@ -523,7 +493,6 @@
   "savesPhotoLot": "地块",
   "savesPhotoSim": "市民照",
   "savesPhotoSnapshot": "快照",
-
   "savesProperty": "房产",
   "savesGhost": "幽灵",
   "savesCareerLevel": "{career} · 第 {level} 级",
@@ -568,7 +537,6 @@
   "savesTieSpouse": "配偶",
   "savesTieSibling": "兄弟姐妹",
   "savesTieChild": "子女",
-
   "savesInterestPolitics": "政治",
   "savesInterestMoney": "金钱",
   "savesInterestEnvironment": "环境",
@@ -589,7 +557,6 @@
   "savesInterestSciFi": "科幻",
   "savesInterestMusic": "音乐",
   "savesInterestOutdoors": "户外",
-
   "setupHelpSims1": "初代模拟人生把自定义内容放在自己的安装目录里，而不是「文档」：物件放在游戏可执行文件旁边的 Downloads 文件夹（例如 C:\\Program Files (x86)\\Maxis\\The Sims\\Downloads），其他类型这个应用会自动归类：皮肤（.skn/.cmx/.bmp）放进 GameData\\Skins，墙面和地板放进 GameData\\Walls 和 GameData\\Floors。2025 年的 Legacy Collection 也一样，用它自己的安装目录（EA Games\\The Sims Legacy，或 Steam\\steamapps\\common\\The Sims Legacy Collection）。如果游戏装在别的地方（另一个磁盘、自定义的 Steam 库），请手动选它的 Downloads 文件夹。",
   "setupHelpSims2": "模拟人生 2 从「文档 > EA Games > The Sims 2 > Downloads」加载自定义内容（Ultimate Collection 用的是「The Sims 2 Ultimate Collection」，2025 年的 Legacy Collection 用的是「The Sims 2 Legacy」）。在你亲手创建它、或者第一次装内容之前，这个文件夹可能并不存在。游戏启动时，对自定义内容的提示选「是」，下载的内容才会生效。",
   "setupHelpSims3": "模拟人生 3 不会自己创建 MOD 文件夹：它需要社区的「框架」，也就是「文档 > Electronic Arts > The Sims 3」里的 Mods > Packages 文件夹，再加上一个告诉游戏去读它的 Resource.cfg 文件。这两样这个应用都能帮你建好。光盘版或 Wine 安装时，这个文件夹也可能在游戏包内部；那就用「选择文件夹」手动指过去。",
@@ -599,6 +566,14 @@
   "installFolderBody": "文件会放进你 {game} 的 Mods 文件夹里的哪个位置。",
   "installFolderChoose": "就它了",
   "installFolderEmpty": "还没有子文件夹。新建一个，或者全都放在 Mods 文件夹里。",
+  "shopRequires": "需要这些资料片",
+  "shopRequirementMet": "已安装",
+  "shopRequirementDisabled": "已关闭",
+  "shopRequirementMissing": "未安装",
+  "shopRequirementUnknown": "未检查",
+  "shopRequirementsNote": "照样可以安装 —— 只是在补齐资料片之前基本没什么用。",
+  "shopRequirementsOffNote": "其中有一个被关掉了。到「资料片」标签页重新打开它。",
+  "shopRequirementsUnknownNote": "这台电脑上查不到这个游戏的资料片，所以这里只是作者自己的说法。",
   "shopDestination": "安装到",
   "sectionShopFolder": "THE EXCHANGE · {game}",
   "prefShopFolderTitle": "The Exchange 的 Mod 装到哪",
@@ -750,7 +725,6 @@
   "creationsAdding": "正在添加……",
   "creationsPickerLabel": "{game} 的地块、房间、家庭和市民",
   "creationsNothingToAdd": "里面没有这个游戏能用的地块、房间、家庭或市民。自定义内容和模组请从模组库那边添加。",
-
   "householdEdit": "编辑",
   "householdEditTitle": "编辑家庭",
   "householdEditBody": "修改存档里关于“{name}”的内容。",
@@ -762,5 +736,56 @@
   "errorSaveEditHouseholdGone": "存档里已经没有这个家庭了。刷新列表再试一次。",
   "errorSaveEditUnreadable": "“{file}”的结构不是本应用会重写的样子，所以什么都没改。",
   "errorSaveEditVerification": "重写后的“{file}”没能正确读回来，已经丢弃。你的存档没被动过。",
-  "errorSaveEditUnsupported": "本作的存档只能读，不能改。"
+  "errorSaveEditUnsupported": "本作的存档只能读，不能改。",
+  "whatsNewEyebrow": "{version} 新功能",
+  "whatsNewAlsoSince": "本次更新还带来",
+  "whatsNewDismiss": "开始吧",
+  "whatsNew300RootTitle": "该放进游戏自身文件夹的模组",
+  "whatsNew300RootBody": "世界、画质调整和脚本加载器放在 Mods 文件夹里从来都不生效。现在它们会直接装进游戏真正读取的文件夹，被替换掉的文件也会保留下来，卸载时原文件就回来了。",
+  "whatsNew300PacksTitle": "商品可以标明需要哪些资料片",
+  "whatsNew300PacksBody": "作者可以为模组标注它所依赖的资料片，The Exchange 会在安装前和你已有的对照。这始终只是提醒，不会拦着你。",
+  "whatsNew300ContainersTitle": "装满 .sims3pack 的压缩包也能直接用",
+  "whatsNew300ContainersBody": "把整套拖到窗口上就行。压缩包里的模拟人生3容器会在原地打开，一次性全部安装。",
+  "whatsNew300SimCityTitle": "SimCity 3000、4、Societies 和 2013",
+  "whatsNew300SimCityBody": "侧边栏里多了四款游戏。SimCity 4 会同时读取两个 Plugins 文件夹，保留文件夹和文件名决定的加载顺序，也不会碰 sc4pac 装的任何东西。不玩的游戏可以在设置里隐藏。",
+  "whatsNew300CatalogTitle": "数千个 SimCity 4 模组任你浏览",
+  "whatsNew300CatalogBody": "The Exchange 现在把 sc4pac 的频道和我们自己的作品放在一起，并注明维护它们的项目。下载要么把依赖的东西一次带齐，要么一个都不装；遇到不允许应用代为下载的站点，按钮会提前说明。",
+  "whatsNew300ThemeTitle": "挑一个你喜欢的外观",
+  "whatsNew300ThemeBody": "以前应用的配色会跟着打开的游戏变。现在你可以在设置里挑一个喜欢的外观，管理哪款游戏都保持不变。",
+  "categoryLot": "地块",
+  "categoryModel": "模型",
+  "categoryDescription": "描述",
+  "categoryBuilding": "建筑",
+  "setupHelpSimCity4": "SimCity 4 会同时读取两个插件文件夹：文档 > SimCity 4 > Plugins（你自己的，也是本应用管理的那个），以及游戏安装目录里的 Plugins 文件夹。文件夹和文件名就是加载顺序，所以别去动下载包自带的目录结构 —— sc4pac 用编号文件夹、覆盖类插件叫「zzz...」就是这个原因。DLL 插件只能从 Plugins 文件夹的顶层加载，放进子文件夹就没用了，所以本应用会帮你放到顶层。sc4pac 装的东西仍归 sc4pac 管，由它列出，不由本应用列出。",
+  "setupHelpSimCity2013": "SimCity 从游戏安装目录下的 SimCityUserData > Packages 读取 .package 格式的模组（通常在 Program Files 里，所以 Windows 可能会要求管理员权限）。本应用只管理这个文件夹。游戏也会读自己的 SimCityData 文件夹，但那里放的是 Maxis 自己的内容，所以如果某个模组的说明要求它在游戏本体包之前加载，就得手动放进去。不少模组只支持离线模式：拿一座丢了也不心疼的城市试。",
+  "setupHelpSimCity3000": "SimCity 3000 从游戏安装目录下的 Buildings 文件夹读取自定义建筑（用 Building Architect Tool 做的 .bld 文件）。这个文件夹是扁平的 —— 放进子文件夹的建筑永远不会被加载。游戏自带的建筑在这里是隐藏的，免得你误删。那些直接修改 SC3U.exe 的分辨率和兼容性补丁不由本应用安装，请按它们自己的说明操作。",
+  "setupHelpSimCitySocieties": "SimCity Societies 把自定义内容放在 文档 > SimCity Societies > Import，游戏自带的 Package Installer 也是往那儿放的。本应用可以帮你建这个文件夹。内容是 .SCSPack 文件 —— 这正是游戏自己要找的扩展名。提醒一下：Societies 的设计是让你改它，而不是加载打包好的模组 —— 当年圈子里做的大多是改游戏 Data 文件夹里的 C# 和 XML，而本应用从不碰那里。",
+  "sectionManagedGames": "游戏",
+  "prefManageGameTitle": "管理 {game}",
+  "prefManageGameDesc": "在侧边栏中显示。隐藏某个游戏不会丢失它的任何设置。",
+  "errorLastManagedGame": "这是你侧边栏里最后一个游戏了，得留着。想隐藏它的话，先打开另一个游戏。",
+  "catalogCount": "{count} 个模组",
+  "catalogCuratedBy": "目录来自 {project}",
+  "catalogOpenPage": "打开页面",
+  "catalogBlocked": "{host} 不允许应用代为下载。请到模组自己的页面获取。",
+  "catalogUnresolvedNote": "这一项无法从目录中读取。",
+  "catalogDependencies": "一并安装",
+  "catalogFileCount": "{count} 个文件",
+  "catalogDownloading": "正在下载第 {current} / {total} 个",
+  "catalogWarningTitle": "注意",
+  "catalogConflictsTitle": "与之冲突",
+  "catalogSourceFailed": "无法连接 {source}",
+  "catalogEmpty": "没有匹配的内容。",
+  "catalogRefresh": "重新加载目录",
+  "catalogOptions": "选项",
+  "catalogBy": "作者 {author}",
+  "errorCatalogUnreachable": "无法连接目录。检查一下网络再试试。",
+  "errorCatalogUnreadable": "目录返回了这个版本读不懂的内容。",
+  "errorCatalogDownloadFailed": "{host} 拒绝了这次下载。",
+  "errorCatalogInstallFailed": "安装时出了点问题。",
+  "errorCatalogInstallCancelled": "已取消安装。",
+  "catalogLoading": "正在加载目录…",
+  "catalogBack": "← 返回目录",
+  "catalogPromoTitle": "自己做过模组吗？",
+  "catalogPromoBody": "发布到 The Exchange，就能一键安装、拥有自己的页面和链接，已经装过的人也会收到更新提醒。"
 }

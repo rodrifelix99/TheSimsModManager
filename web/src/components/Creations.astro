@@ -1,0 +1,29 @@
+---
+import { useTranslations, type Locale } from '../i18n';
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+---
+
+<section id="creations">
+  <div class="wrap">
+    <div class="head">
+      <h2 data-reveal="0" set:html={t('creations.h2')} />
+      <p class="lead" data-reveal="0.05" set:html={t('creations.lead')} />
+    </div>
+
+    <figure class="creations-shot" data-reveal="0.1">
+      <img
+        class="framed"
+        src="/images/creations-ts3.png"
+        alt={t.plain('creations.shotAlt')}
+        width="1600"
+        loading="lazy"
+      />
+      <figcaption set:html={t('creations.cap')} />
+    </figure>
+  </div>
+</section>

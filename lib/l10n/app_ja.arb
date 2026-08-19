@@ -1,14 +1,11 @@
 {
   "@@locale": "ja",
   "@@author": "mochi_simjp",
-
   "appName": "Sims Mod Manager",
   "brandTitle": "MOD マネージャー",
-  "brandSubtitle": "for The Sims",
-
+  "brandSubtitle": "The Sims と シムシティ用",
   "navLibrary": "ライブラリ",
   "navShop": "The Exchange",
-
   "shopAlphaBadge": "アルファ版",
   "shopTagline": "コミュニティのMODをワンクリックでインストール。",
   "shopListingCount": "{count, plural, other{棚にMOD {count} 個}}",
@@ -48,23 +45,17 @@
   "sidebarGames": "ゲーム",
   "sidebarNotInstalled": "未インストール · {detail}",
   "sidebarModCount": "MOD {count} 個 · {detail}",
-
   "updateAvailable": "アップデートあり",
   "updateClickToDownload": "v{version}：クリックでダウンロード",
-
   "storage": "ストレージ",
   "storageInMods": "MOD が {size}",
   "storageFreeOf": "{total} 中 {free} 空き",
-
   "dropToInstall": "ここに落とすと『{game}』にインストールします",
   "dropFolders": "フォルダ",
-
   "scanningMods": "MOD の中を見て、画像と競合を探しています… {done}/{total}",
   "skip": "スキップ",
-
   "libraryTitle": "『{game}』のライブラリ",
   "modsShown": "MOD {count} 個を表示中 · {era}",
-
   "learnMore": "詳しく見る",
   "dismiss": "閉じる",
   "searchMods": "MOD を検索…",
@@ -78,7 +69,6 @@
   "sortDisabledLast": "無効にしたものを最後に",
   "libraryRefresh": "更新",
   "libraryRootFolder": "Mods フォルダ",
-
   "selectionTooltip": "選択",
   "selectionCount": "{count, plural, other{{count} 件選択中}}",
   "selectionSelectAll": "すべて選択",
@@ -114,23 +104,19 @@
   "destinationSims1Roofs": "屋根のテクスチャ。",
   "prefAskWhereTitle": "インストール先を毎回聞く",
   "prefAskWhereDesc": "このゲームはMODを複数のフォルダから読み込みます。アプリに任せず、毎回自分でフォルダを選びます",
-
   "statTotal": "合計",
   "statEnabled": "有効",
   "statDisabled": "無効",
   "statConflicts": "競合",
-
   "statTotalTooltip": "このフォルダにある MOD の数。有効も無効もぜんぶ。",
   "statTotalTooltipClear": "このフォルダにある MOD の数。クリックすると検索と絞り込みを全部解除します。",
   "statEnabledTooltip": "ゲームが読み込む MOD。",
   "statEnabledTooltipActive": "有効な MOD だけを表示中です。クリックすると全部に戻ります。",
   "statDisabledTooltip": "フォルダには入っているけど切ってある MOD。",
   "statDisabledTooltipActive": "無効な MOD だけを表示中です。クリックすると全部に戻ります。",
-
   "conflictTooltipActive": "競合している MOD だけを表示中です。クリックすると全部に戻ります。",
   "conflictTooltip": "他の有効な MOD とファイル名が同じ、複数のバージョンが入っている、または同じゲーム内リソースを上書きしている有効な MOD です。ゲームは最後に読み込んだものだけを残します。狙ってやっている場合（パッチ系 MOD）もありますが、たいていは事故です。",
   "conflictTooltipClickHint": "クリックするとこの MOD だけ表示します。",
-
   "filterAll": "すべて",
   "emptyFiltered": "条件に合う MOD がありません",
   "emptyNoMods": "MOD はまだありません",
@@ -139,10 +125,8 @@
   "openFolder": "フォルダを開く",
   "conflictBadge": "競合",
   "duplicateBadge": "重複",
-
   "modInFolder": "{folder} 内",
   "modInModsFolder": "Mods フォルダ内",
-
   "setupFoundNoModsFolder": "『{game}』はありますが、MOD フォルダがまだありません",
   "setupNotFound": "『{game}』の MOD フォルダが見つかりません",
   "setupFoundNoModsFolderBody": "ゲームのフォルダはこのパソコンにありますが、中にまだ MOD フォルダがありません。下から作るか、手動で指定してください。",
@@ -153,7 +137,6 @@
   "willBeCreatedAt": "ここに作成します：\n{path}",
   "checkAgain": "もう一度さがす",
   "useThis": "これを使う",
-
   "enabled": "有効",
   "disabled": "無効",
   "showInFileManager": "ファイルマネージャーで表示",
@@ -162,7 +145,6 @@
   "uninstallConfirmBody": "このファイルをディスクから削除します：\n{path}",
   "cancel": "キャンセル",
   "uninstall": "アンインストール",
-
   "conflictSameFileHeading": "{count, plural, other{他に {count} 個の有効な MOD がまったく同じファイルです：}}",
   "conflictSameNameHeading": "{count, plural, other{他に {count} 個の有効な MOD が同じファイル名です：}}",
   "conflictVersionHeading": "{count, plural, other{他に {count} 個の有効な MOD が、この MOD の別バージョンのようです：}}",
@@ -175,7 +157,6 @@
   "conflictIgnore": "無視",
   "conflictIgnoreTooltip": "この競合がわざとなら非表示にできます。Mod は何も変わらず、消えるのは警告だけです。このページか設定からいつでも戻せます。",
   "conflictRestore": "戻す",
-
   "advisoryBanner": "{count, plural, other{MOD が {count} 個、既知の問題を抱えています}}",
   "advisoryShow": "見てみる",
   "advisoryShowAll": "すべての MOD を表示",
@@ -189,7 +170,6 @@
   "advisorySince": "{since} から",
   "advisoryOpenLink": "作者のページを開く",
   "advisorySource": "ゲームではなく、他のプレイヤーからの報告です。",
-
   "modInDirectory": "{dir} 内",
   "factVersion": "バージョン",
   "factFormat": "形式",
@@ -199,14 +179,12 @@
   "factDownloads": "ダウンロード数",
   "factIgnoredConflicts": "無視中",
   "ignoredConflictsCount": "競合 {count} 件",
-
   "statusHeading": "状態",
   "statusEnabledBody": "この MOD は有効です。次にゲームを起動したときに読み込まれます。",
   "statusDisabledBody": "この MOD は無効です。ファイルは「{marker}」の目印を付けたままディスクに残るので、ゲームは読み飛ばします。いつでも有効に戻せますし、何も消えていません。",
   "fileOnDisk": "ディスク上のファイル",
   "insideThePackage": "パッケージの中身",
   "resourcesTotal": "リソース合計 {count} 件",
-
   "settingsTitle": "設定",
   "sectionModManagement": "MOD の管理",
   "sectionAppearance": "外観",
@@ -217,7 +195,6 @@
   "sectionIgnoredConflicts": "無視した競合 · {game}",
   "sectionFeedback": "フィードバック",
   "sectionAbout": "このアプリについて",
-
   "prefWarnConflictsTitle": "競合を知らせる",
   "prefWarnConflictsDesc": "ファイル名が重なっている、または他の MOD と同じゲーム内リソースを上書きしている有効な MOD に印を付けます",
   "prefConflictKindsTitle": "どの競合を知らせるか",
@@ -241,19 +218,19 @@
   "prefSoundEffectsDesc": "クリックや切り替え、お知らせのときに、シムズおなじみの UI サウンドを鳴らします",
   "prefAnalyticsTitle": "匿名の利用データを送る",
   "prefAnalyticsDesc": "アプリを良くするために、匿名の利用統計とクラッシュレポートを送ります。MOD 名やファイルパス、個人に関わるものは一切含みません",
-
   "themeTitle": "テーマ",
   "themeDesc": "ライトかダークか。「システム」はパソコンの設定に合わせます。",
   "themeSystem": "システム",
   "themeLight": "ライト",
   "themeDark": "ダーク",
-
+  "appThemeTitle": "アプリのテーマ",
+  "appThemeDesc": "アプリ全体の見た目。どのゲームを管理していても変わりません。",
+  "appThemeDefault": "デフォルト",
   "languageTitle": "アプリの言語",
   "languageDesc": "アプリを表示する言語を選べます。「システム」はパソコンの言語に合わせます。",
   "languageSystem": "システム",
   "translatorsTitle": "翻訳",
   "translatorsDesc": "アプリが12か国語で使えるのは、訳してくれたシマーたちのおかげです。",
-
   "sectionStartup": "起動",
   "prefDefaultGameTitle": "起動時のゲーム",
   "prefDefaultGameDesc": "アプリを開いたときに表示するライブラリ",
@@ -261,7 +238,6 @@
   "prefSetupGuideTitle": "セットアップガイド",
   "prefSetupGuideDesc": "初回起動の質問をもう一度確認する",
   "onboardingReplay": "もう一度見る",
-
   "onboardingSkip": "スキップ",
   "onboardingSkipIntro": "イントロをスキップ",
   "onboardingBack": "戻る",
@@ -281,12 +257,11 @@
   "onboardingFavoriteTitle": "いちばん遊ぶのはどれ？",
   "onboardingFavoriteBody": "アプリは毎回このゲームで開くようになるよ。サイドバーからいつでも切り替えられる。",
   "onboardingLookTitle": "自分好みにしよう",
-  "onboardingLookBody": "アプリ全体が、いま開いているゲームの色に染まるよ。見た目と音の好みを選んでね。",
+  "onboardingLookBody": "アプリ全体が、きみの選んだ見た目になるよ。どのゲームを管理していても同じ。見た目と音の好みを選んでね。",
   "onboardingLibraryTitle": "ライブラリの見え方",
   "onboardingLibraryBody": "いま決めておきたいのはこの2つ。ライブラリに何が表示されるかが変わるから。",
   "onboardingDoneTitle": "準備完了！",
   "onboardingDoneBody": "ライブラリはもう読み込み済み。MODファイルをウィンドウにドロップすればインストールできるし、ここで選んだことは設定でいつでも変えられるよ。",
-
   "folderNotFound": "見つかりません。フォルダを選んでください",
   "folderNotLocated": "ゲーム（またはその MOD フォルダ）を自動で見つけられませんでした",
   "folderSummary": "MOD {count} 個 · ディスク上 {size}",
@@ -296,14 +271,12 @@
   "createDefaultFolderAt": "既定のフォルダ（ゲームに必要なファイル入り）をここに作成：\n{path}",
   "createFolder": "フォルダを作成",
   "alsoFoundOnThisComputer": "このパソコンには他にも：",
-
   "clearCacheTitle": "キャッシュファイルを削除",
   "clearCacheDesc": "キャッシュファイル {count} 個（{size}）を削除して、追加や削除した内容がちゃんと出るようにします。ゲームは次の起動時に作り直します",
   "clearCaches": "キャッシュを削除",
   "ignoredConflictsTitle": "無視している競合",
   "ignoredConflictsDesc": "アプリに知らせなくていいと伝えた競合が {count} 件あります。戻すとライブラリにまた出てきます",
   "ignoredConflictsReset": "全部戻す",
-
   "reportBugTitle": "不具合を報告",
   "reportBugDesc": "GitHub に不具合の報告を開きます。アプリのバージョン・OS・いま選んでいるゲームは入力済みです",
   "reportBugButton": "報告する…",
@@ -313,14 +286,12 @@
   "wikiTitle": "使い方と FAQ",
   "wikiDesc": "MOD の入れ方、フォルダ検出がうまくいかないときの直し方などをプロジェクトの wiki で",
   "wikiButton": "wiki を開く",
-
-  "aboutTagline": "バージョン {version} · The Sims 1-4 に対応 · シムシティも近日対応",
+  "aboutTagline": "バージョン {version} · {series} の Mod マネージャー",
   "updateIsAvailable": "バージョン {version} が出ています",
   "noUpdateFound": "アップデートはありません",
   "getVersion": "v{version} を入手",
   "checkingForUpdates": "確認中…",
   "checkForUpdates": "アップデートを確認",
-
   "categoryPackage": "パッケージ",
   "categoryScript": "スクリプト",
   "categoryObject": "オブジェクト",
@@ -331,7 +302,6 @@
   "categoryFloor": "床",
   "categoryWorld": "ワールド",
   "categorySettings": "設定",
-
   "contentCasParts": "CAS パーツ",
   "contentObjects": "オブジェクト",
   "contentTunings": "チューニング",
@@ -343,7 +313,6 @@
   "modKindBuildBuy": "建設・購入",
   "modKindGameplay": "ゲームプレイ",
   "modKindScript": "スクリプト",
-
   "errorNoModFiles": "{name} の中にMODファイル（{extensions}）が見つかりませんでした。",
   "errorUnreadableArchive": "{name} はこのアプリで読めるアーカイブではありません。",
   "errorNoUnpacker": "このパソコンには{format}アーカイブを展開できるものがありません。{name} を自分で展開して、中のファイルをインストールしてね。",
@@ -390,7 +359,11 @@
   "folderAlsoReading": "ゲームは {folders} も読み込むから、そこに入ってるMODもこのライブラリーに出てくるよ。",
   "errorFolderUnreadable": "「{folder}」を開けませんでした。このパソコンから見えるドライブのフォルダーを選んでください。スマホやカメラ、切断されたネットワークドライブにはMODを置けません。",
   "@errorFolderUnreadable": {
-    "placeholders": { "folder": { "type": "String" } }
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
   },
   "errorNoWriteAccess": "アプリに「{folder}」への書き込み権限がありません。このフォルダーはシステムに保護されています。アカウントに書き込み権限を付けるか、設定で別のフォルダーを選んでください。",
   "folderReadOnlyBanner": "このMODフォルダーは読み取り専用なので、アカウントが書き込めるようになるまでMODのインストールと削除はできません。",
@@ -405,13 +378,11 @@
   "errorPackNotSupported": "このシステムではパックのオンオフはできないんだ。",
   "errorPackIsTheGame": "それはゲームの起動元になっているパックだから、オンのままにしておく必要があるよ。",
   "errorPackToggleRefused": "そのパックを変えられなかったよ。ゲームを閉じてもう一度試してみて。",
-
   "eraClassic": "クラシック",
   "eraNightlife": "ナイトライフ",
   "eraAmbitions": "アンビションズ",
   "eraModern": "モダン",
   "eraMedieval": "中世",
-
   "navPacks": "パック",
   "packsScanning": "パックを探しています…",
   "packsEmptyTitle": "パックが見つかりません",
@@ -432,7 +403,6 @@
   "packKindStuffPacks": "アイテムパック",
   "packKindKits": "キット",
   "packKindFreePacks": "無料パック",
-
   "navSaves": "セーブ",
   "savesScanning": "セーブデータを読み込み中…",
   "savesEmptyTitle": "セーブデータが見つかりません",
@@ -523,7 +493,6 @@
   "savesPhotoLot": "区画",
   "savesPhotoSim": "シムのポートレート",
   "savesPhotoSnapshot": "スナップショット",
-
   "savesProperty": "資産",
   "savesGhost": "ゴースト",
   "savesCareerLevel": "{career} · レベル{level}",
@@ -568,7 +537,6 @@
   "savesTieSpouse": "配偶者",
   "savesTieSibling": "兄弟姉妹",
   "savesTieChild": "子ども",
-
   "savesInterestPolitics": "政治",
   "savesInterestMoney": "お金",
   "savesInterestEnvironment": "環境",
@@ -589,7 +557,6 @@
   "savesInterestSciFi": "SF",
   "savesInterestMusic": "音楽",
   "savesInterestOutdoors": "アウトドア",
-
   "setupHelpSims1": "初代 The Sims はカスタムコンテンツをドキュメントではなくインストールフォルダに置きます。オブジェクトはゲームの実行ファイルの隣にある Downloads フォルダへ（例：C:\\Program Files (x86)\\Maxis\\The Sims\\Downloads）。それ以外の種類はこのアプリが自動で振り分けます。スキン（.skn/.cmx/.bmp）は GameData\\Skins へ、壁と床は GameData\\Walls と GameData\\Floors へ。2025 年の Legacy Collection も同じで、それぞれのインストールフォルダを使います（EA Games\\The Sims Legacy、または Steam\\steamapps\\common\\The Sims Legacy Collection）。別の場所（別ドライブ、独自の Steam ライブラリ）に入れている場合は、その Downloads フォルダを手動で選んでください。",
   "setupHelpSims2": "The Sims 2 はカスタムコンテンツを「ドキュメント > EA Games > The Sims 2 > Downloads」から読み込みます（Ultimate Collection は「The Sims 2 Ultimate Collection」、2025 年の Legacy Collection は「The Sims 2 Legacy」）。自分で作るか、一度コンテンツを入れるまでフォルダが無いこともあります。ゲームを起動したら、カスタムコンテンツの確認に「はい」と答えるとダウンロードが有効になります。",
   "setupHelpSims3": "The Sims 3 は MOD フォルダを自分では作りません。コミュニティ製の「フレームワーク」、つまり「ドキュメント > Electronic Arts > The Sims 3」の中の Mods > Packages フォルダと、それを読むようゲームに伝える Resource.cfg が必要です。どちらもこのアプリが作れます。ディスク版や Wine 環境ではフォルダがゲームのパッケージ内にあることもあるので、その場合は「フォルダを選ぶ」で指定してください。",
@@ -599,6 +566,14 @@
   "installFolderBody": "{game} の Mods フォルダのどこにファイルを置くか。",
   "installFolderChoose": "決定",
   "installFolderEmpty": "サブフォルダはまだないよ。作ってもいいし、全部 Mods フォルダのままでもOK。",
+  "shopRequires": "必要なパック",
+  "shopRequirementMet": "インストール済み",
+  "shopRequirementDisabled": "オフ",
+  "shopRequirementMissing": "未インストール",
+  "shopRequirementUnknown": "未確認",
+  "shopRequirementsNote": "そのままインストールしても大丈夫 —— ただしパックが揃うまではほとんど動きません。",
+  "shopRequirementsOffNote": "このうちひとつがオフになっています。「パック」タブから戻してね。",
+  "shopRequirementsUnknownNote": "このパソコンではこのゲームのパックを確認できなかったので、これは作者の申告です。",
   "shopDestination": "インストール先",
   "sectionShopFolder": "THE EXCHANGE · {game}",
   "prefShopFolderTitle": "The Exchange の Mod の入れ先",
@@ -750,7 +725,6 @@
   "creationsAdding": "追加中…",
   "creationsPickerLabel": "{game} の区画・部屋・世帯・シム",
   "creationsNothingToAdd": "この中に、このゲームが読み込める区画・部屋・世帯・シムはありませんでした。カスタムコンテンツやMODはライブラリから追加してください。",
-
   "householdEdit": "編集",
   "householdEditTitle": "世帯を編集",
   "householdEditBody": "セーブデータの「{name}」の内容を変更するよ。",
@@ -762,5 +736,56 @@
   "errorSaveEditHouseholdGone": "その世帯はもうセーブデータにないよ。リストを更新してもう一度試してね。",
   "errorSaveEditUnreadable": "「{file}」はこのアプリが書き換えられる構造じゃないから、何も変更してないよ。",
   "errorSaveEditVerification": "書き換えた「{file}」が正しく読み戻せなかったから破棄したよ。セーブデータはそのままだよ。",
-  "errorSaveEditUnsupported": "このゲームのセーブは読めるけど、変更はできないよ。"
+  "errorSaveEditUnsupported": "このゲームのセーブは読めるけど、変更はできないよ。",
+  "whatsNewEyebrow": "{version} の新しいところ",
+  "whatsNewAlsoSince": "このアップデートではほかにも",
+  "whatsNewDismiss": "はじめる",
+  "whatsNew300RootTitle": "ゲーム自身のフォルダーに入るMod",
+  "whatsNew300RootBody": "ワールドやグラフィック設定、スクリプトローダーはModsフォルダーからでは動きませんでした。これからはゲームが読み込むフォルダーへ直接インストールされ、置き換えたファイルは保管されるので、アンインストールすれば元のファイルが戻ります。",
+  "whatsNew300PacksTitle": "必要なパックを出品に書けるように",
+  "whatsNew300PacksBody": "作者はModが対応するパックを設定でき、The Exchangeがインストール前にあなたの所有パックと照らし合わせます。あくまでお知らせで、止められることはありません。",
+  "whatsNew300ContainersTitle": ".sims3packがまとめて入ったzipもそのまま",
+  "whatsNew300ContainersBody": "セットごとウィンドウにドロップしてください。アーカイブの中にあるThe Sims 3のコンテナはその場で開かれ、まとめてインストールされます。",
+  "whatsNew300SimCityTitle": "SimCity 3000、4、Societies、2013",
+  "whatsNew300SimCityBody": "サイドバーにゲームが4つ増えました。SimCity 4は2つのPluginsフォルダーを両方読み込み、フォルダー名とファイル名で決まる読み込み順をそのまま保ち、sc4pacが入れたものには手を出しません。遊ばないゲームは設定から隠せます。",
+  "whatsNew300CatalogTitle": "SimCity 4のModが数千件",
+  "whatsNew300CatalogBody": "The Exchangeにsc4pacのチャンネルが加わり、自前の出品と並んで、運営プロジェクトのクレジット付きで表示されます。ダウンロードは必要なものがすべて揃うか、まったく入らないかのどちらかで、アプリからのダウンロードを許していない配布元ではボタンが先にそう伝えます。",
+  "whatsNew300ThemeTitle": "好みの見た目を選べます",
+  "whatsNew300ThemeBody": "これまでは開いているゲームに合わせてアプリの色が変わっていました。これからは設定で好きな見た目を選べ、どのゲームを管理していてもそのままです。",
+  "categoryLot": "区画",
+  "categoryModel": "モデル",
+  "categoryDescription": "説明",
+  "categoryBuilding": "建物",
+  "setupHelpSimCity4": "SimCity 4 はプラグインを2つのフォルダーから同時に読み込みます。ドキュメント > SimCity 4 > Plugins（あなたのもので、このアプリが管理するほう）と、ゲームのインストール先にある Plugins フォルダーです。フォルダー名とファイル名がそのままロード順なので、ダウンロードしたときの構造はいじらないでください。sc4pac が番号付きフォルダーを使い、上書き系が「zzz...」という名前なのもそのためです。DLL プラグインは Plugins フォルダーの直下からしか読み込まれず、サブフォルダーに入れても効きません。だからこのアプリが直下に置きます。sc4pac が入れたものは sc4pac のもので、一覧に出すのも向こうの役目です。",
+  "setupHelpSimCity2013": "SimCity は .package 形式の Mod を、ゲームのインストール先にある SimCityUserData > Packages から読み込みます（たいてい Program Files の下なので、Windows が管理者権限を求めることがあります）。このアプリが管理するのはそのフォルダーだけです。ゲームは SimCityData フォルダーも読みますが、そちらには Maxis 自身のコンテンツが入っているので、ゲーム本体のパッケージより先に読み込ませたい Mod は手動でそちらへ入れてください。オフライン専用と書かれた Mod も多いので、失っても困らない都市で試しましょう。",
+  "setupHelpSimCity3000": "SimCity 3000 はカスタム建物（Building Architect Tool で作る .bld ファイル）を、ゲームのインストール先にある Buildings フォルダーから読み込みます。このフォルダーは階層なしで、サブフォルダーに入れた建物は読み込まれません。ゲームに最初から入っている建物は、うっかり消さないようここでは隠してあります。SC3U.exe 自体を書き換える解像度・互換性パッチは、このアプリでは扱いません。それぞれの説明に従ってください。",
+  "setupHelpSimCitySocieties": "SimCity Societies はカスタムコンテンツを ドキュメント > SimCity Societies > Import に置きます。ゲーム付属の Package Installer もそこへ入れます。このアプリでフォルダーを作れます。コンテンツは .SCSPack ファイルで、これはゲーム自身が探している拡張子です。ただし注意を。Societies はパッケージ化された Mod を読み込むより、中身を書き換えて遊ぶ作りでした。当時の界隈がやっていたのは主にゲームの Data フォルダー内の C# と XML の編集で、そこにはこのアプリは一切触れません。",
+  "sectionManagedGames": "ゲーム",
+  "prefManageGameTitle": "{game} を管理",
+  "prefManageGameDesc": "サイドバーに表示します。非表示にしても、そのゲームの設定はすべて残ります。",
+  "errorLastManagedGame": "これはサイドバーに残っている最後のゲームです。隠すには先に別のゲームを表示してください。",
+  "catalogCount": "{count} 件の Mod",
+  "catalogCuratedBy": "カタログ提供: {project}",
+  "catalogOpenPage": "ページを開く",
+  "catalogBlocked": "{host} はアプリからのダウンロードを許可していません。Mod のページから入手してください。",
+  "catalogUnresolvedNote": "これはカタログから読み取れませんでした。",
+  "catalogDependencies": "同時に入るもの",
+  "catalogFileCount": "{count} ファイル",
+  "catalogDownloading": "{total} 件中 {current} 件をダウンロード中",
+  "catalogWarningTitle": "注意",
+  "catalogConflictsTitle": "競合するもの",
+  "catalogSourceFailed": "{source} に接続できませんでした",
+  "catalogEmpty": "一致するものがありません。",
+  "catalogRefresh": "カタログを再読み込み",
+  "catalogOptions": "オプション",
+  "catalogBy": "作者: {author}",
+  "errorCatalogUnreachable": "カタログに接続できませんでした。接続を確認してもう一度お試しください。",
+  "errorCatalogUnreadable": "カタログの応答をこのバージョンでは読み取れませんでした。",
+  "errorCatalogDownloadFailed": "{host} がダウンロードを拒否しました。",
+  "errorCatalogInstallFailed": "インストール中に問題が起きました。",
+  "errorCatalogInstallCancelled": "インストールを中止しました。",
+  "catalogLoading": "カタログを読み込み中…",
+  "catalogBack": "← カタログに戻る",
+  "catalogPromoTitle": "自分で Mod を作りましたか？",
+  "catalogPromoBody": "The Exchange に出せば、ワンクリックでインストールでき、専用ページとリンクが付き、すでに入れている人には更新が届きます。"
 }

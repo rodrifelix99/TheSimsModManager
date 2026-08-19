@@ -11,6 +11,7 @@ import 'install_destination.dart';
 import 'install_path.dart';
 import 'mod.dart';
 import 'mod_archive.dart';
+import 'mod_catalog.dart';
 import 'package_insight.dart';
 import 'resource_cfg.dart';
 import 'save_edit.dart';
@@ -150,6 +151,36 @@ abstract class GameAdapter {
   /// says where it goes.
   Set<String> get rootFileExtensions;
 
+  /// Extensions that are part of another mod rather than a mod of their
+  /// own: a SimCity 4 DLL plugin's `.ini`, which the plugin reads its
+  /// settings out of and which its README says to copy in beside it.
+  ///
+  /// They are taken out of a download and installed, and they follow the
+  /// mod they belong to when it is switched off or uninstalled, but they
+  /// are never listed as mods and never counted as one. Belonging is
+  /// decided by the file name alone - `SC4AutoSave.ini` beside
+  /// `SC4AutoSave.dll` - because that is the rule the plugins themselves
+  /// use to find their own settings, and because nothing else in the
+  /// folder could say so.
+  ///
+  /// Empty for every Sims game: a `.package` is one file and always was.
+  Set<String> get companionFileExtensions => const {};
+
+  /// Extensions a mod *writes* beside itself once the game has run it,
+  /// rather than ones it arrives with: a SimCity 4 DLL plugin's `.log`.
+  ///
+  /// Never installed, never listed, and deliberately **not** moved when
+  /// a mod is switched off - a log is a record of what happened, not
+  /// part of the mod's state. They are deleted with the mod, because a
+  /// plugin that is gone leaves a log the library cannot see and the
+  /// user has no reason to keep.
+  ///
+  /// Kept apart from [companionFileExtensions] on purpose. A companion
+  /// is something the download carried and the mod needs; this is
+  /// output. Getting the two the same way round would either install a
+  /// log or delete a settings file somebody edited.
+  Set<String> get generatedFileExtensions => const {};
+
   /// Whether one download's mod files can be split across several of
   /// [installDestinations].
   ///
@@ -252,7 +283,7 @@ abstract class GameAdapter {
   /// read it, so what they accept and what an install does with it can't
   /// drift apart.
   Future<Set<String>> installableExtensions(Directory modsDir) async =>
-      modFileExtensions;
+      {...modFileExtensions, ...companionFileExtensions};
 
   /// One file described as a mod of this game, or null when it isn't one
   /// (wrong extension, or no longer on disk). Lets a caller holding a
@@ -357,6 +388,13 @@ abstract class GameAdapter {
   /// saves can't be located, and for games without a save reader yet.
   /// Runs off the UI thread and must never throw.
   Future<List<SaveGame>> listSaveGames() async => const [];
+
+  /// Whether [listSaveGames] knows how to read anything for this game,
+  /// known without going to the disk so the UI can decide whether to
+  /// offer the screen at all. The same split [hasPacks] and [hasCreations]
+  /// make: false means nobody has written a reader for this game's saves
+  /// yet, not that this player happens to have none.
+  bool get hasSaves => false;
 
   /// What this game lets the app change about a household in one of its
   /// saves. Empty - which is the answer for a game nobody has written an
@@ -469,6 +507,20 @@ abstract class GameAdapter {
   /// machine, so a shot never shows a switch this platform doesn't have.
   List<GamePack> demoPacks() => const [];
 
+  /// Every pack this game has ever shipped, code to English name, as far
+  /// as this build knows.
+  ///
+  /// The catalog rather than the inventory: [listPacks] says what is on
+  /// the disk, and this says what a pack is *called* when it isn't - which
+  /// is the whole question a mod's requirements ask ("needs Get to Work",
+  /// on a machine that hasn't got it). It is the same shipped table the
+  /// adapters already fall back on when an install can't name a pack for
+  /// itself, so nothing new is being maintained here.
+  ///
+  /// Empty is a fine answer, and means requirements for this game are
+  /// drawn under their codes.
+  Map<String, String> get knownPackNames => const {};
+
   /// A remark about the collection itself, for a shelf worth one. Null on
   /// nearly every machine, and nothing acts on it: this is an easter egg
   /// rather than a capability.
@@ -484,6 +536,19 @@ abstract class GameAdapter {
   /// buddy simply isn't offered - which is the honest answer for a game
   /// added before anybody sat down and researched it.
   List<TriviaFact> get triviaFacts => const [];
+
+  /// The catalogs somebody else curates for this game, browsable in the
+  /// app and never written to (see `mod_catalog.dart`).
+  ///
+  /// Empty for every game but SimCity 4, and empty is the right default:
+  /// a catalog worth reading is years of a community's unpaid curation,
+  /// and there is no generic one to fall back on. A game gets an entry
+  /// here when such a project exists and publishes its index openly.
+  ///
+  /// Built fresh per call rather than held const, because a catalog
+  /// caches what it has fetched and the cache belongs to the session
+  /// rather than to the adapter.
+  List<ModCatalog> catalogs() => const [];
 
   /// Whether [listPacks] can say anything at all about this game, known
   /// without going to the disk so the UI can decide whether to offer the
@@ -727,6 +792,56 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
   @override
   Set<String> get rootFileExtensions => const {};
 
+  /// And nothing rides along with a mod until one says so.
+  @override
+  Set<String> get companionFileExtensions => const {};
+
+  /// And nothing is left behind by one either.
+  @override
+  Set<String> get generatedFileExtensions => const {};
+
+  /// Whether [path] is a companion rather than a mod in its own right.
+  bool isCompanionFile(String path) => companionFileExtensions
+      .contains(p.extension(enabledPathOf(path)).toLowerCase());
+
+  /// The companion files sitting beside [modPath] under its own base
+  /// name, as they are on disk right now. A companion follows the mod
+  /// through a disable, so it is looked for wearing the marker as well
+  /// as without it.
+  ///
+  /// Reads the folder rather than probing each extension: a plugin's
+  /// settings file is written by the plugin itself and the case it
+  /// chooses is not always the case the download had.
+  Future<List<File>> companionsOf(String modPath) =>
+      _besideMod(modPath, companionFileExtensions);
+
+  /// The files [modPath]'s mod has written beside itself
+  /// ([generatedFileExtensions]), as they are on disk right now.
+  Future<List<File>> generatedBesideMod(String modPath) =>
+      _besideMod(modPath, generatedFileExtensions);
+
+  Future<List<File>> _besideMod(String modPath, Set<String> extensions) async {
+    if (extensions.isEmpty) return const [];
+    final enabled = enabledPathOf(modPath);
+    final stem = p.basenameWithoutExtension(enabled).toLowerCase();
+    if (stem.isEmpty) return const [];
+    final dir = Directory(p.dirname(enabled));
+    final found = <File>[];
+    try {
+      await for (final entity in dir.list(followLinks: false)) {
+        if (entity is! File) continue;
+        final bare = enabledPathOf(p.basename(entity.path));
+        if (p.basenameWithoutExtension(bare).toLowerCase() != stem) continue;
+        if (!extensions.contains(p.extension(bare).toLowerCase())) continue;
+        found.add(entity);
+      }
+    } catch (_) {
+      // A folder that cannot be listed costs the companions, not the
+      // action the caller is in the middle of.
+    }
+    return found;
+  }
+
   @override
   bool get sortsModsAcrossFolders => false;
 
@@ -739,6 +854,10 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
   /// from the interface for the same reason as [installDestinations].
   @override
   Future<List<SaveGame>> listSaveGames() async => const [];
+
+  /// Repeated from the interface for the same reason as above.
+  @override
+  bool get hasSaves => false;
 
   /// And nothing to write into them until one knows how to read them.
   @override
@@ -789,12 +908,18 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
   List<GamePack> demoPacks() => const [];
 
   @override
+  Map<String, String> get knownPackNames => const {};
+
+  @override
   AppMessage? packCollectionNote(List<GamePack> packs) => null;
 
   /// No facts until a subclass brings a table of its own, which means no
   /// plumbob in the corner rather than one with nothing to say.
   @override
   List<TriviaFact> get triviaFacts => const [];
+
+  @override
+  List<ModCatalog> catalogs() => const [];
 
   @override
   bool get hasPacks => false;
@@ -840,10 +965,11 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
   /// nothing in it for us.
   @override
   Future<Set<String>> installableExtensions(Directory modsDir) async {
-    if (rootFileExtensions.isEmpty) return modFileExtensions;
+    final base = {...modFileExtensions, ...companionFileExtensions};
+    if (rootFileExtensions.isEmpty) return base;
     final destinations = await installDestinations(modsDir);
-    if (destinations.isEmpty) return modFileExtensions;
-    return {...modFileExtensions, ...rootFileExtensions};
+    if (destinations.isEmpty) return base;
+    return {...base, ...rootFileExtensions};
   }
 
   /// Whether [path] names a file that belongs in one of the game's own
@@ -894,8 +1020,8 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
     if (unpacked.files.isEmpty && unpacked.refused != null) {
       throw unpacked.refused!;
     }
-    return _placeInstalled(modsDir, unpacked.files, placement,
-        p.basename(archive.path), placed);
+    return _placeInstalled(modsDir, _withoutCompanions(unpacked.files),
+        placement, p.basename(archive.path), placed);
   }
 
   @override
@@ -927,7 +1053,9 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
       copied.add(await copyOnto(file, target));
     }
     final unpacked = await _unpackNested(copied, wanted);
-    final mods = [for (final file in unpacked.files) toRootMod(file)!];
+    final mods = [
+      for (final file in _withoutCompanions(unpacked.files)) toRootMod(file)!,
+    ];
     // After the strays, because a folder holding a world beside a
     // container this game refuses still has the world to install: what
     // the refusal costs is itself, and it is only worth raising once
@@ -941,6 +1069,18 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
     }
     return mods;
   }
+
+  /// The files an install wrote that are mods in their own right. A
+  /// companion ([companionFileExtensions]) was copied in because the mod
+  /// beside it needs it, and it is not something to list, count or hand
+  /// back as installed.
+  List<File> _withoutCompanions(List<File> files) => companionFileExtensions
+          .isEmpty
+      ? files
+      : [
+          for (final file in files)
+            if (!isCompanionFile(file.path)) file,
+        ];
 
   /// What an install really has, once the game's own containers it
   /// unpacked along with the mod files have been opened: everything else
@@ -1117,6 +1257,21 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
     // is unaffected. Under the enabled name, since a disabled mod is the
     // same file wearing a marker.
     await restoreStockFile(enabledPathOf(mod.path));
+    // A DLL plugin's settings file is part of the plugin, and leaving it
+    // behind means the next install of that plugin silently inherits
+    // settings the user does not remember writing. After the mod, never
+    // before: a companion that could not be deleted must not be the
+    // reason a mod stays in the library.
+    for (final beside in [
+      ...await companionsOf(mod.path),
+      ...await generatedBesideMod(mod.path),
+    ]) {
+      try {
+        await deleteModFile(beside);
+      } catch (_) {
+        // The mod is gone, which is what was asked for.
+      }
+    }
   }
 
   Future<T> _retryWhileLocked<T>(Future<T> Function() action,
@@ -1190,6 +1345,22 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
     }, giveUp: () => AppMessage('fileInUseRename', [name]));
     // The other half of the swap, once the mod is out of the way.
     if (!enabled) await restoreStockFile(enabledPathOf(mod.path));
+    // A plugin switched off with its settings file still sitting there
+    // is a plugin that comes back configured; one whose settings file
+    // went missing is one that comes back reset. Both halves move.
+    // Looked up from where the mod now is, so the stems still match.
+    for (final companion in await companionsOf(moved.path)) {
+      final target = enabled
+          ? enabledPathOf(companion.path)
+          : '${enabledPathOf(companion.path)}$disabledSuffix';
+      if (p.equals(target, companion.path)) continue;
+      try {
+        await renameModFile(companion, target);
+      } catch (_) {
+        // The mod itself has already moved; a companion that would not
+        // is worth less than an exception thrown over it.
+      }
+    }
     return moved;
   }
 

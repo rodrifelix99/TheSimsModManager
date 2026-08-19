@@ -43,6 +43,9 @@ class _FakeAdapter extends FolderBasedGameAdapter {
   @override
   Future<String?> defaultModsPath() async => dir.path;
 
+  @override
+  bool get hasSaves => true;
+
   /// No isolates under the widget test's fake-async zone.
   @override
   Future<Map<String, PackageInsight>> inspectMods(

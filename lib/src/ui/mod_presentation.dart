@@ -14,13 +14,13 @@ import 'l10n.dart';
 /// screen rather than homed in either one's file, so neither has to
 /// import the other to caption a mod.
 
-/// The theme's flavor label next to the game name ("Modern · 2014"),
-/// translated. Themes without one (a game with no bespoke palette yet)
-/// fall back to the game's own series and year.
-String eraLabel(L l, GameTheme t, Game game) {
-  final key = t.eraKey;
-  final name = key == null ? game.series : l.eraName(key);
-  final detail = t.eraDetail ?? game.year?.toString();
+/// The game's flavor label next to its name ("Modern · 2014"),
+/// translated. A game nobody has written one for falls back to its own
+/// series and year.
+String eraLabel(L l, Game game) {
+  final era = GameTheme.eraOf(game);
+  final name = era == null ? game.series : l.eraName(era.$1);
+  final detail = era?.$2 ?? game.year?.toString();
   return detail == null ? name : '$name · $detail';
 }
 

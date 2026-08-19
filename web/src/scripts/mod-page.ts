@@ -5,6 +5,7 @@
 // endpoint that firestore.rules already opens to everybody.
 import { fileUrl, listingIdPattern, listingUrl, toListing, type Listing } from '../data/exchange';
 import { gameNames } from '../data/games';
+import { packName } from '../data/packs';
 import { renderProse } from '../data/markup';
 import { fmtSize, loadStrings, s } from './strings';
 
@@ -88,6 +89,22 @@ function gallery(mod: Listing) {
   showImage(0);
 }
 
+/// The packs the creator says this mod needs, under the names the app uses
+/// for them. Only a claim about the mod - this page has no idea what anybody
+/// has installed, and the app is where that gets answered. A code the shipped
+/// catalog has never heard of draws as itself, which is what a pack released
+/// after this build went out looks like.
+function needs(mod: Listing) {
+  if (mod.requiresPacks.length === 0) return;
+  const list = $('mod-needs-list');
+  for (const code of mod.requiresPacks) {
+    const item = document.createElement('li');
+    item.textContent = packName(mod.gameId, code);
+    list.append(item);
+  }
+  show('mod-needs');
+}
+
 function paint(mod: Listing) {
   $('mod-name').textContent = mod.name;
   $('mod-by').textContent = s('mod.by', mod.authorName);
@@ -123,6 +140,7 @@ function paint(mod: Listing) {
   download.textContent = s('mod.downloadFile', fmtSize(mod.file.size));
   download.addEventListener('click', () => countDownload(mod.id));
 
+  needs(mod);
   gallery(mod);
   if (renderProse($('mod-description'), mod.description)) show('mod-about');
   if (renderProse($('mod-instructions'), mod.instructions)) show('mod-howto');

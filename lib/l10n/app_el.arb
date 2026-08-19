@@ -1,15 +1,12 @@
 {
   "@@locale": "el",
   "@@author": "friendofbellas",
-
   "appName": "Sims Mod Manager",
   "brandTitle": "Διαχειριστής mod",
-  "brandSubtitle": "για το Sims",
-
+  "brandSubtitle": "για The Sims και SimCity",
   "navLibrary": "Βιβλιοθήκη",
   "navShop": "The Exchange",
   "navSettings": "Ρυθμίσεις",
-
   "shopAlphaBadge": "ΑΛΦΑ",
   "shopTagline": "Mod από την κοινότητα, με ένα κλικ.",
   "shopListingCount": "{count, plural, =1{1 mod στα ράφια} other{{count} mod στα ράφια}}",
@@ -48,23 +45,17 @@
   "sidebarGames": "ΠΑΙΧΝΙΔΙΑ",
   "sidebarNotInstalled": "μη εγκατεστημένο · {detail}",
   "sidebarModCount": "{count, plural, =1{1 mod} other{{count} mod}} · {detail}",
-
   "updateAvailable": "Διαθέσιμη ενημέρωση",
   "updateClickToDownload": "v{version}: κάντε κλικ για λήψη",
-
   "storage": "Αποθηκευτικός χώρος",
   "storageInMods": "{size} σε mod",
   "storageFreeOf": "{free} ελεύθερα από {total}",
-
   "dropToInstall": "Αφήστε το για να εγκατασταθεί στο {game}",
   "dropFolders": "φάκελοι",
-
   "scanningMods": "Διερεύνηση των mod για εικονίδια και ασυμβατότητες… {done} από {total}",
   "skip": "Παράλειψη",
-
   "libraryTitle": "Βιβλιοθήκη του {game}",
   "modsShown": "{count, plural, =1{1 εμφανιζόμενο mod} other{{count} εμφανιζόμενα mod}} · {era}",
-
   "learnMore": "Μάθετε περισσότερα",
   "dismiss": "Παράλειψη",
   "searchMods": "Αναζήτηση mod…",
@@ -78,7 +69,6 @@
   "sortDisabledLast": "Τα ανενεργά στο τέλος",
   "libraryRefresh": "Ανανέωση",
   "libraryRootFolder": "Φάκελος για mod",
-
   "selectionTooltip": "Επιλογή",
   "selectionCount": "{count, plural, =1{1 επιλεγμένο} other{{count} επιλεγμένα}}",
   "selectionSelectAll": "Επιλογή όλων",
@@ -114,23 +104,19 @@
   "destinationSims1Roofs": "Υφές για στέγες.",
   "prefAskWhereTitle": "Ερώτηση για το πού θα γίνει η εγκατάσταση",
   "prefAskWhereDesc": "Αυτό το παιχνίδι διαβάζει mod από περισσότερους από έναν φακέλους. Επιλέξτε τον φάκελο κάθε φορά αντί να αποφασίζει η εφαρμογή",
-
   "statTotal": "ΣΥΝΟΛΙΚΑ",
   "statEnabled": "ΕΝΕΡΓΑ",
   "statDisabled": "ΑΝΕΝΕΡΓΑ",
   "statConflicts": "ΑΣΥΜΒΑΤΟΤΗΤΕΣ",
-
   "statTotalTooltip": "Κάθε mod σε αυτόν τον φάκελο, ενεργό ή ανενεργό.",
   "statTotalTooltipClear": "Κάθε mod σε αυτόν τον φάκελο. Κάντε κλικ για να καθαρίσετε την αναζήτηση και κάθε φίλτρο.",
   "statEnabledTooltip": "Τα mod που φορτώνει το παιχνίδι.",
   "statEnabledTooltipActive": "Εμφανίζονται μόνο τα ενεργά mod. Κάντε κλικ ξανά για να εμφανιστούν όλα.",
   "statDisabledTooltip": "Τα mod που κάθονται απενεργοποιημένα στον φάκελο.",
   "statDisabledTooltipActive": "Εμφανίζονται μόνο τα ανενεργά mod. Κάντε κλικ ξανά για να εμφανιστούν όλα.",
-
   "conflictTooltipActive": "Εμφανίζονται μόνο τα ασύμβατα mod. Κάντε κλικ ξανά για να εμφανιστούν όλα.",
   "conflictTooltip": "Ενεργά mod που μοιράζονται όνομα αρχείου με άλλο ενεργό mod, είναι εγκατεστημένα σε περισσότερες από μία εκδόσεις ή παρακάμπτουν τους ίδιους πόρους του παιχνιδιού. Το παιχνίδι κρατά μόνο το αντίγραφο που φορτώνει τελευταίο - κάποιες φορές αυτό είναι εσκεμμένο (patch mod), συνήθως όχι.",
   "conflictTooltipClickHint": "Κάντε κλικ για να δείτε μόνο αυτά τα mod.",
-
   "filterAll": "Όλα",
   "emptyFiltered": "Κανένα mod δεν ταιριάζει με τα φίλτρα σας",
   "emptyNoMods": "Κανένα mod ακόμα",
@@ -139,10 +125,8 @@
   "openFolder": "Άνοιγμα φακέλου",
   "conflictBadge": "ασυμβατότητα",
   "duplicateBadge": "αντίγραφο",
-
   "modInFolder": "στο {folder}",
   "modInModsFolder": "στον φάκελο για mod",
-
   "setupFoundNoModsFolder": "Το {game} βρέθηκε αλλά δεν έχει φάκελο για mod ακόμα",
   "setupNotFound": "Δεν βρέθηκε φάκελος για mod στο {game}",
   "setupFoundNoModsFolderBody": "Ο φάκελος του παιχνιδιού βρίσκεται σε αυτόν τον υπολογιστή - απλώς δεν περιέχει ακόμη φάκελο για mod. Δημιουργήστε τον παρακάτω ή υποδείξτε τον χειροκίνητα.",
@@ -153,7 +137,6 @@
   "willBeCreatedAt": "Θα δημιουργηθεί στο:\n{path}",
   "checkAgain": "Επανέλεγχος",
   "useThis": "Χρήση αυτού",
-
   "enabled": "Ενεργό",
   "disabled": "Ανενεργό",
   "showInFileManager": "Εμφάνιση στον διαχειριστή αρχείων",
@@ -162,7 +145,6 @@
   "uninstallConfirmBody": "Το αρχείο θα διαγραφεί από τον δίσκο:\n{path}",
   "cancel": "Ακύρωση",
   "uninstall": "Απεγκατάσταση",
-
   "conflictSameFileHeading": "{count, plural, =1{Κάποιο άλλο ενεργό mod είναι ακριβώς το ίδιο αρχείο:} other{{count} άλλα ενεργά mod είναι ακριβώς το ίδιο αρχείο:}}",
   "conflictSameNameHeading": "{count, plural, =1{Κάποιο άλλο ενεργό mod έχει το ίδιο όνομα αρχείου:} other{{count} άλλα ενεργά mod έχουν το ίδιο όνομα αρχείου:}}",
   "conflictVersionHeading": "{count, plural, =1{Φαίνεται πως κάποιο άλλο ενεργό mod είναι διαφορετική έκδοση αυτού του mod:} other{Φαίνεται πως {count} άλλα ενεργά mod είναι διαφορετικές εκδόσεις αυτού του mod:}}",
@@ -175,7 +157,6 @@
   "conflictIgnore": "Αγνόηση",
   "conflictIgnoreTooltip": "Αν αυτή η ασυμβατότητα είναι σκόπιμη, κρύψτε την. Το mod δεν αλλάζει σε τίποτα, και μπορείτε να επαναφέρετε την προειδοποίηση από αυτή τη σελίδα ή από τις ρυθμίσεις.",
   "conflictRestore": "Επαναφορά",
-
   "advisoryBanner": "{count, plural, =1{Ένα από τα mod σας έχει γνωστό πρόβλημα} other{{count} από τα mod σας έχουν γνωστά προβλήματα}}",
   "advisoryShow": "Ρίξτε μια ματιά",
   "advisoryShowAll": "Εμφάνιση όλων των mod",
@@ -189,7 +170,6 @@
   "advisorySince": "Από {since}",
   "advisoryOpenLink": "Άνοιγμα της σελίδας του δημιουργού",
   "advisorySource": "Αναφέρεται από άλλους παίκτες, όχι από το παιχνίδι.",
-
   "modInDirectory": "στο {dir}",
   "factVersion": "Έκδοση",
   "factFormat": "Μορφή",
@@ -199,14 +179,12 @@
   "factDownloads": "Λήψεις",
   "factIgnoredConflicts": "Αγνοημένες",
   "ignoredConflictsCount": "{count, plural, =1{1 ασυμβατότητα} other{{count} ασυμβατότητες}}",
-
   "statusHeading": "Κατάσταση",
   "statusEnabledBody": "Το mod είναι ενεργό: το παιχνίδι θα το φορτώσει κατά την επόμενη εκκίνηση.",
   "statusDisabledBody": "Το mod είναι ανενεργό: το αρχείο διατηρείται στον δίσκο με μια επισήμανση «{marker}» ώστε το παιχνίδι να το παραλείπει. Μπορείτε να το ενεργοποιήσετε οποτεδήποτε - τίποτα δεν διαγράφεται.",
   "fileOnDisk": "Το αρχείο στον δίσκο",
   "insideThePackage": "Μέσα στο πακέτο",
   "resourcesTotal": "{count, plural, =1{1 πόρος συνολικά} other{{count} πόροι συνολικά}}",
-
   "settingsTitle": "Ρυθμίσεις",
   "sectionModManagement": "ΔΙΑΧΕΙΡΙΣΗ MOD",
   "sectionAppearance": "ΕΜΦΑΝΙΣΗ",
@@ -217,7 +195,6 @@
   "sectionIgnoredConflicts": "ΑΓΝΟΗΜΕΝΕΣ ΑΣΥΜΒΑΤΟΤΗΤΕΣ · {game}",
   "sectionFeedback": "ΣΧΟΛΙΑ",
   "sectionAbout": "ΣΧΕΤΙΚΑ",
-
   "prefWarnConflictsTitle": "Προειδοποίηση για ασυμβατότητες",
   "prefWarnConflictsDesc": "Να μαρκάρονται τα ενεργά mod που έχουν ίδιο όνομα αρχείου ή παρακάμπτουν τους ίδιους πόρους του παιχνιδιού με άλλο mod",
   "prefConflictKindsTitle": "Για ποιες ασυμβατότητες να ειδοποιεί",
@@ -241,19 +218,19 @@
   "prefSoundEffectsDesc": "Να γίνεται αναπαραγωγή των ήχων του κλασικού Sims στα κλικ, στους διακόπτες και στις προειδοποιήσεις",
   "prefAnalyticsTitle": "Κοινοποίηση ανώνυμων δεδομένων χρήσης",
   "prefAnalyticsDesc": "Αποστολή ανώνυμων στατιστικών χρήσης και αναφορών κρασαρίσματος με σκοπό τη βελτίωση της εφαρμογής. Δεν περιλαμβάνει ποτέ ονόματα mod, διαδρομές αρχείων ή οτιδήποτε προσωπικό",
-
   "themeTitle": "Θέμα",
   "themeDesc": "Φωτεινό ή σκοτεινό. Η επιλογή «Σύστημα» ακολουθεί τη ρύθμιση του υπολογιστή σας.",
   "themeSystem": "Σύστημα",
   "themeLight": "Φωτεινό",
   "themeDark": "Σκοτεινό",
-
+  "appThemeTitle": "Θέμα εφαρμογής",
+  "appThemeDesc": "Η εμφάνιση όλης της εφαρμογής. Παραμένει ίδια, όποιο παιχνίδι κι αν διαχειρίζεστε.",
+  "appThemeDefault": "Προεπιλογή",
   "languageTitle": "Γλώσσα εφαρμογής",
   "languageDesc": "Επιλέξτε τη γλώσσα στην οποία θα εμφανίζεται η εφαρμογή. Η επιλογή «Σύστημα» ακολουθεί τη γλώσσα του υπολογιστή σας.",
   "languageSystem": "Σύστημα",
   "translatorsTitle": "Μεταφράστηκε από",
   "translatorsDesc": "Η εφαρμογή μιλάει δώδεκα γλώσσες χάρη σε αυτούς τους simmers.",
-
   "sectionStartup": "ΕΚΚΙΝΗΣΗ",
   "prefDefaultGameTitle": "Παιχνίδι στην εκκίνηση",
   "prefDefaultGameDesc": "Με ποια βιβλιοθήκη ανοίγει η εφαρμογή",
@@ -261,7 +238,6 @@
   "prefSetupGuideTitle": "Οδηγός ρύθμισης",
   "prefSetupGuideDesc": "Δες ξανά τις ερωτήσεις της πρώτης εκκίνησης",
   "onboardingReplay": "Ξανά",
-
   "onboardingSkip": "Παράλειψη",
   "onboardingSkipIntro": "Παράλειψη εισαγωγής",
   "onboardingBack": "Πίσω",
@@ -281,12 +257,11 @@
   "onboardingFavoriteTitle": "Ποιο παίζεις πιο πολύ;",
   "onboardingFavoriteBody": "Η εφαρμογή θα ανοίγει πάντα σε αυτό το παιχνίδι. Μπορείς να αλλάζεις παιχνίδι όποτε θες από την πλαϊνή μπάρα.",
   "onboardingLookTitle": "Κάν’ το δικό σου",
-  "onboardingLookBody": "Όλη η εφαρμογή αλλάζει χρώματα ανάλογα με το παιχνίδι που έχεις ανοιχτό. Διάλεξε πώς θα δείχνει και πώς θα ακούγεται.",
+  "onboardingLookBody": "Όλη η εφαρμογή φοράει την εμφάνιση που διαλέγεις, όποιο παιχνίδι κι αν διαχειρίζεσαι. Διάλεξε πώς θα δείχνει και πώς θα ακούγεται.",
   "onboardingLibraryTitle": "Πώς διαβάζεται η βιβλιοθήκη σου",
   "onboardingLibraryBody": "Δύο πράγματα που αξίζει να αποφασίσεις τώρα, γιατί αλλάζουν το τι σου δείχνει η βιβλιοθήκη.",
   "onboardingDoneTitle": "Όλα έτοιμα!",
   "onboardingDoneBody": "Η βιβλιοθήκη σου φορτώθηκε και σε περιμένει. Ρίξε ένα αρχείο mod πάνω στο παράθυρο για να το εγκαταστήσεις, και άλλαξε ό,τι θες από τις ρυθμίσεις.",
-
   "folderNotFound": "Δεν βρέθηκε. Επιλέξτε φάκελο",
   "folderNotLocated": "Το παιχνίδι (ή ο φάκελος για mod) δεν βρέθηκαν αυτόματα",
   "folderSummary": "{count, plural, =1{1 mod} other{{count} mod}} · {size} στον δίσκο",
@@ -296,14 +271,12 @@
   "createDefaultFolderAt": "Δημιουργία του προεπιλεγμένου φακέλου (μαζί με τα αρχεία που χρειάζεται το παιχνίδι) στο:\n{path}",
   "createFolder": "Δημιουργία φακέλου",
   "alsoFoundOnThisComputer": "Βρέθηκε επίσης σε αυτόν τον υπολογιστή:",
-
   "clearCacheTitle": "Διαγραφή αρχείων cache",
   "clearCacheDesc": "{count, plural, =1{Διαγραφή 1 αρχείου cache ({size})} other{Διαγραφή {count} αρχείων cache ({size})}} ώστε να εμφανιστεί ό,τι περιεχόμενο προστέθηκε ή αφαιρέθηκε πρόσφατα - το παιχνίδι θα τα ξαναφτιάξει στην επόμενη εκκίνησή του",
   "clearCaches": "Διαγραφή των cache",
   "ignoredConflictsTitle": "Ασυμβατότητες που αγνοείτε",
   "ignoredConflictsDesc": "{count, plural, =1{Μία ασυμβατότητα που ζητήσατε να μην αναφέρεται. Επαναφέρετέ την για να ξαναεμφανιστεί στη βιβλιοθήκη} other{{count} ασυμβατότητες που ζητήσατε να μην αναφέρονται. Επαναφέρετέ τες για να ξαναεμφανιστούν στη βιβλιοθήκη}}",
   "ignoredConflictsReset": "Επαναφορά όλων",
-
   "reportBugTitle": "Αναφορά bug",
   "reportBugDesc": "Δημιουργήστε μια αναφορά bug στο GitHub - η έκδοση της εφαρμογής, το λειτουργικό σας σύστημα και το τρέχον παιχνίδι συμπληρώνονται αυτόματα",
   "reportBugButton": "Αναφορά…",
@@ -313,14 +286,12 @@
   "wikiTitle": "Οδηγός χρήστη & συχνές ερωτήσεις",
   "wikiDesc": "Πώς να εγκαταστήσετε mod, να φτιάξετε την ανίχνευση φακέλων και άλλα πολλά, στο wiki του πρότζεκτ",
   "wikiButton": "Άνοιγμα wiki",
-
-  "aboutTagline": "Έκδοση {version} · Τα Sims 1-4 υποστηρίζονται · Το SimCity έρχεται σύντομα",
+  "aboutTagline": "Έκδοση {version} · Διαχειριστής mod για {series}",
   "updateIsAvailable": "Η έκδοση {version} είναι διαθέσιμη",
   "noUpdateFound": "Δεν βρέθηκε ενημέρωση",
   "getVersion": "Κατεβάστε τη v{version}",
   "checkingForUpdates": "Γίνεται έλεγχος…",
   "checkForUpdates": "Έλεγχος για ενημερώσεις",
-
   "categoryPackage": "Package",
   "categoryScript": "Script",
   "categoryObject": "Αντικείμενο",
@@ -331,7 +302,6 @@
   "categoryFloor": "Πάτωμα",
   "categoryWorld": "Κόσμος",
   "categorySettings": "Ρυθμίσεις",
-
   "contentCasParts": "στοιχεία CAS",
   "contentObjects": "αντικείμενα",
   "contentTunings": "tunings",
@@ -343,7 +313,6 @@
   "modKindBuildBuy": "Κατασκευή",
   "modKindGameplay": "Gameplay",
   "modKindScript": "Script",
-
   "errorNoModFiles": "Δεν βρέθηκαν αρχεία mod ({extensions}) μέσα στο {name}.",
   "errorUnreadableArchive": "Το {name} δεν είναι συμπιεσμένο αρχείο που μπορεί να διαβάσει αυτή η εφαρμογή.",
   "errorNoUnpacker": "Τίποτα σε αυτόν τον υπολογιστή δεν μπορεί να αποσυμπιέσει αρχεία {format}. Αποσυμπιέστε το {name} μόνοι σας και εγκαταστήστε τα αρχεία που έχει μέσα.",
@@ -390,7 +359,11 @@
   "folderAlsoReading": "Το παιχνίδι σου διαβάζει και το {folders}, οπότε τα mods που είναι εκεί μέσα είναι κι αυτά στη βιβλιοθήκη.",
   "errorFolderUnreadable": "Δεν ήταν δυνατό το άνοιγμα του «{folder}». Διάλεξε φάκελο σε δίσκο που φτάνει αυτός ο υπολογιστής - ένα κινητό, μια κάμερα ή ένας αποσυνδεδεμένος δίσκος δικτύου δεν μπορούν να κρατήσουν τα mod σου.",
   "@errorFolderUnreadable": {
-    "placeholders": { "folder": { "type": "String" } }
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
   },
   "errorNoWriteAccess": "Η εφαρμογή δεν επιτρέπεται να γράψει στο «{folder}». Το σύστημά σας προστατεύει αυτόν τον φάκελο - δώστε στον λογαριασμό σας δικαίωμα εγγραφής σε αυτόν ή δείξτε στην εφαρμογή άλλη τοποθεσία από τις Ρυθμίσεις.",
   "folderReadOnlyBanner": "Αυτός ο φάκελος για mod είναι μόνο για ανάγνωση, οπότε η εγκατάσταση και η αφαίρεση mod δεν θα δουλέψουν μέχρι ο λογαριασμός σας να μπορεί να γράψει σε αυτόν.",
@@ -405,13 +378,11 @@
   "errorPackNotSupported": "Σε αυτό το σύστημα τα πακέτα δεν ανάβουν και δεν σβήνουν.",
   "errorPackIsTheGame": "Αυτό είναι το πακέτο από το οποίο τρέχει το παιχνίδι, οπότε πρέπει να μείνει αναμμένο.",
   "errorPackToggleRefused": "Δεν μπόρεσα να αλλάξω αυτό το πακέτο. Κλείσε το παιχνίδι και δοκίμασε ξανά.",
-
   "eraClassic": "Κλασικό",
   "eraNightlife": "Nightlife",
   "eraAmbitions": "Ambitions",
   "eraModern": "Μοντέρνο",
   "eraMedieval": "Μεσαιωνικό",
-
   "navPacks": "Πακέτα",
   "packsScanning": "Ψάχνω τα πακέτα σου…",
   "packsEmptyTitle": "Δεν βρέθηκαν πακέτα",
@@ -432,7 +403,6 @@
   "packKindStuffPacks": "Πακέτα αντικειμένων",
   "packKindKits": "Κιτ",
   "packKindFreePacks": "Δωρεάν πακέτα",
-
   "navSaves": "Αποθηκευμένα",
   "savesScanning": "Γίνεται ανάγνωση των αποθηκευμένων παιχνιδιών σας…",
   "savesEmptyTitle": "Δεν βρέθηκαν αποθηκευμένα παιχνίδια",
@@ -469,7 +439,6 @@
   "savesLastSavedLabel": "Τελευταία αποθήκευση",
   "savesGameVersion": "Έκδοση παιχνιδιού",
   "savesDescription": "Περιγραφή",
-
   "savesAgeInfant": "Βρέφος",
   "savesAgeBaby": "Μωρό",
   "savesAgeToddler": "Νήπιο",
@@ -480,7 +449,6 @@
   "savesAgeElder": "Ηλικιωμένος",
   "savesGenderMale": "Άνδρας",
   "savesGenderFemale": "Γυναίκα",
-
   "savesSkillCooking": "Μαγειρική",
   "savesSkillMechanical": "Μηχανική",
   "savesSkillCharisma": "Χάρισμα",
@@ -488,13 +456,11 @@
   "savesSkillLogic": "Λογική",
   "savesSkillCreativity": "Δημιουργικότητα",
   "savesSkillCleaning": "Καθαριότητα",
-
   "savesPersonalityNeat": "Τακτικός",
   "savesPersonalityOutgoing": "Κοινωνικός",
   "savesPersonalityActive": "Δραστήριος",
   "savesPersonalityPlayful": "Παιχνιδιάρης",
   "savesPersonalityNice": "Ευγενικός",
-
   "savesZodiacAries": "Κριός",
   "savesZodiacTaurus": "Ταύρος",
   "savesZodiacGemini": "Δίδυμοι",
@@ -507,7 +473,6 @@
   "savesZodiacCapricorn": "Αιγόκερως",
   "savesZodiacAquarius": "Υδροχόος",
   "savesZodiacPisces": "Ιχθύες",
-
   "savesAspirationRomance": "Ρομάντζο",
   "savesAspirationFamily": "Οικογένεια",
   "savesAspirationFortune": "Πλούτος",
@@ -516,7 +481,6 @@
   "savesAspirationGrowUp": "Ενηλικίωση",
   "savesAspirationPleasure": "Απόλαυση",
   "savesAspirationGrilledCheese": "Τοστ με τυρί",
-
   "savesRelCrush": "τσιμπημένος",
   "savesRelLove": "ερωτευμένοι",
   "savesRelEngaged": "αρραβωνιασμένοι",
@@ -525,16 +489,13 @@
   "savesRelBestFriends": "κολλητοί",
   "savesRelSteady": "σε σχέση",
   "savesRelEnemies": "εχθροί",
-
   "savesPhotoFamilyPortrait": "Οικογενειακό πορτρέτο",
   "savesPhotoLot": "Οικόπεδο",
   "savesPhotoSim": "Πορτρέτο Sim",
   "savesPhotoSnapshot": "Στιγμιότυπο",
-
   "savesProperty": "Ακίνητο",
   "savesGhost": "φάντασμα",
   "savesCareerLevel": "{career} · επίπεδο {level}",
-
   "savesSpeciesLargeDog": "σκύλος",
   "savesSpeciesSmallDog": "μικρός σκύλος",
   "savesSpeciesCat": "γάτα",
@@ -549,7 +510,6 @@
   "savesOccultFairy": "νεράιδα",
   "savesOccultGenie": "τζίνι",
   "savesOccultMermaid": "γοργόνα",
-
   "savesLotResidential": "Κατοικία",
   "savesLotCommunity": "Κοινοτικό οικόπεδο",
   "savesLotDorm": "Εστία",
@@ -559,11 +519,9 @@
   "savesLotSecret": "Κρυφό οικόπεδο",
   "savesLotBusiness": "Επιχείρηση",
   "savesLotApartment": "Διαμέρισμα",
-
   "savesGpa": "{gpa} GPA",
   "savesSemester": "εξάμηνο {number}",
   "savesPredestinedHobby": "Γεννημένος για {hobby}",
-
   "savesHobbyCuisine": "Κουζίνα",
   "savesHobbyArts": "Τέχνες & χειροτεχνία",
   "savesHobbyFilm": "Κινηματογράφος & λογοτεχνία",
@@ -574,13 +532,11 @@
   "savesHobbyFitness": "Γυμναστική",
   "savesHobbyScience": "Επιστήμη",
   "savesHobbyMusic": "Μουσική & χορός",
-
   "savesTieMother": "μητέρα",
   "savesTieFather": "πατέρας",
   "savesTieSpouse": "παντρεμένος με",
   "savesTieSibling": "{count, plural, =1{αδέρφι} other{αδέρφια}}",
   "savesTieChild": "{count, plural, =1{παιδί} other{παιδιά}}",
-
   "savesInterestPolitics": "Πολιτική",
   "savesInterestMoney": "Χρήμα",
   "savesInterestEnvironment": "Περιβάλλον",
@@ -601,7 +557,6 @@
   "savesInterestSciFi": "Επιστημονική φαντασία",
   "savesInterestMusic": "Μουσική",
   "savesInterestOutdoors": "Ύπαιθρο",
-
   "setupHelpSims1": "Το αρχικό The Sims διατηρεί το προσαρμοσμένο περιεχόμενο μέσα στον φάκελο εγκατάστασής του, όχι στα Έγγραφα: τα αντικείμενα πηγαίνουν σε έναν φάκελο Downloads δίπλα στο εκτελέσιμο του παιχνιδιού (π.χ. C:\\Program Files (x86)\\Maxis\\The Sims\\Downloads) και αυτή η εφαρμογή ταξινομεί αυτόματα τους άλλους τύπους - τα δέρματα (.skn/.cmx/.bmp) στον GameData\\Skins, τους τοίχους και τα πατώματα στους GameData\\Walls και GameData\\Floors. Η Legacy Collection του 2025 λειτουργεί με τον ίδιο τρόπο από τον δικό της φάκελο εγκατάστασης (EA Games\\The Sims Legacy ή Steam\\steamapps\\common\\The Sims Legacy Collection). Αν το παιχνίδι είναι εγκατεστημένο αλλού (άλλος δίσκος, προσαρμοσμένη βιβλιοθήκη Steam), επιλέξτε τον φάκελο Downloads του χειροκίνητα.",
   "setupHelpSims2": "Το The Sims 2 φορτώνει προσαρμοσμένο περιεχόμενο από τα Έγγραφα > EA Games > The Sims 2 > Downloads (η Ultimate Collection χρησιμοποιεί τον «The Sims 2 Ultimate Collection», η Legacy Collection του 2025 τον «The Sims 2 Legacy»). Ο φάκελος μπορεί να μην υπάρχει πριν τον δημιουργήσετε ή εγκαταστήσετε προσαρμοσμένο περιεχόμενο τουλάχιστον μία φορά. Όταν ξεκινήσει το παιχνίδι, απαντήστε «Yes» στο παράθυρο για το προσαρμοσμένο περιεχόμενο, ώστε να ενεργοποιηθούν οι λήψεις.",
   "setupHelpSims3": "Το The Sims 3 δεν δημιουργεί από μόνο του φάκελο για mod: χρειάζεται το framework της κοινότητας, δηλαδή έναν φάκελο Mods > Packages μέσα στα Έγγραφα > Electronic Arts > The Sims 3, συν ένα αρχείο Resource.cfg που λέει στο παιχνίδι να τον διαβάσει. Αυτή η εφαρμογή μπορεί να δημιουργήσει και τα δύο για εσάς. Αν έχετε εγκαταστήσει το παιχνίδι μέσω δίσκου ή Wine, ο φάκελος αυτός μπορεί να βρίσκεται μέσα στο app bundle - χρησιμοποιήστε το «Επιλέξτε φάκελο» για να τον υποδείξετε.",
@@ -611,6 +566,14 @@
   "installFolderBody": "Πού καταλήγουν τα αρχεία μέσα στον φάκελο mods για {game}.",
   "installFolderChoose": "Επιλογή",
   "installFolderEmpty": "Δεν υπάρχουν υποφάκελοι ακόμη. Φτιάξε έναν, ή άσε τα πάντα στον φάκελο mods.",
+  "shopRequires": "Χρειάζεται αυτά τα πακέτα",
+  "shopRequirementMet": "Εγκατεστημένο",
+  "shopRequirementDisabled": "Απενεργοποιημένο",
+  "shopRequirementMissing": "Μη εγκατεστημένο",
+  "shopRequirementUnknown": "Χωρίς έλεγχο",
+  "shopRequirementsNote": "Μπορείς να το εγκαταστήσεις έτσι κι αλλιώς — απλώς δεν θα κάνει πολλά μέχρι να έχεις τα πακέτα.",
+  "shopRequirementsOffNote": "Ένα από αυτά είναι απενεργοποιημένο. Ενεργοποίησέ το ξανά από την καρτέλα Πακέτα.",
+  "shopRequirementsUnknownNote": "Δεν μπορέσαμε να ελέγξουμε τα πακέτα αυτού του παιχνιδιού σε αυτόν τον υπολογιστή, οπότε αυτό είναι ό,τι δηλώνει ο δημιουργός.",
   "shopDestination": "Εγκατάσταση σε",
   "sectionShopFolder": "THE EXCHANGE · {game}",
   "prefShopFolderTitle": "Πού πάνε τα mods από το The Exchange",
@@ -762,7 +725,6 @@
   "creationsAdding": "Γίνεται προσθήκη…",
   "creationsPickerLabel": "Οικόπεδα, δωμάτια, νοικοκυριά και sims για {game}",
   "creationsNothingToAdd": "Τίποτα εκεί μέσα δεν ήταν οικόπεδο, δωμάτιο, νοικοκυριό ή sim που να διαβάζει αυτό το παιχνίδι. Το custom content και τα mods μπαίνουν από τη βιβλιοθήκη.",
-
   "householdEdit": "Επεξεργασία",
   "householdEditTitle": "Επεξεργασία νοικοκυριού",
   "householdEditBody": "Άλλαξε ό,τι λέει το αρχείο για το «{name}».",
@@ -774,5 +736,56 @@
   "errorSaveEditHouseholdGone": "Αυτό το νοικοκυριό δεν υπάρχει πια στο αρχείο. Ανανέωσε τη λίστα και ξαναδοκίμασε.",
   "errorSaveEditUnreadable": "Το «{file}» δεν έχει τη δομή που ξέρει να ξαναγράφει η εφαρμογή, οπότε δεν άλλαξε τίποτα.",
   "errorSaveEditVerification": "Το «{file}» που ξαναγράφτηκε δεν διαβάστηκε σωστά, οπότε πετάχτηκε. Το αρχείο σου είναι άθικτο.",
-  "errorSaveEditUnsupported": "Τα αρχεία αυτού του παιχνιδιού διαβάζονται, αλλά δεν αλλάζουν."
+  "errorSaveEditUnsupported": "Τα αρχεία αυτού του παιχνιδιού διαβάζονται, αλλά δεν αλλάζουν.",
+  "whatsNewEyebrow": "Τι νέο υπάρχει στην {version}",
+  "whatsNewAlsoSince": "Επίσης σε αυτή την ενημέρωση",
+  "whatsNewDismiss": "Πάμε",
+  "whatsNew300RootTitle": "Mods που πάνε στους φακέλους του ίδιου του παιχνιδιού",
+  "whatsNew300RootBody": "Οι κόσμοι, οι ρυθμίσεις γραφικών και οι script loaders δεν δούλευαν ποτέ από τον φάκελο Mods. Τώρα εγκαθίστανται κατευθείαν στους φακέλους που διαβάζει το παιχνίδι, και ό,τι αντικαθιστούν φυλάσσεται, οπότε η απεγκατάσταση σου δίνει πίσω το αρχικό.",
+  "whatsNew300PacksTitle": "Οι καταχωρίσεις μπορούν να λένε ποια packs χρειάζονται",
+  "whatsNew300PacksBody": "Οι δημιουργοί μπορούν να δηλώσουν για ποια packs φτιάχτηκε ένα mod, και το The Exchange τα συγκρίνει με τα δικά σου πριν την εγκατάσταση. Είναι πάντα προειδοποίηση, ποτέ κλειστή πόρτα.",
+  "whatsNew300ContainersTitle": "Ένα zip γεμάτο αρχεία .sims3pack απλώς δουλεύει",
+  "whatsNew300ContainersBody": "Ρίξε ολόκληρο το σετ στο παράθυρο. Οι containers των Sims 3 μέσα σε ένα αρχείο ανοίγουν εκεί που βρίσκονται, και όλα εγκαθίστανται με τη μιά.",
+  "whatsNew300SimCityTitle": "SimCity 3000, 4, Societies και 2013",
+  "whatsNew300SimCityBody": "Τέσσερα ακόμη παιχνίδια στην πλαϊνή μπάρα. Το SimCity 4 διαβάζει και τους δύο φακέλους Plugins, κρατάει τη σειρά φόρτωσης που ορίζουν τα ονόματα φακέλων και αρχείων, και δεν πειράζει τίποτα από όσα εγκατέστησε το sc4pac. Στις ρυθμίσεις μπορείς να κρύψεις τα παιχνίδια που δεν παίζεις.",
+  "whatsNew300CatalogTitle": "Χιλιάδες mods για το SimCity 4",
+  "whatsNew300CatalogBody": "Το The Exchange δείχνει πλέον και τα κανάλια του sc4pac δίπλα στις δικές μας καταχωρίσεις, με αναφορά στο project που τα συντηρεί. Ένα download έρχεται με όλα όσα χρειάζεται ή δεν έρχεται καθόλου, κι όταν ένας host δεν αφήνει μια εφαρμογή να κατεβάσει για σένα, το κουμπί στο λέει από την αρχή.",
+  "whatsNew300ThemeTitle": "Διάλεξε την εμφάνιση που σου αρέσει",
+  "whatsNew300ThemeBody": "Παλιότερα η εφαρμογή άλλαζε χρώματα ανάλογα με το παιχνίδι που είχες ανοιχτό. Τώρα διαλέγεις την εμφάνιση που θέλεις στις ρυθμίσεις και μένει εκεί, όποιο παιχνίδι κι αν διαχειρίζεσαι.",
+  "categoryLot": "Οικόπεδο",
+  "categoryModel": "Μοντέλο",
+  "categoryDescription": "Περιγραφή",
+  "categoryBuilding": "Κτίριο",
+  "setupHelpSimCity4": "Το SimCity 4 διαβάζει plugins από δύο φακέλους ταυτόχρονα: Έγγραφα > SimCity 4 > Plugins (τον δικό σου, αυτόν που διαχειρίζεται η εφαρμογή) και έναν φάκελο Plugins μέσα στην εγκατάσταση του παιχνιδιού. Τα ονόματα φακέλων και αρχείων είναι η σειρά φόρτωσης, οπότε μην πειράζεις τη δομή με την οποία ήρθε το download - γι' αυτό το sc4pac χρησιμοποιεί αριθμημένους φακέλους και τα overrides λέγονται «zzz...». Τα plugins DLL φορτώνουν μόνο από το πρώτο επίπεδο ενός φακέλου Plugins, ποτέ από υποφάκελο, οπότε η εφαρμογή τα βάζει εκεί για σένα. Ό,τι εγκατέστησε το sc4pac παραμένει δικό του: το εμφανίζει εκείνο, όχι αυτή η εφαρμογή.",
+  "setupHelpSimCity2013": "Το SimCity φορτώνει mods σε .package από το SimCityUserData > Packages μέσα στην εγκατάσταση του παιχνιδιού (συνήθως κάτω από το Program Files, οπότε τα Windows μπορεί να ζητήσουν δικαιώματα διαχειριστή). Η εφαρμογή διαχειρίζεται μόνο αυτόν τον φάκελο. Το παιχνίδι διαβάζει και τον δικό του φάκελο SimCityData, αλλά εκεί μέσα είναι το περιεχόμενο της Maxis: ένα mod που πρέπει να φορτώσει πριν από τα πακέτα του παιχνιδιού μπαίνει εκεί στο χέρι. Πολλά mods είναι μόνο για offline: δοκίμασέ τα σε μια πόλη που μπορείς να χάσεις.",
+  "setupHelpSimCity3000": "Το SimCity 3000 φορτώνει προσαρμοσμένα κτίρια (αρχεία .bld από το Building Architect Tool) από έναν φάκελο Buildings μέσα στην εγκατάσταση του παιχνιδιού. Είναι επίπεδος - ένα κτίριο σε υποφάκελο δεν φορτώνει ποτέ. Τα κτίρια που ήρθαν με το παιχνίδι είναι κρυμμένα εδώ, για να μην τα σβήσεις κατά λάθος. Τα patch ανάλυσης και συμβατότητας που πειράζουν το ίδιο το SC3U.exe δεν τα εγκαθιστά αυτή η εφαρμογή· ακολούθησε τις δικές τους οδηγίες.",
+  "setupHelpSimCitySocieties": "Το SimCity Societies κρατά το προσαρμοσμένο περιεχόμενο στο Έγγραφα > SimCity Societies > Import, εκεί που το βάζει και ο Package Installer του ίδιου του παιχνιδιού. Η εφαρμογή μπορεί να φτιάξει τον φάκελο για σένα. Το περιεχόμενο έρχεται σε αρχεία .SCSPack - αυτή ακριβώς την κατάληξη ψάχνει το ίδιο το παιχνίδι. Προσοχή: το Societies φτιάχτηκε για να το επεξεργάζεσαι, όχι για να φορτώνει έτοιμα mods - το περισσότερο που έκανε η σκηνή ήταν να αλλάζει C# και XML μέσα στον φάκελο Data του παιχνιδιού, τον οποίο η εφαρμογή δεν αγγίζει ποτέ.",
+  "sectionManagedGames": "Παιχνίδια",
+  "prefManageGameTitle": "Διαχείριση {game}",
+  "prefManageGameDesc": "Εμφάνισέ το στην πλαϊνή μπάρα. Αν κρύψεις ένα παιχνίδι, κρατά όλες τις ρυθμίσεις του.",
+  "errorLastManagedGame": "Είναι το μόνο παιχνίδι που σου έμεινε στην πλαϊνή μπάρα, οπότε πρέπει να μείνει. Ενεργοποίησε πρώτα ένα άλλο αν θέλεις να το κρύψεις.",
+  "catalogCount": "{count} mods",
+  "catalogCuratedBy": "Κατάλογος από {project}",
+  "catalogOpenPage": "Άνοιγμα σελίδας",
+  "catalogBlocked": "Το {host} δεν αφήνει εφαρμογές να κατεβάζουν για σένα. Πάρ’ το από τη σελίδα του mod.",
+  "catalogUnresolvedNote": "Αυτό δεν μπόρεσε να διαβαστεί από τον κατάλογο.",
+  "catalogDependencies": "Έρχεται μαζί",
+  "catalogFileCount": "{count} αρχεία",
+  "catalogDownloading": "Κατεβάζω {current} από {total}",
+  "catalogWarningTitle": "Πρόσεξε",
+  "catalogConflictsTitle": "Συγκρούεται με",
+  "catalogSourceFailed": "Δεν βρήκα το {source}",
+  "catalogEmpty": "Δεν ταιριάζει τίποτα.",
+  "catalogRefresh": "Επαναφόρτωση καταλόγου",
+  "catalogOptions": "Επιλογές",
+  "catalogBy": "από {author}",
+  "errorCatalogUnreachable": "Δεν βρήκα τον κατάλογο. Τσέκαρε τη σύνδεσή σου και ξαναδοκίμασε.",
+  "errorCatalogUnreadable": "Ο κατάλογος απάντησε με κάτι που αυτή η έκδοση δεν διαβάζει.",
+  "errorCatalogDownloadFailed": "Το {host} αρνήθηκε τη λήψη.",
+  "errorCatalogInstallFailed": "Κάτι πήγε στραβά στην εγκατάσταση.",
+  "errorCatalogInstallCancelled": "Η εγκατάσταση ακυρώθηκε.",
+  "catalogLoading": "Φορτώνω τον κατάλογο…",
+  "catalogBack": "← Πίσω στον κατάλογο",
+  "catalogPromoTitle": "Έφτιαξες κι εσύ mod;",
+  "catalogPromoBody": "Βάλ’ το στο The Exchange: εγκαθίσταται με ένα κλικ, αποκτά δική του σελίδα και σύνδεσμο, κι όποιος το έχει ήδη μαθαίνει για τις ενημερώσεις."
 }

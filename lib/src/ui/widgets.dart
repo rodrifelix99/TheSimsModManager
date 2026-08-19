@@ -2,10 +2,12 @@ import 'dart:typed_data';
 
 import 'dart:math' as math;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart' show NumberFormat;
 
+import 'game_skin.dart';
 import 'game_theme.dart';
 import 'l10n.dart';
 import 'plumbob_icons.dart';
@@ -63,10 +65,29 @@ ButtonStyle accentButtonStyle(GameTheme t) => OutlinedButton.styleFrom(
 /// hand-built rotated squares this replaced had drifted a constant at a
 /// time and could never carry a game's actual plumbob shape and color.
 class BrandMark extends StatelessWidget {
-  const BrandMark({super.key, required this.gameId, this.size = 26});
+  const BrandMark(
+      {super.key, required this.gameId, this.size = 26, this.name, this.ink});
 
   final String gameId;
   final double size;
+
+  /// The game's own name, for the neutral badge to take an initial off.
+  /// The name rather than the id, because the id is a settings key that
+  /// nobody reads and may be spelled nothing like the game.
+  final String? name;
+
+  /// The palette's accent, for the neutral badge. Passed in because
+  /// nothing hands a [GameTheme] down the tree; without one the badge
+  /// falls back to Material's primary, which is that accent's seed.
+  final Color? ink;
+
+  /// The first letter of the game's name, uppercased. Empty when there
+  /// is no name to take one from, which draws a plain badge rather than
+  /// a letter nobody chose.
+  String get _initial {
+    final source = name?.trim() ?? '';
+    return source.isEmpty ? '' : source.substring(0, 1).toUpperCase();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,8 +100,60 @@ class BrandMark extends StatelessWidget {
       // fine on the next run. The space it would have taken is a better
       // answer than that - the mark is decoration, and everything it
       // sits beside says the same thing in words.
-      child: Image.asset(plumbobAsset(gameId),
-          fit: BoxFit.contain, errorBuilder: (_, __, ___) => const SizedBox()),
+      child: switch (brandMarkAsset(gameId)) {
+        final asset? => Image.asset(asset,
+            fit: BoxFit.contain,
+            errorBuilder: (_, __, ___) => const SizedBox()),
+        // A game this build ships no emblem for. Drawn rather than
+        // borrowed: handing a SimCity row The Sims' plumbob would be a
+        // stronger claim than a stand-in has any right to make, and a
+        // blank would leave the sidebar's title with nothing beside it.
+        _ => _NeutralMark(size: size, letter: _initial, ink: ink),
+      },
+    );
+  }
+}
+
+/// The stand-in emblem: the accent-coloured plate every skin already
+/// draws, with the game's own initial on it. No asset, so a game added
+/// tomorrow has one on the day it is registered.
+class _NeutralMark extends StatelessWidget {
+  const _NeutralMark(
+      {required this.size, required this.letter, required this.ink});
+
+  final double size;
+  final String letter;
+  final Color? ink;
+
+  @override
+  Widget build(BuildContext context) {
+    final ink = this.ink ?? Theme.of(context).colorScheme.primary;
+    return SizedBox(
+      width: size * 0.82,
+      height: size,
+      child: Center(
+        child: Container(
+          width: size * 0.78,
+          height: size * 0.78,
+          decoration: BoxDecoration(
+            color: ink.withValues(alpha: 0.16),
+            border: Border.all(color: ink, width: size * 0.07),
+            borderRadius: BorderRadius.circular(size * 0.22),
+          ),
+          child: Center(
+            child: Text(
+              letter,
+              maxLines: 1,
+              style: TextStyle(
+                color: ink,
+                fontSize: size * 0.44,
+                height: 1,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -557,3 +630,313 @@ String _oneDecimal(double value) =>
 String _whole(double value) => NumberFormat.decimalPattern().format(
       value.round(),
     );
+
+// ---------------------------------------------------------------------
+// The card overlays' shared furniture. Both the first-run walkthrough
+// and the what's-new card are one panel over the whole window, so the
+// button under them and the backdrop behind them live here rather than
+// in whichever of the two happened to be written first.
+// ---------------------------------------------------------------------
+
+/// How tall a footer button is, both kinds.
+const cardButtonHeight = 44.0;
+
+/// A button on the card's footer, loud or quiet.
+///
+/// Both are built here rather than the quiet one borrowing
+/// [accentButtonStyle]: a Material button sizes itself from its own
+/// padding and would sit a few pixels shorter than the one beside it,
+/// which reads as two buttons that don't belong together rather than as
+/// a pair. Same geometry, same label size, different material.
+class CardButton extends StatelessWidget {
+  const CardButton({
+    super.key,
+    required this.theme,
+    required this.label,
+    required this.onTap,
+    this.primary = false,
+    this.enabled = true,
+  });
+
+  final GameTheme theme;
+  final String label;
+  final VoidCallback onTap;
+  final bool primary;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = theme;
+    final surface = primary ? SkinSurface.primary : SkinSurface.button;
+    return HoverBuilder(
+      cursor: enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
+      builder: (context, hovered) => Opacity(
+        opacity: enabled ? 1 : .5,
+        child: GestureDetector(
+          onTap: enabled ? onTap : null,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            // Spelled out rather than left to the padding: the quiet one
+            // carries a border and the loud one doesn't, which is two
+            // pixels of difference and enough to read as a mismatched
+            // pair. A skin with a heavier keyline would widen the gap.
+            height: cardButtonHeight,
+            alignment: Alignment.center,
+            padding: const EdgeInsets.symmetric(horizontal: 22),
+            decoration: t.skin.decorate(t, surface,
+                radius: 12,
+                state: skinState(hovered: hovered && enabled),
+                // The quiet one is the app's accent outline: a tinted
+                // fill inside a line of the accent, like every other
+                // secondary button in the app.
+                fill: primary ? null : t.tint,
+                outline: primary ? null : t.accent),
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 13.5,
+                fontWeight: primary ? FontWeight.w900 : FontWeight.w800,
+                color: t.skin.ink(t, surface,
+                    otherwise: primary ? Colors.white : t.accent),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A strip that scrolls sideways, reachable with an ordinary mouse.
+///
+/// A horizontal [ListView] answers a sideways wheel and a drag no desktop
+/// mouse can make, so whatever sits past its edge is out of reach: the
+/// shop's game filter is nine chips wide and a narrow window shows five
+/// of them. Here the plain wheel scrolls it, and an arrow sits over each
+/// end there is more to see past - the wheel for the hand already on it,
+/// the arrows because nothing on screen says a wheel would do anything.
+///
+/// The arrows float over the strip rather than fading it out at the
+/// edges: what a screen is painted on here is the skin's own backdrop,
+/// which is a gradient in three of the four, so a flat wash over it is
+/// the wrong colour at one end of the window.
+class SideStrip extends StatefulWidget {
+  const SideStrip({
+    super.key,
+    required this.theme,
+    required this.builder,
+    this.step = 180,
+    this.inset = 6,
+  });
+
+  final GameTheme theme;
+
+  /// Builds the strip itself. It has to take the controller handed to it
+  /// and scroll horizontally, or nothing here reaches it.
+  final Widget Function(BuildContext context, ScrollController controller)
+      builder;
+
+  /// How far one press of an arrow moves the strip.
+  final double step;
+
+  /// How far in from the strip's own edge the arrows sit.
+  final double inset;
+
+  @override
+  State<SideStrip> createState() => _SideStripState();
+}
+
+class _SideStripState extends State<SideStrip> {
+  final _controller = ScrollController();
+
+  /// Both true until there is a strip to measure, so a row that fits
+  /// never flashes an arrow on its first frame.
+  bool _atStart = true;
+  bool _atEnd = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(_sync);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _sync() {
+    if (!mounted || !_controller.hasClients) return;
+    final p = _controller.position;
+    // A pixel of slack: a strip resting at its end can sit a fraction
+    // short of the extent and would keep an arrow that does nothing.
+    final atStart = p.pixels <= p.minScrollExtent + 1;
+    final atEnd = p.pixels >= p.maxScrollExtent - 1;
+    if (atStart == _atStart && atEnd == _atEnd) return;
+    setState(() {
+      _atStart = atStart;
+      _atEnd = atEnd;
+    });
+  }
+
+  /// What the wheel over the strip does. Only a wheel with nothing
+  /// sideways about it: a trackpad's own horizontal swipe already
+  /// reaches the strip, and answering that too would move it twice.
+  void _wheel(PointerSignalEvent event) {
+    if (event is! PointerScrollEvent) return;
+    if (event.scrollDelta.dx != 0 || !_controller.hasClients) return;
+    final p = _controller.position;
+    _controller.jumpTo((p.pixels + event.scrollDelta.dy)
+        .clamp(p.minScrollExtent, p.maxScrollExtent));
+  }
+
+  void _nudge(double by) {
+    if (!_controller.hasClients) return;
+    final p = _controller.position;
+    _controller.animateTo(
+      (p.pixels + by).clamp(p.minScrollExtent, p.maxScrollExtent),
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOut,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Listener(
+      onPointerSignal: _wheel,
+      // The metrics move when the strip's contents do - a game chip
+      // arrives with the catalog, a label is longer in Polish - and that
+      // is not a scroll, so nothing above would fire.
+      child: NotificationListener<ScrollMetricsNotification>(
+        onNotification: (_) {
+          WidgetsBinding.instance.addPostFrameCallback((_) => _sync());
+          return false;
+        },
+        child: Stack(
+          children: [
+            widget.builder(context, _controller),
+            Positioned(
+              left: widget.inset,
+              top: 0,
+              bottom: 0,
+              child: _arrow(back: true, shown: !_atStart),
+            ),
+            Positioned(
+              right: widget.inset,
+              top: 0,
+              bottom: 0,
+              child: _arrow(back: false, shown: !_atEnd),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _arrow({required bool back, required bool shown}) {
+    final t = widget.theme;
+    return Center(
+      child: IgnorePointer(
+        ignoring: !shown,
+        child: AnimatedOpacity(
+          opacity: shown ? 1 : 0,
+          duration: const Duration(milliseconds: 150),
+          child: HoverBuilder(
+            cursor: SystemMouseCursors.click,
+            builder: (context, hovered) => GestureDetector(
+              onTap: () => _nudge(back ? -widget.step : widget.step),
+              child: Container(
+                width: 26,
+                height: 26,
+                alignment: Alignment.center,
+                decoration: t.skin.decorate(t, SkinSurface.button,
+                    radius: 13,
+                    state: skinState(hovered: hovered),
+                    fill: t.surface,
+                    outline: t.border),
+                child: Icon(
+                  back
+                      ? Icons.chevron_left_rounded
+                      : Icons.chevron_right_rounded,
+                  size: 18,
+                  color: t.skin.ink(t, SkinSurface.button, otherwise: t.text),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class DriftBackdrop extends StatelessWidget {
+  const DriftBackdrop(
+      {super.key, required this.theme, required this.animation});
+
+  final GameTheme theme;
+  final Animation<double> animation;
+
+  @override
+  Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: animation,
+        builder: (context, _) => CustomPaint(
+          painter: _DriftPainter(theme, animation.value),
+          size: Size.infinite,
+        ),
+      ),
+    );
+  }
+}
+
+class _DriftPainter extends CustomPainter {
+  const _DriftPainter(this.theme, this.t);
+
+  final GameTheme theme;
+
+  /// The clock, 0 to 1 and round again.
+  final double t;
+
+  /// Where each diamond sits across the window, how big it is, how far
+  /// along its own climb it starts and how fast it climbs. Written down
+  /// rather than randomised, so the backdrop looks the same every time
+  /// the walkthrough is opened.
+  static const _seeds = <(double, double, double, double)>[
+    (.06, 26, .10, .55), (.17, 44, .62, .38), (.28, 18, .35, .72),
+    (.39, 34, .88, .46), (.47, 22, .21, .63), (.58, 52, .49, .33),
+    (.66, 16, .74, .80), (.75, 38, .05, .43), (.84, 24, .57, .58),
+    (.92, 30, .31, .50), (.12, 20, .82, .68), (.53, 28, .95, .41),
+  ];
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (final (x, extent, phase, speed) in _seeds) {
+      final progress = (phase + t * speed) % 1.0;
+      // Up the window, with a lazy sway either side of its own column.
+      final cx = x * size.width +
+          math.sin((progress + phase) * math.pi * 2) * size.width * .02;
+      final cy = size.height * (1.15 - progress * 1.3);
+      // Faded in at the bottom and out at the top, so nothing pops.
+      final fade = math.sin(progress * math.pi).clamp(0.0, 1.0);
+      final paint = Paint()
+        ..color = theme.accent.withValues(alpha: .07 * fade)
+        ..style = PaintingStyle.fill;
+      final path = Path()
+        ..moveTo(cx, cy - extent * .62)
+        ..lineTo(cx + extent * .38, cy)
+        ..lineTo(cx, cy + extent * .62)
+        ..lineTo(cx - extent * .38, cy)
+        ..close();
+      canvas.drawPath(path, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DriftPainter old) =>
+      old.t != t || old.theme.accent != theme.accent;
+}

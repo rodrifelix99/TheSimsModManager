@@ -2,7 +2,7 @@
 
 # The Sims Mod Manager
 
-**A free, cross-platform desktop mod manager for The Sims 1, 2, 3 & 4 and The Sims Medieval.**
+**A free, cross-platform desktop mod manager for The Sims 1, 2, 3 & 4, The Sims Medieval and the SimCity series.**
 
 [![Latest release](https://img.shields.io/github/v/release/rodrifelix99/TheSimsModManager?label=download&color=2ea44f)](https://github.com/rodrifelix99/TheSimsModManager/releases/latest)
 [![Build](https://github.com/rodrifelix99/TheSimsModManager/actions/workflows/release.yml/badge.svg)](https://github.com/rodrifelix99/TheSimsModManager/actions/workflows/release.yml)
@@ -14,42 +14,67 @@
 **[Visit the website →](https://thesimsmodmanager.web.app/)** · **[Follow on Tumblr](https://thesimsmodmanager.tumblr.com/)**
 
 Browse, install, enable/disable, and clean up your mods and custom content
-for every mainline Sims game (and The Sims Medieval), in one app, with a UI
-that redraws itself to match the game you're managing.
+for nine games across two franchises, in one app, wearing whichever of the
+eight interfaces you picked.
 
 <img src="web/public/images/library-grid-ts4.png" alt="Library view (The Sims 4)" width="800">
 
 </div>
 
-## One app, five interfaces
+## One app, eight interfaces
 
-Switching games does more than re-tint: each one gets its own chrome, drawn
-after the game's own interface. The Sims 1's chiselled blue plates, the Sims
-2's periwinkle lozenges lit in plumbob green, the Sims 3's blue glass, the
-Medieval's parchment and brass by day and carved wood after dark, and the
-Sims 4's flat mint. Every one of them comes in light and dark, following your
-system or your own pick in Settings.
+Each look is drawn after a game's own interface, down to what its buttons are
+made of. The Sims 1's chiselled blue plates, the Sims 2's periwinkle lozenges
+lit in plumbob green, the Sims 3's blue glass, the Medieval's parchment and
+brass by day and carved wood after dark, the Sims 4's flat mint, SimCity
+3000's milled steel console, that same console cast in SimCity 4's teal and
+rounded off, and SimCity (2013)'s pale white-and-silver panels. Every one of
+them comes in light and dark, following your system or your own pick.
+
+The look is yours to choose and it stays put: pick one in Settings and it
+holds whichever game you're managing.
 
 | Light | Dark |
 | --- | --- |
-| <img src="web/public/images/library-grid-ts1.png" alt="Library view for The Sims 1, in its deep blues with chiselled buttons" width="420"> | <img src="web/public/images/library-grid-ts1-dark-mode.png" alt="The same Sims 1 library in dark mode" width="420"> |
-| <img src="web/public/images/library-grid-ts2.png" alt="Library view for The Sims 2, in periwinkle with plumbob-green toggles" width="420"> | <img src="web/public/images/library-grid-ts2-dark-mode.png" alt="The same Sims 2 library in dark mode" width="420"> |
-| <img src="web/public/images/library-grid-ts3.png" alt="Library view for The Sims 3, in blue glass over pale panels" width="420"> | <img src="web/public/images/library-grid-ts3-dark-mode.png" alt="The same Sims 3 library in dark mode" width="420"> |
-| <img src="web/public/images/library-grid-tsm.png" alt="Library view for The Sims Medieval, in parchment and brass" width="420"> | <img src="web/public/images/library-grid-tsm-dark-mode.png" alt="The same Sims Medieval library in dark mode, carved dark wood" width="420"> |
-| <img src="web/public/images/library-grid-ts4.png" alt="Library view for The Sims 4, in flat mint" width="420"> | <img src="web/public/images/library-grid-ts4-dark-mode.png" alt="The same Sims 4 library in dark mode" width="420"> |
+| <img src="web/public/images/library-grid-ts1.png" alt="Library view in The Sims 1's deep blues with chiselled buttons" width="420"> | <img src="web/public/images/library-grid-ts1-dark-mode.png" alt="The same Sims 1 look in dark mode" width="420"> |
+| <img src="web/public/images/library-grid-ts2.png" alt="Library view in The Sims 2's periwinkle with plumbob-green toggles" width="420"> | <img src="web/public/images/library-grid-ts2-dark-mode.png" alt="The same Sims 2 look in dark mode" width="420"> |
+| <img src="web/public/images/library-grid-ts3.png" alt="Library view in The Sims 3's blue glass over pale panels" width="420"> | <img src="web/public/images/library-grid-ts3-dark-mode.png" alt="The same Sims 3 look in dark mode" width="420"> |
+| <img src="web/public/images/library-grid-tsm.png" alt="Library view in The Sims Medieval's parchment and brass" width="420"> | <img src="web/public/images/library-grid-tsm-dark-mode.png" alt="The same Medieval look in dark mode, carved dark wood" width="420"> |
+| <img src="web/public/images/library-grid-ts4.png" alt="Library view in The Sims 4's flat mint, the app's default" width="420"> | <img src="web/public/images/library-grid-ts4-dark-mode.png" alt="The same Sims 4 look in dark mode" width="420"> |
+| <img src="web/public/images/library-grid-sc3000.png" alt="Library view in SimCity 3000's milled steel, squared off" width="420"> | <img src="web/public/images/library-grid-sc3000-dark-mode.png" alt="The same SimCity 3000 look in dark mode" width="420"> |
+| <img src="web/public/images/library-grid-sc4.png" alt="Library view in SimCity 4's teal, rounded and glossy" width="420"> | <img src="web/public/images/library-grid-sc4-dark-mode.png" alt="The same SimCity 4 look in dark mode" width="420"> |
+| <img src="web/public/images/library-grid-sc2013.png" alt="Library view in SimCity (2013)'s pale white and silver panels" width="420"> | <img src="web/public/images/library-grid-sc2013-dark-mode.png" alt="The same SimCity (2013) look in dark mode" width="420"> |
+
+The classic Sims 1 interface sounds come along for the ride, and so does a
+plumbob that turns up every few minutes with something true about the game
+you're in. It knows which screen you're on, it stays off the ones you came to
+read, and one switch in Settings sends it away for good.
+
+<div align="center">
+
+<img src="web/public/images/trivia-buddy.png" alt="The plumbob buddy floating over the saves screen with a fact about The Sims 2" width="800">
+
+<sub>Facts, not tips. Every one of them is about the game you're actually managing.</sub>
+
+</div>
 
 ## Features
 
-- **Per-game themed UI**: the whole app re-skins as you switch between
-  The Sims 1, 2, 3, 4 and Medieval - colors, logos and the shape of every
-  button - complete with the classic Sims 1 UI sounds, in light or dark.
+- **Eight interfaces to pick from**: colors, logos and the shape of every
+  button, drawn after The Sims 1, 2, 3, 4, Medieval, SimCity 3000, SimCity 4
+  or SimCity (2013) - complete with the classic Sims 1 UI sounds, in light
+  or dark.
 - **Real thumbnails & insights**: `.package` files are parsed (DBPF) to
   pull out embedded artwork and a content breakdown (CAS parts, textures,
   tuning...), so your library looks like a library, not a file list.
 - **Library** with search, category filters (Package/Script/Object/...),
-  grid and list layouts, sorting by name, date or size (with the option to
-  keep disabled mods at the bottom), and live
+  grid, list and folder layouts, sorting by name, date or size (with the
+  option to keep disabled mods at the bottom), and live
   Total/Enabled/Disabled/Conflicts stats.
+- **Duplicate finder**: the one scan you start yourself, because it reads
+  whole files rather than headers. Identity is the SHA-256 and nothing
+  weaker, since the answer comes with a delete button next to it - it tells
+  you how much space the spare copies are costing and offers to tick them.
 - **One-click enable/disable**: disabling renames the file with a
   `.disabled` suffix so the game's loader skips it; nothing is ever deleted.
   You can pick the suffix yourself to match another manager, and mods
@@ -75,6 +100,11 @@ system or your own pick in Settings.
 - **Saves**: read-only insight into your save files - households, funds,
   photo albums, and world stats like population, net worth, life stages
   and top skills, without opening the game.
+- **Creations**: the lots, rooms, households and sims you downloaded, shown
+  as the pictures the game made of them rather than as file names. Dropping
+  one in Mods is the loudest silent failure there is - the file is there,
+  the game never looks at it - so these get filed into the game's own Tray
+  or Library folder instead.
 - **Packs**: every expansion, game pack, stuff pack and kit installed
   next to the game, with its artwork and its size on disk. The Sims 4 and
   The Sims 3 can be switched off from here without moving a single file;
@@ -100,9 +130,30 @@ publish shows up on everyone's shelves.
 
 <sub>The shelves, filtered by game. Installing puts the file in the folder of the game the listing names, whichever game you're currently looking at.</sub>
 
-<img src="web/public/images/mod-shop-mod-detail-and-update-page.png" alt="A listing inside the app with screenshots, version, size, install notes and an Update button" width="800">
+<img src="web/public/images/mod-shop-mod-detail-and-update-page.png" alt="A listing inside the app with screenshots, version, size, install notes, and Install and Download buttons" width="800">
 
-<sub>A listing brings its screenshots and install notes along, and turns into an Update button once the creator publishes a newer version.</sub>
+<sub>A listing brings its screenshots and install notes along. <b>Install</b> drops the files into your mods folder; <b>Download</b> just saves the file wherever you want it. Once the creator publishes a newer version, Install becomes Update.</sub>
+
+<img src="web/public/images/mod-shop-variations.png" alt="A listing published in five colours, with a row of variation chips to pick from" width="800">
+
+<sub>A mod published in eight shades is eight listings - each one is a different file - so they're gathered onto one card instead of merged. Every variation keeps its own link, its own version and its own download count.</sub>
+
+</div>
+
+### The SimCity catalog
+
+Beside our own listings, The Exchange carries the
+[sc4pac](https://github.com/memo33/sc4pac-tools) channels: thousands of
+SimCity 4 packages from Simtropolis and SC4Evermore, credited to the project
+that keeps them. A download brings everything it depends on or nothing at
+all, and where a host won't let an app fetch a file, the button says so up
+front and sends you to the page instead.
+
+<div align="center">
+
+<img src="web/public/images/mod-shop-catalog.png" alt="The Simtropolis catalog inside the app: 3,358 SimCity 4 packages with their preview renders" width="800">
+
+<sub>Source chips switch between our shelves and each catalog channel. Nothing here is ours, and the credit line says whose it is.</sub>
 
 </div>
 
@@ -122,6 +173,43 @@ by what each save format actually holds.
 <img src="web/public/images/save-stats-ts2.png" alt="Saves screen for The Sims 2 showing world stats: total Sims, households, net worth, size on disk, photos and a life-stage breakdown" width="800">
 
 <sub>World stats for the whole save: population, net worth, life stages, even the highest skill in the save.</sub>
+
+</div>
+
+## Creations
+
+The third thing the app manages, after the mods the scene writes and the
+packs EA ships: the lots, rooms, households and sims that other *players*
+built. None of it belongs in the mods folder - a lot dropped in there sits
+on disk forever and the game never looks at it - so downloads get routed
+into the game's own Tray or Library folder instead.
+
+They're shown as pictures because that's how you recognise a house. The
+thumbnails are the game's own renders, read out of the files: The Sims 4
+obfuscates its tray JPEGs, The Sims 3 hides its lot renders behind resource
+types that tell a lot apart from a mod, and The Sims 2 keeps a packaged
+lot's residents in files beside it, so deleting one takes them along instead
+of leaving sims who live nowhere.
+
+<div align="center">
+
+<img src="web/public/images/creations-ts3.png" alt="Creations screen for The Sims 3: a shelf of downloaded lots and households shown as their in-game renders" width="800">
+
+<sub>Downloaded lots and households, with the pictures the game made of them. Add a zip and it gets unpacked and filed where the game reads it.</sub>
+
+</div>
+
+## Keeping a big library tidy
+
+<div align="center">
+
+<img src="web/public/images/library-duplicates.png" alt="The library after a duplicate scan: a banner offering to reclaim space, with matching files badged as copies" width="800">
+
+<sub>The same download saved twice reads to every heuristic as two mods that merely resemble each other, so this one hashes the files. It's the only scan you start yourself, and it tells you what the spare copies cost before offering to tick them.</sub>
+
+<img src="web/public/images/library-folders.png" alt="The library's folder layout, with sections per subfolder that roll up and open" width="800">
+
+<sub>The folder layout: your mods folder as you actually arranged it. Sections roll up, and mods can be dragged between folders without leaving the app.</sub>
 
 </div>
 
@@ -146,6 +234,39 @@ uninstalled, and the game picks the change up on its next start.
 
 </div>
 
+## First run
+
+Nothing to configure before you start. The app goes looking for all nine
+games, reports what it found and where each keeps its mods, and asks the
+handful of questions that are worth asking - your language, which game to
+open on, how it should look and sound. Every one of them is a setting you
+can change later, and you can skip the lot.
+
+<div align="center">
+
+<img src="web/public/images/onboarding-games-found.png" alt="The setup walkthrough reporting nine games found, each with how many mods it already has" width="800">
+
+<sub>What it found, before you've told it anything.</sub>
+
+<img src="web/public/images/onboarding-look.png" alt="The setup walkthrough's look page: eight app themes, light/dark, UI sounds and plumbob trivia" width="800">
+
+<sub>Pick the look here or in Settings; it stays put whichever game you're managing.</sub>
+
+</div>
+
+After an update there's one card, shown once, saying what the new version
+brought. A release with nothing worth saying doesn't get one - which is the
+default, because a dialog on every patch is a dialog people learn to dismiss
+without reading.
+
+<div align="center">
+
+<img src="web/public/images/whats-new-card.png" alt="The what's-new card after an update, with artwork and a summary of what the release brought" width="800">
+
+<sub>It ships with the release rather than arriving from a server, so it works offline and it can't announce a feature your copy doesn't have.</sub>
+
+</div>
+
 ## Download
 
 Grab the latest version from the
@@ -167,14 +288,23 @@ Grab the latest version from the
 | The Sims 3 | `Documents\Electronic Arts\The Sims 3\Mods\Packages` | Needs the `Resource.cfg` framework; the app creates it for you |
 | The Sims Medieval | `<install>\The Sims Medieval\Mods\Packages` | Lives in the install folder (Documents only holds saves); needs a `Resource.cfg` in the install root - the app creates it for you |
 | The Sims 4 | `Documents\Electronic Arts\The Sims 4\Mods` | Created by the game on first launch; enable CC/script mods in game options |
+| SimCity 3000 | `<install>\Buildings` | Flat - the game doesn't read subfolders, and the app says so when a file lands in one |
+| SimCity 4 | `<install>\Plugins` and `Documents\SimCity 4\Plugins` | Load order is left exactly as a download arrives; sc4pac's own content is left to sc4pac |
+| SimCity Societies | `<install>\Import` | `.SCSPack` content, in the folder its own package installer uses |
+| SimCity (2013) | `<install>\SimCityUserData\Packages` | Under Program Files, so Windows may ask for administrator rights |
 
 All of these are best-effort defaults: every game's folder can be overridden
 in Settings, which covers custom drives, localized folder names,
 OneDrive-relocated Documents, and Wine/CrossOver prefixes on macOS/Linux.
 
-The core is game-agnostic by design: support for the **SimCity** series (and
-any other moddable game) can be added without touching the rest of the app.
-See [docs/adding-a-game.md](docs/adding-a-game.md).
+Pick which games you want on the sidebar in Settings; hiding one keeps every
+setting it has. For the SimCity side, what was verified against real
+installs and where support stops on purpose is written down in
+[docs/simcity-support-validation.md](docs/simcity-support-validation.md).
+
+The core is game-agnostic by design: any other moddable game can be added
+without touching the rest of the app. See
+[docs/adding-a-game.md](docs/adding-a-game.md).
 
 ## Building from source
 
@@ -243,7 +373,7 @@ Claude turns up in this repo's contributor list now and then. It writes comments
 
 ## Roadmap
 
-SimCity support · more games via the adapter system. See the
+More games via the adapter system. See the
 [open issues](https://github.com/rodrifelix99/TheSimsModManager/issues) for
 what's planned and to suggest more.
 

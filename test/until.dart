@@ -27,6 +27,12 @@ Future<void> untilGone(WidgetTester tester, Finder finder) =>
 Future<void> untilExists(WidgetTester tester, FileSystemEntity entity) =>
     _untilTrue(tester, entity.existsSync);
 
+/// The same wait for anything else the test can ask about - two
+/// outcomes at once, say, where a dialog either comes up or the call
+/// behind it returns and there is nothing to wait for.
+Future<void> untilTrue(WidgetTester tester, bool Function() done) =>
+    _untilTrue(tester, done);
+
 Future<void> _untilTrue(WidgetTester tester, bool Function() done) async {
   final deadline = DateTime.now().add(const Duration(seconds: 20));
   while (DateTime.now().isBefore(deadline)) {

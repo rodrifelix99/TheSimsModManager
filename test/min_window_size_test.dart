@@ -52,6 +52,9 @@ class _FakeAdapter extends FolderBasedGameAdapter {
   @override
   Future<String?> defaultModsPath() async => dir.path;
 
+  @override
+  bool get hasSaves => true;
+
   /// A save wide enough to stress every section of the saves screen:
   /// slot cards, the household detail panel, the stats tab.
   @override
