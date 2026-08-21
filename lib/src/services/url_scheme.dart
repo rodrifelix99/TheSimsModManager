@@ -107,20 +107,30 @@ void _writeDefault(RegistryKey hkcu, String path, String value) {
 /// running window to this entry.
 const String linuxDesktopFileName = 'com.felix.sims_mod_manager.desktop';
 
+/// The launch script the tarball ships beside the binary.
+const String linuxLauncherFileName = 'TheSimsModManager.sh';
+
 /// The entry itself. `%u` is what hands the address over, and the exec
 /// line is quoted because the tarball is unpacked wherever the user likes,
 /// spaces included.
+///
+/// [launcher] is what actually gets started, when there is one: the
+/// tarball's launch script points the library path at the folder's own
+/// `lib` before handing over, which a menu entry and an incoming link
+/// need every bit as much as a double-click does. Absent it, the binary
+/// is started directly, which is every build run out of `build/` and any
+/// copy that arrived without the script.
 ///
 /// Paths here are built with `p.posix` rather than `p`, which follows
 /// whichever platform it is running on: this describes a Linux file
 /// whatever machine works out what goes in it, and the tests run on all
 /// three.
-String linuxDesktopEntry(String executable) => '''
+String linuxDesktopEntry(String executable, {String? launcher}) => '''
 [Desktop Entry]
 Type=Application
 Name=Sims Mod Manager
 Comment=Manage your Sims mods and custom content
-Exec="$executable" %u
+Exec="${launcher ?? executable}" %u
 Icon=${p.posix.join(p.posix.dirname(executable), 'data', 'app_icon.png')}
 Terminal=false
 Categories=Utility;Game;
@@ -139,10 +149,28 @@ Directory linuxApplicationsDir({Map<String, String>? environment}) {
       'applications'));
 }
 
+/// The launch script beside [executable], if there is one that can
+/// actually be started. Executable and not merely present, because the
+/// download this defends against is the one unpacked without its
+/// permission bits: a script the desktop cannot exec is a worse Exec line
+/// than the binary, which the user has by then made runnable themselves.
+String? _launcherBeside(String executable) {
+  final path =
+      p.posix.join(p.posix.dirname(executable), linuxLauncherFileName);
+  try {
+    final stat = File(path).statSync();
+    if (stat.type != FileSystemEntityType.file) return null;
+    return stat.mode & 0x49 != 0 ? path : null; // any of the three x bits
+  } catch (_) {
+    return null;
+  }
+}
+
 Future<void> _registerLinux(String executable) async {
   final dir = linuxApplicationsDir();
   final file = File(p.join(dir.path, linuxDesktopFileName));
-  final wanted = linuxDesktopEntry(executable);
+  final wanted =
+      linuxDesktopEntry(executable, launcher: _launcherBeside(executable));
   if (await file.exists() && await file.readAsString() == wanted) return;
 
   await dir.create(recursive: true);

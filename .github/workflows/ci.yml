@@ -81,6 +81,26 @@ jobs:
           brew install create-dmg
           installer/macos/make_dmg.sh build/smoke.dmg \
             "build/macos/Build/Products/Release/The Sims Mod Manager.app"
+      # Same bargain for the Linux tarball, which the release workflow
+      # likewise assembles by script. The launcher gets exercised here as
+      # well: run with no bundle around it, it has to say so and refuse,
+      # which is the half of it a machine with no display can still check.
+      - if: matrix.target == 'linux'
+        run: |
+          installer/linux/package.sh build/smoke.tar.gz \
+            build/linux/x64/release/bundle 0.0.0
+          # Listed to a file rather than piped: grep -q closes the pipe on
+          # its first match, and under pipefail tar dying of SIGPIPE would
+          # fail this step the day the listing outgrows the pipe buffer.
+          tar -tzf build/smoke.tar.gz > build/smoke.list
+          for entry in TheSimsModManager.sh sims_mod_manager lib/libapp.so; do
+            grep -qx "TheSimsModManager-0.0.0/$entry" build/smoke.list
+          done
+          # No display for the launcher to put a dialog on: it has one for
+          # the desktop entry's sake, and zenity would wait here for a
+          # click nobody is coming to give it.
+          ! DISPLAY= WAYLAND_DISPLAY= installer/linux/TheSimsModManager.sh \
+            2> /dev/null
 
   site:
     name: Build the website

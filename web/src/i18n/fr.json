@@ -82,7 +82,7 @@
   "download.getZip": "Télécharger le .zip",
   "download.getDmg": "Télécharger le .dmg",
   "download.macos.p": "Signée et notariée par Apple. Ouvre le .dmg et <b>glisse l’appli dans Applications</b>, puis ouvre-la comme n’importe quelle appli.",
-  "download.linux.p": "Décompresse l’archive et lance <b>sims_mod_manager</b>. Marche aussi avec les jeux installés sous Wine/CrossOver.",
+  "download.linux.p": "Décompresse le dossier et lance <b>TheSimsModManager.sh</b>. Marche aussi avec les jeux installés sous Wine/CrossOver.",
   "download.getTarGz": "Télécharger le .tar.gz",
   "download.requirements": "Il te faut Windows 10 64 bits ou plus récent, macOS 10.15 Catalina ou plus récent, ou une distro Linux 64 bits récente.",
   "download.note": "Chaque version est compilée automatiquement pour les trois plateformes, et l’appli te prévient quand une mise à jour sort.",

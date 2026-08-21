@@ -48,6 +48,25 @@ void main() {
           contains('Icon=/opt/smm/data/app_icon.png'));
     });
 
+    test('the launch script is what starts, when the download brought one', () {
+      final entry = linuxDesktopEntry('/opt/smm/sims_mod_manager',
+          launcher: '/opt/smm/TheSimsModManager.sh');
+      expect(entry, contains('Exec="/opt/smm/TheSimsModManager.sh" %u'));
+      // The icon is still the binary's own folder, which is the same
+      // folder either way.
+      expect(entry, contains('Icon=/opt/smm/data/app_icon.png'));
+    });
+
+    test('the script it names is the one the tarball ships', () {
+      // package.sh copies this file in beside the binary. Rename one
+      // without the other and the entry quietly points at nothing, on the
+      // one platform the suite cannot start the app on.
+      final dir = p.join('installer', 'linux');
+      expect(File(p.join(dir, linuxLauncherFileName)).existsSync(), isTrue);
+      expect(File(p.join(dir, 'package.sh')).readAsStringSync(),
+          contains(linuxLauncherFileName));
+    });
+
     test('the file is named after the GTK application id', () {
       // linux/CMakeLists.txt sets the same string as APPLICATION_ID; the
       // desktop environment ties a running window to this entry by it.

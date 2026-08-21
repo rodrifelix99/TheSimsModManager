@@ -165,10 +165,10 @@ jobs:
       - run: flutter build linux --release
       - name: Package tar.gz
         run: |
-          mkdir -p dist
           VERSION="${GITHUB_REF_NAME#v}"
-          tar -czf "dist/TheSimsModManager-$VERSION-linux-x64.tar.gz" \
-            -C build/linux/x64/release/bundle .
+          installer/linux/package.sh \
+            "dist/TheSimsModManager-$VERSION-linux-x64.tar.gz" \
+            build/linux/x64/release/bundle "$VERSION"
       - uses: actions/upload-artifact@v4
         with:
           name: linux
@@ -193,6 +193,6 @@ jobs:
             | Windows installer | `*-windows-setup.exe` |
             | Windows portable | `*-windows-portable.zip`: extract and run `sims_mod_manager.exe` |
             | macOS | `*-macos.dmg`: open it and drag the app into Applications |
-            | Linux | `*-linux-x64.tar.gz`: extract and run `sims_mod_manager` |
+            | Linux | `*-linux-x64.tar.gz`: extract the folder and run `TheSimsModManager.sh` |
 
             > **Windows:** the app is not code-signed yet, so SmartScreen may warn on first run; choose *More info → Run anyway*.
