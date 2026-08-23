@@ -375,25 +375,26 @@ bool isPng(Uint8List b) =>
 bool isJpeg(Uint8List b) =>
     b.length >= 3 && b[0] == 0xFF && b[1] == 0xD8 && b[2] == 0xFF;
 
-/// Pixel area (width x height) of a PNG or JPEG, read from its headers
-/// without decoding. 0 when the dimensions can't be determined; such an
-/// image still counts, it just loses to anything measurable.
-int imageArea(Uint8List b) {
+/// Pixel dimensions of a PNG or JPEG, read from its headers without
+/// decoding, or null when they can't be determined. Cheap enough to ask
+/// on every build: it is a handful of byte reads for a PNG and a short
+/// walk of the segment table for a JPEG.
+(int, int)? imageSize(Uint8List b) {
   if (isPng(b)) {
     // IHDR is always the first chunk: width/height big-endian at 16/20.
-    if (b.length < 24) return 0;
+    if (b.length < 24) return null;
     if (b[12] != 0x49 || b[13] != 0x48 || b[14] != 0x44 || b[15] != 0x52) {
-      return 0;
+      return null;
     }
     final d = ByteData.sublistView(b);
-    return d.getUint32(16) * d.getUint32(20);
+    return (d.getUint32(16), d.getUint32(20));
   }
   if (isJpeg(b)) {
     // Walk segments to a start-of-frame marker (0xC0-0xCF minus the
     // huffman/arithmetic ones), which holds height/width big-endian.
     var pos = 2;
     while (pos + 9 < b.length) {
-      if (b[pos] != 0xFF) return 0;
+      if (b[pos] != 0xFF) return null;
       final marker = b[pos + 1];
       if (marker >= 0xC0 &&
           marker <= 0xCF &&
@@ -401,12 +402,20 @@ int imageArea(Uint8List b) {
           marker != 0xC8 &&
           marker != 0xCC) {
         final d = ByteData.sublistView(b);
-        return d.getUint16(pos + 5) * d.getUint16(pos + 7);
+        return (d.getUint16(pos + 7), d.getUint16(pos + 5));
       }
       pos += 2 + ((b[pos + 2] << 8) | b[pos + 3]);
     }
   }
-  return 0;
+  return null;
+}
+
+/// Pixel area (width x height) of a PNG or JPEG. 0 when the dimensions
+/// can't be determined; such an image still counts, it just loses to
+/// anything measurable.
+int imageArea(Uint8List b) {
+  final size = imageSize(b);
+  return size == null ? 0 : size.$1 * size.$2;
 }
 
 Uint8List readAt(RandomAccessFile raf, int offset, int length) {

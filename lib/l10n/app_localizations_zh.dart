@@ -191,6 +191,18 @@ class LZh extends L {
   String get shopLinkCopied => '链接已复制';
 
   @override
+  String get shotOpen => '点击放大';
+
+  @override
+  String get shotClose => '关闭';
+
+  @override
+  String get shotPrevious => '上一张';
+
+  @override
+  String get shotNext => '下一张';
+
+  @override
   String get sidebarGames => '游戏';
 
   @override

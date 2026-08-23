@@ -201,6 +201,18 @@ class LDe extends L {
   String get shopLinkCopied => 'Link kopiert';
 
   @override
+  String get shotOpen => 'Zum Vergrößern klicken';
+
+  @override
+  String get shotClose => 'Schließen';
+
+  @override
+  String get shotPrevious => 'Zurück';
+
+  @override
+  String get shotNext => 'Weiter';
+
+  @override
   String get sidebarGames => 'SPIELE';
 
   @override

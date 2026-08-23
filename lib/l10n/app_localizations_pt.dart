@@ -200,6 +200,18 @@ class LPt extends L {
   String get shopLinkCopied => 'Link copiado';
 
   @override
+  String get shotOpen => 'Clique para ampliar';
+
+  @override
+  String get shotClose => 'Fechar';
+
+  @override
+  String get shotPrevious => 'Anterior';
+
+  @override
+  String get shotNext => 'Próxima';
+
+  @override
   String get sidebarGames => 'JOGOS';
 
   @override

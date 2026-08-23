@@ -206,6 +206,18 @@ class LRu extends L {
   String get shopLinkCopied => 'Ссылка скопирована';
 
   @override
+  String get shotOpen => 'Нажми, чтобы увеличить';
+
+  @override
+  String get shotClose => 'Закрыть';
+
+  @override
+  String get shotPrevious => 'Назад';
+
+  @override
+  String get shotNext => 'Вперёд';
+
+  @override
   String get sidebarGames => 'ИГРЫ';
 
   @override

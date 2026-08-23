@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
+import 'package:sims_mod_manager/src/core/dbpf.dart' show imageSize;
 import 'package:sims_mod_manager/src/core/mod.dart';
 import 'package:sims_mod_manager/src/core/package_insight.dart';
 import 'package:sims_mod_manager/src/games/the_sims/sims_adapters.dart';
@@ -323,5 +324,16 @@ void main() {
     ];
     expect(await adapter.inspectMods(mods), isEmpty);
     expect(await adapter.inspectMods(const []), isEmpty);
+  });
+
+  // The mod page sizes its artwork frame off this, so width and height
+  // being the right way round is the whole of it: an area cannot tell.
+  test('imageSize reads the shape of a picture, not just its area', () {
+    expect(imageSize(fakePng(300, 400)), (300, 400));
+    // JPEG writes height before width in its start-of-frame segment,
+    // which is the trap.
+    expect(imageSize(fakeJpeg(800, 100)), (800, 100));
+    expect(imageSize(junk), isNull);
+    expect(imageSize(Uint8List(0)), isNull);
   });
 }

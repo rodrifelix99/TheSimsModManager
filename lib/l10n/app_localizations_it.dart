@@ -200,6 +200,18 @@ class LIt extends L {
   String get shopLinkCopied => 'Link copiato';
 
   @override
+  String get shotOpen => 'Clicca per ingrandire';
+
+  @override
+  String get shotClose => 'Chiudi';
+
+  @override
+  String get shotPrevious => 'Precedente';
+
+  @override
+  String get shotNext => 'Successiva';
+
+  @override
   String get sidebarGames => 'GIOCHI';
 
   @override

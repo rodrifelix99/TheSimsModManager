@@ -30,6 +30,15 @@ List<String> linuxSteamRoots(String home) => [
           'Steam'),
     ];
 
+/// Every Steam library on a Linux machine: the client's own folders under
+/// [home] plus whatever its `libraryfolders.vdf` registers. A second
+/// library on a roomier drive (`/mnt/games/SteamLibrary`) is unguessable
+/// from [home] alone, and Proton keeps a game's prefix - which is where
+/// the Windows game's saves live - in the library the game was installed
+/// into, so a shelf moved off the home drive takes its user data with it.
+Future<List<String>> linuxSteamLibraries(String home) =>
+    steamLibraries(steamRootsOverride: linuxSteamRoots(home));
+
 /// The Program Files roots to look in, both architectures. The environment
 /// variables come first so a Windows installed on another drive works.
 Set<String> programFilesRoots({List<String>? override}) =>

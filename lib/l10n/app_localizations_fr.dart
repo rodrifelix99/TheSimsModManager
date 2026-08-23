@@ -201,6 +201,18 @@ class LFr extends L {
   String get shopLinkCopied => 'Lien copié';
 
   @override
+  String get shotOpen => 'Clique pour agrandir';
+
+  @override
+  String get shotClose => 'Fermer';
+
+  @override
+  String get shotPrevious => 'Précédente';
+
+  @override
+  String get shotNext => 'Suivante';
+
+  @override
   String get sidebarGames => 'JEUX';
 
   @override

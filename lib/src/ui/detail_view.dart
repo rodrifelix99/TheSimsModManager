@@ -1,7 +1,10 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 
 import '../core/conflicts.dart' show ConflictReason;
+import '../core/dbpf.dart' show imageSize;
 import '../core/mod_advisories.dart' show AdvisoryStatus, ModAdvisory;
 import '../core/game_adapter.dart' show disabledSuffix;
 import '../core/mod.dart';
@@ -44,7 +47,9 @@ class DetailView extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(width: 300, child: _leftColumn(context, t, c, l, mod)),
+              SizedBox(
+                  width: _artworkWidth,
+                  child: _leftColumn(context, t, c, l, mod)),
               const SizedBox(width: 26),
               Expanded(child: _rightColumn(t, c, l, mod)),
             ],
@@ -94,12 +99,15 @@ class DetailView extends StatelessWidget {
 
   Widget _leftColumn(
       BuildContext context, GameTheme t, AppController c, L l, Mod mod) {
+    final art = c.thumbnailOf(mod);
+    final frame = _artworkFrame(art);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Container(
-          height: 220,
+          height: frame.height,
           decoration: BoxDecoration(
+            color: t.surfaceAlt,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
@@ -113,25 +121,40 @@ class DetailView extends StatelessWidget {
             children: [
               ModThumb(
                 seed: mod.name,
-                bytes: c.thumbnailOf(mod),
+                bytes: art,
                 borderRadius: BorderRadius.circular(16),
+                // The frame is the artwork's own shape, so contain
+                // neither crops nor letterboxes; the two only part
+                // company at the ends of the clamp.
+                fit: BoxFit.contain,
               ),
               Positioned(
-                left: 14,
-                bottom: 14,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: .28),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    mod.name,
-                    style: TextStyle(
-                      fontFamily: 'monospace',
-                      fontSize: 10.5,
-                      color: Colors.white.withValues(alpha: .9),
+                left: 14 + frame.inset.left,
+                bottom: 14 + frame.inset.bottom,
+                // Bounded on the right as well, so the chip is the width
+                // of the name until the name is longer than the picture
+                // and then stops at its edge. Unbounded it drew straight
+                // out over the column beside it.
+                right: 14 + frame.inset.right,
+                child: Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  // Named so a test can measure where it landed.
+                  child: Container(
+                    key: const Key('mod-artwork-caption'),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: .28),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      mod.name,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: 10.5,
+                        color: Colors.white.withValues(alpha: .9),
+                      ),
                     ),
                   ),
                 ),
@@ -1025,4 +1048,73 @@ class DetailView extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The width the artwork frame is drawn at - the left column's own.
+const double _artworkWidth = 300;
+
+/// Shortest and tallest the frame is allowed to get. A picture outside
+/// them is contained rather than cropped, which is the one case where
+/// the well behind it shows: below the floor there is no room left for
+/// the file-name chip, and above the ceiling the page turns into a
+/// column of one picture.
+const double _minArtworkHeight = 140;
+const double _maxArtworkHeight = 420;
+
+/// The room the file-name chip and its margin want along either axis.
+/// A picture with less than this to spare cannot hold the caption, so
+/// the caption is laid out against the frame instead.
+const double _captionRoom = 40;
+
+/// How a mod's artwork frame is drawn: how tall it is, and how far in
+/// from its edges the picture inside it actually starts.
+class _ArtworkFrame {
+  const _ArtworkFrame(this.height, {this.inset = EdgeInsets.zero});
+
+  final double height;
+
+  /// Nothing at all in the ordinary case - the frame is the picture's
+  /// own shape, so the two have the same edges. It fills only at the
+  /// ends of the clamp, where the picture is contained and the well
+  /// behind it shows; the file-name chip is laid out against this
+  /// rather than against the frame, so it never captions the well.
+  final EdgeInsets inset;
+}
+
+/// The frame for one mod's artwork: the shape the picture actually has,
+/// so nothing of it is cropped away.
+///
+/// Sims 4 CAS thumbnails are portrait and the frame was a fixed
+/// landscape box, so the middle band of a render was all anybody saw of
+/// it (issue #23). Read from the file's own header rather than from a
+/// decoded image, so the box is the right size on the first frame and
+/// never resizes under the reader. Artwork whose dimensions can't be
+/// read - and the generated stripes, which have no shape of their own -
+/// keeps the box the page has always had.
+_ArtworkFrame _artworkFrame(Uint8List? bytes) {
+  const fallback = _ArtworkFrame(220);
+  if (bytes == null || bytes.isEmpty) return fallback;
+  final size = imageSize(bytes);
+  if (size == null) return fallback;
+  final (width, height) = size;
+  if (width <= 0 || height <= 0) return fallback;
+  final wanted = _artworkWidth * height / width;
+  final frame = wanted.clamp(_minArtworkHeight, _maxArtworkHeight);
+  if (frame == wanted) return _ArtworkFrame(frame);
+  // Clamped, so the picture is contained: too tall and it loses width,
+  // too wide and it loses height. Either way the caption is inset onto
+  // the picture - unless the picture has less room than the caption
+  // needs, in which case it goes back to the frame's own corner rather
+  // than being squeezed out of the thing it is captioning.
+  if (frame < wanted) {
+    final drawn = frame * width / height;
+    return _ArtworkFrame(frame,
+        inset: drawn < _captionRoom
+            ? EdgeInsets.zero
+            : EdgeInsets.symmetric(horizontal: (_artworkWidth - drawn) / 2));
+  }
+  return _ArtworkFrame(frame,
+      inset: wanted < _captionRoom
+          ? EdgeInsets.zero
+          : EdgeInsets.symmetric(vertical: (frame - wanted) / 2));
 }

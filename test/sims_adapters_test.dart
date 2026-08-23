@@ -26,6 +26,20 @@ void main() {
   File makeFile(List<String> segments) =>
       File(p.joinAll([docs.path, ...segments]))..createSync(recursive: true);
 
+  /// Steam's own record of where its libraries are, as it writes it:
+  /// nested blocks keyed by index, Windows separators doubled.
+  String libraryFoldersVdf(List<String> paths) => [
+        '"libraryfolders"',
+        '{',
+        for (final (index, path) in paths.indexed) ...[
+          '\t"$index"',
+          '\t{',
+          '\t\t"path"\t\t"${path.replaceAll('\\', '\\\\')}"',
+          '\t}',
+        ],
+        '}',
+      ].join('\n');
+
   group('Sims 3 folder resolution', () {
     test('finds localized game folders (e.g. Los Sims 3)', () async {
       make(['Electronic Arts', 'Los Sims 3', 'Mods', 'Packages']);
@@ -366,6 +380,37 @@ void main() {
 
       expect(candidates, hasLength(2));
       expect(candidates.first.path, contains('native-docs'));
+    });
+
+    test('finds a prefix in a Steam library on another drive', () async {
+      // A library on a roomier drive is recorded in libraryfolders.vdf
+      // and nowhere else, and Proton keeps the prefix - the whole of the
+      // game's user data, saves included - beside the game it belongs to.
+      final library = make(['mnt', 'games', 'SteamLibrary']);
+      makeFile(['.local', 'share', 'Steam', 'config', 'libraryfolders.vdf'])
+          .writeAsStringSync(libraryFoldersVdf([
+        p.join(docs.path, '.local', 'share', 'Steam'),
+        library.path,
+      ]));
+      final gameDir = Directory(p.joinAll([
+        library.path, 'steamapps', 'compatdata', '1222670', 'pfx', 'drive_c',
+        'users', 'steamuser', 'Documents', 'Electronic Arts', 'The Sims 4', //
+      ]));
+      Directory(p.join(gameDir.path, 'Mods')).createSync(recursive: true);
+      Directory(p.join(gameDir.path, 'saves')).createSync(recursive: true);
+      // Unreadable, which is enough: a slot that won't parse is still a
+      // save, and this is about the folder being looked in at all.
+      File(p.join(gameDir.path, 'saves', 'Slot_0000000A.save'))
+          .writeAsStringSync('not a dbpf');
+      final adapter =
+          Sims4Adapter(documentsOverride: nativeDocs, homeOverride: docs.path);
+
+      final dir = await adapter.resolveModsDirectory();
+      expect(dir, isNotNull);
+      expect(dir!.path, p.join(gameDir.path, 'Mods'));
+
+      final saves = await adapter.listSaveGames();
+      expect(saves.map((save) => save.name), ['Slot_0000000A']);
     });
 
     test('does not double-count the ~/.steam/steam symlinked library',

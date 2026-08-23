@@ -417,6 +417,30 @@ abstract class L {
   /// **'Link copied'**
   String get shopLinkCopied;
 
+  /// No description provided for @shotOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Click to enlarge'**
+  String get shotOpen;
+
+  /// No description provided for @shotClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get shotClose;
+
+  /// No description provided for @shotPrevious.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous'**
+  String get shotPrevious;
+
+  /// No description provided for @shotNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get shotNext;
+
   /// No description provided for @sidebarGames.
   ///
   /// In en, this message translates to:

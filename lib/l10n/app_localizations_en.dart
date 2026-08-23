@@ -200,6 +200,18 @@ class LEn extends L {
   String get shopLinkCopied => 'Link copied';
 
   @override
+  String get shotOpen => 'Click to enlarge';
+
+  @override
+  String get shotClose => 'Close';
+
+  @override
+  String get shotPrevious => 'Previous';
+
+  @override
+  String get shotNext => 'Next';
+
+  @override
   String get sidebarGames => 'GAMES';
 
   @override

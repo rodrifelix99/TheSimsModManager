@@ -200,6 +200,18 @@ class LEs extends L {
   String get shopLinkCopied => 'Enlace copiado';
 
   @override
+  String get shotOpen => 'Haz clic para ampliar';
+
+  @override
+  String get shotClose => 'Cerrar';
+
+  @override
+  String get shotPrevious => 'Anterior';
+
+  @override
+  String get shotNext => 'Siguiente';
+
+  @override
   String get sidebarGames => 'JUEGOS';
 
   @override

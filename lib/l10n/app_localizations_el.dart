@@ -200,6 +200,18 @@ class LEl extends L {
   String get shopLinkCopied => 'Ο σύνδεσμος αντιγράφηκε';
 
   @override
+  String get shotOpen => 'Κάνε κλικ για μεγέθυνση';
+
+  @override
+  String get shotClose => 'Κλείσιμο';
+
+  @override
+  String get shotPrevious => 'Προηγούμενη';
+
+  @override
+  String get shotNext => 'Επόμενη';
+
+  @override
   String get sidebarGames => 'ΠΑΙΧΝΙΔΙΑ';
 
   @override

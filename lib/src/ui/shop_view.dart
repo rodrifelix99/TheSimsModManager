@@ -17,6 +17,7 @@ import 'install_folder_dialog.dart';
 import 'l10n.dart';
 import 'mod_presentation.dart';
 import 'prose_text.dart';
+import 'shot_viewer.dart';
 import 'widgets.dart';
 
 /// The Exchange: the in-app storefront for listings creators publish
@@ -1803,9 +1804,16 @@ class _GalleryState extends State<_Gallery> {
             // Contained rather than cropped: a screenshot is someone's
             // proof of what their mod does, and the interface they were
             // showing off sits right at its edges.
-            child: _cover(mod, BorderRadius.zero,
-                index: mod.imageCount == 0 ? null : _index,
-                fit: BoxFit.contain),
+            child: _Enlargeable(
+              // Named so a test can reach the frame itself rather than
+              // whichever of the pictures under it is showing.
+              key: const ValueKey('shop-shot-frame'),
+              mod: mod,
+              index: _index,
+              child: _cover(mod, BorderRadius.zero,
+                  index: mod.imageCount == 0 ? null : _index,
+                  fit: BoxFit.contain),
+            ),
           ),
         ),
         if (mod.imageCount > 1) ...[
@@ -1853,6 +1861,88 @@ class _GalleryState extends State<_Gallery> {
       ],
     );
   }
+}
+
+/// The gallery's big frame, with the whole window behind it a click
+/// away. Wrapped around the picture rather than built into [_cover],
+/// because the thumbnail strip uses that same helper and a chip 86px
+/// wide is how you *choose* a screenshot, not how you read one.
+///
+/// A listing with no screenshots at all draws the generated stripes,
+/// which are worth exactly nothing at full size, so there is nothing to
+/// open and the frame stays a picture rather than becoming a button.
+class _Enlargeable extends StatelessWidget {
+  const _Enlargeable({
+    super.key,
+    required this.mod,
+    required this.index,
+    required this.child,
+  });
+
+  final ShopMod mod;
+  final int index;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    if (mod.imageCount == 0) return child;
+    final l = L.of(context);
+    return HoverBuilder(
+      cursor: SystemMouseCursors.click,
+      builder: (context, hovered) => Semantics(
+        button: true,
+        label: l.shotOpen,
+        child: GestureDetector(
+          onTap: () => showShotViewer(context,
+              shots: shopShotProviders(mod), seed: mod.name, index: index),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              child,
+              // The badge is the whole affordance: a tooltip over a
+              // frame this size pops up whenever the pointer crosses it
+              // on the way to the buttons underneath.
+              Positioned(
+                right: 10,
+                bottom: 10,
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 150),
+                  opacity: hovered ? 1 : 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(7),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: .54),
+                      borderRadius: BorderRadius.circular(9),
+                    ),
+                    child: const Icon(Icons.zoom_out_map_rounded,
+                        size: 16, color: Colors.white),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A listing's screenshots as image providers, in the order the gallery
+/// shows them.
+///
+/// The invented listings carry their pictures as bytes and a real one is
+/// fetched, which is the one difference the viewer would otherwise have
+/// to know about. Deliberately the same providers [_cover] builds, so a
+/// screenshot already on screen opens out of the image cache rather than
+/// off the network a second time.
+List<ImageProvider> shopShotProviders(ShopMod mod) {
+  if (mod.demoImages.isNotEmpty) {
+    return [for (final bytes in mod.demoImages) MemoryImage(bytes)];
+  }
+  return [
+    for (var i = 0; i < mod.imagePaths.length; i++)
+      NetworkImage(mod.imageUri(i).toString()),
+  ];
 }
 
 /// [fit] has no default on purpose: a card crops to its slot and a frame

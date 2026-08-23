@@ -75,7 +75,9 @@ Future<Directory?> documentsDir({Directory? override}) async {
 /// common launchers (paths per the s4lt reference and launcher docs):
 ///
 /// - Steam Proton: `<library>/steamapps/compatdata/<appid>/pfx`, for the
-///   classic library locations plus the Flatpak Steam sandbox
+///   classic library locations, the Flatpak Steam sandbox, and every
+///   other library the client's `libraryfolders.vdf` records - a game
+///   installed to a second drive keeps its prefix there too
 /// - Heroic: `~/.config/heroic/prefixes/<game>[/pfx]` (also Flatpak and
 ///   the newer `~/Games/Heroic/Prefixes/default/<game>`)
 /// - Lutris: `~/Games/<game>` (one prefix per game)
@@ -92,7 +94,7 @@ Future<List<Directory>> winePrefixDocumentsDirs(String home) async {
     }
   }
 
-  for (final library in linuxSteamRoots(home)) {
+  for (final library in await linuxSteamLibraries(home)) {
     await addChildren(p.join(library, 'steamapps', 'compatdata'));
   }
   await addChildren(p.join(home, '.config', 'heroic', 'prefixes'));
@@ -1358,7 +1360,7 @@ class SimsMedievalAdapter extends InstallFolderSimsAdapter {
     // Linux Steam library (only the saves live inside the prefix).
     final home = homeOverride ?? Platform.environment['HOME'];
     if (home != null) {
-      for (final library in linuxSteamRoots(home)) {
+      for (final library in await linuxSteamLibraries(home)) {
         final dir = Directory(
             p.join(library, 'steamapps', 'common', 'The Sims Medieval'));
         if (await dir.exists()) found.add(dir);

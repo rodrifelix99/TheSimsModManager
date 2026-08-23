@@ -200,6 +200,18 @@ class LNl extends L {
   String get shopLinkCopied => 'Link gekopieerd';
 
   @override
+  String get shotOpen => 'Klik om te vergroten';
+
+  @override
+  String get shotClose => 'Sluiten';
+
+  @override
+  String get shotPrevious => 'Vorige';
+
+  @override
+  String get shotNext => 'Volgende';
+
+  @override
   String get sidebarGames => 'SPELLEN';
 
   @override

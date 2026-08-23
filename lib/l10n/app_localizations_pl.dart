@@ -207,6 +207,18 @@ class LPl extends L {
   String get shopLinkCopied => 'Skopiowano link';
 
   @override
+  String get shotOpen => 'Kliknij, żeby powiększyć';
+
+  @override
+  String get shotClose => 'Zamknij';
+
+  @override
+  String get shotPrevious => 'Poprzednie';
+
+  @override
+  String get shotNext => 'Następne';
+
+  @override
   String get sidebarGames => 'GRY';
 
   @override

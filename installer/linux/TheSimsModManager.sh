@@ -34,14 +34,19 @@ say() {
 # in: an extraction that stopped halfway leaves lib and data standing and
 # empty, and a name that is only a name would let that through to exactly
 # the loader error this is here to replace.
+#
+# lib is the tail of the archive and half its size, so an unpack that runs
+# out of room loses that and nothing else - which is what the Steam Deck
+# report this was written for turned out to be, twice over.
 for piece in \
   sims_mod_manager \
   lib/libapp.so \
   data/flutter_assets/AssetManifest.bin
 do
   [ -e "$here/$piece" ] && continue
-  say "This folder is missing $piece. Extract the whole archive again and
-keep sims_mod_manager, lib and data together in one folder."
+  say "This folder is missing $piece. Either the archive did not finish
+unpacking - it needs about 200 MB of free space - or the app was moved out
+of the folder it came in. Extract the download again and start it there."
   exit 1
 done
 

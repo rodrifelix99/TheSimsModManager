@@ -110,6 +110,10 @@
   "shopBack": "Back to the shelves",
   "shopCopyLink": "Copy link",
   "shopLinkCopied": "Link copied",
+  "shotOpen": "Click to enlarge",
+  "shotClose": "Close",
+  "shotPrevious": "Previous",
+  "shotNext": "Next",
   "sidebarGames": "GAMES",
   "sidebarNotInstalled": "not installed · {detail}",
   "@sidebarNotInstalled": {

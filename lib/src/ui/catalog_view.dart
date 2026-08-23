@@ -5,6 +5,7 @@ import 'app_controller.dart';
 import 'game_skin.dart';
 import 'game_theme.dart';
 import 'l10n.dart';
+import 'shot_viewer.dart';
 import 'widgets.dart';
 
 /// The catalog half of The Exchange: mods indexed by somebody else's
@@ -524,9 +525,13 @@ class CatalogDetailPanel extends StatelessWidget {
   }
 }
 
-/// The screenshots, scrolled sideways. A horizontal strip rather than a
-/// lightbox because these are a glance at what the mod looks like, not
-/// something to study.
+/// The screenshots, scrolled sideways: a strip is the glance at what the
+/// mod looks like, and a click on any of them is the look at it.
+///
+/// The strip crops each picture to 190px so the row reads as a row, and
+/// what a crop takes off is often the half the screenshot was taken for
+/// (issue #24) - so the viewer gets the whole set rather than the one
+/// that was clicked, opened on that one.
 class _Gallery extends StatelessWidget {
   const _Gallery({required this.theme, required this.urls});
 
@@ -541,19 +546,43 @@ class _Gallery extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         itemCount: urls.length,
         separatorBuilder: (context, i) => const SizedBox(width: 10),
-        itemBuilder: (context, i) => ClipRRect(
-          borderRadius: BorderRadius.circular(10),
-          child: Image.network(
-            urls[i].toString(),
-            height: 190,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stack) => const SizedBox.shrink(),
-            loadingBuilder: (context, child, progress) => progress == null
-                ? child
-                : SizedBox(
-                    width: 280,
-                    child: StripeThumb(seed: urls[i].toString()),
-                  ),
+        itemBuilder: (context, i) => HoverBuilder(
+          cursor: SystemMouseCursors.click,
+          builder: (context, hovered) => GestureDetector(
+            onTap: () => showShotViewer(
+              context,
+              shots: [for (final url in urls) NetworkImage(url.toString())],
+              seed: urls[i].toString(),
+              index: i,
+            ),
+            // The ring is drawn in front rather than as a border: this
+            // strip is exactly as tall as the pictures in it, and a
+            // border would take its two pixels out of them.
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              foregroundDecoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                    width: 2,
+                    color: hovered ? theme.accent : Colors.transparent),
+              ),
+              decoration:
+                  BoxDecoration(borderRadius: BorderRadius.circular(10)),
+              clipBehavior: Clip.antiAlias,
+              child: Image.network(
+                urls[i].toString(),
+                height: 190,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stack) =>
+                    const SizedBox.shrink(),
+                loadingBuilder: (context, child, progress) => progress == null
+                    ? child
+                    : SizedBox(
+                        width: 280,
+                        child: StripeThumb(seed: urls[i].toString()),
+                      ),
+              ),
+            ),
           ),
         ),
       ),

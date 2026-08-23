@@ -4,7 +4,14 @@ import 'dart:ui' show Size;
 
 import 'package:flutter/gestures.dart' show PointerDeviceKind;
 import 'package:flutter/material.dart'
-    show AlertDialog, AnimatedOpacity, IconData, Icons, ListView;
+    show
+        AlertDialog,
+        AnimatedOpacity,
+        IconData,
+        Icons,
+        InteractiveViewer,
+        ListView;
+import 'package:flutter/services.dart' show LogicalKeyboardKey;
 import 'package:flutter/widgets.dart' as widgets;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
@@ -1136,6 +1143,164 @@ void main() {
     // And the last one takes the tap that puts it in the big frame.
     await tester.tap(find.byKey(const widgets.ValueKey('shop-shot-9')));
     await tester.pump();
+  });
+
+  testWidgets('a screenshot opens over the window and steps through the set',
+      (tester) async {
+    tester.view.physicalSize = const Size(1280, 824);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    SharedPreferences.setMockInitialValues({'soundEffects': false});
+    final tempDir = Directory.systemTemp.createTempSync('shop_zoom');
+    addTearDown(() => tempDir.deleteSync(recursive: true));
+
+    final registry = GameRegistry([_FakeAdapter(tempDir)]);
+    final settings = await SettingsStore.load();
+
+    await tester.runAsync(() async {
+      await tester.pumpWidget(ModManagerApp(
+        registry: registry,
+        settings: settings,
+        fetchShop: () async => [
+          _listing(imagePaths: const [
+            'mods/u1/l1/images/1.png',
+            'mods/u1/l1/images/2.png',
+            'mods/u1/l1/images/3.png',
+          ]),
+        ],
+      ));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
+    await _openShop(tester);
+    await tester.tap(find.text('Camera Fix'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    // Nothing of the viewer is on screen until the frame is clicked -
+    // the gallery is a picture, not a page with a lightbox already on it.
+    expect(find.text('1 / 3'), findsNothing);
+    final framed =
+        tester.getRect(find.byKey(const widgets.ValueKey('shop-shot-frame')));
+
+    await tester.tap(find.byKey(const widgets.ValueKey('shop-shot-frame')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('1 / 3'), findsOneWidget);
+
+    // Which is the whole of issue #24: the gallery column is 380px wide
+    // because the text beside it is why the page was opened, and this is
+    // where the picture gets the window instead.
+    final opened = tester.getRect(find.byType(InteractiveViewer));
+    expect(opened.width, greaterThan(framed.width * 2));
+    expect(opened.height, greaterThan(framed.height * 2));
+
+    // The arrows wrap, so the set can be walked either way round from
+    // whichever screenshot was clicked.
+    await tester.tap(find.byKey(const widgets.ValueKey('shot-viewer-next')));
+    await tester.pump();
+    expect(find.text('2 / 3'), findsOneWidget);
+    await tester
+        .tap(find.byKey(const widgets.ValueKey('shot-viewer-previous')));
+    await tester.pump();
+    await tester
+        .tap(find.byKey(const widgets.ValueKey('shot-viewer-previous')));
+    await tester.pump();
+    expect(find.text('3 / 3'), findsOneWidget);
+
+    // The arrow keys do the same thing, which is how anybody reading a
+    // set of ten actually walks it.
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+    await tester.pump();
+    expect(find.text('1 / 3'), findsOneWidget);
+
+    // And it closes onto the listing it was opened from rather than
+    // back to the shelves.
+    await tester.tap(find.byKey(const widgets.ValueKey('shot-viewer-close')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('3 / 3'), findsNothing);
+    expect(find.text('Camera Fix'), findsWidgets);
+    expect(find.text('Back to the shelves'), findsOneWidget);
+  });
+
+  testWidgets('a listing with one screenshot opens it without the arrows',
+      (tester) async {
+    tester.view.physicalSize = const Size(1280, 824);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    SharedPreferences.setMockInitialValues({'soundEffects': false});
+    final tempDir = Directory.systemTemp.createTempSync('shop_zoom_one');
+    addTearDown(() => tempDir.deleteSync(recursive: true));
+
+    final registry = GameRegistry([_FakeAdapter(tempDir)]);
+    final settings = await SettingsStore.load();
+
+    await tester.runAsync(() async {
+      await tester.pumpWidget(ModManagerApp(
+        registry: registry,
+        settings: settings,
+        fetchShop: () async =>
+            [_listing(imagePaths: const ['mods/u1/l1/images/1.png'])],
+      ));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
+    await _openShop(tester);
+    await tester.tap(find.text('Camera Fix'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    await tester.tap(find.byKey(const widgets.ValueKey('shop-shot-frame')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byKey(const widgets.ValueKey('shot-viewer-close')),
+        findsOneWidget);
+    // No counter and no arrows: one of one is not a set to step through.
+    expect(find.text('1 / 1'), findsNothing);
+    expect(
+        find.byKey(const widgets.ValueKey('shot-viewer-next')), findsNothing);
+
+    // Escape is the way out everything else in the app is closed with,
+    // and it has to still work with the viewer holding the focus.
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byKey(const widgets.ValueKey('shot-viewer-close')),
+        findsNothing);
+  });
+
+  testWidgets('a listing with no screenshots has nothing to enlarge',
+      (tester) async {
+    tester.view.physicalSize = const Size(1280, 824);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    SharedPreferences.setMockInitialValues({'soundEffects': false});
+    final tempDir = Directory.systemTemp.createTempSync('shop_zoom_none');
+    addTearDown(() => tempDir.deleteSync(recursive: true));
+
+    final registry = GameRegistry([_FakeAdapter(tempDir)]);
+    final settings = await SettingsStore.load();
+
+    await tester.runAsync(() async {
+      await tester.pumpWidget(ModManagerApp(
+        registry: registry,
+        settings: settings,
+        fetchShop: () async => [_listing()],
+      ));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
+    await _openShop(tester);
+    await tester.tap(find.text('Camera Fix'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    // The stripes a listing without pictures falls back to are generated
+    // here, so blowing one up would show the user nothing they can't
+    // already see.
+    await tester.tap(find.byKey(const widgets.ValueKey('shop-shot-frame')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byKey(const widgets.ValueKey('shot-viewer-close')),
+        findsNothing);
   });
 
   testWidgets('the game filter answers a mouse wheel and its arrows',

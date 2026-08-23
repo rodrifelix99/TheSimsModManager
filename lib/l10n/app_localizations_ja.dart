@@ -195,6 +195,18 @@ class LJa extends L {
   String get shopLinkCopied => 'コピーしました';
 
   @override
+  String get shotOpen => 'クリックで拡大';
+
+  @override
+  String get shotClose => '閉じる';
+
+  @override
+  String get shotPrevious => '前へ';
+
+  @override
+  String get shotNext => '次へ';
+
+  @override
   String get sidebarGames => 'ゲーム';
 
   @override
