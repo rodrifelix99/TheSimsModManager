@@ -337,6 +337,7 @@
   "errorBulkToggleFailed": "{count, plural, one{{count} moda nie dało się przełączyć} few{{count} modów nie dało się przełączyć} many{{count} modów nie dało się przełączyć} other{{count} moda nie dało się przełączyć}} - może używa ich inny program (gra jest włączona?) albo są tylko do odczytu.",
   "errorBulkRemoveFailed": "{count, plural, one{{count} moda nie dało się usunąć} few{{count} modów nie dało się usunąć} many{{count} modów nie dało się usunąć} other{{count} moda nie dało się usunąć}} - może używa ich inny program (gra jest włączona?) albo są tylko do odczytu.",
   "errorFileMissing": "„{name}” nie ma już w folderze modów: możliwe, że inny program go przeniósł albo usunął.",
+  "errorFileWriteRefused": "Nie udało się zmienić „{name}”: {reason}. Jeśli twoje mody są na dysku sieciowym albo wymiennym, sprawdź, czy nadal jest podłączony i nie jest tylko do odczytu.",
   "requirementMedievalModLoader": "The Sims Medieval nie uruchomi modów skryptowych ani core bez pliku ładującego od społeczności w folderze Game\\Bin gry. Zwykła zawartość działa, reszta nie.",
   "requirementSims4ModsOff": "Gra ma wyłączoną własną obsługę zawartości i modów w Opcjach gry, więc nic się z tego nie ładuje. Włącz to z powrotem w Opcje → Opcje gry → Inne i uruchom grę ponownie.",
   "requirementSims4ScriptModsOff": "Masz tu mody skryptowe, ale gra ma wyłączone „Zezwalaj na mody skryptowe” w Opcjach gry. Aktualizacje to resetują.",

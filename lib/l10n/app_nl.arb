@@ -353,6 +353,7 @@
   "errorBulkToggleFailed": "{count, plural, =1{1 mod kon niet omgeschakeld worden} other{{count} mods konden niet omgeschakeld worden}} - een ander programma gebruikt ze misschien (staat het spel aan?) of ze zijn schrijfbeveiligd.",
   "errorBulkRemoveFailed": "{count, plural, =1{1 mod kon niet verwijderd worden} other{{count} mods konden niet verwijderd worden}} - een ander programma gebruikt ze misschien (staat het spel aan?) of ze zijn schrijfbeveiligd.",
   "errorFileMissing": "“{name}” zit niet meer in de mods-map - een ander programma heeft het misschien verplaatst of verwijderd.",
+  "errorFileWriteRefused": "“{name}” kon niet gewijzigd worden: {reason}. Als je mods op een netwerk- of verwisselbare schijf staan, kijk even of die nog verbonden is en niet alleen-lezen.",
   "requirementMedievalModLoader": "The Sims Medieval kan geen script- of coremods draaien zonder het loaderbestand van de community in de map Game\\Bin van het spel. Custom content werkt wel zonder; al de rest niet.",
   "requirementSims4ModsOff": "Het spel heeft custom content en mods uitgeschakeld staan in zijn eigen Game Options, dus hier wordt niets van geladen. Zet het weer aan onder Options > Game Options > Other en start het spel opnieuw.",
   "requirementSims4ScriptModsOff": "Je hebt hier scriptmods staan, maar in de Game Options van het spel staat “Script Mods Allowed” uit. Updates van het spel zetten dat terug.",

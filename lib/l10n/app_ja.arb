@@ -337,6 +337,7 @@
   "errorBulkToggleFailed": "{count, plural, other{MOD {count} 個を切り替えられませんでした。他のプログラムが使用中（ゲームは起動していませんか？）か、書き込み禁止になっているかもしれません。}}",
   "errorBulkRemoveFailed": "{count, plural, other{MOD {count} 個を削除できませんでした。他のプログラムが使用中（ゲームは起動していませんか？）か、書き込み禁止になっているかもしれません。}}",
   "errorFileMissing": "「{name}」はもうMODフォルダーにありません。別のプログラムが移動したか削除したのかもしれません。",
+  "errorFileWriteRefused": "「{name}」を変更できませんでした。{reason}。MODがネットワークドライブや外付けドライブにあるなら、まだつながっているか、読み取り専用になっていないか確認してください。",
   "requirementMedievalModLoader": "The Sims Medieval は、コミュニティ製のローダーファイルがゲームの Game\\Bin フォルダーにないと、スクリプトMODやコアMODを動かせません。カスタムコンテンツは動きますが、それ以外は動きません。",
   "requirementSims4ModsOff": "ゲーム側の「ゲームオプション」でカスタムコンテンツとMODがオフになっているので、どれも読み込まれていません。オプション → ゲームオプション → その他 でオンに戻して、ゲームを再起動してください。",
   "requirementSims4ScriptModsOff": "ここにスクリプトMODがありますが、ゲーム側の「ゲームオプション」で「スクリプトMODを許可」がオフです。ゲームのアップデートでリセットされます。",

@@ -1446,6 +1446,11 @@ class LFr extends L {
   }
 
   @override
+  String errorFileWriteRefused(String name, String reason) {
+    return 'Impossible de modifier « $name » : $reason. Si tes mods sont sur un lecteur réseau ou amovible, vérifie qu’il est toujours connecté et pas en lecture seule.';
+  }
+
+  @override
   String get requirementMedievalModLoader =>
       'Les Sims Medieval ne peut pas faire tourner de mods de script ou de core sans le fichier chargeur de la communauté dans le dossier Game\\Bin du jeu. Le contenu personnalisé fonctionne quand même ; le reste, non.';
 

@@ -1444,6 +1444,11 @@ class LNl extends L {
   }
 
   @override
+  String errorFileWriteRefused(String name, String reason) {
+    return '“$name” kon niet gewijzigd worden: $reason. Als je mods op een netwerk- of verwisselbare schijf staan, kijk even of die nog verbonden is en niet alleen-lezen.';
+  }
+
+  @override
   String get requirementMedievalModLoader =>
       'The Sims Medieval kan geen script- of coremods draaien zonder het loaderbestand van de community in de map Game\\Bin van het spel. Custom content werkt wel zonder; al de rest niet.';
 

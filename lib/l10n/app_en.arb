@@ -954,6 +954,17 @@
       }
     }
   },
+  "errorFileWriteRefused": "“{name}” couldn’t be changed - {reason}. If your mods sit on a network or removable drive, check it’s still connected and not read-only.",
+  "@errorFileWriteRefused": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
   "requirementMedievalModLoader": "The Sims Medieval can’t run script or core mods without the community’s loader file in the game’s Game\\Bin folder. Custom content works without it; everything else doesn’t.",
   "requirementSims4ModsOff": "The game has custom content and mods switched off in its own Game Options, so none of this is loading. Turn it back on under Options → Game Options → Other, then restart the game.",
   "requirementSims4ScriptModsOff": "You have script mods here, but the game has “Script Mods Allowed” switched off in its own Game Options. Game updates reset that.",

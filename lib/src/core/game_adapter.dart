@@ -77,10 +77,11 @@ String enabledPathOf(String path) {
 }
 
 /// Why an action on a mod file failed for a reason that isn't an app bug:
-/// the user's environment got in the way (game running, file moved), or
-/// what was asked for would have cost a file ([nameTaken]). Lets the UI
-/// show a helpful message and keeps these out of error tracking.
-enum ModActionFailure { fileInUse, fileMissing, nameTaken }
+/// the user's environment got in the way (game running, file moved, the
+/// volume refusing the write), or what was asked for would have cost a
+/// file ([nameTaken]). Lets the UI show a helpful message and keeps these
+/// out of error tracking.
+enum ModActionFailure { fileInUse, fileMissing, nameTaken, writeRefused }
 
 /// An enable/disable/remove that failed for a known environmental
 /// [reason]. [detail] is what to tell the user about it.
@@ -98,18 +99,28 @@ class ModActionException implements Exception {
 /// locks are usually released within a second.
 const lockedFileAttempts = 4;
 
-/// Runs [action], retrying with a growing pause while the OS reports the
-/// file as locked: Windows refuses to delete or rename a file the game or
-/// an antivirus scan still has open (sharing violation), and those locks
-/// usually clear within a moment. After the last attempt the failure is
-/// worded by [giveUp].
+/// Runs [action] on the file called [name], retrying with a growing
+/// pause while the OS reports it as locked: Windows refuses to delete or
+/// rename a file the game or an antivirus scan still has open (sharing
+/// violation), and those locks usually clear within a moment. After the
+/// last attempt the failure is worded by [inUse].
+///
+/// Every other way the filesystem says no comes back as
+/// [ModActionFailure.writeRefused] carrying the system's own wording. A
+/// read-only volume, a network share that stopped answering, a disk with
+/// no room left are facts about the machine rather than bugs, and each of
+/// them used to leave here as an unhandled exception: no banner for the
+/// user, a crash report for us. [PathNotFoundException] is deliberately
+/// left alone - whether a file that isn't there is a failure at all is
+/// the caller's question, and both callers answer it themselves.
 ///
 /// Top-level rather than a method because the creation actions need the
 /// same patience for the same reason, and a game with the Tray open is
 /// exactly when someone reaches for the app.
 Future<T> retryWhileLocked<T>(
   Future<T> Function() action, {
-  required AppMessage Function() giveUp,
+  required String name,
+  required AppMessage Function() inUse,
   Duration delay = const Duration(milliseconds: 250),
 }) async {
   for (var attempt = 1;; attempt++) {
@@ -120,10 +131,19 @@ Future<T> retryWhileLocked<T>(
         await Future<void>.delayed(delay * attempt);
         continue;
       }
-      throw ModActionException(ModActionFailure.fileInUse, giveUp());
+      throw ModActionException(ModActionFailure.fileInUse, inUse());
+    } on PathNotFoundException {
+      rethrow;
+    } on FileSystemException catch (e) {
+      throw writeRefused(e, name);
     }
   }
 }
+
+/// The filesystem refusing an operation on a file that is still there.
+ModActionException writeRefused(FileSystemException error, String name) =>
+    ModActionException(
+        ModActionFailure.writeRefused, refusedMessage(error, name));
 
 /// Everything the manager needs to know to handle mods for one game.
 ///
@@ -1245,7 +1265,7 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
     final name = p.basename(mod.path);
     try {
       await _retryWhileLocked(() => deleteModFile(File(mod.path)),
-          giveUp: () => AppMessage('fileInUseDelete', [name]));
+          name: name, inUse: () => AppMessage('fileInUseDelete', [name]));
     } on PathNotFoundException {
       // Already off the disk (a second window, the user's own file
       // manager). That is what the caller asked for; nothing to report.
@@ -1275,8 +1295,9 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
   }
 
   Future<T> _retryWhileLocked<T>(Future<T> Function() action,
-          {required AppMessage Function() giveUp}) =>
-      retryWhileLocked(action, giveUp: giveUp, delay: lockedFileRetryDelay);
+          {required String name, required AppMessage Function() inUse}) =>
+      retryWhileLocked(action,
+          name: name, inUse: inUse, delay: lockedFileRetryDelay);
 
   @override
   Future<Mod> moveMod(Mod mod, Directory destination) async {
@@ -1303,7 +1324,7 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
         }
         rethrow;
       }
-    }, giveUp: () => AppMessage('fileInUseRename', [name]));
+    }, name: name, inUse: () => AppMessage('fileInUseRename', [name]));
   }
 
   /// The on-disk delete behind [removeMod]; a seam for tests to simulate
@@ -1342,7 +1363,7 @@ abstract class FolderBasedGameAdapter implements GameAdapter {
         }
         rethrow;
       }
-    }, giveUp: () => AppMessage('fileInUseRename', [name]));
+    }, name: name, inUse: () => AppMessage('fileInUseRename', [name]));
     // The other half of the swap, once the mod is out of the way.
     if (!enabled) await restoreStockFile(enabledPathOf(mod.path));
     // A plugin switched off with its settings file still sitting there

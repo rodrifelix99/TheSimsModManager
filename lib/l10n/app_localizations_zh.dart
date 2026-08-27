@@ -1325,6 +1325,11 @@ class LZh extends L {
   }
 
   @override
+  String errorFileWriteRefused(String name, String reason) {
+    return '无法修改「$name」：$reason。如果你的模组放在网络驱动器或可移动驱动器上，请确认它还连着、而且不是只读的。';
+  }
+
+  @override
   String get requirementMedievalModLoader =>
       '《模拟人生中世纪》没有社区的加载器文件（放在游戏的 Game\\Bin 文件夹里）就跑不了脚本模组和核心模组。自定义内容不受影响，其他的都不行。';
 

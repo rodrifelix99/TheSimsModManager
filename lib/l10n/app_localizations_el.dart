@@ -1446,6 +1446,11 @@ class LEl extends L {
   }
 
   @override
+  String errorFileWriteRefused(String name, String reason) {
+    return 'Δεν ήταν δυνατή η αλλαγή του «$name»: $reason. Αν τα mod σου είναι σε δίσκο δικτύου ή σε αφαιρούμενο δίσκο, δες αν είναι ακόμα συνδεδεμένος και όχι μόνο για ανάγνωση.';
+  }
+
+  @override
   String get requirementMedievalModLoader =>
       'Το The Sims Medieval δεν μπορεί να τρέξει script ή core mod χωρίς το αρχείο loader της κοινότητας μέσα στον φάκελο Game\\Bin του παιχνιδιού. Το προσαρμοσμένο περιεχόμενο δουλεύει και χωρίς αυτό, όλα τα άλλα όχι.';
 

@@ -1443,6 +1443,11 @@ class LEs extends L {
   }
 
   @override
+  String errorFileWriteRefused(String name, String reason) {
+    return 'No se pudo modificar «$name»: $reason. Si tus mods están en una unidad de red o extraíble, comprueba que sigue conectada y que no es de solo lectura.';
+  }
+
+  @override
   String get requirementMedievalModLoader =>
       'Los Sims Medieval no puede ejecutar mods de script ni de núcleo sin el archivo cargador de la comunidad en la carpeta Game\\Bin del juego. El contenido personalizado sí funciona; lo demás no.';
 

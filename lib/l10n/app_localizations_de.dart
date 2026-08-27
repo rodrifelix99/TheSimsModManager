@@ -1447,6 +1447,11 @@ class LDe extends L {
   }
 
   @override
+  String errorFileWriteRefused(String name, String reason) {
+    return '„$name“ ließ sich nicht ändern: $reason. Wenn deine Mods auf einem Netz- oder Wechsellaufwerk liegen, prüf, ob es noch verbunden und nicht schreibgeschützt ist.';
+  }
+
+  @override
   String get requirementMedievalModLoader =>
       'Die Sims Mittelalter kann ohne die Loader-Datei der Community im Ordner Game\\Bin des Spiels keine Script- oder Core-Mods ausführen. Custom Content läuft trotzdem, alles andere nicht.';
 

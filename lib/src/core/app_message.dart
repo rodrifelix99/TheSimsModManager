@@ -1,3 +1,7 @@
+import 'dart:io';
+
+import 'package:path/path.dart' as p;
+
 /// Something to tell the user, as the core layer is able to say it: a
 /// stable key plus the values that belong in it, translated where it is
 /// drawn (`AppText.errorText`). Same bargain as [Mod.category] and
@@ -23,6 +27,20 @@ class AppMessage {
   /// Readable enough for a log or a test name; never for the user.
   @override
   String toString() => text ?? '$key(${args.join(', ')})';
+}
+
+/// The filesystem refusing an operation on a file, worded with the
+/// system's own message: it is the only thing that knows whether the
+/// volume is read-only, unplugged or full, and it says so in the user's
+/// own language. [name] where the caller knows what the file is called;
+/// otherwise the failing path's own base name, or nothing but the reason
+/// when the exception names no path at all.
+AppMessage refusedMessage(FileSystemException error, [String? name]) {
+  final reason = error.osError?.message ?? error.message;
+  final path = error.path;
+  final about = name ?? (path == null ? '' : p.basename(path));
+  if (about.isEmpty) return AppMessage.verbatim(reason);
+  return AppMessage('fileWriteRefused', [about, reason]);
 }
 
 /// A file or folder that holds nothing this game can use, or an archive

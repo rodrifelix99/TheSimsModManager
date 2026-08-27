@@ -169,6 +169,7 @@ extension AppText on L {
       'fileInUseDelete' => errorFileInUseDelete(arg(0)),
       'fileInUseRename' => errorFileInUseRename(arg(0)),
       'fileMissing' => errorFileMissing(arg(0)),
+      'fileWriteRefused' => errorFileWriteRefused(arg(0), arg(1)),
       // A batch says how many refused rather than naming them: the count
       // travels as a string like every other argument core hands up.
       'bulkToggleFailed' =>
