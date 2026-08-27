@@ -151,6 +151,36 @@ void main() {
   });
 
   group('the message', () {
+    test('the OS sentence loses the full stop ours supplies', () {
+      // Windows ends its messages with one and POSIX does not, so
+      // without this the banner reads "...is denied.. If your mods".
+      expect(
+          refusedMessage(FileSystemException('Cannot rename file',
+              'hair.package', const OSError('Access is denied.', 5))).args,
+          ['hair.package', 'Access is denied']);
+      expect(
+          refusedMessage(FileSystemException('Cannot copy file',
+                  'hair.package', const OSError('磁盘空间不足。', 112)))
+              .args
+              .last,
+          '磁盘空间不足');
+      expect(
+          refusedMessage(FileSystemException('Cannot rename file',
+                  'hair.package', const OSError('Read-only file system', 30)))
+              .args
+              .last,
+          'Read-only file system');
+    });
+
+    test('a failure naming no file at all is the reason alone', () {
+      final message = refusedMessage(
+          const FileSystemException('Deletion failed', null,
+              OSError('Read-only file system', 30)));
+
+      expect(message.key, isEmpty);
+      expect(message.text, 'Read-only file system');
+    });
+
     test('a refused write is worded as a permission problem, not an errno',
         () {
       final message = noWriteAccessMessage(PathAccessException(

@@ -244,8 +244,9 @@ void main() {
         reason: 'a full disk is not a bug to investigate');
     final failed = spy.eventProperties[spy.events.indexOf('mod_install_failed')];
     expect(failed['reason'], 'file_system');
-    // The OS wrote that sentence, in the user's own language.
-    expect(c.lastError?.args.last, 'There is not enough space on the disk.');
+    // The OS wrote that sentence, in the user's own language - minus
+    // the full stop, because the key it lands in has its own.
+    expect(c.lastError?.args.last, 'There is not enough space on the disk');
   });
 
   test('an unexpected toggle failure is still reported to error tracking',

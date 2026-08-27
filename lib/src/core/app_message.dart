@@ -36,12 +36,22 @@ class AppMessage {
 /// otherwise the failing path's own base name, or nothing but the reason
 /// when the exception names no path at all.
 AppMessage refusedMessage(FileSystemException error, [String? name]) {
-  final reason = error.osError?.message ?? error.message;
+  final reason = osReason(error);
   final path = error.path;
   final about = name ?? (path == null ? '' : p.basename(path));
   if (about.isEmpty) return AppMessage.verbatim(reason);
   return AppMessage('fileWriteRefused', [about, reason]);
 }
+
+/// The system's own sentence, ready to sit inside one of ours: trailing
+/// space and the full stop it ends with taken off, because the key it
+/// goes into supplies its own. Windows writes "Access is denied." and
+/// Chinese Windows "磁盘空间不足。", while POSIX writes no punctuation at
+/// all - so without this the message reads "...is denied.. If your mods".
+String osReason(FileSystemException error) =>
+    (error.osError?.message ?? error.message)
+        .trimRight()
+        .replaceFirst(RegExp(r'[.。．]$'), '');
 
 /// A file or folder that holds nothing this game can use, or an archive
 /// whose bytes aren't the format they claim to be. A [FormatException]

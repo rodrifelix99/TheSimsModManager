@@ -108,9 +108,8 @@ AppMessage installFailureMessage(Object error, String? sourcePath,
   // reading, not the folder that turned it away.
   final denied = noWriteAccessMessage(error, folder: destination);
   if (denied != null) return denied;
-  final String reason = error is FileSystemException
-      ? error.osError?.message ?? error.message
-      : '$error';
+  final String reason =
+      error is FileSystemException ? osReason(error) : '$error';
   final name = sourcePath == null ? null : p.basename(sourcePath);
   // Nothing to name it by (no source made it as far as the failure) and
   // the OS wording is all there is to pass on.
