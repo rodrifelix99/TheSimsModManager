@@ -12,6 +12,7 @@ import 'src/core/game_registry.dart';
 import 'src/games/simcity/simcity_adapters.dart';
 import 'src/games/the_sims/sims_adapters.dart';
 import 'src/services/analytics.dart';
+import 'src/services/error_reports.dart';
 import 'src/services/settings_store.dart';
 import 'src/services/url_scheme.dart';
 import 'src/ui/app.dart';
@@ -98,14 +99,30 @@ Future<void> main() async {
   // errors both go to PostHog error tracking, then behave as before
   // (except uncaught async errors no longer kill the app - they're
   // logged and swallowed, which is kinder to a desktop user mid-task).
+  // Pictures fail in crowds - a shelf of thumbnails whose host is down
+  // is one failure per card, and the machine that reported this loudest
+  // sent twenty-five in half an hour - so they are counted like
+  // exceptions are: up to a point, and then not at all.
+  var imageFailures = 0;
   FlutterError.onError = (details) {
-    analytics.captureException(details.exception, details.stack,
-        handled: false, mechanism: 'FlutterError');
+    if (details.library == imageErrorLibrary) {
+      // A picture that never arrived is counted rather than reported:
+      // see [isReportableFlutterError] for why none of these is a bug.
+      if (imageFailures++ < maxImageFailureReports) {
+        analytics.capture('image_load_failed',
+            {'source': imageErrorSource(details.exception)});
+      }
+    } else if (isReportableFlutterError(details)) {
+      analytics.captureException(details.exception, details.stack,
+          handled: false, mechanism: 'FlutterError');
+    }
     FlutterError.presentError(details);
   };
   PlatformDispatcher.instance.onError = (error, stack) {
-    analytics.captureException(error, stack,
-        handled: false, mechanism: 'PlatformDispatcher');
+    if (isReportableError(error, stack)) {
+      analytics.captureException(error, stack,
+          handled: false, mechanism: 'PlatformDispatcher');
+    }
     debugPrint('Uncaught error: $error\n$stack');
     return true;
   };

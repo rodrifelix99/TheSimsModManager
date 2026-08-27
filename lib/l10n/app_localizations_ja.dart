@@ -1344,6 +1344,11 @@ class LJa extends L {
   }
 
   @override
+  String errorFileWriteRefused(String name, String reason) {
+    return '「$name」を変更できませんでした。$reason。MODがネットワークドライブや外付けドライブにあるなら、まだつながっているか、読み取り専用になっていないか確認してください。';
+  }
+
+  @override
   String get requirementMedievalModLoader =>
       'The Sims Medieval は、コミュニティ製のローダーファイルがゲームの Game\\Bin フォルダーにないと、スクリプトMODやコアMODを動かせません。カスタムコンテンツは動きますが、それ以外は動きません。';
 

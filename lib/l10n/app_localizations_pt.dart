@@ -1442,6 +1442,11 @@ class LPt extends L {
   }
 
   @override
+  String errorFileWriteRefused(String name, String reason) {
+    return 'Não deu pra alterar “$name”: $reason. Se teus mods estão num disco de rede ou removível, confere se ele ainda está conectado e não é só de leitura.';
+  }
+
+  @override
   String get requirementMedievalModLoader =>
       'The Sims Medieval não roda mods de script nem de núcleo sem o arquivo carregador da comunidade na pasta Game\\Bin do jogo. Conteúdo personalizado funciona; o resto não.';
 

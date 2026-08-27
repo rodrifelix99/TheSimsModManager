@@ -337,6 +337,7 @@
   "errorBulkToggleFailed": "{count, plural, other{有 {count} 个 MOD 没能切换状态，可能被别的程序占用（游戏还开着吗？）或者是只读的。}}",
   "errorBulkRemoveFailed": "{count, plural, other{有 {count} 个 MOD 没能删除，可能被别的程序占用（游戏还开着吗？）或者是只读的。}}",
   "errorFileMissing": "「{name}」已经不在模组文件夹里了，可能被别的程序移动或删除了。",
+  "errorFileWriteRefused": "无法修改「{name}」：{reason}。如果你的模组放在网络驱动器或可移动驱动器上，请确认它还连着、而且不是只读的。",
   "requirementMedievalModLoader": "《模拟人生中世纪》没有社区的加载器文件（放在游戏的 Game\\Bin 文件夹里）就跑不了脚本模组和核心模组。自定义内容不受影响，其他的都不行。",
   "requirementSims4ModsOff": "游戏自己的「游戏选项」里把自定义内容和模组关掉了，所以这些统统没加载。到 选项 → 游戏选项 → 其他 里重新打开，然后重启游戏。",
   "requirementSims4ScriptModsOff": "你这里有脚本模组，但游戏的「游戏选项」里关掉了「允许脚本模组」。每次游戏更新都会把它重置。",

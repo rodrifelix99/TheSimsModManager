@@ -69,7 +69,8 @@ Future<List<String>> copyCreationFiles(
         await File(path).copy(part.path);
         await part.rename(target);
       },
-      giveUp: () => AppMessage('creationFileInUse', [name]),
+      name: name,
+      inUse: () => AppMessage('creationFileInUse', [name]),
     );
     written.add(target);
   }
@@ -86,10 +87,12 @@ Future<List<String>> copyCreationFiles(
 Future<void> deleteCreationFiles(Creation creation) async {
   for (final path in creation.allFiles) {
     final file = File(path);
+    final name = p.basename(path);
     try {
       await retryWhileLocked(
         () => file.delete(),
-        giveUp: () => AppMessage('fileInUseDelete', [p.basename(path)]),
+        name: name,
+        inUse: () => AppMessage('fileInUseDelete', [name]),
       );
     } on PathNotFoundException {
       // Already off the disk. That is what the caller asked for.

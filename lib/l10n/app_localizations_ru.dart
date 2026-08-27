@@ -1489,6 +1489,11 @@ class LRu extends L {
   }
 
   @override
+  String errorFileWriteRefused(String name, String reason) {
+    return 'Не удалось изменить «$name»: $reason. Если твои моды лежат на сетевом или съёмном диске, проверь, что он ещё подключён и не только для чтения.';
+  }
+
+  @override
   String get requirementMedievalModLoader =>
       'The Sims Medieval не запускает скриптовые и core-моды без загрузчика от сообщества в папке Game\\Bin. Обычный контент работает и так, всё остальное - нет.';
 

@@ -108,9 +108,8 @@ AppMessage installFailureMessage(Object error, String? sourcePath,
   // reading, not the folder that turned it away.
   final denied = noWriteAccessMessage(error, folder: destination);
   if (denied != null) return denied;
-  final String reason = error is FileSystemException
-      ? error.osError?.message ?? error.message
-      : '$error';
+  final String reason =
+      error is FileSystemException ? osReason(error) : '$error';
   final name = sourcePath == null ? null : p.basename(sourcePath);
   // Nothing to name it by (no source made it as far as the failure) and
   // the OS wording is all there is to pass on.
@@ -131,8 +130,29 @@ AppMessage errorMessage(Object error) => switch (error) {
       // blocking is a PathAccessException too, and the adapter has
       // already worded that one properly.
       ModActionException(:final detail) => detail,
-      _ => noWriteAccessMessage(error) ?? AppMessage.verbatim('$error'),
+      // A filesystem failure with no wording of its own still says
+      // something worth passing on - the OS wrote it, in the user's own
+      // language - but the raw exception around it ("FileSystemException:
+      // Cannot rename file to '<the whole path>'...") is for a log.
+      FileSystemException() =>
+        noWriteAccessMessage(error) ?? refusedMessage(error),
+      _ => AppMessage.verbatim('$error'),
     };
+
+/// Whether [error] is a bug to investigate, or a verdict on the file or
+/// on the machine.
+///
+/// The second kind is reported to the *user*, worded, and counted under
+/// its own reason on the action's own event; filing it as an exception
+/// too would only bury the first kind. A locked file, a read-only
+/// volume, a full disk, an archive nothing can read and a folder holding
+/// nothing this game wants are all facts about somebody's computer, and
+/// between them they were most of what error tracking held.
+bool isAppBug(Object error) =>
+    error is! FileSystemException &&
+    error is! ModContentException &&
+    error is! ArchiveExtractionException &&
+    error is! ModActionException;
 
 /// The message for a write the system refused, or `null` when [error] is
 /// something else. Worth its own wording rather than the OS text: "Access
@@ -3401,7 +3421,7 @@ class AppController extends ChangeNotifier {
   AppMessage _reportModActionFailure(Object e, StackTrace stack,
       {required String action}) {
     final reason = e is ModActionException ? e.reason.name : null;
-    if (reason == null) {
+    if (isAppBug(e)) {
       analytics.captureException(e, stack, mechanism: '${action}Mod');
     }
     analytics.capture('mod_action_failed', {
@@ -3536,7 +3556,7 @@ class AppController extends ChangeNotifier {
         // says the folder isn't, and folder_deleted counts it. Reporting
         // it as an exception too would only bury real ones - the same
         // bargain installFiles strikes for a refused copy.
-        if (e is! PathAccessException) {
+        if (isAppBug(e)) {
           analytics.captureException(e, stack, mechanism: 'deleteFolder');
         }
         failure ??= errorMessage(e);
@@ -3672,7 +3692,7 @@ class AppController extends ChangeNotifier {
   /// the first say nothing the first didn't.
   AppMessage _bulkFailure(Object e, StackTrace stack,
       {required String action}) {
-    if (e is! ModActionException) {
+    if (isAppBug(e)) {
       analytics.captureException(e, stack, mechanism: '${action}Selected');
     }
     return errorMessage(e);
@@ -3908,7 +3928,9 @@ class AppController extends ChangeNotifier {
         await Directory(p.joinAll([root.path, ...folderSegments(key)]))
             .create(recursive: true);
       } catch (e, stack) {
-        analytics.captureException(e, stack, mechanism: 'createFolder');
+        if (isAppBug(e)) {
+          analytics.captureException(e, stack, mechanism: 'createFolder');
+        }
         return _refuseFolder(errorMessage(e));
       }
     }
@@ -4373,16 +4395,16 @@ class AppController extends ChangeNotifier {
       // A ModContentException is the adapter reporting that the archive or
       // folder held nothing this game can use, an ArchiveExtractionException
       // that the archive wouldn't open at all - verdicts on the file, not
-      // bugs to investigate. A refused or vanished path is the same kind
-      // of verdict on the machine (the game holding a file open, a cloud
-      // drive offloading one, Program Files ACLs): the banner already
-      // words it and mod_install_failed counts it under its own reason,
-      // so reporting it as an exception too only buries real bugs - the
-      // same bargain _reportModActionFailure strikes for toggle/remove.
-      if (e is! ModContentException &&
-          e is! ArchiveExtractionException &&
-          e is! PathAccessException &&
-          e is! PathNotFoundException) {
+      // bugs to investigate. Any filesystem failure is the same kind of
+      // verdict on the machine: the game holding a file open, a cloud
+      // drive offloading one, Program Files ACLs, a full disk, a volume
+      // that went read-only. The banner already words it (with the
+      // system's own text, which is the only thing that knows which of
+      // those it was) and mod_install_failed counts it under its own
+      // reason, so reporting it as an exception too only buries real
+      // bugs - the same bargain _reportModActionFailure strikes for
+      // toggle and remove.
+      if (isAppBug(e)) {
         analytics.captureException(e, stack, mechanism: 'installFiles');
       }
       analytics.capture('mod_install_failed', {
@@ -4535,7 +4557,9 @@ class AppController extends ChangeNotifier {
       playSound(UiSound.uninstall);
     } catch (e, stack) {
       lastError = errorMessage(e);
-      analytics.captureException(e, stack, mechanism: 'clearCaches');
+      if (isAppBug(e)) {
+        analytics.captureException(e, stack, mechanism: 'clearCaches');
+      }
       playSound(UiSound.error);
     }
     try {
@@ -4552,10 +4576,19 @@ class AppController extends ChangeNotifier {
     // Asked before the attempt rather than after it: creating this folder
     // is recursive, so a run that gets halfway up a protected path leaves
     // folders behind and still fails.
-    if (!await canWriteInto(Directory(path))) {
-      lastError = noWriteAccessTo(path);
-      analytics.capture(
-          'mods_folder_create_denied', {'game': _adapter.game.id});
+    final access = await folderAccess(Directory(path));
+    if (access != FolderAccess.writable) {
+      // A refused write and a folder the system won't even look at want
+      // different answers: one is a permission to grant, the other is a
+      // drive that isn't there. Asking about the second used to throw
+      // out of here (Windows raises on `exists` for a junction pointing
+      // at an unmounted volume), which reached the user as nothing at
+      // all and error tracking as a crash.
+      lastError = access == FolderAccess.unreachable
+          ? AppMessage('errorFolderUnreadable', [path])
+          : noWriteAccessTo(path);
+      analytics.capture('mods_folder_create_denied',
+          {'game': _adapter.game.id, 'reason': access.name});
       playSound(UiSound.error);
       notifyListeners();
       return;
@@ -4566,7 +4599,9 @@ class AppController extends ChangeNotifier {
       analytics.capture('mods_folder_created', {'game': _adapter.game.id});
     } catch (e, stack) {
       lastError = errorMessage(e);
-      analytics.captureException(e, stack, mechanism: 'createDefaultFolder');
+      if (isAppBug(e)) {
+        analytics.captureException(e, stack, mechanism: 'createDefaultFolder');
+      }
       playSound(UiSound.error);
     }
     await refresh();

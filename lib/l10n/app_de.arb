@@ -337,6 +337,7 @@
   "errorBulkToggleFailed": "{count, plural, =1{1 Mod konnte nicht umgeschaltet werden} other{{count} Mods konnten nicht umgeschaltet werden}} - vielleicht benutzt sie gerade ein anderes Programm (läuft das Spiel noch?) oder sie sind schreibgeschützt.",
   "errorBulkRemoveFailed": "{count, plural, =1{1 Mod konnte nicht gelöscht werden} other{{count} Mods konnten nicht gelöscht werden}} - vielleicht benutzt sie gerade ein anderes Programm (läuft das Spiel noch?) oder sie sind schreibgeschützt.",
   "errorFileMissing": "„{name}“ liegt nicht mehr im Mods-Ordner, vielleicht hat ein anderes Programm die Datei verschoben oder gelöscht.",
+  "errorFileWriteRefused": "„{name}“ ließ sich nicht ändern: {reason}. Wenn deine Mods auf einem Netz- oder Wechsellaufwerk liegen, prüf, ob es noch verbunden und nicht schreibgeschützt ist.",
   "requirementMedievalModLoader": "Die Sims Mittelalter kann ohne die Loader-Datei der Community im Ordner Game\\Bin des Spiels keine Script- oder Core-Mods ausführen. Custom Content läuft trotzdem, alles andere nicht.",
   "requirementSims4ModsOff": "Im Spiel selbst sind Custom Content und Mods in den Spieloptionen ausgeschaltet, deshalb lädt hiervon nichts. Schalt es unter Optionen → Spieloptionen → Sonstiges wieder ein und starte das Spiel neu.",
   "requirementSims4ScriptModsOff": "Du hast hier Script-Mods, aber im Spiel ist „Script-Mods zulassen“ in den Spieloptionen aus. Spiel-Updates setzen das zurück.",

@@ -50,6 +50,12 @@ class _FailingAdapter extends FolderBasedGameAdapter {
   bool failRemove = false;
   bool lockToggle = false;
   bool lockRemove = false;
+
+  /// The other way the filesystem says no: not a sharing violation the
+  /// app should wait out, but a volume that will not take the write at
+  /// all. Read-only media, a share that stopped answering, a full disk.
+  bool refuseToggle = false;
+  bool refuseRemove = false;
   Object? installFailure;
 
   @override
@@ -61,6 +67,10 @@ class _FailingAdapter extends FolderBasedGameAdapter {
       throw PathAccessException(
           file.path, const OSError('file in use', 32), 'Cannot rename file');
     }
+    if (refuseToggle) {
+      throw FileSystemException('Cannot rename file to "$newPath"',
+          file.path, const OSError('Read-only file system', 30));
+    }
     return super.renameModFile(file, newPath);
   }
 
@@ -69,6 +79,10 @@ class _FailingAdapter extends FolderBasedGameAdapter {
     if (lockRemove) {
       throw PathAccessException(
           file.path, const OSError('file in use', 32), 'Cannot delete file');
+    }
+    if (refuseRemove) {
+      throw FileSystemException('Cannot delete file', file.path,
+          const OSError('Read-only file system', 30));
     }
     return super.deleteModFile(file);
   }
@@ -179,6 +193,60 @@ void main() {
         reason: 'environmental failures are not app bugs');
     final failed = spy.eventProperties[spy.events.indexOf('mod_action_failed')];
     expect(failed['reason'], 'fileInUse');
+  });
+
+  test('a volume that refuses the rename is worded, not reported', () async {
+    seedMod('cozy_sofa.package');
+    final spy = _SpyAnalytics();
+    final c = await makeController(analytics: spy);
+    adapter.refuseToggle = true;
+
+    await c.toggleMod(c.mods.single);
+
+    // The system's own message travels with it: it is the only thing
+    // that knows whether the volume is read-only, unplugged or full.
+    expect(c.lastError?.key, 'fileWriteRefused');
+    expect(c.lastError?.args, ['cozy_sofa.package', 'Read-only file system']);
+    expect(spy.exceptions, isEmpty,
+        reason: 'a volume that will not be written to is not an app bug');
+    final failed = spy.eventProperties[spy.events.indexOf('mod_action_failed')];
+    expect(failed['reason'], 'writeRefused');
+  });
+
+  test('a volume that refuses the delete is worded, not reported', () async {
+    seedMod('cozy_sofa.package');
+    final spy = _SpyAnalytics();
+    final c = await makeController(analytics: spy);
+    adapter.refuseRemove = true;
+
+    await c.removeMod(c.mods.single);
+
+    expect(c.lastError?.key, 'fileWriteRefused');
+    expect(c.lastError?.args, ['cozy_sofa.package', 'Read-only file system']);
+    expect(spy.exceptions, isEmpty);
+    expect(c.mods, hasLength(1), reason: 'nothing was deleted');
+  });
+
+  test('a disk with no room left is a verdict on the machine', () async {
+    final source = File(p.join(modsDir.parent.path, 'peggy_hair.package'))
+      ..writeAsStringSync('bytes');
+    addTearDown(source.deleteSync);
+    final spy = _SpyAnalytics();
+    final c = await makeController(analytics: spy);
+    adapter.installFailure = FileSystemException(
+        'Cannot copy file to "hair.package"',
+        source.path,
+        const OSError('There is not enough space on the disk.', 112));
+
+    await c.installFiles([source]);
+
+    expect(spy.exceptions, isEmpty,
+        reason: 'a full disk is not a bug to investigate');
+    final failed = spy.eventProperties[spy.events.indexOf('mod_install_failed')];
+    expect(failed['reason'], 'file_system');
+    // The OS wrote that sentence, in the user's own language - minus
+    // the full stop, because the key it lands in has its own.
+    expect(c.lastError?.args.last, 'There is not enough space on the disk');
   });
 
   test('an unexpected toggle failure is still reported to error tracking',

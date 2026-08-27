@@ -1442,6 +1442,11 @@ class LIt extends L {
   }
 
   @override
+  String errorFileWriteRefused(String name, String reason) {
+    return 'Non è stato possibile modificare «$name»: $reason. Se i tuoi mod stanno su un’unità di rete o rimovibile, controlla che sia ancora collegata e non di sola lettura.';
+  }
+
+  @override
   String get requirementMedievalModLoader =>
       'The Sims Medieval non può eseguire mod di script o core senza il file loader della community nella cartella Game\\Bin del gioco. I contenuti personalizzati funzionano lo stesso, il resto no.';
 

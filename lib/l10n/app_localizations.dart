@@ -2229,6 +2229,12 @@ abstract class L {
   /// **'“{name}” is no longer in the mods folder - it may have been moved or deleted by another program.'**
   String errorFileMissing(String name);
 
+  /// No description provided for @errorFileWriteRefused.
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” couldn’t be changed - {reason}. If your mods sit on a network or removable drive, check it’s still connected and not read-only.'**
+  String errorFileWriteRefused(String name, String reason);
+
   /// No description provided for @requirementMedievalModLoader.
   ///
   /// In en, this message translates to:

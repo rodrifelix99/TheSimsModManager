@@ -47,6 +47,29 @@ class _FakeAdapter extends FolderBasedGameAdapter {
 /// on the runners we have; Windows would need an ACL and its own tooling.
 const _posixOnly = 'read-only folders are built with chmod here';
 
+/// A folder the system will not answer for at all, which is a thing
+/// Windows really does: a junction whose volume isn't mounted makes a
+/// plain `exists` raise ERROR_UNTRUSTED_MOUNT_POINT (448) or
+/// ERROR_MOUNT_POINT_NOT_RESOLVED (649). Faked here because no test can
+/// build one, and because the answer has to be the same everywhere.
+class _UnreachableDirectory implements Directory {
+  _UnreachableDirectory(this.path);
+
+  @override
+  final String path;
+
+  @override
+  Future<bool> exists() async => throw FileSystemException('Exists failed',
+      path, const OSError('untrusted mount point', 448));
+
+  @override
+  Directory get parent => _UnreachableDirectory(p.dirname(path));
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      super.noSuchMethod(invocation);
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -106,7 +129,58 @@ void main() {
     }, skip: Platform.isWindows ? _posixOnly : false);
   });
 
+  group('folderAccess', () {
+    test('a folder that takes a file is writable', () async {
+      expect(await folderAccess(root), FolderAccess.writable);
+    });
+
+    test('a folder the system protects is refused, not unreachable',
+        () async {
+      expect(await folderAccess(lockDir('protected')), FolderAccess.denied);
+    }, skip: Platform.isWindows ? _posixOnly : false);
+
+    test('a folder the system will not look at is unreachable', () async {
+      // It answers rather than throwing, which is the whole point: this
+      // reached the setup screen as a crash report from a machine whose
+      // Documents folder sat behind a drive that wasn't plugged in.
+      expect(await folderAccess(_UnreachableDirectory(p.join('Q:', 'Mods'))),
+          FolderAccess.unreachable);
+      expect(await canWriteInto(_UnreachableDirectory(p.join('Q:', 'Mods'))),
+          isFalse);
+    });
+  });
+
   group('the message', () {
+    test('the OS sentence loses the full stop ours supplies', () {
+      // Windows ends its messages with one and POSIX does not, so
+      // without this the banner reads "...is denied.. If your mods".
+      expect(
+          refusedMessage(FileSystemException('Cannot rename file',
+              'hair.package', const OSError('Access is denied.', 5))).args,
+          ['hair.package', 'Access is denied']);
+      expect(
+          refusedMessage(FileSystemException('Cannot copy file',
+                  'hair.package', const OSError('磁盘空间不足。', 112)))
+              .args
+              .last,
+          '磁盘空间不足');
+      expect(
+          refusedMessage(FileSystemException('Cannot rename file',
+                  'hair.package', const OSError('Read-only file system', 30)))
+              .args
+              .last,
+          'Read-only file system');
+    });
+
+    test('a failure naming no file at all is the reason alone', () {
+      final message = refusedMessage(
+          const FileSystemException('Deletion failed', null,
+              OSError('Read-only file system', 30)));
+
+      expect(message.key, isEmpty);
+      expect(message.text, 'Read-only file system');
+    });
+
     test('a refused write is worded as a permission problem, not an errno',
         () {
       final message = noWriteAccessMessage(PathAccessException(

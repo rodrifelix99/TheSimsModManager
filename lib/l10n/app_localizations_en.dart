@@ -1437,6 +1437,11 @@ class LEn extends L {
   }
 
   @override
+  String errorFileWriteRefused(String name, String reason) {
+    return '“$name” couldn’t be changed - $reason. If your mods sit on a network or removable drive, check it’s still connected and not read-only.';
+  }
+
+  @override
   String get requirementMedievalModLoader =>
       'The Sims Medieval can’t run script or core mods without the community’s loader file in the game’s Game\\Bin folder. Custom content works without it; everything else doesn’t.';
 

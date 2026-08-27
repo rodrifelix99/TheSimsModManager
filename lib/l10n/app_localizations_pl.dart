@@ -1492,6 +1492,11 @@ class LPl extends L {
   }
 
   @override
+  String errorFileWriteRefused(String name, String reason) {
+    return 'Nie udało się zmienić „$name”: $reason. Jeśli twoje mody są na dysku sieciowym albo wymiennym, sprawdź, czy nadal jest podłączony i nie jest tylko do odczytu.';
+  }
+
+  @override
   String get requirementMedievalModLoader =>
       'The Sims Medieval nie uruchomi modów skryptowych ani core bez pliku ładującego od społeczności w folderze Game\\Bin gry. Zwykła zawartość działa, reszta nie.';
 

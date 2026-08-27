@@ -337,6 +337,7 @@
   "errorBulkToggleFailed": "{count, plural, =1{1 mod não pôde ser alterado} other{{count} mods não puderam ser alterados}} - podem estar em uso por outro programa (o jogo está aberto?) ou protegidos contra gravação.",
   "errorBulkRemoveFailed": "{count, plural, =1{1 mod não pôde ser apagado} other{{count} mods não puderam ser apagados}} - podem estar em uso por outro programa (o jogo está aberto?) ou protegidos contra gravação.",
   "errorFileMissing": "“{name}” não está mais na pasta de mods: outro programa pode ter movido ou excluído o arquivo.",
+  "errorFileWriteRefused": "Não deu pra alterar “{name}”: {reason}. Se teus mods estão num disco de rede ou removível, confere se ele ainda está conectado e não é só de leitura.",
   "requirementMedievalModLoader": "The Sims Medieval não roda mods de script nem de núcleo sem o arquivo carregador da comunidade na pasta Game\\Bin do jogo. Conteúdo personalizado funciona; o resto não.",
   "requirementSims4ModsOff": "O jogo está com conteúdo personalizado e mods desligados nas Opções de jogo dele, então nada disso está carregando. Liga de novo em Opções → Opções de jogo → Outros e reinicia o jogo.",
   "requirementSims4ScriptModsOff": "Você tem mods de script aqui, mas o jogo está com “Permitir mods de script” desligado nas Opções de jogo. As atualizações resetam isso.",

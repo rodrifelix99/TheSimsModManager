@@ -49,32 +49,43 @@ class Sfx {
   /// Asset directory holding the bank, relative to `assets/`.
   static const bankPath = 'sounds/s1/ui';
 
-  /// A player per playback so rapid sounds overlap instead of cutting
-  /// each other off; disposed as soon as the clip finishes.
-  Future<void> play(UiSound sound) async {
-    final player = AudioPlayer();
-    // audioplayers throws out of dispose() when the player is already
-    // disposed, and the throw lands in whatever zone the completion
-    // event arrived on - unhandled, and loud in error tracking. The
-    // completion event and a failing play() both want to clean up, so
-    // the second one has to be a no-op rather than a second dispose.
-    var disposing = false;
-    Future<void> disposeOnce() async {
-      if (disposing) return;
-      disposing = true;
-      try {
-        await player.dispose();
-      } catch (_) {
-        // Nothing left to do about a player that won't close.
-      }
-    }
+  /// How many clips can sound at once. Enough that a click during an
+  /// install still lands - the bank is short UI blips, and nothing here
+  /// runs longer than a second or two.
+  static const _voices = 4;
 
+  /// Players are made once and kept, never disposed.
+  ///
+  /// A player per playback was the obvious shape and the wrong one: the
+  /// clip finishing and a failing `play()` both want to clean up, and
+  /// audioplayers throws out of a second `dispose()` - into whatever zone
+  /// the completion event arrived on, so no `try` at the call site can
+  /// catch it. Worse, its position timer can fire *after* the close and
+  /// add to a shut stream. Both were the loudest thing in error tracking
+  /// for a feature that is decoration. Nothing is disposed here, so
+  /// neither can happen; the native side is released by audioplayers'
+  /// default [ReleaseMode.release] once a clip ends, and four idle
+  /// players cost nothing until the app closes.
+  final List<AudioPlayer> _pool = [];
+  int _next = 0;
+
+  Future<void> play(UiSound sound) async {
+    final AudioPlayer player;
     try {
-      player.onPlayerComplete
-          .listen((_) => disposeOnce(), onError: (_) => disposeOnce());
+      if (_pool.length < _voices) {
+        player = AudioPlayer();
+        _pool.add(player);
+      } else {
+        // Round-robin, so the clip that gets cut short is always the
+        // oldest one still sounding.
+        player = _pool[_next];
+      }
+      _next = (_next + 1) % _voices;
       await player.play(AssetSource('$bankPath/${sound.file}'));
     } catch (_) {
-      await disposeOnce();
+      // A machine with no audio device, a bank file that will not
+      // decode, a plugin that is not there under test: all of them mean
+      // the same thing, which is silence.
     }
   }
 }
