@@ -149,16 +149,21 @@ Map<String, Map<String, ConflictReason>> findConflictPairs(
     }
   }
   if (reasons.contains(ConflictReason.versionPair)) {
-    final infoOf = {for (final mod in enabled) mod.path: parseModName(mod.name)};
     final byIdentity = <String, List<Mod>>{};
     for (final mod in enabled) {
-      byIdentity.putIfAbsent(infoOf[mod.path]!.identity, () => []).add(mod);
+      // Keep only the grouping key. Retaining the complete parsed record in
+      // a second path-indexed map used to make this pass hold two indexes and
+      // every stripped display name at once. On a very large CC library that
+      // was needless peak memory pressure in exactly the pass where an OOM
+      // has been observed.
+      final identity = parseModName(mod.name).identity;
+      byIdentity.putIfAbsent(identity, () => []).add(mod);
     }
     for (final group in byIdentity.values) {
       if (group.length < 2) continue;
       final versions = {
         for (final mod in group)
-          if (infoOf[mod.path]!.version != null) infoOf[mod.path]!.version,
+          if (parseModName(mod.name).version case final version?) version,
       };
       if (versions.length > 1) pairAll(group, ConflictReason.versionPair);
     }

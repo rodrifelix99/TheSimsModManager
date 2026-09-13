@@ -214,6 +214,23 @@ void main() {
       expect(watch.elapsedMilliseconds, lessThan(200));
     });
 
+    // Reported from a large library as an OOM while parseModName was
+    // building the old path -> parsed-name index. Unique names are the
+    // important shape: every parsed result used to stay alive until the
+    // entire conflict pass finished even though only its identity was used.
+    test('a very large versioned library keeps only identity groups', () {
+      final many = [
+        for (var i = 0; i < 20000; i++)
+          _mod('Creator${i}_Hair_v1.package',
+              'C:\\mods\\creator$i\\Creator${i}_Hair_v1.package'),
+      ];
+
+      final pairs = findConflictPairs(many, const {},
+          reasons: const {ConflictReason.versionPair});
+
+      expect(pairs, isEmpty);
+    });
+
     // The overlaps are the signal the scan went to the trouble of
     // reading; 32 same-named siblings must not push them out.
     test('name twins do not crowd out a real overlap', () {
