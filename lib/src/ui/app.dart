@@ -46,6 +46,7 @@ class ModManagerApp extends StatefulWidget {
     this.downloadShop,
     this.reportDownload,
     this.pickSavePath,
+    this.pickImagePath,
     this.deepLinks,
     this.onBrightnessChanged,
     this.checkElevated,
@@ -81,6 +82,10 @@ class ModManagerApp extends StatefulWidget {
   /// installed; null means the system's Save-as dialog. Injectable so
   /// tests answer without one opening.
   final Future<String?> Function(String suggestedName)? pickSavePath;
+
+  /// The picture a player picks for one of their mods; null means the
+  /// system's Open dialog. Injectable for the same reason.
+  final Future<String?> Function(String label)? pickImagePath;
 
   /// Addresses the OS handed the app, one per `simsmodmanager://` link
   /// opened. main() feeds this from the platform; tests feed it from a
@@ -120,6 +125,7 @@ class _ModManagerAppState extends State<ModManagerApp> {
       downloadShop: widget.downloadShop,
       reportDownload: widget.reportDownload,
       pickSavePath: widget.pickSavePath,
+      pickImagePath: widget.pickImagePath,
       checkElevated: widget.checkElevated,
       probeServices: widget.probeServices,
       whatsNewTable: widget.whatsNewTable);

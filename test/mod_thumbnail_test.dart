@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,7 +13,11 @@ import 'package:sims_mod_manager/src/core/mod.dart';
 import 'package:sims_mod_manager/src/core/mod_thumbnails.dart';
 import 'package:sims_mod_manager/src/core/package_insight.dart';
 import 'package:sims_mod_manager/src/services/settings_store.dart';
+import 'package:sims_mod_manager/src/ui/app.dart';
 import 'package:sims_mod_manager/src/ui/app_controller.dart';
+import 'package:sims_mod_manager/src/ui/widgets.dart' show ModThumb;
+
+import 'until.dart';
 
 /// The game id the controller tests run under, which is also the folder
 /// their copies land in - the same bargain save_edit_test.dart makes with
@@ -329,5 +334,64 @@ void main() {
       expect(c.lastError, isNull);
       expect(c.hasCustomThumbnail(modNamed(c, 'hair.package')), isFalse);
     });
+  });
+
+  testWidgets('is picked from the mod’s own page', (tester) async {
+    SharedPreferences.setMockInitialValues({'soundEffects': false});
+    // Sync IO only outside runAsync; see widget_test.dart.
+    final dir = Directory.systemTemp.createTempSync('mod_manager_thumbs');
+    File(p.join(dir.path, 'goggles.package')).writeAsStringSync('x');
+    final chosen = _png(4, 4);
+    final picture = File(p.join(dir.parent.path, 'chosen_goggles.png'))
+      ..writeAsBytesSync(chosen);
+    addTearDown(() {
+      dir.deleteSync(recursive: true);
+      if (picture.existsSync()) picture.deleteSync();
+      final store = modThumbnailFolder(_gameId);
+      if (store != null && store.existsSync()) {
+        store.deleteSync(recursive: true);
+      }
+    });
+
+    await tester.binding.setSurfaceSize(const Size(1400, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final registry = GameRegistry([_Adapter(dir)]);
+    final settings = SettingsStore(await SharedPreferences.getInstance());
+    await tester.runAsync(() async {
+      await tester.pumpWidget(ModManagerApp(
+        registry: registry,
+        settings: settings,
+        pickImagePath: (_) async => picture.path,
+      ));
+    });
+    await until(tester, find.text('Fake Game Library'));
+    await tester.pump(const Duration(milliseconds: 500));
+
+    // The one card on the shelf; its own artwork is as good a place to
+    // click as any.
+    await tester.tap(find.byType(ModThumb).first);
+    // The file-name chip, which only a mod's own page draws.
+    await until(tester, find.byKey(const Key('mod-artwork-caption')));
+    await tester.pumpAndSettle();
+
+    // Once the switch has settled, the only ModThumb left is the frame
+    // on the mod's own page.
+    ModThumb frame() => tester.widget<ModThumb>(find.byType(ModThumb));
+
+    // Stripes, until the player says otherwise.
+    expect(frame().bytes, isNull);
+
+    await tester.runAsync(() async {
+      await tester.tap(find.byKey(const Key('mod-artwork-pick')));
+    });
+    // The copy lands in the app's own store, named after the record.
+    await untilExists(
+        tester,
+        File(p.join(modThumbnailFolder(_gameId)!.path,
+            thumbnailFileName('goggles.package', 'png'))));
+    await tester.pumpAndSettle();
+
+    expect(frame().bytes, chosen);
   });
 }
