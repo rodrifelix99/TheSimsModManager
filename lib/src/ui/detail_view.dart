@@ -128,6 +128,35 @@ class DetailView extends StatelessWidget {
                 // company at the ends of the clamp.
                 fit: BoxFit.contain,
               ),
+              // The picture is also where it is changed: these sit on
+              // the artwork rather than under it because the column
+              // below already carries four buttons, and because what a
+              // mod looks like is a thing you point at.
+              Positioned(
+                top: 14 + frame.inset.top,
+                right: 14 + frame.inset.right,
+                child: Row(
+                  children: [
+                    if (c.hasCustomThumbnail(mod)) ...[
+                      _ArtworkButton(
+                        icon: Icons.close_rounded,
+                        tooltip: l.thumbnailClearTooltip,
+                        onTap: () => c.clearCustomThumbnail(mod),
+                      ),
+                      const SizedBox(width: 6),
+                    ],
+                    _ArtworkButton(
+                      key: const Key('mod-artwork-pick'),
+                      icon: Icons.image_outlined,
+                      tooltip: c.hasCustomThumbnail(mod)
+                          ? l.thumbnailChangeTooltip
+                          : l.thumbnailSetTooltip,
+                      onTap: () => c.setCustomThumbnail(mod,
+                          pickerLabel: l.filePickerImagesLabel),
+                    ),
+                  ],
+                ),
+              ),
               Positioned(
                 left: 14 + frame.inset.left,
                 bottom: 14 + frame.inset.bottom,
@@ -1068,6 +1097,49 @@ const double _captionRoom = 40;
 
 /// How a mod's artwork frame is drawn: how tall it is, and how far in
 /// from its edges the picture inside it actually starts.
+/// A control that sits on somebody's artwork, drawn in plain black and
+/// white like [ShotViewer]'s are and for the same reason: what it is over
+/// is a picture, not a surface the palette knows anything about. The
+/// file-name chip beside it makes the same bargain.
+class _ArtworkButton extends StatelessWidget {
+  const _ArtworkButton({
+    super.key,
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: HoverBuilder(
+        cursor: SystemMouseCursors.click,
+        builder: (context, hovered) => GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: 26,
+            height: 26,
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: hovered ? .5 : .28),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Icon(
+              icon,
+              size: 15,
+              color: Colors.white.withValues(alpha: hovered ? 1 : .9),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _ArtworkFrame {
   const _ArtworkFrame(this.height, {this.inset = EdgeInsets.zero});
 

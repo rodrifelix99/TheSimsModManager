@@ -438,6 +438,9 @@ class LIt extends L {
   }
 
   @override
+  String get filePickerImagesLabel => 'Immagini';
+
+  @override
   String get installWhereTitle => 'Dove deve andare?';
 
   @override
@@ -618,6 +621,15 @@ class LIt extends L {
 
   @override
   String get showInFileManager => 'Mostra nel gestore file';
+
+  @override
+  String get thumbnailSetTooltip => 'Scegli un’immagine per questa mod';
+
+  @override
+  String get thumbnailChangeTooltip => 'Scegli un’altra immagine';
+
+  @override
+  String get thumbnailClearTooltip => 'Rimuovi questa immagine';
 
   @override
   String get uninstallMod => 'Disinstalla la mod';
@@ -1560,6 +1572,15 @@ class LIt extends L {
   @override
   String errorNoWriteAccess(String folder) {
     return 'L’app non ha il permesso di scrivere in «$folder». Il sistema protegge quella cartella: dai al tuo account l’accesso in scrittura, o scegli un’altra cartella nelle Impostazioni.';
+  }
+
+  @override
+  String get errorThumbnailUnreadable =>
+      'Quel file non è un’immagine che l’app sa disegnare. Prova con un PNG o un JPEG.';
+
+  @override
+  String errorThumbnailTooBig(String limit) {
+    return 'Quell’immagine è troppo grande: il massimo è $limit MB. Prova con una copia più piccola.';
   }
 
   @override

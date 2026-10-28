@@ -458,6 +458,13 @@ class SettingsStore {
   Future<void> setModTagsJson(String value) =>
       _prefs.setString('modTags', value);
 
+  /// The pictures the player has picked for their own mods, as JSON: game
+  /// id -> mod path (relative to that game's mods folder) -> the name of
+  /// the copy in the app's thumbnail folder. See `core/mod_thumbnails.dart`.
+  String? get modThumbnailsJson => _prefs.getString('modThumbnails');
+  Future<void> setModThumbnailsJson(String value) =>
+      _prefs.setString('modThumbnails', value);
+
   /// Whether an install asks where to put things, for the games that read
   /// mods from more than one folder. On by default: the app's guess is
   /// right most of the time but wrong in ways only the user can see (a

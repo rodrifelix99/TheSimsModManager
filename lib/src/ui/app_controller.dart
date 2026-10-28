@@ -30,6 +30,7 @@ import '../core/mod_folder.dart';
 import '../core/mod_name.dart';
 import '../core/mod_kind.dart';
 import '../core/mod_tags.dart';
+import '../core/mod_thumbnails.dart';
 import '../core/package_insight.dart';
 import '../core/placed_mods.dart';
 import '../core/stock_backup.dart';
@@ -183,6 +184,15 @@ AppMessage noWriteAccessTo(String folder) =>
 Future<String?> pickSaveFilePath(String suggestedName) async =>
     (await getSaveLocation(suggestedName: suggestedName))?.path;
 
+/// The system's Open dialog, filtered to the pictures the app can draw.
+/// [label] is what the dialog calls them, which only the view knows.
+Future<String?> pickImageFilePath(String label) async => (await openFile(
+      acceptedTypeGroups: [
+        XTypeGroup(label: label, extensions: thumbnailFileExtensions),
+      ],
+    ))
+        ?.path;
+
 /// Coarse cause of an install failure, for the `mod_install_failed`
 /// event: enough to tell a rejected archive from a filesystem problem
 /// without sending anything about the file itself.
@@ -227,6 +237,7 @@ class AppController extends ChangeNotifier {
         downloadShop,
     Future<void> Function(String id)? reportDownload,
     Future<String?> Function(String suggestedName)? pickSavePath,
+    Future<String?> Function(String label)? pickImagePath,
     Future<bool> Function()? checkElevated,
     Future<Reachability> Function(String? mirrorBase)? probeServices,
     List<WhatsNewEntry>? whatsNewTable,
@@ -243,6 +254,7 @@ class AppController extends ChangeNotifier {
         _downloadShop = downloadShop ?? downloadShopFile,
         _reportDownload = reportDownload ?? reportShopDownload,
         _pickSavePath = pickSavePath ?? pickSaveFilePath,
+        _pickImagePath = pickImagePath ?? pickImageFilePath,
         _probeServices = probeServices ?? probeReachability,
         _adapter = _startingAdapter(registry, settings) {
     // Before anything lists a folder: every read and write of the disabled
@@ -252,6 +264,9 @@ class AppController extends ChangeNotifier {
     // the labels as it is built ([_setMods]), so a refresh that beat the
     // load would draw a library with no tags on it and no chips for them.
     _modTags = parseModTags(settings.modTagsJson);
+    // Same reason: the pictures are read off these records while the
+    // library is being loaded, before the first frame is drawn.
+    _modThumbnails = parseModThumbnails(settings.modThumbnailsJson);
     // Remote flags may land after the first frame (announcement banner,
     // kill switches); repaint when they do.
     this.analytics.onFlagsChanged = _onFlagsChanged;
@@ -425,6 +440,8 @@ class AppController extends ChangeNotifier {
   /// Where the user wants a listing's file put, or null when they closed
   /// the dialog; injectable so tests answer without one opening.
   final Future<String?> Function(String suggestedName) _pickSavePath;
+
+  final Future<String?> Function(String label) _pickImagePath;
 
   /// Asks whether our own services answer from this machine; injectable
   /// for the same reason as [_checkUpdates].
@@ -652,6 +669,26 @@ class AppController extends ChangeNotifier {
   /// Null rather than an 'All' sentinel: unlike the file types, there is
   /// no chip standing for every tag at once.
   String? tagFilter;
+
+  /// The pictures the player has picked for their own mods, as stored:
+  /// game id -> mod path relative to that game's mods folder -> the name
+  /// of the copy in the store. See `core/mod_thumbnails.dart`.
+  Map<String, Map<String, String>> _modThumbnails = {};
+
+  /// The invented library's pictures. Bytes only, in memory only, and a
+  /// bucket of their own: nothing is copied into the store and nothing is
+  /// written down, the same bargain [createFolder] and the demo
+  /// library's tags make with preferences the release build shares.
+  final Map<String, Uint8List> _demoThumbnails = {};
+
+  /// The bytes behind this game's records, by record path. Read once per
+  /// library load, because a card asks for its picture on every frame
+  /// and cannot go to the disk for it.
+  final Map<String, Uint8List> _thumbnailBytes = {};
+
+  /// Those pictures by the path each mod sits at right now - the same
+  /// reason [_tagsByMod] exists.
+  Map<String, Uint8List> _thumbnailsByMod = const {};
 
   /// What each mod turns out to hold, by the path it sits at now. Worked
   /// out from the insight cache, so it fills in with the scan and is
@@ -916,6 +953,7 @@ class AppController extends ChangeNotifier {
     // revisited has its chips back before anything is scanned.
     _applyTags();
     _applyKinds();
+    _applyThumbnails();
     _libraryStamp++;
   }
 
@@ -923,6 +961,40 @@ class AppController extends ChangeNotifier {
     final path = _selectedModPath;
     return path == null ? null : _byPath[path];
   }
+
+  /// Which list the library is showing: the game, the layout, and every
+  /// filter that decides what is in it and what order it comes in.
+  ///
+  /// The shelf's scroll views carry it as a [PageStorageKey], which is
+  /// what remembers where somebody was (issue #26). Opening a mod's page
+  /// and coming back leaves it unchanged, so the shelf is where it was
+  /// left rather than back at the first row; narrowing to a folder is a
+  /// different list and a different key, so it opens at the top of that
+  /// folder, and letting the chip go again returns to the key the old
+  /// position was saved under.
+  ///
+  /// [_libraryStamp] is deliberately not in it. The stamp moves every
+  /// time the library is rebuilt - a refresh, an install, a mod switched
+  /// off - and that is the same list in the same order, so taking the
+  /// position away with it would be the thing this fixes.
+  String get libraryPositionKey => [
+        _adapter.game.id,
+        layout.name,
+        _filterKey(selectedCategories),
+        _filterKey(selectedFolders),
+        settings.folderIncludesSubfolders,
+        conflictsOnly,
+        advisoriesOnly,
+        tooDeepOnly,
+        duplicatesOnly,
+        tagFilter,
+        kindFilter,
+        stateFilter.name,
+        settings.showDisabled,
+        sort.name,
+        disabledLast,
+        query.trim().toLowerCase(),
+      ].join('|');
 
   List<Mod> get filteredMods {
     final q = query.trim().toLowerCase();
@@ -1846,7 +1918,7 @@ class AppController extends ChangeNotifier {
   /// Where a mod is written down in the records: its path while switched
   /// on, relative to the mods folder. Null when there is no folder to
   /// measure from, which is a library nothing can be tagged in anyway.
-  String? _tagRecordPath(Mod mod) {
+  String? _recordPathOf(Mod mod) {
     final root = modsDir?.path;
     if (root == null) return null;
     return p.relative(enabledPathOf(mod.path), from: root);
@@ -1958,7 +2030,7 @@ class AppController extends ChangeNotifier {
     var added = 0;
     var persist = false;
     for (final mod in targets) {
-      final record = _tagRecordPath(mod);
+      final record = _recordPathOf(mod);
       if (record == null) continue;
       final bucket = _tagBucketFor(mod);
       final gameId = _adapter.game.id;
@@ -1985,7 +2057,7 @@ class AppController extends ChangeNotifier {
     var persist = false;
     final gameId = _adapter.game.id;
     for (final mod in targets) {
-      final record = _tagRecordPath(mod);
+      final record = _recordPathOf(mod);
       if (record == null) continue;
       final bucket = _tagBucketFor(mod);
       final held = bucket[gameId]?[record];
@@ -2021,7 +2093,7 @@ class AppController extends ChangeNotifier {
   /// [_forgetIgnored] drops its settled clashes: a record is a path, and
   /// a kept one would silently land on whatever is installed there next.
   Future<void> _forgetTags(Mod mod) async {
-    final record = _tagRecordPath(mod);
+    final record = _recordPathOf(mod);
     if (record == null) return;
     final gameId = _adapter.game.id;
     var persist = false;
@@ -2062,6 +2134,237 @@ class AppController extends ChangeNotifier {
     if (!changed) return;
     if (persist) await settings.setModTagsJson(encodeModTags(_modTags));
     _applyTags();
+  }
+
+  // -------------------------------------------------------------------------
+  // The pictures the player picks themselves (`core/mod_thumbnails.dart`)
+
+  /// Whether [mod] is wearing a picture of the player's own.
+  bool hasCustomThumbnail(Mod mod) => _thumbnailsByMod.containsKey(mod.path);
+
+  /// Puts a picture of the player's own on [mod].
+  ///
+  /// [pickerLabel] is what the Open dialog calls the files it offers,
+  /// which the view supplies because neither core nor the controller has
+  /// localizations - the same bargain [_pickSavePath] makes with the name
+  /// it is handed.
+  Future<void> setCustomThumbnail(Mod mod,
+      {required String pickerLabel}) async {
+    final record = _recordPathOf(mod);
+    if (record == null) return;
+    playSound(UiSound.click);
+    final picked = await _pickImagePath(pickerLabel);
+    if (picked == null) return;
+    final source = File(picked);
+    Uint8List bytes;
+    try {
+      // Asked before the file is read: a picture is held in memory for as
+      // long as its library is on screen, and a video picked by mistake
+      // would be read whole before anything could object to it.
+      if (await source.length() > maxThumbnailBytes) {
+        return _refuseThumbnail(
+            AppMessage('thumbnailTooBig', ['${maxThumbnailBytes >> 20}']));
+      }
+      bytes = await source.readAsBytes();
+    } catch (e, stack) {
+      if (isAppBug(e)) {
+        analytics.captureException(e, stack, mechanism: 'setThumbnail');
+      }
+      return _refuseThumbnail(const AppMessage('thumbnailUnreadable'));
+    }
+    final extension = thumbnailExtensionOf(bytes);
+    if (extension == null) {
+      return _refuseThumbnail(const AppMessage('thumbnailUnreadable'));
+    }
+    final gameId = _adapter.game.id;
+    if (isDemoMod(mod)) {
+      // Nothing reaches the disk for an invented mod and nothing is
+      // written down: the picture lasts as long as the session does.
+      _demoThumbnails[record] = bytes;
+    } else {
+      final folder = modThumbnailFolder(gameId);
+      if (folder == null) {
+        return _refuseThumbnail(const AppMessage('thumbnailUnreadable'));
+      }
+      final name = thumbnailFileName(record, extension);
+      final was = _modThumbnails[gameId]?[record];
+      try {
+        await folder.create(recursive: true);
+        final destination = File(p.join(folder.path, name));
+        // Written beside itself and renamed on, like every other write
+        // in the app that can land on a file already there: changing the
+        // picture must not leave the mod with neither.
+        final part = File('${destination.path}.part');
+        await part.writeAsBytes(bytes, flush: true);
+        await part.rename(destination.path);
+        // Only ever a copy this store wrote, and only once the one
+        // replacing it is whole. The name is a hash of the record, so the
+        // two differ only when the format changed.
+        if (was != null && was != name) {
+          try {
+            await File(p.join(folder.path, was)).delete();
+          } catch (_) {}
+        }
+      } catch (e, stack) {
+        if (isAppBug(e)) {
+          analytics.captureException(e, stack, mechanism: 'setThumbnail');
+        }
+        return _refuseThumbnail(noWriteAccessTo(folder.path));
+      }
+      (_modThumbnails[gameId] ??= {})[record] = name;
+      await settings.setModThumbnailsJson(encodeModThumbnails(_modThumbnails));
+    }
+    _thumbnailBytes[record] = bytes;
+    analytics.capture('mod_thumbnail_set', {
+      'game': gameId,
+      'bytes': bytes.length,
+      'format': extension,
+    });
+    playSound(UiSound.install);
+    _applyThumbnails();
+    notifyListeners();
+  }
+
+  /// Takes the player's picture off [mod], so the card falls back to
+  /// whatever the scan found inside the file - or to stripes.
+  Future<void> clearCustomThumbnail(Mod mod) async {
+    final record = _recordPathOf(mod);
+    if (record == null) return;
+    if (!_thumbnailBytes.containsKey(record) &&
+        !_demoThumbnails.containsKey(record)) {
+      return;
+    }
+    playSound(UiSound.click);
+    _thumbnailBytes.remove(record);
+    _demoThumbnails.remove(record);
+    await _dropThumbnailRecord(record);
+    analytics.capture('mod_thumbnail_cleared', {'game': _adapter.game.id});
+    _applyThumbnails();
+    notifyListeners();
+  }
+
+  /// Drops [record]'s entry and the copy behind it. A copy left in the
+  /// store would be a file nothing can ever name again.
+  Future<void> _dropThumbnailRecord(String record) async {
+    final gameId = _adapter.game.id;
+    final name = _modThumbnails[gameId]?.remove(record);
+    if (name == null) return;
+    if (_modThumbnails[gameId]!.isEmpty) _modThumbnails.remove(gameId);
+    final folder = modThumbnailFolder(gameId);
+    if (folder != null) {
+      try {
+        await File(p.join(folder.path, name)).delete();
+      } catch (_) {}
+    }
+    await settings.setModThumbnailsJson(encodeModThumbnails(_modThumbnails));
+  }
+
+  /// Words a refusal the way every other failed action does, and leaves
+  /// the mod wearing whatever it was wearing before.
+  void _refuseThumbnail(AppMessage message) {
+    lastError = message;
+    playSound(UiSound.error);
+    notifyListeners();
+  }
+
+  /// Drops the picture of a mod that has been uninstalled, the way
+  /// [_forgetTags] drops its labels: a record is a path, and a kept one
+  /// would silently land on whatever is installed there next.
+  Future<void> _forgetThumbnail(Mod mod) async {
+    final record = _recordPathOf(mod);
+    if (record == null) return;
+    _thumbnailBytes.remove(record);
+    _demoThumbnails.remove(record);
+    await _dropThumbnailRecord(record);
+  }
+
+  /// Pictures follow their mods through a move, like every other record
+  /// keyed by where a mod sits. The copy keeps the name it was written
+  /// under - a hash of the record it had then - which costs nothing,
+  /// since the record is what says where to look.
+  Future<void> _repathThumbnails(Map<String, String> renamed) async {
+    for (final held in [_thumbnailBytes, _demoThumbnails]) {
+      for (final entry in renamed.entries) {
+        final bytes = held.remove(entry.key);
+        if (bytes != null) held[entry.value] = bytes;
+      }
+    }
+    final gameId = _adapter.game.id;
+    final stored = _modThumbnails[gameId];
+    if (stored == null || stored.isEmpty) return;
+    var touched = false;
+    final rebuilt = <String, String>{};
+    for (final entry in stored.entries) {
+      final to = renamed[entry.key];
+      touched |= to != null;
+      rebuilt[to ?? entry.key] = entry.value;
+    }
+    if (!touched) return;
+    _modThumbnails[gameId] = rebuilt;
+    await settings.setModThumbnailsJson(encodeModThumbnails(_modThumbnails));
+  }
+
+  /// Reads this game's pictures off the disk, under the loading screen
+  /// with everything else that has to be in hand before the library is
+  /// drawn.
+  ///
+  /// A record whose copy has gone is dropped - but only when the store
+  /// itself is still there, so a profile whose data folder is missing
+  /// comes back with its pictures rather than losing the lot, the same
+  /// care [_readMadeFolders] takes.
+  Future<void> _loadThumbnails() async {
+    _thumbnailBytes.clear();
+    final gameId = _adapter.game.id;
+    final stored = _modThumbnails[gameId];
+    if (stored == null || stored.isEmpty) return;
+    final folder = modThumbnailFolder(gameId);
+    if (folder == null || !await folder.exists()) return;
+    final lost = <String>[];
+    for (final entry in stored.entries) {
+      try {
+        final file = File(p.join(folder.path, entry.value));
+        if (!await file.exists()) {
+          lost.add(entry.key);
+          continue;
+        }
+        final bytes = await file.readAsBytes();
+        // A copy that is no longer a picture would draw as nothing at
+        // all, so the record goes with it rather than sitting there.
+        if (thumbnailExtensionOf(bytes) == null) {
+          lost.add(entry.key);
+          continue;
+        }
+        _thumbnailBytes[entry.key] = bytes;
+      } catch (_) {
+        // One unreadable copy is a card that falls back to stripes. It is
+        // not a reason to fail a library load, and not a reason to throw
+        // the record away either - the next launch may read it.
+      }
+    }
+    if (lost.isEmpty) return;
+    for (final record in lost) {
+      stored.remove(record);
+    }
+    if (stored.isEmpty) _modThumbnails.remove(gameId);
+    await settings.setModThumbnailsJson(encodeModThumbnails(_modThumbnails));
+  }
+
+  /// Rebuilds what the cards draw from: every mod's picture by the path
+  /// it sits at now. Runs with [_applyTags], and for the same reason.
+  void _applyThumbnails() {
+    final root = modsDir?.path;
+    if (root == null || (_thumbnailBytes.isEmpty && _demoThumbnails.isEmpty)) {
+      if (_thumbnailsByMod.isNotEmpty) _thumbnailsByMod = const {};
+      return;
+    }
+    final byMod = <String, Uint8List>{};
+    for (final mod in mods) {
+      final record = p.relative(enabledPathOf(mod.path), from: root);
+      final bytes =
+          isDemoMod(mod) ? _demoThumbnails[record] : _thumbnailBytes[record];
+      if (bytes != null) byMod[mod.path] = bytes;
+    }
+    _thumbnailsByMod = byMod;
   }
 
   Future<void> _rememberIgnored(
@@ -2338,9 +2641,14 @@ class AppController extends ChangeNotifier {
   /// been scanned and yielded nothing (or isn't scanned yet).
   PackageInsight? insightFor(Mod mod) => _insights[_insightKey(mod)];
 
-  /// Embedded artwork for [mod]'s thumbnail slots; views fall back to
-  /// generated stripe art on null.
-  Uint8List? thumbnailOf(Mod mod) => insightFor(mod)?.thumbnail;
+  /// What goes in [mod]'s thumbnail slots; views fall back to generated
+  /// stripe art on null.
+  ///
+  /// A picture the player picked beats the one the scan found inside the
+  /// file: they chose it on purpose, and the parser only happened to
+  /// find the other. See `core/mod_thumbnails.dart`.
+  Uint8List? thumbnailOf(Mod mod) =>
+      _thumbnailsByMod[mod.path] ?? insightFor(mod)?.thumbnail;
 
   /// Scans any mods that aren't in the insight cache yet, updating
   /// [scanProgress] as batches finish. Runs during [refresh] while the
@@ -3118,6 +3426,10 @@ class AppController extends ChangeNotifier {
       // Before the library is built: _setMods folds these into the folder
       // counts, so a folder made and not yet filled keeps its chip.
       _madeFolders = dir == null ? const {} : await _readMadeFolders(dir);
+      // And before it too: _setMods hangs each picture off the path its
+      // mod sits at, so a library drawn ahead of this would open on
+      // stripes and only find the pictures on the next load.
+      await _loadThumbnails();
       _setMods(_withDemoMods(dir == null
           ? const []
           : await _withPlacedMods(_adapter, dir, await _adapter.listMods(dir))));
@@ -3461,6 +3773,7 @@ class AppController extends ChangeNotifier {
       await _forgetPlaced(_adapter, modsDir, mod);
       await _forgetIgnored(mod);
       await _forgetTags(mod);
+      await _forgetThumbnail(mod);
     }
     await _refreshKeepingError(error);
   }
@@ -3537,6 +3850,7 @@ class AppController extends ChangeNotifier {
         await _forgetPlaced(_adapter, modsDir, mod);
         await _forgetIgnored(mod);
         await _forgetTags(mod);
+        await _forgetThumbnail(mod);
       } catch (e, stack) {
         analytics.captureException(e, stack, mechanism: 'deleteFolderRecords');
       }
@@ -3813,6 +4127,7 @@ class AppController extends ChangeNotifier {
         await _forgetPlaced(_adapter, modsDir, mod);
         await _forgetIgnored(mod);
         await _forgetTags(mod);
+        await _forgetThumbnail(mod);
       } catch (e, stack) {
         analytics.captureException(e, stack, mechanism: 'removeSelectedRecords');
       }
@@ -4128,6 +4443,7 @@ class AppController extends ChangeNotifier {
     await _repathShopInstalls(renamed);
     await _repathIgnored(renamed);
     await _repathTags(renamed);
+    await _repathThumbnails(renamed);
   }
 
   Future<void> _repathShopInstalls(Map<String, String> renamed) async {

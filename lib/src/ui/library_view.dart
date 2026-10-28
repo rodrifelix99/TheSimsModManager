@@ -1039,11 +1039,17 @@ class LibraryView extends StatelessWidget {
     );
   }
 
+  /// Why every layout here is keyed: a [PageStorageKey] is what makes
+  /// the shelf come back where it was left instead of at the first row.
+  /// The offset is kept in the route's storage bucket, which outlives the
+  /// screen switch, and the key says which list it belongs to - see
+  /// [AppController.libraryPositionKey].
   Widget _modGrid(GameTheme t, AppController c, List<Mod> visible) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final columns = (constraints.maxWidth / 320).floor().clamp(1, 4);
         return GridView.builder(
+          key: PageStorageKey('grid.${c.libraryPositionKey}'),
           padding: const EdgeInsets.fromLTRB(28, 4, 28, 28),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: columns,
@@ -1061,6 +1067,7 @@ class LibraryView extends StatelessWidget {
 
   Widget _modList(GameTheme t, AppController c, List<Mod> visible) {
     return ListView.separated(
+      key: PageStorageKey('list.${c.libraryPositionKey}'),
       padding: const EdgeInsets.fromLTRB(28, 4, 28, 28),
       itemCount: visible.length,
       separatorBuilder: (_, __) => const SizedBox(height: 8),
@@ -1093,6 +1100,7 @@ class LibraryView extends StatelessWidget {
       }
     }
     return ListView.separated(
+      key: PageStorageKey('folders.${c.libraryPositionKey}'),
       padding: const EdgeInsets.fromLTRB(28, 4, 28, 28),
       itemCount: rows.length,
       // A header wants air above it; rows under one sit close together.

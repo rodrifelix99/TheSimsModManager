@@ -437,6 +437,9 @@ class LEn extends L {
   }
 
   @override
+  String get filePickerImagesLabel => 'Images';
+
+  @override
   String get installWhereTitle => 'Where should this go?';
 
   @override
@@ -615,6 +618,15 @@ class LEn extends L {
 
   @override
   String get showInFileManager => 'Show in file manager';
+
+  @override
+  String get thumbnailSetTooltip => 'Pick a picture for this mod';
+
+  @override
+  String get thumbnailChangeTooltip => 'Pick a different picture';
+
+  @override
+  String get thumbnailClearTooltip => 'Remove this picture';
 
   @override
   String get uninstallMod => 'Uninstall mod';
@@ -1555,6 +1567,15 @@ class LEn extends L {
   @override
   String errorNoWriteAccess(String folder) {
     return 'The app isn’t allowed to write to “$folder”. Your system protects that folder - give your account write access to it, or point the app somewhere else in Settings.';
+  }
+
+  @override
+  String get errorThumbnailUnreadable =>
+      'That file isn’t a picture the app can draw. Try a PNG or a JPEG.';
+
+  @override
+  String errorThumbnailTooBig(String limit) {
+    return 'That picture is too big - $limit MB is the most one can be. Try a smaller copy.';
   }
 
   @override
