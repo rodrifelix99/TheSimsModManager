@@ -440,6 +440,9 @@ class LDe extends L {
   }
 
   @override
+  String get filePickerImagesLabel => 'Bilder';
+
+  @override
   String get installWhereTitle => 'Wo soll das hin?';
 
   @override
@@ -620,6 +623,15 @@ class LDe extends L {
 
   @override
   String get showInFileManager => 'Im Explorer zeigen';
+
+  @override
+  String get thumbnailSetTooltip => 'Wähle ein Bild für diesen Mod';
+
+  @override
+  String get thumbnailChangeTooltip => 'Ein anderes Bild wählen';
+
+  @override
+  String get thumbnailClearTooltip => 'Dieses Bild entfernen';
 
   @override
   String get uninstallMod => 'Mod deinstallieren';
@@ -1565,6 +1577,15 @@ class LDe extends L {
   @override
   String errorNoWriteAccess(String folder) {
     return 'Die App darf nicht in „$folder“ schreiben. Dein System schützt diesen Ordner: gib deinem Konto Schreibrechte darauf, oder wähl in den Einstellungen einen anderen Ordner.';
+  }
+
+  @override
+  String get errorThumbnailUnreadable =>
+      'Diese Datei ist kein Bild, das die App zeichnen kann. Probier ein PNG oder ein JPEG.';
+
+  @override
+  String errorThumbnailTooBig(String limit) {
+    return 'Dieses Bild ist zu groß - höchstens $limit MB. Probier eine kleinere Fassung.';
   }
 
   @override

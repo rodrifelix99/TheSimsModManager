@@ -414,6 +414,9 @@ class LJa extends L {
   }
 
   @override
+  String get filePickerImagesLabel => '画像';
+
+  @override
   String get installWhereTitle => 'どこに入れる？';
 
   @override
@@ -583,6 +586,15 @@ class LJa extends L {
 
   @override
   String get showInFileManager => 'ファイルマネージャーで表示';
+
+  @override
+  String get thumbnailSetTooltip => 'この MOD の画像を選ぶ';
+
+  @override
+  String get thumbnailChangeTooltip => '別の画像を選ぶ';
+
+  @override
+  String get thumbnailClearTooltip => 'この画像を外す';
 
   @override
   String get uninstallMod => 'MOD をアンインストール';
@@ -1458,6 +1470,15 @@ class LJa extends L {
   @override
   String errorNoWriteAccess(String folder) {
     return 'アプリに「$folder」への書き込み権限がありません。このフォルダーはシステムに保護されています。アカウントに書き込み権限を付けるか、設定で別のフォルダーを選んでください。';
+  }
+
+  @override
+  String get errorThumbnailUnreadable =>
+      'このファイルはアプリが表示できる画像ではありません。PNG か JPEG を試してみて。';
+
+  @override
+  String errorThumbnailTooBig(String limit) {
+    return 'この画像は大きすぎます。上限は $limit MB なので、もっと小さいものを試してみて。';
   }
 
   @override

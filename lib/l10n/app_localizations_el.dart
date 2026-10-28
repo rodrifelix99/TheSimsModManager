@@ -438,6 +438,9 @@ class LEl extends L {
   }
 
   @override
+  String get filePickerImagesLabel => 'Εικόνες';
+
+  @override
   String get installWhereTitle => 'Πού να πάει αυτό;';
 
   @override
@@ -619,6 +622,15 @@ class LEl extends L {
 
   @override
   String get showInFileManager => 'Εμφάνιση στον διαχειριστή αρχείων';
+
+  @override
+  String get thumbnailSetTooltip => 'Διάλεξε μια εικόνα για αυτό το mod';
+
+  @override
+  String get thumbnailChangeTooltip => 'Διάλεξε άλλη εικόνα';
+
+  @override
+  String get thumbnailClearTooltip => 'Αφαίρεση αυτής της εικόνας';
 
   @override
   String get uninstallMod => 'Απεγκατάσταση mod';
@@ -1564,6 +1576,15 @@ class LEl extends L {
   @override
   String errorNoWriteAccess(String folder) {
     return 'Η εφαρμογή δεν επιτρέπεται να γράψει στο «$folder». Το σύστημά σας προστατεύει αυτόν τον φάκελο - δώστε στον λογαριασμό σας δικαίωμα εγγραφής σε αυτόν ή δείξτε στην εφαρμογή άλλη τοποθεσία από τις Ρυθμίσεις.';
+  }
+
+  @override
+  String get errorThumbnailUnreadable =>
+      'Αυτό το αρχείο δεν είναι εικόνα που μπορεί να δείξει η εφαρμογή. Δοκίμασε ένα PNG ή ένα JPEG.';
+
+  @override
+  String errorThumbnailTooBig(String limit) {
+    return 'Αυτή η εικόνα είναι πολύ μεγάλη - το όριο είναι $limit MB. Δοκίμασε ένα μικρότερο αντίγραφο.';
   }
 
   @override

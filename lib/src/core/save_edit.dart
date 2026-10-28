@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:path/path.dart' as p;
 
+import 'app_data_dir.dart';
 import 'app_message.dart';
 
 /// Changing what a save says about a household, which is the one thing
@@ -158,18 +159,5 @@ Future<void> _prune(Directory root, String name) async {
 /// Where the copies live: the app's own per-user data folder, never the
 /// game's. A spare `.package` inside a Sims 2 neighborhood folder is a
 /// neighborhood the game will try to read.
-Directory? saveBackupFolder(String gameId) {
-  final root = _appDataRoot();
-  if (root == null) return null;
-  return Directory(p.join(root, 'TheSimsModManager', 'save-backups', gameId));
-}
-
-String? _appDataRoot() {
-  final env = Platform.environment;
-  if (Platform.isWindows) return env['APPDATA'];
-  final home = env['HOME'];
-  if (home == null || home.isEmpty) return null;
-  if (Platform.isMacOS) return p.join(home, 'Library', 'Application Support');
-  final xdg = env['XDG_DATA_HOME'];
-  return xdg != null && xdg.isNotEmpty ? xdg : p.join(home, '.local', 'share');
-}
+Directory? saveBackupFolder(String gameId) =>
+    appDataFolder(['save-backups', gameId]);

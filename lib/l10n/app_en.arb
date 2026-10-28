@@ -299,6 +299,7 @@
       }
     }
   },
+  "filePickerImagesLabel": "Images",
   "installWhereTitle": "Where should this go?",
   "installWhereBody": "{game} reads mods from several folders. The app can work it out from the file itself, or you can say where it belongs.",
   "@installWhereBody": {
@@ -392,6 +393,9 @@
   "enabled": "Enabled",
   "disabled": "Disabled",
   "showInFileManager": "Show in file manager",
+  "thumbnailSetTooltip": "Pick a picture for this mod",
+  "thumbnailChangeTooltip": "Pick a different picture",
+  "thumbnailClearTooltip": "Remove this picture",
   "uninstallMod": "Uninstall mod",
   "uninstallConfirmTitle": "Uninstall {title}?",
   "@uninstallConfirmTitle": {
@@ -1052,6 +1056,15 @@
   "@errorNoWriteAccess": {
     "placeholders": {
       "folder": {
+        "type": "String"
+      }
+    }
+  },
+  "errorThumbnailUnreadable": "That file isn’t a picture the app can draw. Try a PNG or a JPEG.",
+  "errorThumbnailTooBig": "That picture is too big - {limit} MB is the most one can be. Try a smaller copy.",
+  "@errorThumbnailTooBig": {
+    "placeholders": {
+      "limit": {
         "type": "String"
       }
     }

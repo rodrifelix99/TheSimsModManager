@@ -439,6 +439,9 @@ class LNl extends L {
   }
 
   @override
+  String get filePickerImagesLabel => 'Afbeeldingen';
+
+  @override
   String get installWhereTitle => 'Waar moet dit?';
 
   @override
@@ -616,6 +619,15 @@ class LNl extends L {
 
   @override
   String get showInFileManager => 'Toon in bestandsbeheerder';
+
+  @override
+  String get thumbnailSetTooltip => 'Kies een plaatje voor deze mod';
+
+  @override
+  String get thumbnailChangeTooltip => 'Kies een ander plaatje';
+
+  @override
+  String get thumbnailClearTooltip => 'Dit plaatje weghalen';
 
   @override
   String get uninstallMod => 'Deïnstalleer mod';
@@ -1562,6 +1574,15 @@ class LNl extends L {
   @override
   String errorNoWriteAccess(String folder) {
     return 'De app mag niet schrijven naar “$folder”. Je systeem beschermt die map - geef je account schrijfrechten, of wijs de app iets anders aan in Instellingen.';
+  }
+
+  @override
+  String get errorThumbnailUnreadable =>
+      'Dat bestand is geen plaatje dat de app kan tekenen. Probeer een PNG of een JPEG.';
+
+  @override
+  String errorThumbnailTooBig(String limit) {
+    return 'Dit plaatje is te groot - $limit MB is het maximum. Probeer een kleinere versie.';
   }
 
   @override

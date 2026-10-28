@@ -459,6 +459,9 @@ class LPl extends L {
   }
 
   @override
+  String get filePickerImagesLabel => 'Obrazki';
+
+  @override
   String get installWhereTitle => 'Gdzie to ma trafić?';
 
   @override
@@ -638,6 +641,15 @@ class LPl extends L {
 
   @override
   String get showInFileManager => 'Pokaż w eksploratorze';
+
+  @override
+  String get thumbnailSetTooltip => 'Wybierz obrazek dla tego moda';
+
+  @override
+  String get thumbnailChangeTooltip => 'Wybierz inny obrazek';
+
+  @override
+  String get thumbnailClearTooltip => 'Usuń ten obrazek';
 
   @override
   String get uninstallMod => 'Odinstaluj moda';
@@ -1613,6 +1625,15 @@ class LPl extends L {
   @override
   String errorNoWriteAccess(String folder) {
     return 'Apka nie ma uprawnień do zapisu w „$folder”. System chroni ten folder: nadaj swojemu kontu prawo zapisu albo wskaż inny folder w Ustawieniach.';
+  }
+
+  @override
+  String get errorThumbnailUnreadable =>
+      'Ten plik nie jest obrazkiem, który aplikacja potrafi narysować. Spróbuj PNG albo JPEG.';
+
+  @override
+  String errorThumbnailTooBig(String limit) {
+    return 'Ten obrazek jest za duży - maksimum to $limit MB. Spróbuj mniejszej kopii.';
   }
 
   @override

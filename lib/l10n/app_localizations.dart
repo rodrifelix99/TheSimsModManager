@@ -747,6 +747,12 @@ abstract class L {
   /// **'{game} mods'**
   String filePickerModsLabel(String game);
 
+  /// No description provided for @filePickerImagesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Images'**
+  String get filePickerImagesLabel;
+
   /// No description provided for @installWhereTitle.
   ///
   /// In en, this message translates to:
@@ -1052,6 +1058,24 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Show in file manager'**
   String get showInFileManager;
+
+  /// No description provided for @thumbnailSetTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a picture for this mod'**
+  String get thumbnailSetTooltip;
+
+  /// No description provided for @thumbnailChangeTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a different picture'**
+  String get thumbnailChangeTooltip;
+
+  /// No description provided for @thumbnailClearTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this picture'**
+  String get thumbnailClearTooltip;
 
   /// No description provided for @uninstallMod.
   ///
@@ -2390,6 +2414,18 @@ abstract class L {
   /// In en, this message translates to:
   /// **'The app isn’t allowed to write to “{folder}”. Your system protects that folder - give your account write access to it, or point the app somewhere else in Settings.'**
   String errorNoWriteAccess(String folder);
+
+  /// No description provided for @errorThumbnailUnreadable.
+  ///
+  /// In en, this message translates to:
+  /// **'That file isn’t a picture the app can draw. Try a PNG or a JPEG.'**
+  String get errorThumbnailUnreadable;
+
+  /// No description provided for @errorThumbnailTooBig.
+  ///
+  /// In en, this message translates to:
+  /// **'That picture is too big - {limit} MB is the most one can be. Try a smaller copy.'**
+  String errorThumbnailTooBig(String limit);
 
   /// No description provided for @folderReadOnlyBanner.
   ///

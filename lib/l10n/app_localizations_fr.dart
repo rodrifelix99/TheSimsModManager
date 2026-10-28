@@ -441,6 +441,9 @@ class LFr extends L {
   }
 
   @override
+  String get filePickerImagesLabel => 'Images';
+
+  @override
   String get installWhereTitle => 'Ça va où ?';
 
   @override
@@ -620,6 +623,15 @@ class LFr extends L {
 
   @override
   String get showInFileManager => 'Afficher dans l’explorateur';
+
+  @override
+  String get thumbnailSetTooltip => 'Choisis une image pour ce mod';
+
+  @override
+  String get thumbnailChangeTooltip => 'Choisis une autre image';
+
+  @override
+  String get thumbnailClearTooltip => 'Retirer cette image';
 
   @override
   String get uninstallMod => 'Désinstaller le mod';
@@ -1564,6 +1576,15 @@ class LFr extends L {
   @override
   String errorNoWriteAccess(String folder) {
     return 'L’appli n’a pas le droit d’écrire dans « $folder ». Ton système protège ce dossier : donne à ton compte l’accès en écriture, ou choisis un autre dossier dans les Réglages.';
+  }
+
+  @override
+  String get errorThumbnailUnreadable =>
+      'Ce fichier n’est pas une image que l’appli sait afficher. Essaie un PNG ou un JPEG.';
+
+  @override
+  String errorThumbnailTooBig(String limit) {
+    return 'Cette image est trop lourde : $limit Mo au maximum. Essaie une version plus petite.';
   }
 
   @override

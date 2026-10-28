@@ -455,6 +455,9 @@ class LRu extends L {
   }
 
   @override
+  String get filePickerImagesLabel => 'Картинки';
+
+  @override
   String get installWhereTitle => 'Куда это положить?';
 
   @override
@@ -636,6 +639,15 @@ class LRu extends L {
 
   @override
   String get showInFileManager => 'Показать в проводнике';
+
+  @override
+  String get thumbnailSetTooltip => 'Выбери картинку для этого мода';
+
+  @override
+  String get thumbnailChangeTooltip => 'Выбери другую картинку';
+
+  @override
+  String get thumbnailClearTooltip => 'Убрать эту картинку';
 
   @override
   String get uninstallMod => 'Удалить мод';
@@ -1610,6 +1622,15 @@ class LRu extends L {
   @override
   String errorNoWriteAccess(String folder) {
     return 'У приложения нет прав на запись в «$folder». Система защищает эту папку. Выдай своей учётной записи доступ на запись или выбери другую папку в настройках.';
+  }
+
+  @override
+  String get errorThumbnailUnreadable =>
+      'Это не та картинка, которую приложение может нарисовать. Попробуй PNG или JPEG.';
+
+  @override
+  String errorThumbnailTooBig(String limit) {
+    return 'Картинка слишком большая - максимум $limit МБ. Попробуй копию поменьше.';
   }
 
   @override

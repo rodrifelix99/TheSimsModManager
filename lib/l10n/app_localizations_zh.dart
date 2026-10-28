@@ -410,6 +410,9 @@ class LZh extends L {
   }
 
   @override
+  String get filePickerImagesLabel => '图片';
+
+  @override
   String get installWhereTitle => '要装到哪里？';
 
   @override
@@ -575,6 +578,15 @@ class LZh extends L {
 
   @override
   String get showInFileManager => '在文件管理器中显示';
+
+  @override
+  String get thumbnailSetTooltip => '为这个 mod 选一张图片';
+
+  @override
+  String get thumbnailChangeTooltip => '换一张图片';
+
+  @override
+  String get thumbnailClearTooltip => '移除这张图片';
 
   @override
   String get uninstallMod => '卸载 MOD';
@@ -1439,6 +1451,14 @@ class LZh extends L {
   @override
   String errorNoWriteAccess(String folder) {
     return '应用没有权限写入「$folder」。这个文件夹被系统保护着，给你的账户加上写入权限，或者在设置里换一个文件夹。';
+  }
+
+  @override
+  String get errorThumbnailUnreadable => '这个文件不是应用能显示的图片。试试 PNG 或 JPEG 吧。';
+
+  @override
+  String errorThumbnailTooBig(String limit) {
+    return '这张图片太大了，最多只能 $limit MB。换一张小点的吧。';
   }
 
   @override
