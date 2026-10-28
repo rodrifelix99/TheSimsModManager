@@ -924,6 +924,40 @@ class AppController extends ChangeNotifier {
     return path == null ? null : _byPath[path];
   }
 
+  /// Which list the library is showing: the game, the layout, and every
+  /// filter that decides what is in it and what order it comes in.
+  ///
+  /// The shelf's scroll views carry it as a [PageStorageKey], which is
+  /// what remembers where somebody was (issue #26). Opening a mod's page
+  /// and coming back leaves it unchanged, so the shelf is where it was
+  /// left rather than back at the first row; narrowing to a folder is a
+  /// different list and a different key, so it opens at the top of that
+  /// folder, and letting the chip go again returns to the key the old
+  /// position was saved under.
+  ///
+  /// [_libraryStamp] is deliberately not in it. The stamp moves every
+  /// time the library is rebuilt - a refresh, an install, a mod switched
+  /// off - and that is the same list in the same order, so taking the
+  /// position away with it would be the thing this fixes.
+  String get libraryPositionKey => [
+        _adapter.game.id,
+        layout.name,
+        _filterKey(selectedCategories),
+        _filterKey(selectedFolders),
+        settings.folderIncludesSubfolders,
+        conflictsOnly,
+        advisoriesOnly,
+        tooDeepOnly,
+        duplicatesOnly,
+        tagFilter,
+        kindFilter,
+        stateFilter.name,
+        settings.showDisabled,
+        sort.name,
+        disabledLast,
+        query.trim().toLowerCase(),
+      ].join('|');
+
   List<Mod> get filteredMods {
     final q = query.trim().toLowerCase();
     final key = '$_libraryStamp|${_filterKey(selectedCategories)}'
